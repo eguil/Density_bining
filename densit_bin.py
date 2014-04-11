@@ -13,10 +13,11 @@
 #
 #
 
-import cdms2 as cdms
+import cdms2 as cdm
 import os, sys  
 import socket, argparse
 import string
+import numpy as npy
 import cdutil as cdu
 from genutil import statistics
 
@@ -40,8 +41,8 @@ toolpath=home+"/STL_analysis"
     
 parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
 parser.add_argument('-d', help='toggle debug mode', action='count', default='0')
-parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
-parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
+#parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
+#parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
 parser.add_argument('-i','--input', help='input directory', default="./")
 parser.add_argument('-o','--output',help='output directory', default="./")
 parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
@@ -59,8 +60,8 @@ with open(filer, "a") as f:
 debug        = str(args.d)
 indir        = args.input
 outdir       = args.output
-sigma_range  = args.sigma_range 
-delta_sigma  = args.sigma_increment
+#sigma_range  = args.sigma_range 
+#delta_sigma  = args.sigma_increment
 timeint      = args.timeint
 filenames    = args.string
 
@@ -71,14 +72,18 @@ file_S=filenames[1]
 if debug == "1":
   print file_T, file_S
 
-ft  = cdms.open(indir+"/"+file_T)
-fs  = cdms.open(indir+"/"+file_S)
+ft  = cdm.open(indir+"/"+file_T)
+fs  = cdm.open(indir+"/"+file_S)
 
 # Define temperature and salinity arrays
 
-tempe=
-salin=
+tempe =
+salin =
 
+# Define sigma grid
+
+
+sig = np.arange(19,28,.2)
 
 #
 # == detect time dimension and length
@@ -95,7 +100,7 @@ else:
 
 # target grid
 fileg='/Users/ericg/Desktop/Data/ORAS4/ORAS4_1mm_01_12_1958-2009_grid1_so.nc'
-g = cdms.open(fileg)
+g = cdm.open(fileg)
 so = g('so', time=slice(0,0))
 grd=so.getGrid()
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
