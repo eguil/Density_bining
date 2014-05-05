@@ -21,7 +21,7 @@
 # INPUTS:
 #       t : temperature
 #       s : salinity
-#       tmask : 3D mask
+#       mask
 #
 # REFERENCE:
 #	Compute the neutral volumic mass (Kg/m3) from known potential 
@@ -42,19 +42,28 @@
 #------------------------------------------------------------
 #------------------------------------------------------------
 #------------------------------------------------------------
-import math
+import numpy as npy
+import MV2 as mv
 
-def eos_neutral (t, s, tmask):
+def eos_neutral(t, s, mask):
 #
 # mask t and s fields
-   zt=t*tmask
-   zs=s*tmask 
+
+    print type(s)
+    print s.shape
+    print s[1,1,:90,:180]
+
+    print mask[1,1,:90,:180]
+
+    zt=t*mask
+    zs=s*mask
+    print zs[1,1,:90,:180]
 #
 # neutral density
 #
 #   square root salinity
      	
-    zsr= math.sqrt( abs( zs ) )
+    zsr= npy.sqrt( npy.absolute( zs ) )
 
 # Numerator
 # T-Polynome:                    T^3                       T^2                         T                      cst
@@ -71,6 +80,13 @@ def eos_neutral (t, s, tmask):
     zr5= ( -1.3409379420216683e-9*zt*zt-3.6138532339703262e-5)*zs*zsr
 #
 #   ... masked neutral density
-    zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 ) * tmask
+    zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 ) * mask
     return zrho 
 
+def scrubNaNAndMask(var,maskVar):
+    # Check for NaNs
+    nanvals = isnan(var)
+    var[nanvals] = 1e+20
+    var = mv.masked_where(maskVar>=1e+20,var)
+    var = mv.masked_where(maskVar.mask,var)
+    return var

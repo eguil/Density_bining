@@ -10,7 +10,10 @@
 #
 # --------------------------------------------------------------
 #  E. Guilyardi - while at LBNL/LLNL -  March 2014
-#
+# 
+# git add densit_bin.py
+# git commit -m "with Paul"
+# git push
 #
 
 import cdms2 as cdm
@@ -18,8 +21,10 @@ import os, sys
 import socket, argparse
 import string
 import numpy as npy
+import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
+import support_density as sd
 
 #
 # == Arguments
@@ -40,13 +45,13 @@ toolpath=home+"/STL_analysis"
 # == get command line options
     
 parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
-parser.add_argument('-d', help='toggle debug mode', action='count', default='0')
+parser.add_argument('-d', help='toggle debug mode', action='count', default=0)
 #parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
 #parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
 parser.add_argument('-i','--input', help='input directory', default="./")
 parser.add_argument('-o','--output',help='output directory', default="./")
 parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
-parser.add_argument('string', metavar='T and S files', type=str, help='netCDF input files')
+parser.add_argument('string', metavar='root for T and S files', type=str, help='netCDF input files root')
 args = parser.parse_args()
 
 # Write command line in history file
@@ -63,32 +68,45 @@ outdir       = args.output
 #sigma_range  = args.sigma_range 
 #delta_sigma  = args.sigma_increment
 timeint      = args.timeint
-filenames    = args.string
+file_root    = args.string
+
+if debug == '1': 
+    print args
+
 
 # Define T and S file names
-file_T=filenames[0]
-file_S=filenames[1]
+file_T=file_root+'_thetao.nc'
+file_S=file_root+'_so.nc'
+
 
 if debug == "1":
-  print file_T, file_S
-
+    print file_T, file_S
+  
 ft  = cdm.open(indir+"/"+file_T)
 fs  = cdm.open(indir+"/"+file_S)
 
 # Define temperature and salinity arrays
 
-tempe =
-salin =
+temp = ft("thetao")
+so = fs("so")
+
+print so.attributes.keys()
+valmask = so._FillValue
+
+w=sys.stdin.readline() # stop the code here. [Ret] to keep going
+
+maskVar=ma.masked_greater_equal(temp, valmask).mask
+mask=1.-maskVar.astype(float)
+rhon=sd.eos_neutral(temp,so,mask)
 
 # Define sigma grid
-
 
 sig = np.arange(19,28,.2)
 
 #
 # == detect time dimension and length
 #
-time=f[tempe].getTime()
+time=f[temp].getTime()
 
 if time is None:  
     print "*** no time dimension in file ",file_T
