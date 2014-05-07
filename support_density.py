@@ -45,25 +45,18 @@
 import numpy as npy
 import MV2 as mv
 
-def eos_neutral(t, s, mask):
+def eos_neutral(t, s):
 #
 # mask t and s fields
 
-    print type(s)
-    print s.shape
-    print s[1,1,:90,:180]
-
-    print mask[1,1,:90,:180]
-
-    zt=t*mask
-    zs=s*mask
-    print zs[1,1,:90,:180]
+    zt=t
+    zs=s
 #
 # neutral density
 #
 #   square root salinity
      	
-    zsr= npy.sqrt( npy.absolute( zs ) )
+    zsr= mv.sqrt( mv.absolute( zs ) )
 
 # Numerator
 # T-Polynome:                    T^3                       T^2                         T                      cst
@@ -80,7 +73,7 @@ def eos_neutral(t, s, mask):
     zr5= ( -1.3409379420216683e-9*zt*zt-3.6138532339703262e-5)*zs*zsr
 #
 #   ... masked neutral density
-    zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 ) * mask
+    zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 )
     return zrho 
 
 def scrubNaNAndMask(var,maskVar):

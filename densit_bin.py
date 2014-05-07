@@ -4,6 +4,7 @@
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
 #  - T(x,y,sigma,t)
 #  - S(x,y,sigma,t)
+#  - V(x,y,sigma,t) (volume of isopycnal)
 #
 # Uses McDougall and Jackett 2005 (IDL routine provided by Gurvan Madec)
 # Inspired from IDL density bin routines
@@ -17,6 +18,7 @@
 #
 
 import cdms2 as cdm
+from cdms2 import MV as mv
 import os, sys  
 import socket, argparse
 import string
@@ -90,38 +92,20 @@ fs  = cdm.open(indir+"/"+file_S)
 temp = ft("thetao")
 so = fs("so")
 
-print so.attributes.keys()
-valmask = so._FillValue
+# Compute neutral density
 
-w=sys.stdin.readline() # stop the code here. [Ret] to keep going
+rhon=sd.eos_neutral(temp,so)-1000.
 
-maskVar=ma.masked_greater_equal(temp, valmask).mask
-mask=1.-maskVar.astype(float)
-rhon=sd.eos_neutral(temp,so,mask)
+print 'Rhon computed'
 
 # Define sigma grid
 
-sig = np.arange(19,28,.2)
+sigrd = npy.arange(19,28,.2)
 
-#
-# == detect time dimension and length
-#
-time=f[temp].getTime()
+w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 
-if time is None:  
-    print "*** no time dimension in file ",file_T
-    count = raw_input("Enter number of time steps: ")
-else:
-    timename = time.id
-    count    = time.shape[0]
+# Loop on horizontal grid 
 
-
-# target grid
-fileg='/Users/ericg/Desktop/Data/ORAS4/ORAS4_1mm_01_12_1958-2009_grid1_so.nc'
-g = cdm.open(fileg)
-so = g('so', time=slice(0,0))
-grd=so.getGrid()
-#w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 
 for l in range(len(lst)):
   i=lst[l]
@@ -151,6 +135,8 @@ for l in range(len(lst)):
   g.close()
 
 
+# ----------------------------------------
+# some useful comamnds....
 
 # d.info
 # t=d.getTime() or t1=d.getAxis(0)
@@ -159,5 +145,20 @@ for l in range(len(lst)):
 # import genutil (local dev)
 # dir(genutil) doc for completion
 
+#print so.attributes.keys()
+#valmask = so._FillValue
+
+
+#
+# == detect time dimension and length
+#
+#time=ft[temp].getTime()
+
+#if time is None:  
+#    print "*** no time dimension in file ",file_T
+#    count = raw_input("Enter number of time steps: ")
+#else:
+#    timename = time.id
+#    count    = time.shape[0]
 
 
