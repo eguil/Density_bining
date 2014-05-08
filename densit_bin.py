@@ -2,12 +2,12 @@
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
-#  - T(x,y,sigma,t)
-#  - S(x,y,sigma,t)
+#  - T or S(x,y,sigma,t)
+#  - D(x,y,sigma,t) (depth of isopycnal)
 #  - V(x,y,sigma,t) (volume of isopycnal)
 #
 # Uses McDougall and Jackett 2005 (IDL routine provided by Gurvan Madec)
-# Inspired from IDL density bin routines
+# Inspired from IDL density bin routines (by G. Roullet and G. Madec 1999)
 #
 # --------------------------------------------------------------
 #  E. Guilyardi - while at LBNL/LLNL -  March 2014
@@ -18,7 +18,7 @@
 #
 
 import cdms2 as cdm
-from cdms2 import MV as mv
+import MV2 as mv
 import os, sys  
 import socket, argparse
 import string
@@ -89,50 +89,111 @@ fs  = cdm.open(indir+"/"+file_S)
 
 # Define temperature and salinity arrays
 
-temp = ft("thetao")
-so = fs("so")
+temp = ft("thetao")-273.15
+so   = fs("so")
+valmask = so._FillValue[0]
+
+time  = temp.getTime()
+lon  = temp.getLongitude()
+lat  = temp.getLatitude()
+
+depth = temp.getLevel()
+bounds = ft("lev_bnds")
+
+N_z = int(depth.shape[0])
 
 # Compute neutral density
 
-rhon=sd.eos_neutral(temp,so)-1000.
+rhon = sd.eos_neutral(temp,so)-1000.
+
+# decide which field to bin
+
+x1 = temp
 
 print 'Rhon computed'
 
 # Define sigma grid
 
-sigrd = npy.arange(19,28,.2)
+s_s = npy.arange(19,28,.2)
+N_s = int(s_s.shape[0])
 
-w=sys.stdin.readline() # stop the code here. [Ret] to keep going
+#w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 
-# Loop on horizontal grid 
+# start density bining (loop on t and horizontal grid)
 
+imin = 1
+jmin = 1
+tmin = 1
+imax = temp.shape[2]
+jmax = temp.shape[3]
+kmax = temp.shape[1]
+tmax = temp.shape[0]
 
-for l in range(len(lst)):
-  i=lst[l]
-  mod = string.split(i,'.')[1]
-  f = cdms.open(pathin + var + '/' + i)
-  d = f(var)
-  d=d[0,0,...] # needs to loop on vertical levels
+# test point                
+imin = 60
+jmin = 80
+imax = 60+1
+jmax = 80+1
+tmax = 1+1
 
-# d=f(var, latitude=(-5.,5.),longitude=(-140.,-110.),level=(0,40))
-#  print d.info
-# interpolate - regrid
-#  if rgrid_meth == 'regrid2':
-#    do = do.regrid(obsg,regridTool='regrid2')
-#  if rgrid_meth in ['linear','conservative']:
-  diag = {}
-  d = d.regrid(grd,regridTool='ESMF',regridMethod='linear')
-  aavg = cdu.averager(d, axis = '123')
-  stdev=float(statistics.std(aavg))
+# inits
+# z profiles:
+c1_z = [float('NaN')]*N_z
+s_z  = [float('NaN')]*N_z
+z_zt = depth[:]
+z_zw = bounds.data[:,0]
+bowl_s = 0.
 
-  print mod,'  ', aavg.shape, ' ',stdev 
+# density profiles:
+z_s  = [float('NaN')]*(N_s+1)
+c1_s = [float('NaN')]*(N_s+1)
+z1_s = [float('NaN')]*(N_s+1)
 
-  f.close()
+# output arrays
+depth_bin = [] # dim: i,j,Ns_+1
+thick_bin = [] # dim: i,j,Ns_+1
+x1_bin    = [] # dim: i,j,Ns_+1
+bowl_bin  = [] # dim: i,j 
 
-  aavg.id=var
-  g=cdms.open(mod+"_out.nc","w+")
-  g.write(aavg)
-  g.close()
+# loop on time
+for t in range(tmin,tmax):
+
+# x1 contents on vertical
+    x1_content = x1[t,:,:,:] # dims: i,j,k
+    
+ 
+    # Loop on horizontal grid (to be optimized !)
+    # (Paul: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
+    # (Paul: dims are always this order ?)
+    for j in range(jmin,jmax):
+        for i in range(imin,imax):
+            # loop on vertical axis to define in which density bins the vertical levels are
+            # for k in range(temp.shape[1]):
+            # test on masked points
+            vmask = npy.nonzero(temp[t,:,j,i])
+            z_s = z_s*0.
+            c1_s[:] = nan
+            bowl_s = nan 
+            if len(vmask[0]) > 0: # i.e. point is not masked
+                print "test point",i,j
+                print "lon,lat",lon[j,i],lat[j,i]
+                print "depths ",depth[:]
+                #
+                i_bottom = vmask[0][len(vmask[0])-1]
+                z_s[N_s] = z_zw[i_bottom]
+                c1_s[N_s] = x1_content[N_z-1,j,i]
+
+                s_z = rhon[t,:,j,i]
+                c1_z = x1_content[:,j,i]
+
+                print 'density profile s_z', s_z
+                print 'field profile c1_z', c1_z
+                # extract a strictly increasing sub-profile
+                mini = min(s_z.data[vmask[0]])
+                maxi = max(s_z.data[vmask[0]])
+            ...    i_min = where (s_z.data[vmask[0]]) eq mini
+                i_max = ... maxi
+
 
 
 # ----------------------------------------
