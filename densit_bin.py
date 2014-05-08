@@ -45,7 +45,7 @@ hist_file_dir=home
 toolpath=home+"/STL_analysis"
 
 # == get command line options
-    
+ 
 parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
 parser.add_argument('-d', help='toggle debug mode', action='count', default=0)
 #parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
@@ -114,8 +114,8 @@ print 'Rhon computed'
 
 # Define sigma grid
 
-s_s = npy.arange(19,28,.2)
-N_s = int(s_s.shape[0])
+s_s = npy.arange(19,28,.2).tolist()
+N_s = len(s_s)
 
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 
@@ -161,7 +161,6 @@ for t in range(tmin,tmax):
 # x1 contents on vertical
     x1_content = x1[t,:,:,:] # dims: i,j,k
     
- 
     # Loop on horizontal grid (to be optimized !)
     # (Paul: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
     # (Paul: dims are always this order ?)
@@ -171,9 +170,9 @@ for t in range(tmin,tmax):
             # for k in range(temp.shape[1]):
             # test on masked points
             vmask = npy.nonzero(temp[t,:,j,i])
-            z_s = z_s*0.
-            c1_s[:] = nan
-            bowl_s = nan 
+            z_s = npy.asarray([float(0.0)]*(N_s+1))
+            c1_s = npy.asarray([float('NaN')]*(N_s+1))
+            bowl_s = float("NaN") 
             if len(vmask[0]) > 0: # i.e. point is not masked
                 print "test point",i,j
                 print "lon,lat",lon[j,i],lat[j,i]
@@ -183,21 +182,43 @@ for t in range(tmin,tmax):
                 z_s[N_s] = z_zw[i_bottom]
                 c1_s[N_s] = x1_content[N_z-1,j,i]
 
-                s_z = rhon[t,:,j,i]
+                s_z = rhon[t,:,j,i].data
                 c1_z = x1_content[:,j,i]
 
                 print 'density profile s_z', s_z
                 print 'field profile c1_z', c1_z
+
                 # extract a strictly increasing sub-profile
-                mini = min(s_z.data[vmask[0]])
-                maxi = max(s_z.data[vmask[0]])
-            ...    i_min = where (s_z.data[vmask[0]]) eq mini
-                i_max = ... maxi
+                mini = min(s_z[vmask[0]])
+                maxi = max(s_z[vmask[0]])
+                i_min = (s_z[vmask[0]]).tolist().index(mini)
+                i_max = (s_z[vmask[0]]).tolist().index(maxi)
+
+                # largest of min indices and smaller of max indices
+                # to do
+
+                # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+                ind = sd.whereLT(s_s, s_z[i_min])
+                z_s[ind] = 0.
+                c1_s[ind] = 0.
+
+                # if level of s_s has higher density than bottom density, isopycnal is set to bottom (z_s=z_zw[i_bottom])
+                ind = sd.whereGT(s_s, s_z[i_max])
+                z_s[ind] = z_s[N_s]
+                c1_s[ind] = c1_s[N_s]
+                c1_s[ind] = float("NaN")
+
+                # General case
+                ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
+
+                print 'ind = ',ind
 
 
+#next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
+                
 
 # ----------------------------------------
-# some useful comamnds....
+# some useful commands....
 
 # d.info
 # t=d.getTime() or t1=d.getAxis(0)
@@ -209,6 +230,11 @@ for t in range(tmin,tmax):
 #print so.attributes.keys()
 #valmask = so._FillValue
 
+# array or tuple to list:
+#array.tolist()
+# find index: eg: where(s_s LT s_z[i_min])
+#   ind = next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
+#   see support procs: ind = sd.whereLT(s_s, s_z[i_min])
 
 #
 # == detect time dimension and length

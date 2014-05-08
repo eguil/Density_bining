@@ -83,3 +83,30 @@ def scrubNaNAndMask(var,maskVar):
     var = mv.masked_where(maskVar>=1e+20,var)
     var = mv.masked_where(maskVar.mask,var)
     return var
+
+def whereLT(elements, reference):
+    # find index(indices)
+    index_list=[]
+    for index, elem in enumerate(elements):
+        if elem < reference:
+            index_list.append(index)
+    return npy.asarray(index_list).astype(int)
+    raise ValueError("No index found whereLT")
+
+def whereGT(elements, reference):
+    # find index(indices)
+    index_list=[]
+    for index, elem in enumerate(elements):
+        if elem > reference:
+            index_list.append(index)
+    return npy.asarray(index_list).astype(int)
+    raise ValueError("No index found whereGT")
+
+def where_between(elements, reference_low, reference_high):
+    # find index(indices)
+    index_list=[]
+    for index, elem in enumerate(elements):
+        if elem > reference_low and elem < reference_high:
+            index_list.append(index)
+    return npy.asarray(index_list).astype(int)
+    raise ValueError("No index found where_between")
