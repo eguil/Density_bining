@@ -106,8 +106,8 @@ bounds = ft("lev_bnds")
 
 # Define dimensions
 
-N_i = int(lon.shape[0])
-N_j = int(lon.shape[1])
+N_i = int(lon.shape[1])
+N_j = int(lon.shape[0])
 N_z = int(depth.shape[0])
 N_t = int(time.shape[0])
 
@@ -123,27 +123,30 @@ print 'Rhon computed'
 
 # Define sigma grid
 
-s_s = npy.arange(19,28,.2).tolist()
+rho_min = 19
+rho_max = 29
+del_s = 0.2
+s_s = npy.arange(rho_min, rho_max, del_s).tolist()
 N_s = len(s_s)
 
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 
 # start density bining (loop on t and horizontal grid)
 
-imin = 1
-jmin = 1
-tmin = 1
-imax = temp.shape[2]
-jmax = temp.shape[3]
-kmax = temp.shape[1]
-tmax = temp.shape[0]
+imin = 0
+jmin = 0
+tmin = 0
+imax = temp.shape[3]-1
+jmax = temp.shape[2]-1
+kmax = temp.shape[1]-1
+tmax = temp.shape[0]-1
 
 # test point                
-imin = 80
-jmin = 60
-imax = 80+1
-jmax = 60+1
-tmax = 1+1
+#imin = 80
+#jmin = 60
+#imax = 80+1
+#jmax = 60+1
+tmax = 1
 
 # inits
 # z profiles:
@@ -164,9 +167,11 @@ thick_bin = depth_bin.copy() # dim: i,j,Ns_+1,t
 x1_bin    = depth_bin.copy() # dim: i,j,Ns_+1,t
 #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
+x1_bin[:,:,:,:]=valmask
+
 # loop on time
 for t in range(tmin,tmax):
-
+    print ' --> t=',t
 # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
     
@@ -179,13 +184,10 @@ for t in range(tmin,tmax):
             # for k in range(temp.shape[1]):
             # test on masked points
             vmask = npy.nonzero(temp[t,:,j,i])
-            z_s = npy.asarray([float(0.0)]*(N_s+1)) # simpler way to define an array of floats of dom N_s+1 ?
+            z_s = npy.asarray([float(0.0)]*(N_s+1)) # simpler way to define an array of floats of dim N_s+1 ?
             c1_s = npy.asarray([float('NaN')]*(N_s+1))
             #bowl_s = float("NaN") 
             if len(vmask[0]) > 0: # i.e. point is not masked
-                print "test point",i,j
-                print "lon,lat",lon[j,i],lat[j,i]
-                print "depths ",depth[:]
                 #
                 i_bottom = vmask[0][len(vmask[0])-1]
                 z_s[N_s] = z_zw[i_bottom]
@@ -194,39 +196,55 @@ for t in range(tmin,tmax):
                 s_z = rhon[t,:,j,i].data
                 c1_z = x1_content[:,j,i]
 
-                print 'density profile s_z', s_z
-                print 'field profile c1_z', c1_z
-
                 # extract a strictly increasing sub-profile
-                mini = min(s_z[vmask[0]])
-                maxi = max(s_z[vmask[0]])
-                i_min = (s_z[vmask[0]]).tolist().index(mini)
-                i_max = (s_z[vmask[0]]).tolist().index(maxi)
+                # first test on stratification
+                delta_rho = s_z[vmask[0]][i_bottom-1] - s_z[vmask[0]][0]
+                if delta_rho < del_s:
+                    i_min = 0
+                    i_max = i_bottom
+                else:
+                    mini = min(s_z[vmask[0]])
+                    maxi = max(s_z[vmask[0]])
+                    i_min = (s_z[vmask[0]]).tolist().index(mini)
+                    i_max = (s_z[vmask[0]]).tolist().index(maxi)
 
                 # TO DO: largest of min indices and smaller of max indices (for special cases and robustness)
+                if i_min > i_max:
+                    print '*** i_min > i_max ', i_min,i_max
 
                 # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
                 ind = sd.whereLT(s_s, s_z[i_min])
                 z_s[ind] = 0.
-                c1_s[ind] = 0.
+                c1_s[ind] = valmask
 
                 # if level of s_s has higher density than bottom density, isopycnal is set to bottom (z_s=z_zw[i_bottom])
                 ind = sd.whereGT(s_s, s_z[i_max])
                 z_s[ind] = z_s[N_s]
                 c1_s[ind] = c1_s[N_s]
-                c1_s[ind] = float("NaN")
+                c1_s[ind] = valmask
 
                 # General case
                 ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
-                i_profil = vmask[0][i_min:i_max]
+                if len(ind) >= 1:
+                    i_profil = vmask[0][i_min:i_max]
 
                 # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-                z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
+#                    if delta_rho < del_s:
+#                        print 'ind = ',ind
+#                        print "test point",i,j
+#                        print "lon,lat",lon[j,i],lat[j,i]
+#                        print 'i_min,i_max ', i_min,i_max
+#                        print 'density profile s_z', s_z
+#                        print 'delta_rho ', delta_rho
+#                        print ' '
+                #                    print 'field profile c1_z', c1_z
                 
-                c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
+                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
+                        
+                    c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
                 
-                print 'z_s[ind] = ',z_s[ind]
-                print 'c1_s[ind] = ',c1_s[ind]
+   #             print 'z_s = ',z_s
+   #             print 'c1_s = ',c1_s
 
                 # TO DO: bowl depth bining
                 # IF sig_bowl EQ 1 THEN BEGIN
@@ -251,7 +269,6 @@ for t in range(tmin,tmax):
 # OPTIONAL: compute spiciness by removing isopycnal mean for each sigma (T or S)
 # OPTIONAL: remove domain mean (S)
 # OPTIONAL: remove 34.6psu (S)
-
 
 # -----------------------------------------------------------------------------
 # plt.plot(x, y, '.-')
