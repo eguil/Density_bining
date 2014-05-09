@@ -6,6 +6,9 @@
 #  - D(x,y,sigma,t) (depth of isopycnal)
 #  - V(x,y,sigma,t) (volume of isopycnal)
 #
+#  TO DO list:
+#    - add bowl interpolation on density
+#
 # Uses McDougall and Jackett 2005 (IDL routine provided by Gurvan Madec)
 # Inspired from IDL density bin routines (by G. Roullet and G. Madec 1999)
 #
@@ -27,6 +30,7 @@ import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
 import support_density as sd
+#import matplotlib.pyplot as plt
 
 #
 # == Arguments
@@ -100,14 +104,19 @@ lat  = temp.getLatitude()
 depth = temp.getLevel()
 bounds = ft("lev_bnds")
 
+# Define dimensions
+
+N_i = int(lon.shape[0])
+N_j = int(lon.shape[1])
 N_z = int(depth.shape[0])
+N_t = int(time.shape[0])
 
 # Compute neutral density
 
 rhon = sd.eos_neutral(temp,so)-1000.
 
 # decide which field to bin
-
+# TO DO: bring to args
 x1 = temp
 
 print 'Rhon computed'
@@ -130,10 +139,10 @@ kmax = temp.shape[1]
 tmax = temp.shape[0]
 
 # test point                
-imin = 60
-jmin = 80
-imax = 60+1
-jmax = 80+1
+imin = 80
+jmin = 60
+imax = 80+1
+jmax = 60+1
 tmax = 1+1
 
 # inits
@@ -142,7 +151,7 @@ c1_z = [float('NaN')]*N_z
 s_z  = [float('NaN')]*N_z
 z_zt = depth[:]
 z_zw = bounds.data[:,0]
-bowl_s = 0.
+#bowl_s = 0.
 
 # density profiles:
 z_s  = [float('NaN')]*(N_s+1)
@@ -150,18 +159,18 @@ c1_s = [float('NaN')]*(N_s+1)
 z1_s = [float('NaN')]*(N_s+1)
 
 # output arrays
-depth_bin = [] # dim: i,j,Ns_+1
-thick_bin = [] # dim: i,j,Ns_+1
-x1_bin    = [] # dim: i,j,Ns_+1
-bowl_bin  = [] # dim: i,j 
+depth_bin = npy.ma.zeros([N_t, N_s+1, N_j, N_i]) # dim: i,j,Ns_+1,t 
+thick_bin = depth_bin.copy() # dim: i,j,Ns_+1,t
+x1_bin    = depth_bin.copy() # dim: i,j,Ns_+1,t
+#bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
 # loop on time
 for t in range(tmin,tmax):
 
-# x1 contents on vertical
-    x1_content = x1[t,:,:,:] # dims: i,j,k
+# x1 contents on vertical (not yet implemented - may be done to ensure conservation)
+    x1_content = x1.data[t,:,:,:] # dims: i,j,k
     
-    # Loop on horizontal grid (to be optimized !)
+    # Loop on horizontal grid (TO DO: to be optimized !)
     # (Paul: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
     # (Paul: dims are always this order ?)
     for j in range(jmin,jmax):
@@ -170,9 +179,9 @@ for t in range(tmin,tmax):
             # for k in range(temp.shape[1]):
             # test on masked points
             vmask = npy.nonzero(temp[t,:,j,i])
-            z_s = npy.asarray([float(0.0)]*(N_s+1))
+            z_s = npy.asarray([float(0.0)]*(N_s+1)) # simpler way to define an array of floats of dom N_s+1 ?
             c1_s = npy.asarray([float('NaN')]*(N_s+1))
-            bowl_s = float("NaN") 
+            #bowl_s = float("NaN") 
             if len(vmask[0]) > 0: # i.e. point is not masked
                 print "test point",i,j
                 print "lon,lat",lon[j,i],lat[j,i]
@@ -194,8 +203,7 @@ for t in range(tmin,tmax):
                 i_min = (s_z[vmask[0]]).tolist().index(mini)
                 i_max = (s_z[vmask[0]]).tolist().index(maxi)
 
-                # largest of min indices and smaller of max indices
-                # to do
+                # TO DO: largest of min indices and smaller of max indices (for special cases and robustness)
 
                 # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
                 ind = sd.whereLT(s_s, s_z[i_min])
@@ -210,12 +218,47 @@ for t in range(tmin,tmax):
 
                 # General case
                 ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
+                i_profil = vmask[0][i_min:i_max]
 
-                print 'ind = ',ind
-
-
-#next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
+                # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
+                z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
                 
+                c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
+                
+                print 'z_s[ind] = ',z_s[ind]
+                print 'c1_s[ind] = ',c1_s[ind]
+
+                # TO DO: bowl depth bining
+                # IF sig_bowl EQ 1 THEN BEGIN
+                #   bowl_s = interpol(s_z[i_profil], z_zt[i_profil], sobwlmax[i, j])
+                # ENDIF ELSE BEGIN
+                #   bowl_s = 0
+                # ENDELSE
+            # end if masked point
+
+            depth_bin [t,:,j,i]     = z_s
+            thick_bin [t,0,j,i]     = z_s[0]
+            thick_bin [t,1:N_s,j,i] = z_s[1:N_s]-z_s[0:N_s-1]
+            x1_bin    [t,:,j,i]     = c1_s
+            #bowl_bin  [j, i]        = bowl_s
+
+    # end loop on i,j
+
+# end loop on t
+
+# TO DO Mask depth_bin, thick_bin
+
+# OPTIONAL: compute spiciness by removing isopycnal mean for each sigma (T or S)
+# OPTIONAL: remove domain mean (S)
+# OPTIONAL: remove 34.6psu (S)
+
+
+# -----------------------------------------------------------------------------
+# plt.plot(x, y, '.-')
+# plt.plot(xs, ys)
+# plt.show()
+#next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
+# use numpy first !                
 
 # ----------------------------------------
 # some useful commands....
