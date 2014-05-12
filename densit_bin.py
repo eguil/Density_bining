@@ -30,6 +30,8 @@ import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
 import support_density as sd
+import time as timc
+import timeit
 #import matplotlib.pyplot as plt
 
 #
@@ -46,7 +48,7 @@ if socket.gethostname() == 'crunchy.llnl.gov':
     home='/work/guilyardi'
 
 hist_file_dir=home
-toolpath=home+"/STL_analysis"
+toolpath=home+'/STL_analysis'
 
 # == get command line options
  
@@ -64,7 +66,7 @@ args = parser.parse_args()
 
 filer=hist_file_dir+'/z_density_hist.txt'
 
-with open(filer, "a") as f:
+with open(filer, 'a') as f:
     f.write('\n\r'+str(sys.argv).translate(None, "',[]"))
  
 ## read values
@@ -79,22 +81,23 @@ file_root    = args.string
 if debug == '1': 
     print args
 
+tic = timc.clock()
 
 # Define T and S file names
 file_T=file_root+'_thetao.nc'
 file_S=file_root+'_so.nc'
 
 
-if debug == "1":
+if debug == '1':
     print file_T, file_S
   
-ft  = cdm.open(indir+"/"+file_T)
-fs  = cdm.open(indir+"/"+file_S)
+ft  = cdm.open(indir+'/'+file_T)
+fs  = cdm.open(indir+'/'+file_S)
 
 # Define temperature and salinity arrays
 
-temp = ft("thetao")-273.15
-so   = fs("so")
+temp = ft('thetao')-273.15
+so   = fs('so')
 valmask = so._FillValue[0]
 
 time  = temp.getTime()
@@ -102,7 +105,10 @@ lon  = temp.getLongitude()
 lat  = temp.getLatitude()
 
 depth = temp.getLevel()
-bounds = ft("lev_bnds")
+bounds = ft('lev_bnds')
+
+toc = timc.clock()
+print ' ...time read = ', toc-tic
 
 # Define dimensions
 
@@ -114,12 +120,19 @@ N_t = int(time.shape[0])
 # Compute neutral density
 
 rhon = sd.eos_neutral(temp,so)-1000.
+tic = timc.clock()
 
 # decide which field to bin
 # TO DO: bring to args
-x1 = temp
 
-print 'Rhon computed'
+var='temp'
+if var == 'temp':
+    x1 = temp
+    x1_name = 'Temperature'
+    x1_units = temp.units
+
+print
+print 'Rhon computed (time = ',tic-toc,')'
 print '  rho min/max ', npy.min(rhon), npy.max(rhon)
 
 # Define sigma grid
@@ -136,18 +149,24 @@ N_s = len(s_s)
 
 imin = 0
 jmin = 0
-tmin = 0
-imax = temp.shape[3]-1
-jmax = temp.shape[2]-1
-kmax = temp.shape[1]-1
-tmax = temp.shape[0]-1
+
+imax = temp.shape[3] - 1
+jmax = temp.shape[2] - 1
 
 # test point                
 #imin = 80
 #jmin = 60
 #imax = 80+1
 #jmax = 60+1
-tmax = 1
+
+if timeint == 'all':
+    tmin = 0
+    tmax = temp.shape[0] - 1
+else:
+    tmin = int(timeint.split(',')[0]) - 1
+    tmax = tmin + int(timeint.split(',')[1])
+
+print '  time interval: ', tmin, tmax - 1
 
 # inits
 # z profiles:
@@ -169,10 +188,9 @@ thick_bin = depth_bin.copy()
 x1_bin    = depth_bin.copy() 
 #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
-
-x1_bin[:,:,:,:]=valmask
-
-
+print
+toc = timc.clock()
+toc2 = timeit.default_timer()
 # loop on time
 for t in range(tmin,tmax):
     print ' --> t=',t
@@ -190,7 +208,7 @@ for t in range(tmin,tmax):
             vmask = npy.nonzero(temp[t,:,j,i])
             z_s = npy.asarray([float(0.0)]*(N_s+1)) # simpler way to define an array of floats of dim N_s+1 ?
             c1_s = npy.asarray([float('NaN')]*(N_s+1))
-            #bowl_s = float("NaN") 
+            #bowl_s = float('NaN') 
             if len(vmask[0]) > 0: # i.e. point is not masked
                 #
                 i_bottom = vmask[0][len(vmask[0])-1]
@@ -268,14 +286,53 @@ for t in range(tmin,tmax):
 
 # end loop on t
 
-# TO DO Mask depth_bin, thick_bin
+tic = timc.clock()
+tic2 = timeit.default_timer()
+print 'Loop on t,i,j done (times = ',tic-toc, tic2-toc2, ')'
 
 # Output files as netCDF
+
+
+s_sd = npy.arange(rho_min, rho_max+del_s, del_s)
+s_axis = cdm.createAxis(s_sd)
+s_axis.id = 'Neutral density'
+s_axis.units = ''
+#bnd = [s_s, s_s+del_s]
+#s_axis.setBounds(bnd) 
+s_axis.designateLevel()
+
+# Def variables
 
 depthBin = cdm.createVariable(depth_bin,id='maskedVariable')
 thickBin = cdm.createVariable(thick_bin,id='maskedVariable')
 x1Bin    = cdm.createVariable(x1_bin,id='maskedVariable')
 
+depthBin.id = 'isodepth'
+depthBin.names = 'Depth of isopycnal'
+depthBin.units = 'm'
+depthBin.setAxisList([time, s_axis, lat, lon])
+
+thickBin.id = 'isothick'
+thickBin.names = 'Thickness of isopycnal'
+thickBin.units = 'm'
+thickBin.setAxisList([time, s_axis, lat, lon])
+
+x1Bin.id = 'thetao'
+x1Bin.names = 'Bined '+x1_name
+x1Bin.units = x1_units
+x1Bin.setAxisList([time, s_axis, lat, lon])
+
+file_out = outdir+'/density_out.nc'
+g = cdm.open(file_out,'w+')
+g.write(depthBin)
+g.write(thickBin)
+g.write(x1Bin)
+#g.description = 'Density bining via densit_bin.py using delta_sigam = ', del_s
+g.close()
+
+toc = timc.clock()
+print 'Wrote file', file_out
+print ' time write = ',toc-tic
 
 # -----------------------------------------------------------------------------
 # plt.plot(x, y, '.-')
@@ -283,6 +340,10 @@ x1Bin    = cdm.createVariable(x1_bin,id='maskedVariable')
 # plt.show()
 #next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
 # use numpy first !                
+
+
+# multiprocs:
+# http://stackoverflow.com/questions/20820367/more-complex-parallel-for-loop-in-python
 
 # ----------------------------------------
 # some useful commands....
