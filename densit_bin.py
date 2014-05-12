@@ -120,11 +120,12 @@ rhon = sd.eos_neutral(temp,so)-1000.
 x1 = temp
 
 print 'Rhon computed'
+print '  rho min/max ', npy.min(rhon), npy.max(rhon)
 
 # Define sigma grid
 
 rho_min = 19
-rho_max = 29
+rho_max = 28
 del_s = 0.2
 s_s = npy.arange(rho_min, rho_max, del_s).tolist()
 N_s = len(s_s)
@@ -162,12 +163,15 @@ c1_s = [float('NaN')]*(N_s+1)
 z1_s = [float('NaN')]*(N_s+1)
 
 # output arrays
-depth_bin = npy.ma.zeros([N_t, N_s+1, N_j, N_i]) # dim: i,j,Ns_+1,t 
-thick_bin = depth_bin.copy() # dim: i,j,Ns_+1,t
-x1_bin    = depth_bin.copy() # dim: i,j,Ns_+1,t
+depth_bin = npy.ma.ones([N_t, N_s+1, N_j, N_i], dtype='float32')*1.e+20 
+depth_bin = mv.masked_where(depth_bin==1.e+20, depth_bin)
+thick_bin = depth_bin.copy() 
+x1_bin    = depth_bin.copy() 
 #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
+
 x1_bin[:,:,:,:]=valmask
+
 
 # loop on time
 for t in range(tmin,tmax):
@@ -177,7 +181,7 @@ for t in range(tmin,tmax):
     
     # Loop on horizontal grid (TO DO: to be optimized !)
     # (Paul: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
-    # (Paul: dims are always this order ?)
+    # (Paul: order of loops ok ?)
     for j in range(jmin,jmax):
         for i in range(imin,imax):
             # loop on vertical axis to define in which density bins the vertical levels are
@@ -197,7 +201,7 @@ for t in range(tmin,tmax):
                 c1_z = x1_content[:,j,i]
 
                 # extract a strictly increasing sub-profile
-                # first test on stratification
+                # first test on bottom - surface stratification
                 delta_rho = s_z[vmask[0]][i_bottom-1] - s_z[vmask[0]][0]
                 if delta_rho < del_s:
                     i_min = 0
@@ -208,9 +212,9 @@ for t in range(tmin,tmax):
                     i_min = (s_z[vmask[0]]).tolist().index(mini)
                     i_max = (s_z[vmask[0]]).tolist().index(maxi)
 
-                # TO DO: largest of min indices and smaller of max indices (for special cases and robustness)
                 if i_min > i_max:
                     print '*** i_min > i_max ', i_min,i_max
+                    exit(1)
 
                 # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
                 ind = sd.whereLT(s_s, s_z[i_min])
@@ -266,9 +270,12 @@ for t in range(tmin,tmax):
 
 # TO DO Mask depth_bin, thick_bin
 
-# OPTIONAL: compute spiciness by removing isopycnal mean for each sigma (T or S)
-# OPTIONAL: remove domain mean (S)
-# OPTIONAL: remove 34.6psu (S)
+# Output files as netCDF
+
+depthBin = cdm.createVariable(depth_bin,id='maskedVariable')
+thickBin = cdm.createVariable(thick_bin,id='maskedVariable')
+x1Bin    = cdm.createVariable(x1_bin,id='maskedVariable')
+
 
 # -----------------------------------------------------------------------------
 # plt.plot(x, y, '.-')
