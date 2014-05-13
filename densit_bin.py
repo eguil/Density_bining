@@ -10,7 +10,7 @@
 #  TO DO list:
 #    - add bowl interpolation on density
 #
-# Uses McDougall and Jackett 2005 (IDL routine provided by Gurvan Madec)
+# Uses McDougall and Jackett 2005 (IDL routine provided by G. Madec)
 # Inspired from IDL density bin routines (by G. Roullet and G. Madec 1999)
 #
 # --------------------------------------------------------------
@@ -142,7 +142,7 @@ depth = temp.getLevel()
 bounds = ft('lev_bnds')
 
 toc = timc.clock()
-print '  ... read CPU: ', toc-tic
+print '   ... read CPU: ', toc-tic
 
 # Define dimensions
 
@@ -217,7 +217,7 @@ toc = timc.clock()
 toc2 = timeit.default_timer()
 # loop on time
 for t in range(tmin,tmax):
-    print ' --> t=',t
+    print ' --> t =',t
 # TODO: read month by month to optimise memory ?
 # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
