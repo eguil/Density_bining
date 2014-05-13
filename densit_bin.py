@@ -1,5 +1,5 @@
-#!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
-##!/usr/local/uvcdat/latest/bin/cdat
+#!/usr/local/uvcdat/latest/bin/cdat
+##!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
