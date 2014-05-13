@@ -1,5 +1,5 @@
-#!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
-##!/usr/local/uvcdat/latest/bin/cdat
+#!/usr/local/uvcdat/latest/bin/cdat
+##!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
@@ -92,7 +92,9 @@ if socket.gethostname() == 'crunchy.llnl.gov':
     file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
 
 if debug == '1':
-    print ' Debug - File names:',file_T, file_S
+    print ' Debug - File names:'
+    print '    ', file_T
+    print '    ', file_S
 
 # Open files
 
@@ -145,8 +147,7 @@ if var == 'temp':
     x1_name = 'Temperature'
     x1_units = temp.units
 
-print
-print 'Rhon computed (time = ',tic-toc,')'
+print; print 'Rhon computed (time = ',tic-toc,')'
 print '  rho min/max ', npy.min(rhon), npy.max(rhon)
 
 # Define sigma grid
@@ -213,8 +214,8 @@ for t in range(tmin,tmax):
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
     
     # Loop on horizontal grid (TO DO: to be optimized !)
-    # (Paul: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
-    # (Paul: order of loops ok ?)
+    # (TODO: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
+    # (TODO: order of loops ok ?)
     for j in range(jmin,jmax):
         for i in range(imin,imax):
             # loop on vertical axis to define in which density bins the vertical levels are
