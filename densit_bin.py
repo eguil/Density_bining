@@ -101,18 +101,37 @@ if debug == '1':
 ft  = cdm.open(file_T)
 fs  = cdm.open(file_S)
 
-# Define temperature and salinity arrays
+timeax = ft.getAxis('time')
+
+# Dates to read
+
+if timeint == 'all':
+    tmin = 0
+    tmax = timeax.shape[0]
+else:
+    tmin = int(timeint.split(',')[0]) - 1
+    tmax = tmin + int(timeint.split(',')[1])
 
 if debug == '1':
-    nread = 1
-    print; print ' Debug - Read only first ',nread,' month(s)...'
-    temp = ft('thetao', time = slice(0,nread))-273.15
-    so   = fs('so', time = slice(0,nread))
-else:
-# TODO: read month by month to optimise memory ?
-    temp = ft('thetao')-273.15
-    so   = fs('so')
+    print; print ' Debug - Read only first month...'
+    tmin = 0
+    tmax = 1
 
+print '  time interval: ', tmin, tmax - 1
+
+# Define temperature and salinity arrays
+# TODO: read month by month to optimise memory ?
+
+temp = ft('thetao', time = slice(tmin,tmax))-273.15
+so   = fs('so', time = slice(tmin,tmax))
+
+# Read file attributes
+list_file=ft.attributes.keys()
+file_dic={}
+for i in range(0,len(list_file)):
+    file_dic[i]=list_file[i],ft.attributes[list_file[i] ]
+
+# Read masking value
 valmask = so._FillValue
 
 time  = temp.getTime()
@@ -123,7 +142,7 @@ depth = temp.getLevel()
 bounds = ft('lev_bnds')
 
 toc = timc.clock()
-print ' ...time read = ', toc-tic
+print '  ... read CPU: ', toc-tic
 
 # Define dimensions
 
@@ -172,15 +191,6 @@ jmax = temp.shape[2] - 1
 #jmin = 60
 #imax = 80+1
 #jmax = 60+1
-
-if timeint == 'all':
-    tmin = 0
-    tmax = temp.shape[0] - 1
-else:
-    tmin = int(timeint.split(',')[0]) - 1
-    tmax = tmin + int(timeint.split(',')[1])
-
-print '  time interval: ', tmin, tmax - 1
 
 # inits
 # z profiles:
@@ -335,7 +345,12 @@ g = cdm.open(file_out,'w+')
 g.write(depthBin)
 g.write(thickBin)
 g.write(x1Bin)
-#g.description = 'Density bining via densit_bin.py using delta_sigam = ', del_s
+
+# write global attributes (inherited from thetao file)
+for i in range(0,len(file_dic)):
+    dm=file_dic[i]
+    setattr(g,dm[0],dm[1])
+setattr(g,'Post-processing history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
 g.close()
 
 toc = timc.clock()
