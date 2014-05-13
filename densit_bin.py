@@ -288,17 +288,14 @@ for t in range(tmin,tmax):
 
 tic = timc.clock()
 tic2 = timeit.default_timer()
-print 'Loop on t,i,j done (times = ',tic-toc, tic2-toc2, ')'
+print 'Loop on t,i,j done (CPU & elapsed = ',tic-toc, tic2-toc2, ')'
 
 # Output files as netCDF
-
 
 s_sd = npy.arange(rho_min, rho_max+del_s, del_s)
 s_axis = cdm.createAxis(s_sd)
 s_axis.id = 'Neutral density'
 s_axis.units = ''
-#bnd = [s_s, s_s+del_s]
-#s_axis.setBounds(bnd) 
 s_axis.designateLevel()
 
 # Def variables
@@ -310,17 +307,17 @@ x1Bin    = cdm.createVariable(x1_bin,id='maskedVariable')
 depthBin.id = 'isodepth'
 depthBin.names = 'Depth of isopycnal'
 depthBin.units = 'm'
-depthBin.setAxisList([time, s_axis, lat, lon])
+#depthBin.setAxisList([time, s_axis, lat, lon])
 
 thickBin.id = 'isothick'
 thickBin.names = 'Thickness of isopycnal'
 thickBin.units = 'm'
-thickBin.setAxisList([time, s_axis, lat, lon])
+#thickBin.setAxisList([time, s_axis, lat, lon])
 
 x1Bin.id = 'thetao'
 x1Bin.names = 'Bined '+x1_name
 x1Bin.units = x1_units
-x1Bin.setAxisList([time, s_axis, lat, lon])
+#x1Bin.setAxisList([time, s_axis, lat, lon])
 
 file_out = outdir+'/density_out.nc'
 g = cdm.open(file_out,'w+')
