@@ -110,11 +110,10 @@ if debug == '1':
     so   = fs('so', time = slice(0,nread))
 else:
 # TODO: read month by month to optimise memory ?
-
     temp = ft('thetao')-273.15
     so   = fs('so')
 
-valmask = so._FillValue[0]
+valmask = so._FillValue
 
 time  = temp.getTime()
 lon  = temp.getLongitude()
