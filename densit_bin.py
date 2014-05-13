@@ -1,4 +1,5 @@
-#!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
+#!/usr/local/uvcdat/latest/bin/cdat
+##!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
@@ -42,13 +43,12 @@ import timeit
 #
 
 home='/Users/ericg/Projets/Density_bining'
-hist_file_dir=home
 
 if socket.gethostname() == 'crunchy.llnl.gov':
-    home='/work/guilyardi'
+    home='/work/guilyardi/Density_bining'
 
 hist_file_dir=home
-toolpath=home+'/STL_analysis'
+
 
 # == get command line options
  
@@ -79,25 +79,37 @@ timeint      = args.timeint
 file_root    = args.string
 
 if debug == '1': 
-    print args
+    print; print ' Debug - Args =', args
 
 tic = timc.clock()
 
-# Define T and S file names
-file_T=file_root+'_thetao.nc'
-file_S=file_root+'_so.nc'
+# Define T and S file names (local mac...)
+file_T = indir+'/'+file_root+'_thetao.nc'
+file_S = indir+'/'+file_root+'_so.nc'
 
+if socket.gethostname() == 'crunchy.llnl.gov':
+    file_T = indir+'/thetao/cmip5.'+file_root+'.thetao.ver-v20111010.latestX.xml'
+    file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
 
 if debug == '1':
-    print file_T, file_S
-  
-ft  = cdm.open(indir+'/'+file_T)
-fs  = cdm.open(indir+'/'+file_S)
+    print ' Debug - File names:',file_T, file_S
+
+# Open files
+
+ft  = cdm.open(file_T)
+fs  = cdm.open(file_S)
 
 # Define temperature and salinity arrays
 
-temp = ft('thetao')-273.15
-so   = fs('so')
+if debug == '1':
+    nread = 1
+    print; print ' Debug - Read only first ',nread,' month(s)...'
+    temp = ft('thetao',slice(0,nread-1))-273.15
+    so   = fs('so', slice(0,nread-1))
+else:
+    temp = ft('thetao')-273.15
+    so   = fs('so')
+
 valmask = so._FillValue[0]
 
 time  = temp.getTime()
@@ -292,10 +304,9 @@ print 'Loop on t,i,j done (times = ',tic-toc, tic2-toc2, ')'
 
 # Output files as netCDF
 
-
-s_sd = npy.arange(rho_min, rho_max+del_s, del_s)
+s_sd = npy.arange(rho_min, rho_max+del_s, del_s, dtype=npy.float32)
 s_axis = cdm.createAxis(s_sd)
-s_axis.id = 'Neutral density'
+s_axis.id = 'Neutral_density'
 s_axis.units = ''
 #bnd = [s_s, s_s+del_s]
 #s_axis.setBounds(bnd) 
@@ -303,24 +314,21 @@ s_axis.designateLevel()
 
 # Def variables
 
-depthBin = cdm.createVariable(depth_bin,id='maskedVariable')
-thickBin = cdm.createVariable(thick_bin,id='maskedVariable')
-x1Bin    = cdm.createVariable(x1_bin,id='maskedVariable')
+depthBin = cdm.createVariable(depth_bin, axes=[time, s_axis, lat, lon])
+thickBin = cdm.createVariable(thick_bin, axes=[time, s_axis, lat, lon])
+x1Bin    = cdm.createVariable(x1_bin, axes=[time, s_axis, lat, lon])
 
 depthBin.id = 'isodepth'
-depthBin.names = 'Depth of isopycnal'
+depthBin.long_name = 'Depth of isopycnal'
 depthBin.units = 'm'
-depthBin.setAxisList([time, s_axis, lat, lon])
 
 thickBin.id = 'isothick'
-thickBin.names = 'Thickness of isopycnal'
+thickBin.long_name = 'Thickness of isopycnal'
 thickBin.units = 'm'
-thickBin.setAxisList([time, s_axis, lat, lon])
 
 x1Bin.id = 'thetao'
-x1Bin.names = 'Bined '+x1_name
+x1Bin.long_name = 'Bined '+x1_name
 x1Bin.units = x1_units
-x1Bin.setAxisList([time, s_axis, lat, lon])
 
 file_out = outdir+'/density_out.nc'
 g = cdm.open(file_out,'w+')
