@@ -1,5 +1,5 @@
-#!/usr/local/uvcdat/latest/bin/cdat
-##!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
+#!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
+##!/usr/local/uvcdat/latest/bin/cdat
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
@@ -104,9 +104,11 @@ fs  = cdm.open(file_S)
 if debug == '1':
     nread = 1
     print; print ' Debug - Read only first ',nread,' month(s)...'
-    temp = ft('thetao',slice(0,nread-1))-273.15
-    so   = fs('so', slice(0,nread-1))
+    temp = ft('thetao', time = slice(0,nread))-273.15
+    so   = fs('so', time = slice(0,nread))
 else:
+# TODO: read month by month to optimise memory ?
+
     temp = ft('thetao')-273.15
     so   = fs('so')
 
@@ -206,6 +208,7 @@ toc2 = timeit.default_timer()
 # loop on time
 for t in range(tmin,tmax):
     print ' --> t=',t
+# TODO: read month by month to optimise memory ?
 # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
     
@@ -304,27 +307,26 @@ print 'Loop on t,i,j done (CPU & elapsed = ',tic-toc, tic2-toc2, ')'
 
 # Output files as netCDF
 
-s_sd = npy.arange(rho_min, rho_max+del_s, del_s, dtype=npy.float32)
-s_axis = cdm.createAxis(s_sd)
-s_axis.id = 'Neutral_density'
+s_sd = npy.arange(rho_min, rho_max+del_s, del_s, dtype = npy.float32)
+s_axis = cdm.createAxis(s_sd, id = 'rhon')
+s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
 
+grd = temp.getGrid()
+
 # Def variables
 
-depthBin = cdm.createVariable(depth_bin, axes=[time, s_axis, lat, lon])
-thickBin = cdm.createVariable(thick_bin, axes=[time, s_axis, lat, lon])
-x1Bin    = cdm.createVariable(x1_bin, axes=[time, s_axis, lat, lon])
+depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isodepth')
+thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isothick')
+x1Bin    = cdm.createVariable(x1_bin, axes = [time, s_axis, grd], id = 'thetao')
 
-depthBin.id = 'isodepth'
 depthBin.long_name = 'Depth of isopycnal'
 depthBin.units = 'm'
 
-thickBin.id = 'isothick'
 thickBin.long_name = 'Thickness of isopycnal'
 thickBin.units = 'm'
 
-x1Bin.id = 'thetao'
 x1Bin.long_name = 'Bined '+x1_name
 x1Bin.units = x1_units
 
