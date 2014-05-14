@@ -277,15 +277,6 @@ for t in range(tmin,tmax):
                     i_profil = vmask[0][i_min:i_max]
 
                 # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-#                    if delta_rho < del_s:
-#                        print 'ind = ',ind
-#                        print "test point",i,j
-#                        print "lon,lat",lon[j,i],lat[j,i]
-#                        print 'i_min,i_max ', i_min,i_max
-#                        print 'density profile s_z', s_z
-#                        print 'delta_rho ', delta_rho
-#                        print ' '
-#                    print 'field profile c1_z', c1_z
                 
                     z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
                         
@@ -311,6 +302,15 @@ for t in range(tmin,tmax):
     # end loop on i,j
 
 # end loop on t
+#   
+# test write
+i = 80
+j = 60
+print 'ind = ',ind
+print "test point",i,j
+print "lon,lat",lon[j,i],lat[j,i]
+print 'thick_bin', thick_bin[0,:,j,i]
+print 'x1_bin', x1_bin[0,:,j,i]
 
 tic = timc.clock()
 tic2 = timeit.default_timer()
