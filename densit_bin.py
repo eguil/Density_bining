@@ -5,13 +5,13 @@
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
 #  - T or S(x,y,sigma,t)
 #  - D(x,y,sigma,t) (depth of isopycnal)
-#  - V(x,y,sigma,t) (volume of isopycnal)
+#  - Z(x,y,sigma,t) (thickness of isopycnal)
 #
 #  TO DO list:
 #    - add bowl interpolation on density
 #
-# Uses McDougall and Jackett 2005 (IDL routine provided by G. Madec)
-# Inspired from IDL density bin routines (by G. Roullet and G. Madec 1999)
+# Uses McDougall and Jackett 2005 EOS (IDL routine provided by G. Madec)
+# Inspired from IDL density bin routines by G. Roullet and G. Madec (1999)
 #
 # --------------------------------------------------------------
 #  E. Guilyardi - while at LBNL/LLNL -  March 2014
@@ -183,8 +183,8 @@ N_s = len(s_s)
 imin = 0
 jmin = 0
 
-imax = temp.shape[3] - 1
-jmax = temp.shape[2] - 1
+imax = temp.shape[3]
+jmax = temp.shape[2]
 
 # test point                
 #imin = 80
@@ -215,9 +215,10 @@ x1_bin    = depth_bin.copy()
 print
 toc = timc.clock()
 toc2 = timeit.default_timer()
+
 # loop on time
 for t in range(tmin,tmax):
-    print ' --> t =',t
+    print ' --> t = ',t
 # TODO: read month by month to optimise memory ?
 # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
@@ -227,13 +228,13 @@ for t in range(tmin,tmax):
     # (TODO: order of loops ok ?)
     for j in range(jmin,jmax):
         for i in range(imin,imax):
-            # loop on vertical axis to define in which density bins the vertical levels are
-            # for k in range(temp.shape[1]):
             # test on masked points
             vmask = npy.nonzero(temp[t,:,j,i])
+
             z_s = npy.asarray([float(0.0)]*(N_s+1)) # simpler way to define an array of floats of dim N_s+1 ?
             c1_s = npy.asarray([float('NaN')]*(N_s+1))
             #bowl_s = float('NaN') 
+
             if len(vmask[0]) > 0: # i.e. point is not masked
                 #
                 i_bottom = vmask[0][len(vmask[0])-1]
@@ -284,7 +285,7 @@ for t in range(tmin,tmax):
 #                        print 'density profile s_z', s_z
 #                        print 'delta_rho ', delta_rho
 #                        print ' '
-                #                    print 'field profile c1_z', c1_z
+#                    print 'field profile c1_z', c1_z
                 
                     z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
                         
