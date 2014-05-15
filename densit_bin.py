@@ -1,5 +1,6 @@
 #!/usr/local/uvcdat/latest/bin/cdat
 ##!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
+#
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
@@ -216,28 +217,32 @@ print
 toc = timc.clock()
 toc2 = timeit.default_timer()
 
+
 # loop on time
 for t in range(tmin,tmax):
     print ' --> t = ',t
 # TODO: read month by month to optimise memory ?
 # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
-    
+    vmask_3D = mv.masked_values(temp[t, ...], 0) 
+
     # Loop on horizontal grid (TO DO: to be optimized !)
     # (TODO: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
     # (TODO: order of loops ok ?)
     for j in range(jmin,jmax):
         for i in range(imin,imax):
             # test on masked points
-            vmask = npy.nonzero(temp[t,:,j,i])
+#            vmask = npy.nonzero(temp[t,:,j,i])
+            vmask = vmask_3D[:,j,i].mask
 
-            z_s = npy.asarray([float(0.0)]*(N_s+1)) # simpler way to define an array of floats of dim N_s+1 ?
+            z_s = npy.asarray([float(0.0)]*(N_s+1)) 
             c1_s = npy.asarray([float('NaN')]*(N_s+1))
+  
             #bowl_s = float('NaN') 
 
-            if len(vmask[0]) > 0: # i.e. point is not masked
-                #
-                i_bottom = vmask[0][len(vmask[0])-1]
+            if not vmask[0]: # check point is not masked
+                # find bottom level
+                i_bottom = npy.where(vmask)[0][0] - 1
                 z_s[N_s] = z_zw[i_bottom]
                 c1_s[N_s] = x1_content[N_z-1,j,i]
 
@@ -246,15 +251,16 @@ for t in range(tmin,tmax):
 
                 # extract a strictly increasing sub-profile
                 # first test on bottom - surface stratification
-                delta_rho = s_z[vmask[0]][i_bottom-1] - s_z[vmask[0]][0]
+                delta_rho = s_z[i_bottom] - s_z[0]
                 if delta_rho < del_s:
                     i_min = 0
                     i_max = i_bottom
                 else:
-                    mini = min(s_z[vmask[0]])
-                    maxi = max(s_z[vmask[0]])
-                    i_min = (s_z[vmask[0]]).tolist().index(mini)
-                    i_max = (s_z[vmask[0]]).tolist().index(maxi)
+                    irange = range(i_bottom+1)
+                    mini = min(s_z[irange])
+                    maxi = max(s_z[irange])
+                    i_min = (s_z[irange]).tolist().index(mini)
+                    i_max = (s_z[irange]).tolist().index(maxi)
 
                 if i_min > i_max:
                     print '*** i_min > i_max ', i_min,i_max
@@ -274,7 +280,7 @@ for t in range(tmin,tmax):
                 # General case
                 ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
                 if len(ind) >= 1:
-                    i_profil = vmask[0][i_min:i_max]
+                    i_profil = irange[i_min:i_max+1]
 
                 # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
                 
