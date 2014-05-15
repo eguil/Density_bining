@@ -36,6 +36,11 @@ import time as timc
 import timeit
 #import matplotlib.pyplot as plt
 
+# netCDF compression
+comp = 0
+cdm.setNetcdfShuffleFlag(comp)
+cdm.setNetcdfDeflateFlag(comp)
+cdm.setNetcdfDeflateLevelFlag(comp)
 #
 # == Arguments
 #
