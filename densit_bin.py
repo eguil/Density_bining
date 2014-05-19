@@ -87,7 +87,7 @@ outdir       = args.output
 timeint      = args.timeint
 file_root    = args.string
 
-if debug == '1': 
+if debug >= '1': 
     print; print ' Debug - Args =', args
 
 tic = timc.clock()
@@ -95,12 +95,14 @@ tic = timc.clock()
 # Define T and S file names (local mac...)
 file_T = indir+'/'+file_root+'_thetao.nc'
 file_S = indir+'/'+file_root+'_so.nc'
+file_fx = indir+'/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
 
 if socket.gethostname() == 'crunchy.llnl.gov':
     file_T = indir+'/thetao/cmip5.'+file_root+'.thetao.ver-v20111010.latestX.xml'
     file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
+    file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
 
-if debug == '1':
+if debug >= '1':
     print ' Debug - File names:'
     print '    ', file_T
     print '    ', file_S
@@ -121,7 +123,7 @@ else:
     tmin = int(timeint.split(',')[0]) - 1
     tmax = tmin + int(timeint.split(',')[1])
 
-if debug == '1':
+if debug >= '1':
     print; print ' Debug - Read only first month...'
     tmin = 0
     tmax = 1
@@ -151,10 +153,18 @@ lat  = temp.getLatitude()
 depth = temp.getLevel()
 
 bounds = ft('lev_bnds')
-#area_weights = cdu.area_weights(temp[0,0,:,:])
+
+# Read cell area
+
+ff = cdm.open(file_fx)
+area = ff('areacello')
 
 toc = timc.clock()
 print '   ... read CPU: ', toc-tic
+
+ft.close()
+fs.close()
+ff.close()
 
 # Define dimensions
 
@@ -199,8 +209,8 @@ imax = temp.shape[3]
 jmax = temp.shape[2]
 
 # test point  
-itest = 105 
-jtest = 32  
+itest = 80 
+jtest = 60  
            
 #imin = itest
 #jmin = jtest
@@ -329,7 +339,7 @@ for t in range(tmin,tmax):
             depth_bin [t,:,j,i]     = z_s
             thick_bin [t,0,j,i]     = z_s[0]
             thick_bin [t,1:N_s,j,i] = z_s[1:N_s]-z_s[0:N_s-1]
-            vol_bin   [t,:,j,i]     = thick_bin [t,:,j,i] 
+            vol_bin   [t,:,j,i]     = thick_bin [t,:,j,i] * area[j,i]
 #* e1t * e2t
             x1_bin    [t,:,j,i]     = c1_s
             #bowl_bin  [j, i]        = bowl_s
@@ -345,6 +355,7 @@ print 'ind = ',ind
 print "test point",i,j
 print "lon,lat",lon[j,i],lat[j,i]
 print 'thick_bin', thick_bin[0,:,j,i]
+print 'vol_bin', vol_bin[0,:,j,i]
 print 'x1_bin', x1_bin[0,:,j,i]
 
 tic = timc.clock()
@@ -363,8 +374,9 @@ grd = temp.getGrid()
 
 # Def variables
 
-depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isodepth')
-thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isothick')
+depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isondepth')
+thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isonthick')
+volBin   = cdm.createVariable(vol_bin, axes = [time, s_axis, grd], id = 'isonvol')
 x1Bin    = cdm.createVariable(x1_bin, axes = [time, s_axis, grd], id = 'thetao')
 
 depthBin.long_name = 'Depth of isopycnal'
@@ -373,6 +385,9 @@ depthBin.units = 'm'
 thickBin.long_name = 'Thickness of isopycnal'
 thickBin.units = 'm'
 
+volBin.long_name = 'Volume of isopycnal'
+volBin.units = 'm3'
+
 x1Bin.long_name = 'Bined '+x1_name
 x1Bin.units = x1_units
 
@@ -380,6 +395,7 @@ file_out = outdir+'/out_density.nc'
 g = cdm.open(file_out,'w+')
 g.write(depthBin)
 g.write(thickBin)
+g.write(volBin)
 g.write(x1Bin)
 
 # write global attributes (inherited from thetao file)
