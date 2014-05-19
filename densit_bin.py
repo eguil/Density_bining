@@ -36,11 +36,14 @@ import time as timc
 import timeit
 #import matplotlib.pyplot as plt
 
-# netCDF compression
+# netCDF compression (use 0 for netCDF3)
 comp = 0
 cdm.setNetcdfShuffleFlag(comp)
 cdm.setNetcdfDeflateFlag(comp)
 cdm.setNetcdfDeflateLevelFlag(comp)
+
+#
+cdm.setAutoBounds('on')
 #
 # == Arguments
 #
@@ -140,12 +143,15 @@ for i in range(0,len(list_file)):
 # Read masking value
 valmask = so._FillValue
 
+# Read time and grid
 time  = temp.getTime()
 lon  = temp.getLongitude()
 lat  = temp.getLatitude()
 
 depth = temp.getLevel()
+
 bounds = ft('lev_bnds')
+#area_weights = cdu.area_weights(temp[0,0,:,:])
 
 toc = timc.clock()
 print '   ... read CPU: ', toc-tic
@@ -163,7 +169,7 @@ rhon = sd.eos_neutral(temp,so)-1000.
 tic = timc.clock()
 
 # decide which field to bin
-# TO DO: bring to args
+# TO DO: bring to args (or bin both T and S ?)
 
 var='temp'
 if var == 'temp':
@@ -192,11 +198,14 @@ jmin = 0
 imax = temp.shape[3]
 jmax = temp.shape[2]
 
-# test point                
-#imin = 80
-#jmin = 60
-#imax = 80+1
-#jmax = 60+1
+# test point  
+itest = 105 
+jtest = 32  
+           
+#imin = itest
+#jmin = jtest
+#imax = itest+1
+#jmax = jtest+1
 
 # inits
 # z profiles:
@@ -215,6 +224,7 @@ z1_s = [float('NaN')]*(N_s+1)
 depth_bin = npy.ma.ones([N_t, N_s+1, N_j, N_i], dtype='float32')*1.e+20 
 depth_bin = mv.masked_where(depth_bin==1.e+20, depth_bin)
 thick_bin = depth_bin.copy() 
+vol_bin   = depth_bin.copy()
 x1_bin    = depth_bin.copy() 
 #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
@@ -248,7 +258,7 @@ for t in range(tmin,tmax):
             if not vmask[0]: # check point is not masked
                 # find bottom level
                 i_bottom = npy.where(vmask)[0][0] - 1
-                z_s[N_s] = z_zw[i_bottom]
+                z_s[N_s] = z_zw[i_bottom+1]
                 c1_s[N_s] = x1_content[N_z-1,j,i]
 
                 s_z = rhon[t,:,j,i].data
@@ -279,7 +289,6 @@ for t in range(tmin,tmax):
                 # if level of s_s has higher density than bottom density, isopycnal is set to bottom (z_s=z_zw[i_bottom])
                 ind = sd.whereGT(s_s, s_z[i_max])
                 z_s[ind] = z_s[N_s]
-                c1_s[ind] = c1_s[N_s]
                 c1_s[ind] = valmask
 
                 # General case
@@ -292,6 +301,19 @@ for t in range(tmin,tmax):
                     z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
                         
                     c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
+
+                    idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 )
+                    if len(idt) >= 1:
+                        print 'ind = ',ind
+                        print 'i_min,i_max  ', i_min,i_max
+                        print 'i_profil ', i_profil
+                        print "non increasing depth profile",i,j
+                        print "lon,lat",lon[j,i],lat[j,i]
+                        print " s_z[i_profil] ", s_z[i_profil]
+                        print " z_s[ind] ", z_s[ind]
+                        print " s_s[ind] ", npy.asarray(s_s)[ind]
+                        print " z_zt[i_profil] ", z_zt[i_profil]
+
                 
    #             print 'z_s = ',z_s
    #             print 'c1_s = ',c1_s
@@ -307,6 +329,8 @@ for t in range(tmin,tmax):
             depth_bin [t,:,j,i]     = z_s
             thick_bin [t,0,j,i]     = z_s[0]
             thick_bin [t,1:N_s,j,i] = z_s[1:N_s]-z_s[0:N_s-1]
+            vol_bin   [t,:,j,i]     = thick_bin [t,:,j,i] 
+#* e1t * e2t
             x1_bin    [t,:,j,i]     = c1_s
             #bowl_bin  [j, i]        = bowl_s
 
@@ -315,8 +339,8 @@ for t in range(tmin,tmax):
 # end loop on t
 #   
 # test write
-i = 80
-j = 60
+i = itest
+j = jtest
 print 'ind = ',ind
 print "test point",i,j
 print "lon,lat",lon[j,i],lat[j,i]
@@ -352,7 +376,7 @@ thickBin.units = 'm'
 x1Bin.long_name = 'Bined '+x1_name
 x1Bin.units = x1_units
 
-file_out = outdir+'/density_out.nc'
+file_out = outdir+'/out_density.nc'
 g = cdm.open(file_out,'w+')
 g.write(depthBin)
 g.write(thickBin)
