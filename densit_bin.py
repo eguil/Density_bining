@@ -399,10 +399,10 @@ for tc in range(tcmax):
             setattr(g,'Post-processing history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
         
     # Write/append to file
-    g.write(depthBin)
-    g.write(thickBin)
-    g.write(x1Bin)
-    g.write(x2Bin)
+    g.write(depthBin, extend = 1, index = trmin)
+    g.write(thickBin, extend = 1, index = trmin)
+    g.write(x1Bin,    extend = 1, index = trmin)
+    g.write(x2Bin,    extend = 1, index = trmin)
 
 # end loop on tc
 
