@@ -60,7 +60,7 @@ hist_file_dir=home
 
 # == get command line options
  
-#parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
+parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
 parser.add_argument('-d', help='toggle debug mode', action='count', default=0)
 #parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
 #parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
@@ -252,6 +252,7 @@ for t in range(tmin,tmax):
     # (TODO: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
     # (TODO: order of loops ok ?)
     for j in range(jmin,jmax):
+        print j
         for i in range(imin,imax):
             # test on masked points
 #            vmask = npy.nonzero(temp[t,:,j,i])
@@ -377,7 +378,6 @@ grd = temp.getGrid()
 
 depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isondepth')
 thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isonthick')
-volBin   = cdm.createVariable(vol_bin, axes = [time, s_axis, grd], id = 'isonvol')
 x1Bin    = cdm.createVariable(x1_bin, axes = [time, s_axis, grd], id = 'thetao')
 x2Bin    = cdm.createVariable(x2_bin, axes = [time, s_axis, grd], id = 'so')
 
@@ -386,9 +386,6 @@ depthBin.units = 'm'
 
 thickBin.long_name = 'Thickness of isopycnal'
 thickBin.units = 'm'
-
-volBin.long_name = 'Volume of isopycnal'
-volBin.units = 'm3'
 
 x1Bin.long_name = 'Bined '+x1_name
 x1Bin.units = x1_units
@@ -400,7 +397,6 @@ file_out = outdir+'/out_density.nc'
 g = cdm.open(file_out,'w+')
 g.write(depthBin)
 g.write(thickBin)
-g.write(volBin)
 g.write(x1Bin)
 g.write(x2Bin)
 g.write(area) ; # Added area so isonvol can be computed
