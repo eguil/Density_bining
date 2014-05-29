@@ -57,7 +57,9 @@ if socket.gethostname() == 'crunchy.llnl.gov':
 
 hist_file_dir=home
 
-
+#
+# == Arguments
+#
 # == get command line options
  
 parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
