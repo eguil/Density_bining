@@ -41,7 +41,10 @@ comp = 0
 cdm.setNetcdfShuffleFlag(comp)
 cdm.setNetcdfDeflateFlag(comp)
 cdm.setNetcdfDeflateLevelFlag(comp)
-
+cdm.setAutoBounds('on')
+#
+# == Arguments
+#
 # 
 # == Inits
 #
@@ -50,6 +53,7 @@ home='/Users/ericg/Projets/Density_bining'
 
 if socket.gethostname() == 'crunchy.llnl.gov':
     home='/work/guilyardi/Density_bining'
+    outdir='/work/guilyardi/Density_bining'
 
 hist_file_dir=home
 
@@ -58,14 +62,14 @@ hist_file_dir=home
 #
 # == get command line options
  
-parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
+#parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
 parser.add_argument('-d', help='toggle debug mode', action='count', default=0)
 #parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
 #parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
-parser.add_argument('-i','--input', help='input directory', default="./")
-parser.add_argument('-o','--output',help='output directory', default="./")
+#parser.add_argument('-i','--input', help='input directory', default="./")
+#parser.add_argument('-o','--output',help='output directory', default="./")
 parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
-parser.add_argument('string', metavar='root for T and S files', type=str, help='netCDF input files root')
+#parser.add_argument('string', metavar='root for T and S files', type=str, help='netCDF input files root')
 args = parser.parse_args()
 
 # Write command line in history file
@@ -77,38 +81,39 @@ with open(filer, 'a') as f:
  
 ## read values
 debug        = str(args.d)
-indir        = args.input
-outdir       = args.output
+#indir        = args.input
+#outdir       = args.output
 #sigma_range  = args.sigma_range 
 #delta_sigma  = args.sigma_increment
 timeint      = args.timeint
-file_root    = args.string
+#file_root    = args.string
 
-if debug >= '1': 
-    print; print ' Debug - Args =', args
+#debug = '1'
+
+#if debug >= '1': 
+#    print; print ' Debug - Args =', args
 
 tic = timc.clock()
 
 # Define T and S file names (local mac...)
-file_T = indir+'/'+file_root+'_thetao.nc'
-file_S = indir+'/'+file_root+'_so.nc'
-file_fx = indir+'/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
+#file_T = indir+'/'+file_root+'_thetao.nc'
+#file_S = indir+'/'+file_root+'_so.nc'
+#file_fx = indir+'/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
 
-if socket.gethostname() == 'crunchy.llnl.gov':
-    file_T = indir+'/thetao/cmip5.'+file_root+'.thetao.ver-v20111010.latestX.xml'
-    file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
-    file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-
+#if socket.gethostname() == 'crunchy.llnl.gov':
+#    file_T = indir+'/thetao/cmip5.'+file_root+'.thetao.ver-v20111010.latestX.xml'
+#    file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
+file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
 if debug >= '1':
     print ' Debug - File names:'
     print '    ', file_T
     print '    ', file_S
 
 # Open files
-
 ft  = cdm.open(file_T)
 fs  = cdm.open(file_S)
-
 timeax = ft.getAxis('time')
 
 # Dates to read
@@ -146,13 +151,10 @@ valmask = so._FillValue
 time  = temp.getTime()
 lon  = temp.getLongitude()
 lat  = temp.getLatitude()
-
 depth = temp.getLevel()
-
 bounds = ft('lev_bnds')
 
 # Read cell area
-
 ff = cdm.open(file_fx)
 area = ff('areacello')
 
@@ -175,14 +177,13 @@ N_t = int(time.shape[0])
 rhon = sd.eos_neutral(temp,so)-1000.
 tic = timc.clock()
 
-# decide which field to bin
-# TO DO: bring to args (or bin both T and S ?)
+x1 = temp
+x1_name = temp.long_name
+x1_units = temp.units
 
-var='temp'
-if var == 'temp':
-    x1 = temp
-    x1_name = 'Temperature'
-    x1_units = temp.units
+x2 = so
+x2_name = so.long_name
+x2_units = so.units
 
 print; print 'Rhon computed (time = ',tic-toc,')'
 print '  rho min/max ', npy.min(rhon), npy.max(rhon)
@@ -216,29 +217,30 @@ jtest = 60
 
 # inits
 # z profiles:
-c1_z = [float('NaN')]*N_z
-s_z  = [float('NaN')]*N_z
+c1_z = [float(valmask)]*N_z
+c2_z = [float(valmask)]*N_z
+s_z  = [float(valmask)]*N_z
 z_zt = depth[:]
 z_zw = bounds.data[:,0]
 #bowl_s = 0.
 
 # density profiles:
-z_s  = [float('NaN')]*(N_s+1)
-c1_s = [float('NaN')]*(N_s+1)
-z1_s = [float('NaN')]*(N_s+1)
+z_s  = [float(valmask)]*(N_s+1)
+c1_s = [float(valmask)]*(N_s+1)
+c2_s = [float(valmask)]*(N_s+1)
+z1_s = [float(valmask)]*(N_s+1)
 
 # output arrays
-depth_bin = npy.ma.ones([N_t, N_s+1, N_j, N_i], dtype='float32')*1.e+20 
-depth_bin = mv.masked_where(depth_bin==1.e+20, depth_bin)
+depth_bin = npy.ma.ones([N_t, N_s+1, N_j, N_i], dtype='float32')*valmask 
+depth_bin = mv.masked_where(depth_bin==valmask, depth_bin)
 thick_bin = depth_bin.copy() 
-vol_bin   = depth_bin.copy()
 x1_bin    = depth_bin.copy() 
+x2_bin    = depth_bin.copy() 
 #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
 print
 toc = timc.clock()
 toc2 = timeit.default_timer()
-
 
 # loop on time
 for t in range(tmin,tmax):
@@ -246,9 +248,9 @@ for t in range(tmin,tmax):
 # TODO: read month by month to optimise memory ?
 # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
     x1_content = x1.data[t,:,:,:] # dims: i,j,k
+    x2_content = x2.data[t,:,:,:] # dims: i,j,k
     vmask_3D = mv.masked_values(temp[t, ...], 0) 
-
-    # Loop on horizontal grid (TO DO: to be optimized !)
+    # Transform all valid data (unmasked) to single dimension array
     # (TODO: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
     # (TODO: order of loops ok ?)
     for j in range(jmin,jmax):
@@ -257,19 +259,22 @@ for t in range(tmin,tmax):
 #            vmask = npy.nonzero(temp[t,:,j,i])
             vmask = vmask_3D[:,j,i].mask
 
-            z_s = npy.asarray([float(0.0)]*(N_s+1)) 
-            c1_s = npy.asarray([float('NaN')]*(N_s+1))
+            z_s = npy.asarray([float(valmask)]*(N_s+1)) 
+            c1_s = npy.asarray([float(valmask)]*(N_s+1))
+            c2_s = npy.asarray([float(valmask)]*(N_s+1))
   
             #bowl_s = float('NaN') 
 
             if not vmask[0]: # check point is not masked
                 # find bottom level
                 i_bottom = npy.where(vmask)[0][0] - 1
-                z_s[N_s] = z_zw[i_bottom+1]
-                c1_s[N_s] = x1_content[N_z-1,j,i]
+                z_s[N_s] = z_zw[i_bottom+1]   ; # Cell depth limit
+                c1_s[N_s] = x1_content[N_z-1,j,i] ; # Cell bottom temperature/salinity
+                c2_s[N_s] = x2_content[N_z-1,j,i] ; # Cell bottom temperature/salinity
 
                 s_z = rhon[t,:,j,i].data
                 c1_z = x1_content[:,j,i]
+                c2_z = x2_content[:,j,i]
 
                 # extract a strictly increasing sub-profile
                 # first test on bottom - surface stratification
@@ -292,22 +297,24 @@ for t in range(tmin,tmax):
                 ind = sd.whereLT(s_s, s_z[i_min])
                 z_s[ind] = 0.
                 c1_s[ind] = valmask
+                c2_s[ind] = valmask
 
                 # if level of s_s has higher density than bottom density, isopycnal is set to bottom (z_s=z_zw[i_bottom])
                 ind = sd.whereGT(s_s, s_z[i_max])
                 z_s[ind] = z_s[N_s]
                 c1_s[ind] = valmask
+                c2_s[ind] = valmask
 
                 # General case
                 ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
                 if len(ind) >= 1:
                     i_profil = irange[i_min:i_max+1]
-
                 # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
                 
-                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil])
+                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]); # consider spline
                         
                     c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
+                    c2_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c2_z[i_profil]) 
 
                     idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 )
                     if len(idt) >= 1:
@@ -321,10 +328,6 @@ for t in range(tmin,tmax):
                         print " s_s[ind] ", npy.asarray(s_s)[ind]
                         print " z_zt[i_profil] ", z_zt[i_profil]
 
-                
-   #             print 'z_s = ',z_s
-   #             print 'c1_s = ',c1_s
-
                 # TO DO: bowl depth bining
                 # IF sig_bowl EQ 1 THEN BEGIN
                 #   bowl_s = interpol(s_z[i_profil], z_zt[i_profil], sobwlmax[i, j])
@@ -336,25 +339,27 @@ for t in range(tmin,tmax):
             depth_bin [t,:,j,i]     = z_s
             thick_bin [t,0,j,i]     = z_s[0]
             thick_bin [t,1:N_s,j,i] = z_s[1:N_s]-z_s[0:N_s-1]
-            vol_bin   [t,:,j,i]     = thick_bin [t,:,j,i] * area[j,i]
             x1_bin    [t,:,j,i]     = c1_s
+            x2_bin    [t,:,j,i]     = c2_s
             #bowl_bin  [j, i]        = bowl_s
 
     # end loop on i,j
 
 # end loop on t
-#   
-# test write
+#  
+# Wash mask over variables
+depth_bin = mv.masked_where(x1_bin==valmask,depth_bin)
+thick_bin = mv.masked_where(x1_bin==valmask,thick_bin)
 
-if debug >= 2:
-    i = itest
-    j = jtest
-    print 'ind = ',ind
-    print "test point",i,j
-    print "lon,lat",lon[j,i],lat[j,i]
-    print 'thick_bin', thick_bin[0,:,j,i]
-    print 'vol_bin', vol_bin[0,:,j,i]
-    print 'x1_bin', x1_bin[0,:,j,i]
+# test write
+i = itest
+j = jtest
+print 'ind = ',ind
+print "test point",i,j, area[j,i]
+print "lon,lat",lon[j,i],lat[j,i]
+print 'thick_bin', thick_bin[0,:,j,i]
+print 'x1_bin', x1_bin[0,:,j,i]
+print 'x2_bin', x2_bin[0,:,j,i]
 
 tic = timc.clock()
 tic2 = timeit.default_timer()
@@ -376,6 +381,7 @@ depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isond
 thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isonthick')
 volBin   = cdm.createVariable(vol_bin, axes = [time, s_axis, grd], id = 'isonvol')
 x1Bin    = cdm.createVariable(x1_bin, axes = [time, s_axis, grd], id = 'thetao')
+x2Bin    = cdm.createVariable(x2_bin, axes = [time, s_axis, grd], id = 'so')
 
 depthBin.long_name = 'Depth of isopycnal'
 depthBin.units = 'm'
@@ -389,12 +395,17 @@ volBin.units = 'm3'
 x1Bin.long_name = 'Bined '+x1_name
 x1Bin.units = x1_units
 
+x2Bin.long_name = 'Bined '+x2_name
+x2Bin.units = x2_units
+
 file_out = outdir+'/out_density.nc'
 g = cdm.open(file_out,'w+')
 g.write(depthBin)
 g.write(thickBin)
 g.write(volBin)
 g.write(x1Bin)
+g.write(x2Bin)
+g.write(area) ; # Added area so isonvol can be computed
 
 # write global attributes (inherited from thetao file)
 for i in range(0,len(file_dic)):
