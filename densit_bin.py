@@ -42,11 +42,6 @@ cdm.setNetcdfShuffleFlag(comp)
 cdm.setNetcdfDeflateFlag(comp)
 cdm.setNetcdfDeflateLevelFlag(comp)
 
-#
-cdm.setAutoBounds('on')
-#
-# == Arguments
-#
 # 
 # == Inits
 #
@@ -58,7 +53,9 @@ if socket.gethostname() == 'crunchy.llnl.gov':
 
 hist_file_dir=home
 
-
+#
+# == Arguments
+#
 # == get command line options
  
 parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
@@ -340,7 +337,6 @@ for t in range(tmin,tmax):
             thick_bin [t,0,j,i]     = z_s[0]
             thick_bin [t,1:N_s,j,i] = z_s[1:N_s]-z_s[0:N_s-1]
             vol_bin   [t,:,j,i]     = thick_bin [t,:,j,i] * area[j,i]
-#* e1t * e2t
             x1_bin    [t,:,j,i]     = c1_s
             #bowl_bin  [j, i]        = bowl_s
 
@@ -349,14 +345,16 @@ for t in range(tmin,tmax):
 # end loop on t
 #   
 # test write
-i = itest
-j = jtest
-print 'ind = ',ind
-print "test point",i,j
-print "lon,lat",lon[j,i],lat[j,i]
-print 'thick_bin', thick_bin[0,:,j,i]
-print 'vol_bin', vol_bin[0,:,j,i]
-print 'x1_bin', x1_bin[0,:,j,i]
+
+if debug >= 2:
+    i = itest
+    j = jtest
+    print 'ind = ',ind
+    print "test point",i,j
+    print "lon,lat",lon[j,i],lat[j,i]
+    print 'thick_bin', thick_bin[0,:,j,i]
+    print 'vol_bin', vol_bin[0,:,j,i]
+    print 'x1_bin', x1_bin[0,:,j,i]
 
 tic = timc.clock()
 tic2 = timeit.default_timer()
