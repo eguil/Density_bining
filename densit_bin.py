@@ -117,22 +117,22 @@ timeax = ft.getAxis('time')
 
 # Dates to read
 
-#if timeint == 'all':
-#    tmin = 0
-#    tmax = timeax.shape[0]
-#else:
-#    tmin = int(timeint.split(',')[0]) - 1
-#    tmax = tmin + int(timeint.split(',')[1])#
+if timeint == 'all':
+    tmin = 0
+    tmax = timeax.shape[0]
+else:
+    tmin = int(timeint.split(',')[0]) - 1
+    tmax = tmin + int(timeint.split(',')[1])#
 
-#if debug >= '1':
-#    print; print ' Debug - Read only first month...'
-#    tmin = 0
-#    tmax = 1#
+if debug >= '1':
+    print; print ' Debug - Read only first month...'
+    tmin = 0
+    tmax = 1
+#
 
-#print '  time interval: ', tmin, tmax - 1
+print '  time interval: ', tmin, tmax - 1
 
 # Define temperature and salinity arrays
-# TODO: read month by month to optimise memory ?
 
 temp = ft('thetao', time = slice(0,1))-273.15
 so   = fs('so', time = slice(0,1))
@@ -194,8 +194,15 @@ jtest = 60
 # Define time read interval (as function of 3D array size)
 
 grdsize = N_i * N_j * N_z
-tcmax = 2 ; # number of time chunks
-tcdel = 2 ; # number of months in each chunk
+# define number of months in each chunk
+if grdsize <= 1.e6:
+    tcdel = min(120, tmax)
+elif grdsize <= 1.e7:
+    tcdel = min(12, tmax)
+    
+tcmax = tmax/tcdel ; # number of time chunks
+
+print '==> tcdel, tcmax', tcdel, tcmax
 
 # inits
 # z profiles:
