@@ -105,6 +105,7 @@ timeint      = args.timeint
 file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
 file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
 file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+
 if debug >= '1':
     print ' Debug - File names:'
     print '    ', file_T
@@ -202,7 +203,7 @@ elif grdsize <= 1.e7:
     
 tcmax = tmax/tcdel ; # number of time chunks
 
-print '==> tcdel, tcmax', tcdel, tcmax
+print '==> tcdel, tcmax:', tcdel, tcmax
 
 # inits
 # z profiles:
@@ -219,14 +220,6 @@ c1_s = [float(valmask)]*(N_s+1)
 c2_s = [float(valmask)]*(N_s+1)
 z1_s = [float(valmask)]*(N_s+1)
 
-# output arrays
-depth_bin = npy.ma.ones([tcdel, N_s+1, N_j, N_i], dtype='float32')*valmask 
-depth_bin = mv.masked_where(depth_bin==valmask, depth_bin)
-thick_bin = depth_bin.copy() 
-x1_bin    = depth_bin.copy() 
-x2_bin    = depth_bin.copy() 
-#bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
-
 print
 toc = timc.clock()
 toc2 = timeit.default_timer()
@@ -238,10 +231,9 @@ s_axis = cdm.createAxis(s_sd, id = 'rhon')
 s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
+grd = temp.getGrid()
 file_out = outdir+'/out_density.nc'
 g = cdm.open(file_out,'w+')
-
-grd = temp.getGrid()
 
 # loop on time chunks
 for tc in range(tcmax):
@@ -255,6 +247,14 @@ for tc in range(tcmax):
     time  = temp.getTime()
     # Compute neutral density
     rhon = sd.eos_neutral(temp,so)-1000.
+
+    # output arrays for each chunk
+    depth_bin = npy.ma.ones([tcdel, N_s+1, N_j, N_i], dtype='float32')*valmask 
+    depth_bin = mv.masked_where(depth_bin==valmask, depth_bin)
+    thick_bin = depth_bin.copy() 
+    x1_bin    = depth_bin.copy() 
+    x2_bin    = depth_bin.copy() 
+    #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
     # Loop on time within chunk tc
     for t in range(trmax-trmin):
