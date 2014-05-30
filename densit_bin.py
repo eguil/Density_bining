@@ -138,6 +138,9 @@ print '  time interval: ', tmin, tmax - 1
 temp = ft('thetao', time = slice(0,1))-273.15
 so   = fs('so', time = slice(0,1))
 
+# Find indices of non-masked points
+idxnomsk = npy.where(mv.masked_values(temp[0, ...], 0)[0,:,:].mask)
+
 # Read file attributes
 list_file=ft.attributes.keys()
 file_dic={}
@@ -234,7 +237,7 @@ s_axis.designateLevel()
 grd = temp.getGrid()
 file_out = outdir+'/out_density.nc'
 g = cdm.open(file_out,'w+')
-
+    
 # loop on time chunks
 for tc in range(tcmax):
 
@@ -247,9 +250,13 @@ for tc in range(tcmax):
     time  = temp.getTime()
     # Compute neutral density
     rhon = sd.eos_neutral(temp,so)-1000.
+    # reorganise i,j in 1D
+    temp = npy.reshape(temp, (tcdel, N_z, N_i*N_j))
+    so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
+    rhon = npy.reshape(rhon, (tcdel, N_z, N_i*N_j))
 
     # output arrays for each chunk
-    depth_bin = npy.ma.ones([tcdel, N_s+1, N_j, N_i], dtype='float32')*valmask 
+    depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
     depth_bin = mv.masked_where(depth_bin==valmask, depth_bin)
     thick_bin = depth_bin.copy() 
     x1_bin    = depth_bin.copy() 
@@ -257,109 +264,114 @@ for tc in range(tcmax):
     #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
 
     # Loop on time within chunk tc
-    for t in range(trmax-trmin):
+    for t in range(trmax-trmin): 
         print '      t = ',t
        # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-        x1_content = temp.data[t,:,:,:] # dims: i,j,k
-        x2_content = so.data[t,:,:,:] # dims: i,j,k
-        vmask_3D = mv.masked_values(temp[t, ...], 0) 
+        x1_content = temp.data[t,:,:] # dims: i,j,k
+        x2_content = so.data[t,:,:] # dims: i,j,k
+        vmask_3D = mv.masked_values(temp.data[t,:,:], valmask).mask 
         # Transform all valid data (unmasked) to single dimension array
-        # (TODO: reorganize arrays to collapse i j dims ? on keep only indices of ocean points ?)
-        for j in range(jmin,jmax):
-            for i in range(imin,imax):
-                # test on masked points
-                vmask = vmask_3D[:,j,i].mask
-
+        #x1_nomsk = x1_content[:,idxnomsk]
+        #x2_nomsk = x2_content[:,idxnomsk]
+        for i in range(N_i*N_j): 
+            # test on masked points
+            if not vmask_3D[:,i][0]: # check point is not masked
+                # sigma arrays init
                 z_s  = npy.asarray([float(valmask)]*(N_s+1))
                 c1_s = npy.asarray([float(valmask)]*(N_s+1))
                 c2_s = npy.asarray([float(valmask)]*(N_s+1))
-  
-                #bowl_s = float('NaN') 
-
-                if not vmask[0]: # check point is not masked
                 # find bottom level
-                    i_bottom = npy.where(vmask)[0][0] - 1
-                    z_s[N_s] = z_zw[i_bottom+1]   ; # Cell depth limit
-                    c1_s[N_s] = x1_content[N_z-1,j,i] ; # Cell bottom temperature/salinity
-                    c2_s[N_s] = x2_content[N_z-1,j,i] ; # Cell bottom temperature/salinity
+                vmask = vmask_3D[:,i]
+                i_bottom = npy.where(vmask)[0][0] - 1
+                z_s[N_s] = z_zw[i_bottom+1]   ; # Cell depth limit
+                c1_s[N_s] = x1_content[N_z-1,i] ; # Cell bottom temperature/salinity
+                c2_s[N_s] = x2_content[N_z-1,i] ; # Cell bottom temperature/salinity
                     
-                    s_z = rhon[t,:,j,i].data
-                    c1_z = x1_content[:,j,i]
-                    c2_z = x2_content[:,j,i]
+                s_z = rhon.data[t,:,i]
+                c1_z = x1_content[:,i]
+                c2_z = x2_content[:,i]
 
-                    # extract a strictly increasing sub-profile
-                    # first test on bottom - surface stratification
-                    delta_rho = s_z[i_bottom] - s_z[0]
-                    if delta_rho < del_s:
-                        i_min = 0
-                        i_max = i_bottom
-                    else:
-                        irange = range(i_bottom+1)
-                        mini = min(s_z[irange])
-                        maxi = max(s_z[irange])
-                        i_min = (s_z[irange]).tolist().index(mini)
-                        i_max = (s_z[irange]).tolist().index(maxi)
+                # extract a strictly increasing sub-profile
+                # first test on bottom - surface stratification
+                delta_rho = s_z[i_bottom] - s_z[0]
+                if delta_rho < del_s:
+                    i_min = 0
+                    i_max = i_bottom
+                else:
+                    irange = range(i_bottom+1)
+                    mini = min(s_z[irange])
+                    maxi = max(s_z[irange])
+                    i_min = (s_z[irange]).tolist().index(mini)
+                    i_max = (s_z[irange]).tolist().index(maxi)
+                    
+                if i_min > i_max:
+                    print '*** i_min > i_max ', i_min,i_max
+                    exit(1)
 
-                    if i_min > i_max:
-                        print '*** i_min > i_max ', i_min,i_max
-                        exit(1)
+                # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+                ind = sd.whereLT(s_s, s_z[i_min])
+                z_s[ind] = 0.
+                c1_s[ind] = valmask
+                c2_s[ind] = valmask
 
-                    # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
-                    ind = sd.whereLT(s_s, s_z[i_min])
-                    z_s[ind] = 0.
-                    c1_s[ind] = valmask
-                    c2_s[ind] = valmask
+                # if level of s_s has higher density than bottom density, 
+                # isopycnal is set to bottom (z_s=z_zw[i_bottom])
+                ind = sd.whereGT(s_s, s_z[i_max])
+                z_s[ind] = z_s[N_s]
+                c1_s[ind] = valmask
+                c2_s[ind] = valmask
 
-                    # if level of s_s has higher density than bottom density, 
-                    # isopycnal is set to bottom (z_s=z_zw[i_bottom])
-                    ind = sd.whereGT(s_s, s_z[i_max])
-                    z_s[ind] = z_s[N_s]
-                    c1_s[ind] = valmask
-                    c2_s[ind] = valmask
-
-                    # General case
-                    ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
-                    if len(ind) >= 1:
-                        i_profil = irange[i_min:i_max+1]
-                        # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
+                # General case
+                ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
+                if len(ind) >= 1:
+                    i_profil = irange[i_min:i_max+1]
+                    # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
                 
-                        z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]); # consider spline
+                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]); # consider spline
                         
-                        c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
-                        c2_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c2_z[i_profil]) 
+                    c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
+                    c2_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c2_z[i_profil]) 
 
-                        idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 )
-                        if len(idt) >= 1:
-                            print 'ind = ',ind
-                            print 'i_min,i_max  ', i_min,i_max
-                            print 'i_profil ', i_profil
-                            print "non increasing depth profile",i,j
-                            print "lon,lat",lon[j,i],lat[j,i]
-                            print " s_z[i_profil] ", s_z[i_profil]
-                            print " z_s[ind] ", z_s[ind]
-                            print " s_s[ind] ", npy.asarray(s_s)[ind]
-                            print " z_zt[i_profil] ", z_zt[i_profil]
+                    idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 )
+                    if len(idt) >= 1:
+                        print 'ind = ',ind
+                        print 'i_min,i_max  ', i_min,i_max
+                        print 'i_profil ', i_profil
+                        print "non increasing depth profile",i
+                        print "lon,lat",npy.reshape(lon,N_i*N_j)[j,i],npy.reshape(lat,N_i*N_j)[j,i]
+                        print " s_z[i_profil] ", s_z[i_profil]
+                        print " z_s[ind] ", z_s[ind]
+                        print " s_s[ind] ", npy.asarray(s_s)[ind]
+                        print " z_zt[i_profil] ", z_zt[i_profil]
 
-                        # TO DO: bowl depth bining
-                        # IF sig_bowl EQ 1 THEN BEGIN
-                        #   bowl_s = interpol(s_z[i_profil], z_zt[i_profil], sobwlmax[i, j])
-                        # ENDIF ELSE BEGIN
-                        #   bowl_s = 0
-                        # ENDELSE
+                    # TO DO: bowl depth bining
+                    # IF sig_bowl EQ 1 THEN BEGIN
+                    #   bowl_s = interpol(s_z[i_profil], z_zt[i_profil], sobwlmax[i, j])
+                    # ENDIF ELSE BEGIN
+                    #   bowl_s = 0
+                    # ENDELSE
 
-                    depth_bin [t,:,j,i]     = z_s
-                    thick_bin [t,0,j,i]     = z_s[0]
-                    thick_bin [t,1:N_s,j,i] = z_s[1:N_s]-z_s[0:N_s-1]
-                    x1_bin    [t,:,j,i]     = c1_s
-                    x2_bin    [t,:,j,i]     = c2_s
-                    #bowl_bin  [j, i]        = bowl_s
+                depth_bin [t,:,i]     = z_s
+                thick_bin [t,0,i]     = z_s[0]
+                thick_bin [t,1:N_s,i] = z_s[1:N_s]-z_s[0:N_s-1]
+                x1_bin    [t,:,i]     = c1_s
+                x2_bin    [t,:,i]     = c2_s
+                #bowl_bin  [j, i]        = bowl_s
 
-                # end if masked point
+            # end if masked point <---
 
-        # end loop on i,j
+        # end loop on i <===
 
-    # end loop on t
-  
+    # end loop on t  <===
+
+    # Add back masked points
+    # TODO
+    # Reshape i*j back to i,j
+    depth_bin = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
+    thick_bin = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
+    x1_bin    = npy.reshape(x1_bin   , (tcdel, N_s+1, N_j, N_i))
+    x2_bin    = npy.reshape(x2_bin   , (tcdel, N_s+1, N_j, N_i))
+ 
     # Wash mask over variables
     depth_bin = mv.masked_where(x1_bin==valmask,depth_bin)
     thick_bin = mv.masked_where(x1_bin==valmask,thick_bin)
@@ -376,7 +388,7 @@ for tc in range(tcmax):
 
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print 'Loop on t,i,j done (CPU & elapsed = ',tic-toc, tic2-toc2, ')'
+    print 'Loop on t,i,j done (CPU & elapsed & per month = ',tic-toc, tic2-toc2, tic-toc/(tmax-tmin),tic2-toc2/(tmax-tmin) ')'
 
     # Output files as netCDF
 
@@ -411,7 +423,7 @@ for tc in range(tcmax):
     g.write(x1Bin,    extend = 1, index = trmin)
     g.write(x2Bin,    extend = 1, index = trmin)
 
-# end loop on tc
+# end loop on tc <===
 
 
 ft.close()
