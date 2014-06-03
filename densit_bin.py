@@ -118,10 +118,12 @@ print '  time interval: ', tmin, tmax - 1
 #
 # Define temperature and salinity arrays
 temp = ft('thetao', time = slice(0,1))-273.15
+#temp = ft["thetao"]
 so   = fs('so', time = slice(0,1))
+#so=fs["so"]
 #
 # Find indices of non-masked points
-idxnomsk = npy.where(mv.masked_values(temp[0, ...], 0)[0,:,:].mask)
+#idxnomsk = npy.where(mv.masked_values(temp[0, ...], 0)[0,:,:].mask)
 #
 # Read file attributes
 list_file=ft.attributes.keys()
@@ -229,7 +231,7 @@ for tc in range(tcmax):
     #
     # output arrays for each chunk
     depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    depth_bin = mv.masked_where(depth_bin==valmask, depth_bin)
+    depth_bin = mv.masked_where(mv.equal(depth_bin,valmask), depth_bin)
     thick_bin = depth_bin.copy() 
     x1_bin    = depth_bin.copy() 
     x2_bin    = depth_bin.copy() 
@@ -239,15 +241,24 @@ for tc in range(tcmax):
     for t in range(trmax-trmin): 
         print '      t = ',t
        # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-        x1_content = temp.data[t,:,:] # dims: i,j,k
-        x2_content = so.data[t,:,:] # dims: i,j,k
-        vmask_3D = mv.masked_values(temp.data[t,:,:], valmask).mask 
+        print temp.shape
+        x1_content = temp.data[t] # dims: i,j,k
+        x2_content = so.data[t] # dims: i,j,k
+        vmask_3D = mv.masked_values(temp.data[t], valmask).mask 
         # TODO: Keep only valid data (unmasked)
         #x1_nomsk = x1_content[:,idxnomsk]
         #x2_nomsk = x2_content[:,idxnomsk]
-        for i in range(N_i*N_j): 
+        #for i in range(N_i*N_j): 
+        if 1:
             # test on masked points
-            if not vmask_3D[:,i][0]: # check point is not masked
+            has_surface = npy.equal(vmask_3D[0],1)
+            z_s = npy.ones((N_s+1,N_i*N_j))*valmask
+            c1_s = npy.ones((N_s+1,N_i*N_j))*valmask
+            c2_s = npy.ones((N_s+1,N_i*N_j))*valmask
+            i_bottom = npy.argwhere(vmask_3D,0)
+            print i_bottom
+            sys.exit()
+            if not vmask_3D[0,i]: # check point is not masked at surface
                 # sigma arrays init
                 z_s  = npy.asarray([float(valmask)]*(N_s+1))
                 c1_s = npy.asarray([float(valmask)]*(N_s+1))
