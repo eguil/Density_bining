@@ -48,12 +48,8 @@ cdm.setAutoBounds('on')
 # 
 # == Inits
 #
-
-home='/Users/ericg/Projets/Density_bining'
-
-if socket.gethostname() == 'crunchy.llnl.gov':
-    home   = os.getcwd()
-    outdir = os.getcwd()
+home   = os.getcwd()
+outdir = os.getcwd()
 
 hist_file_dir=home
 
@@ -282,10 +278,10 @@ for tc in range(tcmax):
                 c2_s = npy.asarray([float(valmask)]*(N_s+1))
                 # find bottom level
                 vmask = vmask_3D[:,i]
-                i_bottom = npy.where(vmask)[0][0] - 1
-                z_s[N_s] = z_zw[i_bottom+1]   ; # Cell depth limit
-                c1_s[N_s] = x1_content[N_z-1,i] ; # Cell bottom temperature/salinity
-                c2_s[N_s] = x2_content[N_z-1,i] ; # Cell bottom temperature/salinity
+                i_bottom = npy.where(vmask)[0][0] - 1 ; # Cell bottom index
+                z_s[N_s] = z_zw[i_bottom+1]           ; # Cell depth limit
+                c1_s[N_s] = x1_content[N_z-1,i]       ; # Cell bottom temperature/salinity
+                c2_s[N_s] = x2_content[N_z-1,i]       ; # Cell bottom temperature/salinity
                     
                 s_z = rhon.data[t,:,i]
                 c1_z = x1_content[:,i]
@@ -327,12 +323,13 @@ for tc in range(tcmax):
                     i_profil = irange[i_min:i_max+1]
                     # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
                 
-                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]); # consider spline
+                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]) ; # consider spline
                         
+                    # interpolate T and S(z) (c1/2_z) at s_s densities (c1/2_s) using density(s) z_s
                     c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
                     c2_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c2_z[i_profil]) 
 
-                    idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 )
+                    idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 ) ; # check that z_s is stricly increasing
                     if len(idt) >= 1:
                         print 'ind = ',ind
                         print 'i_min,i_max  ', i_min,i_max
