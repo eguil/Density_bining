@@ -84,6 +84,16 @@ def scrubNaNAndMask(var,maskVar):
     var = mv.masked_where(maskVar.mask,var)
     return var
 
+def whereEQ(elements, reference):
+    # find index(indices)
+    index_list=[]
+    for index, elem in enumerate(elements):
+        if elem == reference:
+            index_list.append(index)
+    return npy.asarray(index_list).astype(int)
+    raise ValueError("No index found whereEQ")
+
+
 def whereLT(elements, reference):
     # find index(indices)
     index_list=[]

@@ -123,7 +123,7 @@ if timeint == 'all':
     tmax = timeax.shape[0]
 else:
     tmin = int(timeint.split(',')[0]) - 1
-    tmax = tmin + int(timeint.split(',')[1])#
+    tmax = tmin + int(timeint.split(',')[1])
 
 if debug >= '1':
     print; print ' Debug - Read only first month...'
@@ -250,7 +250,7 @@ for tc in range(tcmax):
     time  = temp.getTime()
     # Compute neutral density
     rhon = sd.eos_neutral(temp,so)-1000.
-    # reorganise i,j in 1D
+    # reorganise i,j dims in single dimension data
     temp = npy.reshape(temp, (tcdel, N_z, N_i*N_j))
     so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
     rhon = npy.reshape(rhon, (tcdel, N_z, N_i*N_j))
@@ -270,7 +270,7 @@ for tc in range(tcmax):
         x1_content = temp.data[t,:,:] # dims: i,j,k
         x2_content = so.data[t,:,:] # dims: i,j,k
         vmask_3D = mv.masked_values(temp.data[t,:,:], valmask).mask 
-        # Transform all valid data (unmasked) to single dimension array
+        # TODO: Keep only valid data (unmasked)
         #x1_nomsk = x1_content[:,idxnomsk]
         #x2_nomsk = x2_content[:,idxnomsk]
         for i in range(N_i*N_j): 
@@ -388,7 +388,7 @@ for tc in range(tcmax):
 
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print 'Loop on t,i,j done (CPU & elapsed & per month = ',tic-toc, tic2-toc2, tic-toc/(tmax-tmin),tic2-toc2/(tmax-tmin) ')'
+    print 'Loop on t,i,j done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',tic-toc/(tmax-tmin),tic2-toc2/(tmax-tmin),')'
 
     # Output files as netCDF
 
