@@ -52,8 +52,8 @@ cdm.setAutoBounds('on')
 home='/Users/ericg/Projets/Density_bining'
 
 if socket.gethostname() == 'crunchy.llnl.gov':
-    home='/work/guilyardi/Density_bining'
-    outdir='/work/guilyardi/Density_bining'
+    home   = os.getcwd()
+    outdir = os.getcwd()
 
 hist_file_dir=home
 
