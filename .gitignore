@@ -1,0 +1,5 @@
+# other files and folders
+.settings/
+*~
+*.pyc
+out_density.nc
