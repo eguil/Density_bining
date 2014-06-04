@@ -20,7 +20,9 @@
 # git add densit_bin.py
 # git commit -m "with Paul"
 # git push
-#
+# git checkout master
+# git checkout <branch>
+
 import cdms2 as cdm
 import MV2 as mv
 import os, sys
@@ -157,6 +159,7 @@ rho_max = 28
 del_s = 0.2
 s_s = npy.arange(rho_min, rho_max, del_s).tolist()
 N_s = len(s_s)
+s_s = npy.tile(s_s, N_i*N_j).reshape(N_s, N_i*N_j)
 
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 #
@@ -169,6 +172,7 @@ jmax = temp.shape[2]
 # test point  
 itest = 80 
 jtest = 60  
+ijtest = jtest*N_i+itest
 #imin = itest
 #jmin = jtest
 #imax = itest+1
@@ -186,17 +190,9 @@ print '==> tcdel, tcmax:', tcdel, tcmax
 #
 # inits
 # z profiles:
-c1_z = [float(valmask)]*N_z
-c2_z = [float(valmask)]*N_z
-s_z  = [float(valmask)]*N_z
 z_zt = depth[:]
 z_zw = bounds.data[:,0]
 #bowl_s = 0.
-# density profiles:
-z_s  = [float(valmask)]*(N_s+1)
-c1_s = [float(valmask)]*(N_s+1)
-c2_s = [float(valmask)]*(N_s+1)
-z1_s = [float(valmask)]*(N_s+1)
 #
 print
 toc = timc.clock()
@@ -241,56 +237,57 @@ for tc in range(tcmax):
     for t in range(trmax-trmin): 
         print '      t = ',t
        # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-        print temp.shape
         x1_content = temp.data[t] # dims: i,j,k
         x2_content = so.data[t] # dims: i,j,k
         vmask_3D = mv.masked_values(temp.data[t], valmask).mask 
-        # TODO: Keep only valid data (unmasked)
-        #x1_nomsk = x1_content[:,idxnomsk]
-        #x2_nomsk = x2_content[:,idxnomsk]
         #for i in range(N_i*N_j): 
         if 1:
-            # test on masked points
-            has_surface = npy.equal(vmask_3D[0],1)
-            z_s = npy.ones((N_s+1,N_i*N_j))*valmask
-            c1_s = npy.ones((N_s+1,N_i*N_j))*valmask
-            c2_s = npy.ones((N_s+1,N_i*N_j))*valmask
-            i_bottom = npy.argwhere(vmask_3D,0)
-            print i_bottom
+            # find non-masked points
+            nomask = npy.equal(vmask_3D[0],0)
+            # init arrays
+            z_s   = npy.ones((N_s+1, N_i*N_j))*valmask
+            c1_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+            c2_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+            i_min = npy.ones((N_i*N_j))*1000
+            i_max = npy.ones((N_i*N_j))*1000
+            delta_rho = npy.ones((N_i*N_j))*valmask
+            # find bottom level
+            i_bottom = vmask_3D.argmax(axis=0)-1
+            z_s [N_s, nomask] = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+            c1_s[N_s, nomask] = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
+            c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
+            # init arrays = f(z)
+            s_z = rhon.data[t]
+            c1_z = x1_content
+            c2_z = x2_content
+            #
+            # extract a strictly increasing sub-profile
+            i_min[nomask] = s_z.argmin(axis=0)[nomask]
+            i_max[nomask] = s_z.argmax(axis=0)[nomask]
+            i_min[i_min > i_max] = i_max[i_min > i_max]
+            # Test on bottom - surface stratification
+            delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
+            i_min[delta_rho < del_s] = 0
+            i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
+            #
+            # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+            npy.where(s_s, s_z[:,i_min])[nomask]...
+
             sys.exit()
-            if not vmask_3D[0,i]: # check point is not masked at surface
-                # sigma arrays init
-                z_s  = npy.asarray([float(valmask)]*(N_s+1))
-                c1_s = npy.asarray([float(valmask)]*(N_s+1))
-                c2_s = npy.asarray([float(valmask)]*(N_s+1))
-                # find bottom level
-                vmask = vmask_3D[:,i]
-                i_bottom = npy.where(vmask)[0][0] - 1 ; # Cell bottom index
-                z_s[N_s] = z_zw[i_bottom+1]           ; # Cell depth limit
-                c1_s[N_s] = x1_content[N_z-1,i]       ; # Cell bottom temperature/salinity
-                c2_s[N_s] = x2_content[N_z-1,i]       ; # Cell bottom temperature/salinity
-                #   
-                s_z = rhon.data[t,:,i]
-                c1_z = x1_content[:,i]
-                c2_z = x2_content[:,i]
-                #
-                # extract a strictly increasing sub-profile
-                # first test on bottom - surface stratification
-                delta_rho = s_z[i_bottom] - s_z[0]
-                if delta_rho < del_s:
-                    i_min = 0
-                    i_max = i_bottom
-                else:
-                    irange = range(i_bottom+1)
-                    mini = min(s_z[irange])
-                    maxi = max(s_z[irange])
-                    i_min = (s_z[irange]).tolist().index(mini)
-                    i_max = (s_z[irange]).tolist().index(maxi)   
-                if i_min > i_max:
-                    print '*** i_min > i_max ', i_min,i_max
-                    exit(1)
+
+#            if delta_rho < del_s:
+#                i_min = 0
+#                i_max = i_bottom
+#            else:
+#                irange = range(i_bottom+1)
+#                mini = min(s_z[irange])
+#                maxi = max(s_z[irange])
+#                i_min = (s_z[irange]).tolist().index(mini)
+#                i_max = (s_z[irange]).tolist().index(maxi)   
+            
                 #
                 # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+            if 1:
                 ind = sd.whereLT(s_s, s_z[i_min])
                 z_s[ind] = 0.
                 c1_s[ind] = valmask
