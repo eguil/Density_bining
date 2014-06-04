@@ -157,9 +157,9 @@ N_z = int(depth.shape[0])
 rho_min = 19
 rho_max = 28
 del_s = 0.2
-s_s = npy.arange(rho_min, rho_max, del_s).tolist()
+s_s = npy.arange(rho_min, rho_max, del_s)
 N_s = len(s_s)
-s_s = npy.tile(s_s, N_i*N_j).reshape(N_s, N_i*N_j)
+s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose()
 
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 #
@@ -207,6 +207,8 @@ s_axis.units = ''
 s_axis.designateLevel()
 grd = temp.getGrid()
 file_out = outdir+'/out_density.nc'
+if os.path.exists(file_out):
+    os.remove(file_out)
 g = cdm.open(file_out,'w+')
 #   
 # loop on time chunks
@@ -248,6 +250,8 @@ for tc in range(tcmax):
             z_s   = npy.ones((N_s+1, N_i*N_j))*valmask
             c1_s  = npy.ones((N_s+1, N_i*N_j))*valmask
             c2_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+            szmin  = npy.ones((N_i*N_j))*valmask
+            szmax  = npy.ones((N_i*N_j))*valmask
             i_min = npy.ones((N_i*N_j))*1000
             i_max = npy.ones((N_i*N_j))*1000
             delta_rho = npy.ones((N_i*N_j))*valmask
@@ -263,7 +267,7 @@ for tc in range(tcmax):
             #
             # extract a strictly increasing sub-profile
             i_min[nomask] = s_z.argmin(axis=0)[nomask]
-            i_max[nomask] = s_z.argmax(axis=0)[nomask]
+            i_max[nomask] = s_z.argmax(axis=0)[nomask]-1
             i_min[i_min > i_max] = i_max[i_min > i_max]
             # Test on bottom - surface stratification
             delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
@@ -271,7 +275,37 @@ for tc in range(tcmax):
             i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
             #
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
-            npy.where(s_s, s_z[:,i_min])[nomask]...
+            for i in range(N_i*N_j):
+                if nomask[i]:
+                    szmin[i] = s_z[i_min[i],i]
+                    szmax[i] = s_z[i_max[i],i]
+                else:
+                    szmin[i] = 0.
+                    szmax[i] = rho_max+10.
+            ind = npy.argwhere(s_s < szmin).transpose()
+            z_s [ind[0],ind[1]] = 0.
+            c1_s[ind[0],ind[1]] = valmask
+            c2_s[ind[0],ind[1]] = valmask
+            # if level of s_s has higher density than bottom density, 
+            # isopycnal is set to bottom (z_s=z_zw[i_bottom])
+            ind = npy.argwhere(s_s > szmax).transpose()
+            z_s [ind[0],ind[1]] = z_s[N_s,ind[1]]
+            c1_s[ind[0],ind[1]] = valmask
+            c2_s[ind[0],ind[1]] = valmask
+            #
+            # General case
+            ind = npy.argwhere((s_s >= szmin) & (s_s <= szmax)).transpose()
+            
+            if 1:
+                print 'test point',ijtest
+                print ' i_bottom',i_bottom[ijtest]
+                print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
+                print ' ind',ind[0][npy.where(ind[1] == ijtest)]
+                #print ' i_profil',i_profil[:,ijtest]
+                #print ' s_z[i_profil] ', s_z[i_profil]
+                #print ' z_s[ind] ', z_s[ind]
+                #print ' s_s[ind] ', npy.asarray(s_s)[ind]
+                #print ' z_zt[i_profil] ', z_zt[i_profil]
 
             sys.exit()
 
@@ -361,7 +395,7 @@ for tc in range(tcmax):
         print 'x2_bin', x2_bin[0,:,j,i]
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print 'Loop on t,i,j done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',tic-toc/(tmax-tmin),tic2-toc2/(tmax-tmin),')'
+    print 'Loop on t,i,j done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',tic-toc/float(tmax-tmin),tic2-toc2/float(tmax-tmin),')'
     #
     # Output files as netCDF
     # Def variables
