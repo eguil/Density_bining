@@ -166,7 +166,8 @@ jmax = temp.shape[2]
 #
 # test point  
 itest = 80 
-jtest = 60  
+jtest = 60
+ijtest = jtest*N_i+itest
 #imin = itest
 #jmin = jtest
 #imax = itest+1
@@ -209,6 +210,8 @@ s_axis.units = ''
 s_axis.designateLevel()
 grd = temp.getGrid()
 file_out = outdir+'/out_density.nc'
+if os.path.exists(file_out):
+    os.remove(file_out)
 g = cdm.open(file_out,'w+')
 #   
 # loop on time chunks
@@ -326,6 +329,17 @@ for tc in range(tcmax):
                 x1_bin    [t,:,i]     = c1_s
                 x2_bin    [t,:,i]     = c2_s
                 #bowl_bin  [j, i]        = bowl_s
+
+                if i == ijtest:
+                    print 'test point',ijtest
+                    print ' i_bottom',i_bottom
+                    print ' i_min,i_max',i_min,i_max
+                    print ' ind',ind
+                    print ' i_profil',i_profil
+                    print ' s_z[i_profil] ', s_z[i_profil]
+                    print ' z_s[ind] ', z_s[ind]
+                    print ' s_s[ind] ', npy.asarray(s_s)[ind]
+                    print ' z_zt[i_profil] ', z_zt[i_profil]
             # end if masked point <---
         # end loop on i <===
     # end loop on t  <===
