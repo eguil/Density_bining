@@ -50,6 +50,7 @@ cdm.setAutoBounds('on')
 # 
 # == Inits
 #
+npy.set_printoptions(precision = 2)
 home   = os.getcwd()
 outdir = os.getcwd()
 hist_file_dir=home
@@ -93,7 +94,7 @@ file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.oc
 file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
 file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
 #
-if debug >= '1':
+if debug:
     print ' Debug - File names:'
     print '    ', file_T
     print '    ', file_S
@@ -111,7 +112,7 @@ else:
     tmin = int(timeint.split(',')[0]) - 1
     tmax = tmin + int(timeint.split(',')[1])
 
-if debug >= '1':
+if debug:
     print; print ' Debug - Read only first month...'
     tmin = 0
     tmax = 1
@@ -213,6 +214,8 @@ g = cdm.open(file_out,'w+')
 #   
 # loop on time chunks
 for tc in range(tcmax):
+    tuc = timc.clock()
+    tuc2 = timeit.default_timer()
     # read tcdel month by tcdel month to optimise memory
     trmin = tc*tcdel ; # define as function of tc and tcdel
     trmax = (tc+1)*tcdel ; # define as function of tc and tcdel
@@ -220,8 +223,12 @@ for tc in range(tcmax):
     temp = ft('thetao', time = slice(trmin,trmax))-273.15
     so   = fs('so', time = slice(trmin,trmax))
     time  = temp.getTime()
-    # Compute neutral density
+    tur = timc.clock()
+    print '     read  CPU:',tur-tuc
+    # Compute neutral density (optimize ?)
     rhon = sd.eos_neutral(temp,so)-1000.
+    turn = timc.clock()
+    print '     rhon compute  CPU:',turn-tur
     # reorganise i,j dims in single dimension data
     temp = npy.reshape(temp, (tcdel, N_z, N_i*N_j))
     so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
@@ -234,10 +241,15 @@ for tc in range(tcmax):
     x1_bin    = depth_bin.copy() 
     x2_bin    = depth_bin.copy() 
     #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
+    tac = timc.clock()
+    tac2 = timeit.default_timer()
+    print '     read, rhon compute and array init CPU, elapsed:',tac-tuc, tac2-tuc2
     #
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
-        print '      t = ',t
+        tac = timc.clock()
+        if (t/10*10 == t): 
+            print '      t = ',t
         # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
         x1_content = temp.data[t] 
         x2_content = so.data[t] 
@@ -273,6 +285,7 @@ for tc in range(tcmax):
         i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
         #
         # General case
+        # find min/max of density for each z profile
         # TODO: remove loop
         for i in range(N_i*N_j):
             if nomask[i]:
@@ -281,40 +294,54 @@ for tc in range(tcmax):
             else:
                 szmin[i] = 0.
                 szmax[i] = rho_max+10.
+        # Find indices between min and max of density
         ind = npy.argwhere((s_s >= szmin) & (s_s <= szmax)).transpose()
         #
         # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
         # same for zztm from z_zt
+        tac3 = timc.clock()
         szm = s_z*1. ; szm[...] = 'NaN'
         zzm = s_z*1. ; zzm[...] = 'NaN'
         c1m = c1_z*1. ; c1m[...] = 'NaN'
         c2m = c2_z*1. ; c2m[...] = 'NaN'
-        # TODO: remove loop
+        
+        # TODO: remove loop as this is the most expensive (CPU = 65%) !!!
+        # try szm = s_z*1. and szm[npy.argwhere(between i_min and i_max),:] = 'NaN'
+        tac4 = timc.clock()
         for i in range(N_i*N_j):
-            i_profil = range(int(i_min[i]),int(i_max[i])+1)
-            szm[i_profil,i] = s_z [i_profil,i]
-            c1m[i_profil,i] = c1_z [i_profil,i]
-            c2m[i_profil,i] = c2_z [i_profil,i]
-            zzm[i_profil,i] = z_zt[i_profil]
+            if nomask[i]:
+                i_profil = range(int(i_min[i]),int(i_max[i])+1)
+                #i_profil = [1,2,3,4,5]
+                szm[i_profil,i] = s_z [i_profil,i]
+                c1m[i_profil,i] = c1_z [i_profil,i]
+                c2m[i_profil,i] = c2_z [i_profil,i]
+                zzm[i_profil,i] = z_zt[i_profil]
+        tac5 = timc.clock()
         # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-        # TODO: no loop 
+        # TODO: no loop (18% CPU)
         for i in range(N_i*N_j):
             if nomask[i]:
                 z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
                 c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                 c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+        tac6 = timc.clock()
+        if debug :
+            print ' CPU stage 1 :', tac3-tac
+            print ' CPU stage 2 :', tac4-tac3
+            print ' CPU stage 3 :', tac5-tac4
+            print ' CPU stage 4 :', tac6-tac5
         #
         # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
-        ind = npy.argwhere(s_s < szmin).transpose()
-        z_s [ind[0],ind[1]] = 0.
-        c1_s[ind[0],ind[1]] = valmask
-        c2_s[ind[0],ind[1]] = valmask
+        inds = npy.argwhere(s_s < szmin).transpose()
+        z_s [inds[0],inds[1]] = 0.
+        c1_s[inds[0],inds[1]] = valmask
+        c2_s[inds[0],inds[1]] = valmask
         # if level of s_s has higher density than bottom density, 
         # isopycnal is set to bottom (z_s=z_zw[i_bottom])
-        ind = npy.argwhere(s_s > szmax).transpose()
-        z_s [ind[0],ind[1]] = z_s[N_s,ind[1]]
-        c1_s[ind[0],ind[1]] = valmask
-        c2_s[ind[0],ind[1]] = valmask
+        inds = npy.argwhere(s_s > szmax).transpose()
+        z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
+        c1_s[inds[0],inds[1]] = valmask
+        c2_s[inds[0],inds[1]] = valmask
  
  
         depth_bin [t,:,:]     = z_s
@@ -323,7 +350,7 @@ for tc in range(tcmax):
         x1_bin    [t,:,:]     = c1_s
         x2_bin    [t,:,:]     = c2_s
 
-        if 0:
+        if debug:
             ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
             print 'test point',ijtest
             print ' i_bottom',i_bottom[ijtest]
@@ -361,7 +388,7 @@ for tc in range(tcmax):
         print 'x2_bin', x2_bin[0,:,j,i]
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print 'Loop on t done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',(tic-toc)/float(tmax-tmin),(tic2-toc2)/float(tmax-tmin),')'
+    print '   Loop on t done - CPU & elapsed total (per month) = ',tic-tac, tic2-tac2, '(',(tic-tac)/float(tcdel),(tic2-tac2)/float(tcdel),')'
     #
     # Output files as netCDF
     # Def variables
