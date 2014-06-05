@@ -375,9 +375,9 @@ for tc in range(tcmax):
         #
         thickBin.long_name = 'Thickness of isopycnal'
         thickBin.units = 'm'
-        x1Bin.long_name = 'Bined '+temp.long_name
+        x1Bin.long_name = temp.long_name
         x1Bin.units = 'C'
-        x2Bin.long_name = 'Bined '+so.long_name
+        x2Bin.long_name = so.long_name
         x2Bin.units = so.units
         #
         g.write(area) ; # Added area so isonvol can be computed
