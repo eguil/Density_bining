@@ -307,18 +307,33 @@ for tc in range(tcmax):
             # TODO: remove loop
             szm = s_z*1. ; szm[...] = 'NaN'
             zzm = s_z*1. ; zzm[...] = 'NaN'
+            c1m = c1_z*1. ; c1m[...] = 'NaN'
+            c2m = c2_z*1. ; c2m[...] = 'NaN'
             for i in range(N_i*N_j):
                 i_profil = range(int(i_min[i]),int(i_max[i])+1)
                 szm[i_profil,i] = s_z [i_profil,i]
+                c1m[i_profil,i] = c1_z [i_profil,i]
+                c2m[i_profil,i] = c2_z [i_profil,i]
                 zzm[i_profil,i] = z_zt[i_profil]
             # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-            # TODO: no loop as this is very costly (especially the npy.where)
+            # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
-                    print i
-                    z_s[ind[0][npy.where(ind[1]==i)],i] = npy.interp(s_s[ind[0][npy.where(ind[1]==i)],i], szm[:,i], zzm[:,i]) ; # consider spline
-             
-            if 1:
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
+                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
+                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+ 
+            tic = timc.clock()
+            tic2 = timeit.default_timer()
+            print 'CPU & elapsed total = ',tic-toc, tic2-toc2
+
+            depth_bin [t,:,:]     = z_s
+            thick_bin [t,0,:]     = z_s[0,:]
+            thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            x1_bin    [t,:,:]     = c1_s
+            x2_bin    [t,:,:]     = c2_s
+
+            if 0:
                 ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
                 print 'test point',ijtest
                 print ' i_bottom',i_bottom[ijtest]
@@ -326,50 +341,12 @@ for tc in range(tcmax):
                 print ' ind',ind[0][npy.where(ind[1] == ijtest)]
                 print ' i_profil',ir
                 print ' s_z[i_profil] ', szm[ir,ijtest]
-                print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==i)],ijtest]
+                print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
                 print ' z_zt[i_profil] ', zzm[ir,ijtest]
                 print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+                print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+                print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
  
-                tic = timc.clock()
-                tic2 = timeit.default_timer()
-                print 'CPU & elapsed total = ',tic-toc, tic2-toc2
-
-            sys.exit()
-            if 1:
-                #
-                # General case
-                ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
-                if len(ind) >= 1:
-                    i_profil = range[i_min:i_max+1]
-                    # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]) ; # consider spline
-                    #    
-                    # interpolate T and S(z) (c1/2_z) at s_s densities (c1/2_s) using density(s) z_s
-                    c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
-                    c2_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c2_z[i_profil]) 
-                    #
-                    idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 ) ; # check that z_s is stricly increasing
-                    if len(idt) >= 1:
-                        print 'ind = ',ind
-                        print 'i_min,i_max  ', i_min,i_max
-                        print 'i_profil ', i_profil
-                        print "non increasing depth profile",i
-                        #print "lon,lat",npy.reshape(lon,N_i*N_j)[j,i],npy.reshape(lat,N_i*N_j)[j,i]
-                        print " s_z[i_profil] ", s_z[i_profil]
-                        print " z_s[ind] ", z_s[ind]
-                        print " s_s[ind] ", npy.asarray(s_s)[ind]
-                        print " z_zt[i_profil] ", z_zt[i_profil]
-                    # TO DO: bowl depth bining
-                    # IF sig_bowl EQ 1 THEN BEGIN
-                    #   bowl_s = interpol(s_z[i_profil], z_zt[i_profil], sobwlmax[i, j])
-                    # ENDIF ELSE BEGIN
-                    #   bowl_s = 0
-                    # ENDELSE
-                depth_bin [t,:,i]     = z_s
-                thick_bin [t,0,i]     = z_s[0]
-                thick_bin [t,1:N_s,i] = z_s[1:N_s]-z_s[0:N_s-1]
-                x1_bin    [t,:,i]     = c1_s
-                x2_bin    [t,:,i]     = c2_s
                 #bowl_bin  [j, i]        = bowl_s
             # end if masked point <---
         # end loop on i <===
@@ -393,6 +370,7 @@ for tc in range(tcmax):
         print 'ind = ',ind
         print "test point",i,j, area[j,i]
         print "lon,lat",lon[j,i],lat[j,i]
+        print 'depth_bin', depth_bin[0,:,j,i]
         print 'thick_bin', thick_bin[0,:,j,i]
         print 'x1_bin', x1_bin[0,:,j,i]
         print 'x2_bin', x2_bin[0,:,j,i]
