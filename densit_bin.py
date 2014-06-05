@@ -238,122 +238,107 @@ for tc in range(tcmax):
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
         print '      t = ',t
-       # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-        x1_content = temp.data[t] # dims: i,j,k
-        x2_content = so.data[t] # dims: i,j,k
+        # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
+        x1_content = temp.data[t] 
+        x2_content = so.data[t] 
         vmask_3D = mv.masked_values(temp.data[t], valmask).mask 
-        #for i in range(N_i*N_j): 
-        if 1:
-            # find non-masked points
-            nomask = npy.equal(vmask_3D[0],0)
-            # init arrays
-            z_s   = npy.ones((N_s+1, N_i*N_j))*valmask
-            c1_s  = npy.ones((N_s+1, N_i*N_j))*valmask
-            c2_s  = npy.ones((N_s+1, N_i*N_j))*valmask
-            szmin  = npy.ones((N_i*N_j))*valmask
-            szmax  = npy.ones((N_i*N_j))*valmask
-            i_min = npy.ones((N_i*N_j))*0
-            i_max = npy.ones((N_i*N_j))*0
-            delta_rho = npy.ones((N_i*N_j))*valmask
-            # find bottom level
-            i_bottom = vmask_3D.argmax(axis=0)-1
-            z_s [N_s, nomask] = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
-            c1_s[N_s, nomask] = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
-            c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom tempi_profilerature/salinity
-            # init arrays = f(z)
-            s_z = rhon.data[t]
-            c1_z = x1_content
-            c2_z = x2_content
-            #
-            # extract a strictly increasing sub-profile
-            i_min[nomask] = s_z.argmin(axis=0)[nomask]
-            i_max[nomask] = s_z.argmax(axis=0)[nomask]-1
-            i_min[i_min > i_max] = i_max[i_min > i_max]
-            # Test on bottom - surface stratification
-            delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
-            i_min[delta_rho < del_s] = 0
-            i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
-            #
-            # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
-            # TODO: remove loop
-            for i in range(N_i*N_j):
-                if nomask[i]:
-                    szmin[i] = s_z[i_min[i],i]
-                    szmax[i] = s_z[i_max[i],i]
-                else:
-                    szmin[i] = 0.
-                    szmax[i] = rho_max+10.
-            ind = npy.argwhere(s_s < szmin).transpose()
-            z_s [ind[0],ind[1]] = 0.
-            c1_s[ind[0],ind[1]] = valmask
-            c2_s[ind[0],ind[1]] = valmask
-            # if level of s_s has higher density than bottom density, 
-            # isopycnal is set to bottom (z_s=z_zw[i_bottom])
-            ind = npy.argwhere(s_s > szmax).transpose()
-            z_s [ind[0],ind[1]] = z_s[N_s,ind[1]]
-            c1_s[ind[0],ind[1]] = valmask
-            c2_s[ind[0],ind[1]] = valmask
-            #
-            # General case
-            ind = npy.argwhere((s_s >= szmin) & (s_s <= szmax)).transpose()
-            # TODO: test on len(ind)
-            # TODO: remove loop
-            #idx2 = npy.ones((N_i*N_j))*1000
-            #for i in range(N_i*N_j):
-            #    idx2[i] = (len(ind[0][npy.where(ind[1] == i)]) >= 1) ???
-            #
-            # TODO: construct array of szm = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
-            # TODO: same for zztm from z_zt
-            # TODO: remove loop
-            szm = s_z*1. ; szm[...] = 'NaN'
-            zzm = s_z*1. ; zzm[...] = 'NaN'
-            c1m = c1_z*1. ; c1m[...] = 'NaN'
-            c2m = c2_z*1. ; c2m[...] = 'NaN'
-            for i in range(N_i*N_j):
-                i_profil = range(int(i_min[i]),int(i_max[i])+1)
-                szm[i_profil,i] = s_z [i_profil,i]
-                c1m[i_profil,i] = c1_z [i_profil,i]
-                c2m[i_profil,i] = c2_z [i_profil,i]
-                zzm[i_profil,i] = z_zt[i_profil]
-            # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-            # TODO: no loop 
-            for i in range(N_i*N_j):
-                if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+        # find non-masked points
+        nomask = npy.equal(vmask_3D[0],0)
+        # init arrays
+        z_s   = npy.ones((N_s+1, N_i*N_j))*valmask
+        c1_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+        c2_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+        szmin  = npy.ones((N_i*N_j))*valmask
+        szmax  = npy.ones((N_i*N_j))*valmask
+        i_min = npy.ones((N_i*N_j))*0
+        i_max = npy.ones((N_i*N_j))*0
+        delta_rho = npy.ones((N_i*N_j))*valmask
+        # find bottom level
+        i_bottom = vmask_3D.argmax(axis=0)-1
+        z_s [N_s, nomask] = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+        c1_s[N_s, nomask] = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
+        c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom tempi_profilerature/salinity
+        # init arrays = f(z)
+        s_z = rhon.data[t]
+        c1_z = x1_content
+        c2_z = x2_content
+        #
+        # extract a strictly increasing sub-profile
+        i_min[nomask] = s_z.argmin(axis=0)[nomask]
+        i_max[nomask] = s_z.argmax(axis=0)[nomask]-1
+        i_min[i_min > i_max] = i_max[i_min > i_max]
+        # Test on bottom - surface stratification
+        delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
+        i_min[delta_rho < del_s] = 0
+        i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
+        #
+        # General case
+        # TODO: remove loop
+        for i in range(N_i*N_j):
+            if nomask[i]:
+                szmin[i] = s_z[i_min[i],i]
+                szmax[i] = s_z[i_max[i],i]
+            else:
+                szmin[i] = 0.
+                szmax[i] = rho_max+10.
+        ind = npy.argwhere((s_s >= szmin) & (s_s <= szmax)).transpose()
+        #
+        # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
+        # same for zztm from z_zt
+        szm = s_z*1. ; szm[...] = 'NaN'
+        zzm = s_z*1. ; zzm[...] = 'NaN'
+        c1m = c1_z*1. ; c1m[...] = 'NaN'
+        c2m = c2_z*1. ; c2m[...] = 'NaN'
+        # TODO: remove loop
+        for i in range(N_i*N_j):
+            i_profil = range(int(i_min[i]),int(i_max[i])+1)
+            szm[i_profil,i] = s_z [i_profil,i]
+            c1m[i_profil,i] = c1_z [i_profil,i]
+            c2m[i_profil,i] = c2_z [i_profil,i]
+            zzm[i_profil,i] = z_zt[i_profil]
+        # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
+        # TODO: no loop 
+        for i in range(N_i*N_j):
+            if nomask[i]:
+                z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
+                c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
+                c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+        #
+        # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+        ind = npy.argwhere(s_s < szmin).transpose()
+        z_s [ind[0],ind[1]] = 0.
+        c1_s[ind[0],ind[1]] = valmask
+        c2_s[ind[0],ind[1]] = valmask
+        # if level of s_s has higher density than bottom density, 
+        # isopycnal is set to bottom (z_s=z_zw[i_bottom])
+        ind = npy.argwhere(s_s > szmax).transpose()
+        z_s [ind[0],ind[1]] = z_s[N_s,ind[1]]
+        c1_s[ind[0],ind[1]] = valmask
+        c2_s[ind[0],ind[1]] = valmask
  
-            tic = timc.clock()
-            tic2 = timeit.default_timer()
-            print 'CPU & elapsed total = ',tic-toc, tic2-toc2
-
-            depth_bin [t,:,:]     = z_s
-            thick_bin [t,0,:]     = z_s[0,:]
-            thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            x1_bin    [t,:,:]     = c1_s
-            x2_bin    [t,:,:]     = c2_s
-
-            if 0:
-                ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
-                print 'test point',ijtest
-                print ' i_bottom',i_bottom[ijtest]
-                print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
-                print ' ind',ind[0][npy.where(ind[1] == ijtest)]
-                print ' i_profil',ir
-                print ' s_z[i_profil] ', szm[ir,ijtest]
-                print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
-                print ' z_zt[i_profil] ', zzm[ir,ijtest]
-                print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-                print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-                print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
  
-                #bowl_bin  [j, i]        = bowl_s
-            # end if masked point <---
-        # end loop on i <===
-    # end loop on t  <===
+        depth_bin [t,:,:]     = z_s
+        thick_bin [t,0,:]     = z_s[0,:]
+        thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+        x1_bin    [t,:,:]     = c1_s
+        x2_bin    [t,:,:]     = c2_s
+
+        if 0:
+            ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
+            print 'test point',ijtest
+            print ' i_bottom',i_bottom[ijtest]
+            print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
+            print ' ind',ind[0][npy.where(ind[1] == ijtest)]
+            print ' i_profil',ir
+            print ' s_z[i_profil] ', szm[ir,ijtest]
+            print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
+            print ' z_zt[i_profil] ', zzm[ir,ijtest]
+            print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
     #
-    # Add back masked points
-    # TODO
+    # end of loop on t <===      
+    #        
     # Reshape i*j back to i,j
     depth_bin = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
     thick_bin = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
@@ -363,7 +348,7 @@ for tc in range(tcmax):
     # Wash mask over variables
     depth_bin = mv.masked_where(x1_bin==valmask,depth_bin)
     thick_bin = mv.masked_where(x1_bin==valmask,thick_bin)
-    if tc == 0:
+    if tc == -1:
         # test write
         i = itest
         j = jtest
@@ -376,7 +361,7 @@ for tc in range(tcmax):
         print 'x2_bin', x2_bin[0,:,j,i]
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print 'Loop on t,i,j done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',tic-toc/float(tmax-tmin),tic2-toc2/float(tmax-tmin),')'
+    print 'Loop on t done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',(tic-toc)/float(tmax-tmin),(tic2-toc2)/float(tmax-tmin),')'
     #
     # Output files as netCDF
     # Def variables
@@ -413,12 +398,6 @@ ft.close()
 fs.close()
 g.close()
 # -----------------------------------------------------------------------------
-# plt.plot(x, y, '.-')
-# plt.plot(xs, ys)
-# plt.show()
-#next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
-# use numpy first !                
-
 
 # multiprocs:
 # http://stackoverflow.com/questions/20820367/more-complex-parallel-for-loop-in-python
@@ -426,32 +405,9 @@ g.close()
 # ----------------------------------------
 # some useful commands....
 
-# d.info
-# t=d.getTime() or t1=d.getAxis(0)
-# print all: levs[:]
-# import scipy
-# import genutil (local dev)
-# dir(genutil) doc for completion
-
-#print so.attributes.keys()
-#valmask = so._FillValue
-
 # array or tuple to list:
 #array.tolist()
 # find index: eg: where(s_s LT s_z[i_min])
 #   ind = next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
 #   see support procs: ind = sd.whereLT(s_s, s_z[i_min])
-
-#
-# == detect time dimension and length
-#
-#time=ft[temp].getTime()
-
-#if time is None:  
-#    print "*** no time dimension in file ",file_T
-#    count = raw_input("Enter number of time steps: ")
-#else:
-#    timename = time.id
-#    count    = time.shape[0]
-
 
