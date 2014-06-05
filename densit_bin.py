@@ -94,10 +94,13 @@ file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.oc
 file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
 file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
 #
-if debug:
+if debug >= '1':
     print ' Debug - File names:'
     print '    ', file_T
     print '    ', file_S
+    debug = True
+else:
+    debug = False
 #
 # Open files
 ft  = cdm.open(file_T)
@@ -247,7 +250,7 @@ for tc in range(tcmax):
     #
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
-        tac = timc.clock()
+        tac0 = timc.clock()
         if (t/10*10 == t): 
             print '      t = ',t
         # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
@@ -326,7 +329,7 @@ for tc in range(tcmax):
                 c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
         tac6 = timc.clock()
         if debug :
-            print ' CPU stage 1 :', tac3-tac
+            print ' CPU stage 1 :', tac3-tac0
             print ' CPU stage 2 :', tac4-tac3
             print ' CPU stage 3 :', tac5-tac4
             print ' CPU stage 4 :', tac6-tac5
