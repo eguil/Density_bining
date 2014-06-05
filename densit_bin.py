@@ -171,7 +171,7 @@ jmax = temp.shape[2]
 #
 # test point  
 itest = 80 
-jtest = 60  
+jtest = 60
 ijtest = jtest*N_i+itest
 #imin = itest
 #jmin = jtest
