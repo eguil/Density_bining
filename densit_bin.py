@@ -20,7 +20,9 @@
 # git add densit_bin.py
 # git commit -m "with Paul"
 # git push
-#
+# git checkout master
+# git checkout <branch>
+
 import cdms2 as cdm
 import MV2 as mv
 import os, sys
@@ -118,10 +120,12 @@ print '  time interval: ', tmin, tmax - 1
 #
 # Define temperature and salinity arrays
 temp = ft('thetao', time = slice(0,1))-273.15
+#temp = ft["thetao"]
 so   = fs('so', time = slice(0,1))
+#so=fs["so"]
 #
 # Find indices of non-masked points
-idxnomsk = npy.where(mv.masked_values(temp[0, ...], 0)[0,:,:].mask)
+#idxnomsk = npy.where(mv.masked_values(temp[0, ...], 0)[0,:,:].mask)
 #
 # Read file attributes
 list_file=ft.attributes.keys()
@@ -153,8 +157,9 @@ N_z = int(depth.shape[0])
 rho_min = 19
 rho_max = 28
 del_s = 0.2
-s_s = npy.arange(rho_min, rho_max, del_s).tolist()
+s_s = npy.arange(rho_min, rho_max, del_s)
 N_s = len(s_s)
+s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose()
 
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 #
@@ -185,17 +190,9 @@ print '==> tcdel, tcmax:', tcdel, tcmax
 #
 # inits
 # z profiles:
-c1_z = [float(valmask)]*N_z
-c2_z = [float(valmask)]*N_z
-s_z  = [float(valmask)]*N_z
 z_zt = depth[:]
 z_zw = bounds.data[:,0]
 #bowl_s = 0.
-# density profiles:
-z_s  = [float(valmask)]*(N_s+1)
-c1_s = [float(valmask)]*(N_s+1)
-c2_s = [float(valmask)]*(N_s+1)
-z1_s = [float(valmask)]*(N_s+1)
 #
 print
 toc = timc.clock()
@@ -232,7 +229,7 @@ for tc in range(tcmax):
     #
     # output arrays for each chunk
     depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    depth_bin = mv.masked_where(depth_bin==valmask, depth_bin)
+    depth_bin = mv.masked_where(mv.equal(depth_bin,valmask), depth_bin)
     thick_bin = depth_bin.copy() 
     x1_bin    = depth_bin.copy() 
     x2_bin    = depth_bin.copy() 
@@ -241,111 +238,107 @@ for tc in range(tcmax):
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
         print '      t = ',t
-       # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-        x1_content = temp.data[t,:,:] # dims: i,j,k
-        x2_content = so.data[t,:,:] # dims: i,j,k
-        vmask_3D = mv.masked_values(temp.data[t,:,:], valmask).mask 
-        # TODO: Keep only valid data (unmasked)
-        #x1_nomsk = x1_content[:,idxnomsk]
-        #x2_nomsk = x2_content[:,idxnomsk]
-        for i in range(N_i*N_j): 
-            # test on masked points
-            if not vmask_3D[:,i][0]: # check point is not masked
-                # sigma arrays init
-                z_s  = npy.asarray([float(valmask)]*(N_s+1))
-                c1_s = npy.asarray([float(valmask)]*(N_s+1))
-                c2_s = npy.asarray([float(valmask)]*(N_s+1))
-                # find bottom level
-                vmask = vmask_3D[:,i]
-                i_bottom = npy.where(vmask)[0][0] - 1 ; # Cell bottom index
-                z_s[N_s] = z_zw[i_bottom+1]           ; # Cell depth limit
-                c1_s[N_s] = x1_content[N_z-1,i]       ; # Cell bottom temperature/salinity
-                c2_s[N_s] = x2_content[N_z-1,i]       ; # Cell bottom temperature/salinity
-                #   
-                s_z = rhon.data[t,:,i]
-                c1_z = x1_content[:,i]
-                c2_z = x2_content[:,i]
-                #
-                # extract a strictly increasing sub-profile
-                # first test on bottom - surface stratification
-                delta_rho = s_z[i_bottom] - s_z[0]
-                if delta_rho < del_s:
-                    i_min = 0
-                    i_max = i_bottom
-                else:
-                    irange = range(i_bottom+1)
-                    mini = min(s_z[irange])
-                    maxi = max(s_z[irange])
-                    i_min = (s_z[irange]).tolist().index(mini)
-                    i_max = (s_z[irange]).tolist().index(maxi)   
-                if i_min > i_max:
-                    print '*** i_min > i_max ', i_min,i_max
-                    exit(1)
-                #
-                # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
-                ind = sd.whereLT(s_s, s_z[i_min])
-                z_s[ind] = 0.
-                c1_s[ind] = valmask
-                c2_s[ind] = valmask
-                #
-                # if level of s_s has higher density than bottom density, 
-                # isopycnal is set to bottom (z_s=z_zw[i_bottom])
-                ind = sd.whereGT(s_s, s_z[i_max])
-                z_s[ind] = z_s[N_s]
-                c1_s[ind] = valmask
-                c2_s[ind] = valmask
-                #
-                # General case
-                ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
-                if len(ind) >= 1:
-                    i_profil = irange[i_min:i_max+1]
-                    # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-                    z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]) ; # consider spline
-                    #    
-                    # interpolate T and S(z) (c1/2_z) at s_s densities (c1/2_s) using density(s) z_s
-                    c1_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c1_z[i_profil]) 
-                    c2_s[ind] = npy.interp(z_s[ind], z_zt[i_profil], c2_z[i_profil]) 
-                    #
-                    idt = sd.whereLT ( (z_s[1:N_s]-z_s[0:N_s-1]), -0.1 ) ; # check that z_s is stricly increasing
-                    if len(idt) >= 1:
-                        print 'ind = ',ind
-                        print 'i_min,i_max  ', i_min,i_max
-                        print 'i_profil ', i_profil
-                        print "non increasing depth profile",i
-                        #print "lon,lat",npy.reshape(lon,N_i*N_j)[j,i],npy.reshape(lat,N_i*N_j)[j,i]
-                        print " s_z[i_profil] ", s_z[i_profil]
-                        print " z_s[ind] ", z_s[ind]
-                        print " s_s[ind] ", npy.asarray(s_s)[ind]
-                        print " z_zt[i_profil] ", z_zt[i_profil]
-                    # TO DO: bowl depth bining
-                    # IF sig_bowl EQ 1 THEN BEGIN
-                    #   bowl_s = interpol(s_z[i_profil], z_zt[i_profil], sobwlmax[i, j])
-                    # ENDIF ELSE BEGIN
-                    #   bowl_s = 0
-                    # ENDELSE
-                depth_bin [t,:,i]     = z_s
-                thick_bin [t,0,i]     = z_s[0]
-                thick_bin [t,1:N_s,i] = z_s[1:N_s]-z_s[0:N_s-1]
-                x1_bin    [t,:,i]     = c1_s
-                x2_bin    [t,:,i]     = c2_s
-                #bowl_bin  [j, i]        = bowl_s
+        # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
+        x1_content = temp.data[t] 
+        x2_content = so.data[t] 
+        vmask_3D = mv.masked_values(temp.data[t], valmask).mask 
+        # find non-masked points
+        nomask = npy.equal(vmask_3D[0],0)
+        # init arrays
+        z_s   = npy.ones((N_s+1, N_i*N_j))*valmask
+        c1_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+        c2_s  = npy.ones((N_s+1, N_i*N_j))*valmask
+        szmin  = npy.ones((N_i*N_j))*valmask
+        szmax  = npy.ones((N_i*N_j))*valmask
+        i_min = npy.ones((N_i*N_j))*0
+        i_max = npy.ones((N_i*N_j))*0
+        delta_rho = npy.ones((N_i*N_j))*valmask
+        # find bottom level
+        i_bottom = vmask_3D.argmax(axis=0)-1
+        z_s [N_s, nomask] = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+        c1_s[N_s, nomask] = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
+        c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom tempi_profilerature/salinity
+        # init arrays = f(z)
+        s_z = rhon.data[t]
+        c1_z = x1_content
+        c2_z = x2_content
+        #
+        # extract a strictly increasing sub-profile
+        i_min[nomask] = s_z.argmin(axis=0)[nomask]
+        i_max[nomask] = s_z.argmax(axis=0)[nomask]-1
+        i_min[i_min > i_max] = i_max[i_min > i_max]
+        # Test on bottom - surface stratification
+        delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
+        i_min[delta_rho < del_s] = 0
+        i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
+        #
+        # General case
+        # TODO: remove loop
+        for i in range(N_i*N_j):
+            if nomask[i]:
+                szmin[i] = s_z[i_min[i],i]
+                szmax[i] = s_z[i_max[i],i]
+            else:
+                szmin[i] = 0.
+                szmax[i] = rho_max+10.
+        ind = npy.argwhere((s_s >= szmin) & (s_s <= szmax)).transpose()
+        #
+        # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
+        # same for zztm from z_zt
+        szm = s_z*1. ; szm[...] = 'NaN'
+        zzm = s_z*1. ; zzm[...] = 'NaN'
+        c1m = c1_z*1. ; c1m[...] = 'NaN'
+        c2m = c2_z*1. ; c2m[...] = 'NaN'
+        # TODO: remove loop
+        for i in range(N_i*N_j):
+            i_profil = range(int(i_min[i]),int(i_max[i])+1)
+            szm[i_profil,i] = s_z [i_profil,i]
+            c1m[i_profil,i] = c1_z [i_profil,i]
+            c2m[i_profil,i] = c2_z [i_profil,i]
+            zzm[i_profil,i] = z_zt[i_profil]
+        # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
+        # TODO: no loop 
+        for i in range(N_i*N_j):
+            if nomask[i]:
+                z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
+                c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
+                c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+        #
+        # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+        ind = npy.argwhere(s_s < szmin).transpose()
+        z_s [ind[0],ind[1]] = 0.
+        c1_s[ind[0],ind[1]] = valmask
+        c2_s[ind[0],ind[1]] = valmask
+        # if level of s_s has higher density than bottom density, 
+        # isopycnal is set to bottom (z_s=z_zw[i_bottom])
+        ind = npy.argwhere(s_s > szmax).transpose()
+        z_s [ind[0],ind[1]] = z_s[N_s,ind[1]]
+        c1_s[ind[0],ind[1]] = valmask
+        c2_s[ind[0],ind[1]] = valmask
+ 
+ 
+        depth_bin [t,:,:]     = z_s
+        thick_bin [t,0,:]     = z_s[0,:]
+        thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+        x1_bin    [t,:,:]     = c1_s
+        x2_bin    [t,:,:]     = c2_s
 
-                if i == ijtest:
-                    print 'test point',ijtest
-                    print ' i_bottom',i_bottom
-                    print ' i_min,i_max',i_min,i_max
-                    print ' ind',ind
-                    print ' i_profil',i_profil
-                    print ' s_z[i_profil] ', s_z[i_profil]
-                    print ' z_s[ind] ', z_s[ind]
-                    print ' s_s[ind] ', npy.asarray(s_s)[ind]
-                    print ' z_zt[i_profil] ', z_zt[i_profil]
-            # end if masked point <---
-        # end loop on i <===
-    # end loop on t  <===
+        if 0:
+            ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
+            print 'test point',ijtest
+            print ' i_bottom',i_bottom[ijtest]
+            print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
+            print ' ind',ind[0][npy.where(ind[1] == ijtest)]
+            print ' i_profil',ir
+            print ' s_z[i_profil] ', szm[ir,ijtest]
+            print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
+            print ' z_zt[i_profil] ', zzm[ir,ijtest]
+            print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
     #
-    # Add back masked points
-    # TODO
+    # end of loop on t <===      
+    #        
     # Reshape i*j back to i,j
     depth_bin = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
     thick_bin = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
@@ -355,19 +348,20 @@ for tc in range(tcmax):
     # Wash mask over variables
     depth_bin = mv.masked_where(x1_bin==valmask,depth_bin)
     thick_bin = mv.masked_where(x1_bin==valmask,thick_bin)
-    if tc == 0:
+    if tc == -1:
         # test write
         i = itest
         j = jtest
         print 'ind = ',ind
         print "test point",i,j, area[j,i]
         print "lon,lat",lon[j,i],lat[j,i]
+        print 'depth_bin', depth_bin[0,:,j,i]
         print 'thick_bin', thick_bin[0,:,j,i]
         print 'x1_bin', x1_bin[0,:,j,i]
         print 'x2_bin', x2_bin[0,:,j,i]
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print 'Loop on t,i,j done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',tic-toc/(tmax-tmin),tic2-toc2/(tmax-tmin),')'
+    print 'Loop on t done - CPU & elapsed total (per month) = ',tic-toc, tic2-toc2, '(',(tic-toc)/float(tmax-tmin),(tic2-toc2)/float(tmax-tmin),')'
     #
     # Output files as netCDF
     # Def variables
@@ -381,9 +375,9 @@ for tc in range(tcmax):
         #
         thickBin.long_name = 'Thickness of isopycnal'
         thickBin.units = 'm'
-        x1Bin.long_name = 'Bined '+temp.long_name
+        x1Bin.long_name = temp.long_name
         x1Bin.units = 'C'
-        x2Bin.long_name = 'Bined '+so.long_name
+        x2Bin.long_name = so.long_name
         x2Bin.units = so.units
         #
         g.write(area) ; # Added area so isonvol can be computed
@@ -404,12 +398,6 @@ ft.close()
 fs.close()
 g.close()
 # -----------------------------------------------------------------------------
-# plt.plot(x, y, '.-')
-# plt.plot(xs, ys)
-# plt.show()
-#next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
-# use numpy first !                
-
 
 # multiprocs:
 # http://stackoverflow.com/questions/20820367/more-complex-parallel-for-loop-in-python
@@ -417,32 +405,9 @@ g.close()
 # ----------------------------------------
 # some useful commands....
 
-# d.info
-# t=d.getTime() or t1=d.getAxis(0)
-# print all: levs[:]
-# import scipy
-# import genutil (local dev)
-# dir(genutil) doc for completion
-
-#print so.attributes.keys()
-#valmask = so._FillValue
-
 # array or tuple to list:
 #array.tolist()
 # find index: eg: where(s_s LT s_z[i_min])
 #   ind = next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
 #   see support procs: ind = sd.whereLT(s_s, s_z[i_min])
-
-#
-# == detect time dimension and length
-#
-#time=ft[temp].getTime()
-
-#if time is None:  
-#    print "*** no time dimension in file ",file_T
-#    count = raw_input("Enter number of time steps: ")
-#else:
-#    timename = time.id
-#    count    = time.shape[0]
-
 
