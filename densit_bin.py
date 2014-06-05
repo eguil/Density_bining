@@ -252,14 +252,14 @@ for tc in range(tcmax):
             c2_s  = npy.ones((N_s+1, N_i*N_j))*valmask
             szmin  = npy.ones((N_i*N_j))*valmask
             szmax  = npy.ones((N_i*N_j))*valmask
-            i_min = npy.ones((N_i*N_j))*1000
-            i_max = npy.ones((N_i*N_j))*1000
+            i_min = npy.ones((N_i*N_j))*0
+            i_max = npy.ones((N_i*N_j))*0
             delta_rho = npy.ones((N_i*N_j))*valmask
             # find bottom level
             i_bottom = vmask_3D.argmax(axis=0)-1
             z_s [N_s, nomask] = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
             c1_s[N_s, nomask] = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
-            c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
+            c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom tempi_profilerature/salinity
             # init arrays = f(z)
             s_z = rhon.data[t]
             c1_z = x1_content
@@ -275,6 +275,7 @@ for tc in range(tcmax):
             i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
             #
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
+            # TODO: remove loop
             for i in range(N_i*N_j):
                 if nomask[i]:
                     szmin[i] = s_z[i_min[i],i]
@@ -295,49 +296,51 @@ for tc in range(tcmax):
             #
             # General case
             ind = npy.argwhere((s_s >= szmin) & (s_s <= szmax)).transpose()
-            
+            # TODO: test on len(ind)
+            # TODO: remove loop
+            #idx2 = npy.ones((N_i*N_j))*1000
+            #for i in range(N_i*N_j):
+            #    idx2[i] = (len(ind[0][npy.where(ind[1] == i)]) >= 1) ???
+            #
+            # TODO: construct array of szm = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
+            # TODO: same for zztm from z_zt
+            # TODO: remove loop
+            szm = s_z*1. ; szm[...] = 'NaN'
+            zzm = s_z*1. ; zzm[...] = 'NaN'
+            for i in range(N_i*N_j):
+                i_profil = range(int(i_min[i]),int(i_max[i])+1)
+                szm[i_profil,i] = s_z [i_profil,i]
+                zzm[i_profil,i] = z_zt[i_profil]
+            # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
+            # TODO: no loop as this is very costly (especially the npy.where)
+            for i in range(N_i*N_j):
+                if nomask[i]:
+                    print i
+                    z_s[ind[0][npy.where(ind[1]==i)],i] = npy.interp(s_s[ind[0][npy.where(ind[1]==i)],i], szm[:,i], zzm[:,i]) ; # consider spline
+             
             if 1:
+                ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
                 print 'test point',ijtest
                 print ' i_bottom',i_bottom[ijtest]
                 print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
                 print ' ind',ind[0][npy.where(ind[1] == ijtest)]
-                #print ' i_profil',i_profil[:,ijtest]
-                #print ' s_z[i_profil] ', s_z[i_profil]
-                #print ' z_s[ind] ', z_s[ind]
-                #print ' s_s[ind] ', npy.asarray(s_s)[ind]
-                #print ' z_zt[i_profil] ', z_zt[i_profil]
+                print ' i_profil',ir
+                print ' s_z[i_profil] ', szm[ir,ijtest]
+                print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==i)],ijtest]
+                print ' z_zt[i_profil] ', zzm[ir,ijtest]
+                print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+ 
+                tic = timc.clock()
+                tic2 = timeit.default_timer()
+                print 'CPU & elapsed total = ',tic-toc, tic2-toc2
 
             sys.exit()
-
-#            if delta_rho < del_s:
-#                i_min = 0
-#                i_max = i_bottom
-#            else:
-#                irange = range(i_bottom+1)
-#                mini = min(s_z[irange])
-#                maxi = max(s_z[irange])
-#                i_min = (s_z[irange]).tolist().index(mini)
-#                i_max = (s_z[irange]).tolist().index(maxi)   
-            
-                #
-                # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
             if 1:
-                ind = sd.whereLT(s_s, s_z[i_min])
-                z_s[ind] = 0.
-                c1_s[ind] = valmask
-                c2_s[ind] = valmask
-                #
-                # if level of s_s has higher density than bottom density, 
-                # isopycnal is set to bottom (z_s=z_zw[i_bottom])
-                ind = sd.whereGT(s_s, s_z[i_max])
-                z_s[ind] = z_s[N_s]
-                c1_s[ind] = valmask
-                c2_s[ind] = valmask
                 #
                 # General case
                 ind = sd.where_between(s_s, s_z[i_min], s_z[i_max])
                 if len(ind) >= 1:
-                    i_profil = irange[i_min:i_max+1]
+                    i_profil = range[i_min:i_max+1]
                     # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
                     z_s[ind] = npy.interp(npy.asarray(s_s)[ind], s_z[i_profil], z_zt[i_profil]) ; # consider spline
                     #    
