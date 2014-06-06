@@ -36,6 +36,7 @@ from genutil import statistics
 import support_density as sd
 import time as timc
 import timeit
+import resource
 #import matplotlib.pyplot as plt
 #
 # netCDF compression (use 0 for netCDF3)
@@ -228,7 +229,7 @@ for tc in range(tcmax):
     time  = temp.getTime()
     tur = timc.clock()
     print '     read  CPU:',tur-tuc
-    # Compute neutral density (optimize ?)
+    # Compute neutral density (TODO optimize CPU)
     rhon = sd.eos_neutral(temp,so)-1000.
     turn = timc.clock()
     print '     rhon compute  CPU:',turn-tur
@@ -278,7 +279,7 @@ for tc in range(tcmax):
         c1_z = x1_content
         c2_z = x2_content
         #
-        # extract a strictly increasing sub-profile
+        # Extract a strictly increasing sub-profile
         i_min[nomask] = s_z.argmin(axis=0)[nomask]
         i_max[nomask] = s_z.argmax(axis=0)[nomask]-1
         i_min[i_min > i_max] = i_max[i_min > i_max]
@@ -308,17 +309,15 @@ for tc in range(tcmax):
         c1m = c1_z*1. ; c1m[...] = 'NaN'
         c2m = c2_z*1. ; c2m[...] = 'NaN'
         
-        # TODO: remove loop as this is the most expensive (CPU = 65%) !!!
-        # try szm = s_z*1. and szm[npy.argwhere(between i_min and i_max),:] = 'NaN'
-        tac4 = timc.clock()
-        for i in range(N_i*N_j):
-            if nomask[i]:
-                i_profil = range(int(i_min[i]),int(i_max[i])+1)
-                #i_profil = [1,2,3,4,5]
-                szm[i_profil,i] = s_z [i_profil,i]
-                c1m[i_profil,i] = c1_z [i_profil,i]
-                c2m[i_profil,i] = c2_z [i_profil,i]
-                zzm[i_profil,i] = z_zt[i_profil]
+        tac4 = timc.clock()        
+        for k in range(N_z):
+            k_ind = i_min*1.; k_ind[:] = valmask
+            k_ind = npy.where( (k >= i_min) & (k <= i_max))
+            szm[k,k_ind] = s_z [k,k_ind]
+            c1m[k,k_ind] = c1_z[k,k_ind]
+            c2m[k,k_ind] = c2_z[k,k_ind]
+            zzm[k,k_ind] = z_zt[k]
+            
         tac5 = timc.clock()
         # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
         # TODO: no loop (18% CPU)
@@ -392,6 +391,7 @@ for tc in range(tcmax):
     tic = timc.clock()
     tic2 = timeit.default_timer()
     print '   Loop on t done - CPU & elapsed total (per month) = ',tic-tac, tic2-tac2, '(',(tic-tac)/float(tcdel),(tic2-tac2)/float(tcdel),')'
+    print '   Rhon computation vs. rest and % ',turn-tur,tic-tac,100.*(turn-tur)/(tic-tuc)
     #
     # Output files as netCDF
     # Def variables
@@ -415,7 +415,7 @@ for tc in range(tcmax):
         for i in range(0,len(file_dic)):
             dm=file_dic[i]
             setattr(g,dm[0],dm[1])
-            setattr(g,'Post-processing history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
+        setattr(g,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
     #    
     # Write/append to file
     g.write(depthBin, extend = 1, index = trmin)
@@ -424,6 +424,12 @@ for tc in range(tcmax):
     g.write(x2Bin,    extend = 1, index = trmin)
 #
 # end loop on tc <===
+print
+print ' Memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000,'MB'
+ratio =  12.*float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/float(grdsize*tmax)
+print ' Ratio to grid*nyears',ratio,'kB/unit(size*nyears)'
+print
+#
 ft.close()
 fs.close()
 g.close()
