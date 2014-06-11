@@ -168,6 +168,9 @@ s_s = npy.arange(rho_min, rho_max, del_s)
 N_s = len(s_s)
 sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s]]) # make bounds for zonal mean computation
 s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose() # make 3D for matrix computation
+#
+# Define zonal grid
+delta_lat = 1.
 
 #w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 #
@@ -193,6 +196,7 @@ if grdsize <= 1.e6:
     tcdel = min(120, tmax)
 elif grdsize <= 1.e7:
     tcdel = min(12, tmax)
+nyrtc = tcdel/12
 tcmax = tmax/tcdel ; # number of time chunks
 print '==> tcdel, tcmax:', tcdel, tcmax
 #
@@ -223,6 +227,15 @@ if os.path.exists(filez_out):
     os.remove(filez_out)
 gz = cdm.open(filez_out,'w+')
 #
+# output arrays for each chunk
+depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
+depth_bin = mv.masked_where(mv.equal(depth_bin,valmask), depth_bin)
+thick_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
+thick_bin = mv.masked_where(mv.equal(thick_bin,valmask), thick_bin)
+x1_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
+x1_bin = mv.masked_where(mv.equal(x1_bin,valmask), x1_bin)
+x2_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
+x2_bin = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
 # target horizonal grid for interp 
 #fileg='/work/guilyardi/database/ORAS4/ORAS4_1mm_01_12_1958-2009_grid1_so.nc'
 #gt = cdm.open(fileg)
@@ -255,15 +268,11 @@ for tc in range(tcmax):
     so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
     rhon = npy.reshape(rhon, (tcdel, N_z, N_i*N_j))
     #
-    # output arrays for each chunk
-    depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    depth_bin = mv.masked_where(mv.equal(depth_bin,valmask), depth_bin)
-    thick_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    thick_bin = mv.masked_where(mv.equal(thick_bin,valmask), thick_bin)
-    x1_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    x1_bin = mv.masked_where(mv.equal(x1_bin,valmask), x1_bin)
-    x2_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    x2_bin = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
+    # init output arrays
+    depth_bin[...] = valmask
+    thick_bin[...] = valmask
+    x1_bin[...] = valmask
+    x2_bin[...] = valmask
     #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
     tac = timc.clock()
     tac2 = timeit.default_timer()
@@ -348,11 +357,12 @@ for tc in range(tcmax):
                 c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
         tac6 = timc.clock()
         if debugp:
-            print ' CPU stage 0 :', tac00-tac0
-            print ' CPU stage 1 :', tac3-tac00
-            print ' CPU stage 2 :', tac4-tac3
-            print ' CPU stage 3 :', tac5-tac4
-            print ' CPU stage 4 :', tac6-tac5
+        #if t >= 0:
+            print '    CPU stage 0 :', tac00-tac0
+            print '    CPU stage 1 :', tac3-tac00
+            print '    CPU stage 2 :', tac4-tac3
+            print '    CPU stage 3 :', tac5-tac4
+            print '    CPU stage 4 :', tac6-tac5
         #
         # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
         inds = npy.argwhere(s_s < szmin).transpose()
@@ -373,12 +383,12 @@ for tc in range(tcmax):
         x1_bin    [t,:,:]     = c1_s
         x2_bin    [t,:,:]     = c2_s
 
-        if debugp:
+        if t == -1:
             ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
             print 'test point',ijtest
             print ' i_bottom',i_bottom[ijtest]
             print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
-            print ' ind',ind[0][npy.where(ind[1] == ijtest)]
+            #print ' ind',ind[0][npy.where(ind[1] == ijtest)]
             print ' i_profil',ir
             print ' s_z[i_profil] ', szm[ir,ijtest]
             print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
@@ -392,8 +402,8 @@ for tc in range(tcmax):
     # Reshape i*j back to i,j
     depth_bin = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
     thick_bin = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
-    x1_bin    = npy.reshape(x1_bin   , (tcdel, N_s+1, N_j, N_i))
-    x2_bin    = npy.reshape(x2_bin   , (tcdel, N_s+1, N_j, N_i))
+    x1_bin    = npy.reshape(x1_bin,    (tcdel, N_s+1, N_j, N_i))
+    x2_bin    = npy.reshape(x2_bin,    (tcdel, N_s+1, N_j, N_i))
     #
     # Wash mask over variables
     maskb = mv.masked_values(x1_bin, valmask).mask
@@ -420,7 +430,8 @@ for tc in range(tcmax):
     print '   Rhon computation vs. rest and % ',turn-tur,tic-tac,100.*(turn-tur)/(tic-tuc)
     #
     # Output files as netCDF
-    # Def variables
+    # Def variables 
+    # QQ: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
     depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isondepth')
     thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isonthick')
     x1Bin    = cdm.createVariable(x1_bin   , axes = [time, s_axis, grd], id = 'thetao')
@@ -445,25 +456,39 @@ for tc in range(tcmax):
         setattr(gz,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
     #
     # Compute annual mean, make zonal mean and write
+    # TODO: optimize as VERY expensive (x2-4 preceeding loop !)
     ticz = timc.clock()
     if tcdel >= 12:
-        areaz , depthBinz, inv = ZonalMeans.compute(cdu.YEAR(depthBin), area=area, delta_band=1.)
-        areazt, thickBinz, inv = ZonalMeans.compute(cdu.YEAR(thickBin), area=area, delta_band=1.)
-        areaz , x1Binz   , inv = ZonalMeans.compute(cdu.YEAR(x1Bin),    area=area, delta_band=1.)
-        areaz , x2Binz   , inv = ZonalMeans.compute(cdu.YEAR(x2Bin),    area=area, delta_band=1.)
+        # TODO between 20 and 60 sec for 12 months !!!
+        dy = cdu.YEAR(depthBin)
+        ty = cdu.YEAR(thickBin)
+        x1y = cdu.YEAR(x1Bin)
+        x2y = cdu.YEAR(x2Bin)
+        toz = timc.clock()
+        # 10 sec for 12 months
+        areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
+        areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
+        areaz , x1Binz   , inv = ZonalMeans.compute(x1y, area=area, delta_band=delta_lat)
+        areaz , x2Binz   , inv = ZonalMeans.compute(x2y, area=area, delta_band=delta_lat)
+        # try to add degenerated x dimension for IDL read 
+        #depthBinz.reshape = (nyrtc,180./delta_lat,1)
+        #thickBinz.reshape = (nyrtc,180./delta_lat,1)
+        #x1Binz.reshape    = (nyrtc,180./delta_lat,1)
+        #x2Binz.reshape    = (nyrtc,180./delta_lat,1)
         if tc == 0:
             volBinz =  thickBinz*areazt
             volBinz.id='isonvol'
             volBinz.long_name = 'Volume of isopycnal'
             volBinz.units = 'm^3'
-        gz.write(depthBinz, extend = 1, index = trmin)
-        gz.write(thickBinz, extend = 1, index = trmin)
-        gz.write(volBinz  , extend = 1, index = trmin)
-        gz.write(x1Binz   , extend = 1, index = trmin)
-        gz.write(x2Binz   , extend = 1, index = trmin)
+        gz.write(depthBinz, extend = 1, index = trmin/12)
+        gz.write(thickBinz, extend = 1, index = trmin/12)
+        gz.write(volBinz  , extend = 1, index = trmin/12)
+        gz.write(x1Binz   , extend = 1, index = trmin/12)
+        gz.write(x2Binz   , extend = 1, index = trmin/12)
 
     ticza = timc.clock()
-    print '   CPU of zonal mean compute and write =', ticza-ticz
+    print '   CPU of annual mean compute =', toz-ticz
+    print '   CPU of zonal mean compute and write =', ticza-toz
     #    
     # Write/append to file
     g.write(depthBin, extend = 1, index = trmin)
