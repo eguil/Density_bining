@@ -123,9 +123,10 @@ else:
     tmax = tmin + int(timeint.split(',')[1])
 
 if debugp:
-    print; print ' Debug - Read only first month...'
-    tmin = 0
-    tmax = 1
+    #print; print ' Debug - Read only first month...'
+    print; print ' Debug mode'
+    #tmin = 0
+    #tmax = 1
 #
 print '  time interval: ', tmin, tmax - 1
 #
@@ -236,6 +237,7 @@ x1_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask
 x1_bin = mv.masked_where(mv.equal(x1_bin,valmask), x1_bin)
 x2_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
 x2_bin = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
+
 # target horizonal grid for interp 
 #fileg='/work/guilyardi/database/ORAS4/ORAS4_1mm_01_12_1958-2009_grid1_so.nc'
 #gt = cdm.open(fileg)
@@ -382,7 +384,13 @@ for tc in range(tcmax):
         thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
         x1_bin    [t,:,:]     = c1_s
         x2_bin    [t,:,:]     = c2_s
-
+        #
+        # accumulate for annual mean
+        #iyr = (tc*tcdel/12) + t/12*12
+        #print iyr
+        #dy[iyr,...] = dy[iyr,...] + depth_bin [t,...]
+        #
+        # debug
         if t == -1:
             ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
             print 'test point',ijtest
@@ -411,7 +419,8 @@ for tc in range(tcmax):
     thick_bin.mask = maskb
     x1_bin.mask = maskb
     x2_bin.mask = maskb
-    
+    #
+        
     #
     if tc == -1:
         # test write
@@ -431,7 +440,7 @@ for tc in range(tcmax):
     #
     # Output files as netCDF
     # Def variables 
-    # QQ: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
+    # QQ??: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
     depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isondepth')
     thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isonthick')
     x1Bin    = cdm.createVariable(x1_bin   , axes = [time, s_axis, grd], id = 'thetao')
@@ -459,13 +468,23 @@ for tc in range(tcmax):
     # TODO: optimize as VERY expensive (x2-4 preceeding loop !)
     ticz = timc.clock()
     if tcdel >= 12:
-        # TODO between 20 and 60 sec for 12 months !!!
+        # TODO: HUGE COST: 30-60 sec for 12 months !!! and 120 sec for 24 !!!
         dy = cdu.YEAR(depthBin)
         ty = cdu.YEAR(thickBin)
         x1y = cdu.YEAR(x1Bin)
         x2y = cdu.YEAR(x2Bin)
+        # this is 5 times cheaper but no grid is passed and ZonalMeans fails
+        #dy  = cdu.averager(npy.reshape (depthBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #ty  = cdu.averager(npy.reshape (thickBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+
         toz = timc.clock()
-        # 10 sec for 12 months
+       # 10 sec for 12 months
+        if debugp:
+            print '   CPU of annual mean compute =', toz-ticz
+            print '   test '
+            print dy[0,:,80,60]
         areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
         areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
         areaz , x1Binz   , inv = ZonalMeans.compute(x1y, area=area, delta_band=delta_lat)
@@ -487,7 +506,6 @@ for tc in range(tcmax):
         gz.write(x2Binz   , extend = 1, index = trmin/12)
 
     ticza = timc.clock()
-    print '   CPU of annual mean compute =', toz-ticz
     print '   CPU of zonal mean compute and write =', ticza-toz
     #    
     # Write/append to file
