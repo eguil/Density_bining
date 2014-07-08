@@ -251,10 +251,10 @@ loni = maskg.getLongitude()
 lati = maskg.getLatitude()
 Nii = int(loni.shape[0])
 Nji = int(lati.shape[0])
-depthBini = npy.ma.ones([tcdel, N_s+1, Nji, Nii], dtype='float32')*valmask 
-thickBini = npy.ma.ones([tcdel, N_s+1, Nji, Nii], dtype='float32')*valmask 
-x1Bini = npy.ma.ones([tcdel, N_s+1, Nji, Nii], dtype='float32')*valmask 
-x2Bini = npy.ma.ones([tcdel, N_s+1, Nji, Nii], dtype='float32')*valmask 
+depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x1Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x2Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 #   
 # loop on time chunks
 for tc in range(tcmax):
@@ -268,11 +268,11 @@ for tc in range(tcmax):
     so   = fs('so', time = slice(trmin,trmax))
     time  = temp.getTime()
     tur = timc.clock()
-    print '     read  CPU:',tur-tuc
+    #print '     read  CPU:',tur-tuc
     # Compute neutral density (TODO optimize: 22 % CPU)
     rhon = sd.eos_neutral(temp,so)-1000.
     turn = timc.clock()
-    print '     rhon compute CPU:',turn-tur
+    #print '     rhon compute CPU:',turn-tur
     # reorganise i,j dims in single dimension data
     temp = npy.reshape(temp, (tcdel, N_z, N_i*N_j))
     so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
@@ -435,8 +435,9 @@ for tc in range(tcmax):
         print 'x2_bin', x2_bin[0,:,j,i]
     tic = timc.clock()
     tic2 = timeit.default_timer()
-    print '   Loop on t done - CPU & elapsed total (per month) = ',tic-tac, tic2-tac2, '(',(tic-tac)/float(tcdel),(tic2-tac2)/float(tcdel),')'
-    print '   Rhon computation vs. rest and % ',turn-tur,tic-tac,100.*(turn-tur)/(tic-tuc)
+    if debugp:
+        print '   Loop on t done - CPU & elapsed total (per month) = ',tic-tac, tic2-tac2, '(',(tic-tac)/float(tcdel),(tic2-tac2)/float(tcdel),')'
+        print '   Rhon computation vs. rest and % ',turn-tur,tic-tac,100.*(turn-tur)/(tic-tuc)
     #
     # Output files as netCDF
     # Def variables 
@@ -524,28 +525,28 @@ for tc in range(tcmax):
         #
         # Compute volume of isopycnals
         ##volBinz =  thickBinz*areazt
+        dbz  = cdm.createVariable(depthBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth')
+        tbz  = cdm.createVariable(thickBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthick')
+        x1bz = cdm.createVariable(x1Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetao')
+        x2bz = cdm.createVariable(x2Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'so')
         if tc == 0:
-            depthBinz.id = 'isondepth'
-            depthBinz.long_name = 'Depth of isopycnal'
-            depthBinz.units = 'm'
-            thickBinz.id = 'isonthick'
-            thickBinz.long_name = 'Thickness of isopycnal'
-            thickBinz.units = 'm'
-            x1Binz.id = 'thetao'
-            x1Binz.long_name = temp.long_name
-            x1Binz.units = 'C'
-            x2Binz.id = 'so'
-            x2Binz.long_name = so.long_name
-            x2Binz.units = so.units
+            dbz.long_name = 'Depth of isopycnal'
+            dbz.units = 'm'
+            tbz.long_name = 'Thickness of isopycnal'
+            tbz.units = 'm'
+            x1bz.long_name = temp.long_name
+            x1bz.units = 'C'
+            x2bz.long_name = so.long_name
+            x2bz.units = so.units
         #if tc == 0:
         #    volBinz.id='isonvol'
         #    volBinz.long_name = 'Volume of isopycnal'
         #    volBinz.units = 'm^3'
-        gz.write(depthBinz, extend = 1, index = trmin/12)
-        gz.write(thickBinz, extend = 1, index = trmin/12)
+        gz.write(dbz, extend = 1, index = trmin/12)
+        gz.write(tbz, extend = 1, index = trmin/12)
         #gz.write(volBinz  , extend = 1, index = trmin/12)
-        gz.write(x1Binz   , extend = 1, index = trmin/12)
-        gz.write(x2Binz   , extend = 1, index = trmin/12)
+        gz.write(x1bz, extend = 1, index = trmin/12)
+        gz.write(x2bz, extend = 1, index = trmin/12)
 
     ticza = timc.clock()
     print '   CPU of zonal mean compute and write =', ticza-toz
