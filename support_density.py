@@ -56,7 +56,7 @@ def eos_neutral(t, s):
 #
 #   square root salinity
      	
-    zsr= mv.sqrt( mv.absolute( zs ) )
+    zsr= npy.ma.sqrt(zs)
 
 # Numerator
 # T-Polynome:                    T^3                       T^2                         T                      cst
