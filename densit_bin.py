@@ -527,6 +527,7 @@ for tc in range(tcmax):
         ##volBinz =  thickBinz*areazt
         dbz  = cdm.createVariable(depthBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth')
         tbz  = cdm.createVariable(thickBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthick')
+        #vbz  = cdm.createVariable(volBinz*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvol')
         x1bz = cdm.createVariable(x1Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetao')
         x2bz = cdm.createVariable(x2Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'so')
         if tc == 0:
@@ -534,17 +535,15 @@ for tc in range(tcmax):
             dbz.units = 'm'
             tbz.long_name = 'Thickness of isopycnal'
             tbz.units = 'm'
+            #vbz.long_name = 'Volume of isopycnal'
+            #vbz.units = '10.e6 m^3'
             x1bz.long_name = temp.long_name
             x1bz.units = 'C'
             x2bz.long_name = so.long_name
             x2bz.units = so.units
-        #if tc == 0:
-        #    volBinz.id='isonvol'
-        #    volBinz.long_name = 'Volume of isopycnal'
-        #    volBinz.units = 'm^3'
         gz.write(dbz, extend = 1, index = trmin/12)
         gz.write(tbz, extend = 1, index = trmin/12)
-        #gz.write(volBinz  , extend = 1, index = trmin/12)
+        #gz.write(vbz  , extend = 1, index = trmin/12)
         gz.write(x1bz, extend = 1, index = trmin/12)
         gz.write(x2bz, extend = 1, index = trmin/12)
 
