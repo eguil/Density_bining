@@ -480,6 +480,8 @@ for tc in range(tcmax):
         #x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         toz = timc.clock()
+        if debugp:
+            print '   CPU of annual mean compute =', toz-ticz
         #
         # Interpolate onto common grid
         for t in range(nyrtc):
@@ -493,11 +495,17 @@ for tc in range(tcmax):
                 x1Bini   [t,ks,:,:].mask = maski
                 x2Bini   [t,ks,:,:].mask = maski
         depthBini._FillValue = valmask
+        depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
+        thickBini._FillValue = valmask
+        thickBini = mv.masked_where(depthBini > 1.e6, thickBini)
+        x1Bini._FillValue = valmask
+        x1Bini = mv.masked_where(depthBini > 1.e6, x1Bini)
+        x2Bini._FillValue = valmask
+        x2Bini = mv.masked_where(depthBini > 1.e6, x2Bini)
 
         tozi = timc.clock()
         # 10 sec for 12 months
         if debugp:
-            print '   CPU of annual mean compute =', toz-ticz
             print '   CPU of interpolation =', tozi-toz
             print '   test '
             print dy[0,:,80,60]
@@ -521,6 +529,19 @@ for tc in range(tcmax):
         #
         # Compute volume of isopycnals
         ##volBinz =  thickBinz*areazt
+        if tc == 0:
+            depthBinz.id = 'isondepth'
+            depthBinz.long_name = 'Depth of isopycnal'
+            depthBinz.units = 'm'
+            thickBinz.id = 'isonthick'
+            thickBinz.long_name = 'Thickness of isopycnal'
+            thickBinz.units = 'm'
+            x1Binz.id = 'thetao'
+            x1Binz.long_name = temp.long_name
+            x1Binz.units = 'C'
+            x1Binz.id = 'so'
+            x2Binz.long_name = so.long_name
+            x2Binz.units = so.units
         #if tc == 0:
         #    volBinz.id='isonvol'
         #    volBinz.long_name = 'Volume of isopycnal'

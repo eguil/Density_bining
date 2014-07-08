@@ -76,14 +76,6 @@ def eos_neutral(t, s):
     zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 )
     return zrho 
 
-def scrubNaNAndMask(var,maskVar):
-    # Check for NaNs
-    nanvals = isnan(var)
-    var[nanvals] = 1e+20
-    var = mv.masked_where(maskVar>=1e+20,var)
-    var = mv.masked_where(maskVar.mask,var)
-    return var
-
 def whereEQ(elements, reference):
     # find index(indices)
     index_list=[]
