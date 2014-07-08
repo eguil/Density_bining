@@ -497,7 +497,7 @@ for tc in range(tcmax):
         depthBini._FillValue = valmask
         depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
         thickBini._FillValue = valmask
-        thickBini = mv.masked_where(depthBini > 1.e6, thickBini)
+        thickBini = mv.masked_where(thickBini > 1.e6, thickBini)
         x1Bini._FillValue = valmask
         x1Bini = mv.masked_where(depthBini > 1.e6, x1Bini)
         x2Bini._FillValue = valmask
@@ -521,11 +521,6 @@ for tc in range(tcmax):
         #areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
         #areaz , x1Binz   , inv = ZonalMeans.compute(x1y, area=area, delta_band=delta_lat)
         #areaz , x2Binz   , inv = ZonalMeans.compute(x2y, area=area, delta_band=delta_lat)
-        # try to add degenerated x dimension for IDL read 
-        #depthBinz.reshape = (nyrtc,180./delta_lat,1)
-        #thickBinz.reshape = (nyrtc,180./delta_lat,1)
-        #x1Binz.reshape    = (nyrtc,180./delta_lat,1)
-        #x2Binz.reshape    = (nyrtc,180./delta_lat,1)
         #
         # Compute volume of isopycnals
         ##volBinz =  thickBinz*areazt
@@ -539,7 +534,7 @@ for tc in range(tcmax):
             x1Binz.id = 'thetao'
             x1Binz.long_name = temp.long_name
             x1Binz.units = 'C'
-            x1Binz.id = 'so'
+            x2Binz.id = 'so'
             x2Binz.long_name = so.long_name
             x2Binz.units = so.units
         #if tc == 0:
