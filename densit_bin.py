@@ -512,11 +512,13 @@ for tc in range(tcmax):
             print dy[0,:,80,60]
         #
         # Compute zonal mean
+        # Global
         depthBinz = cdu.averager(depthBini, axis=3)
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
         x2Binz    = cdu.averager(x2Bini,    axis=3)
         ##areazt    = cdu.averager(areai, axis=1, action='sum')
+        # Basin
 
         #areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
         #areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
