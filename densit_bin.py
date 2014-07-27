@@ -37,7 +37,7 @@ import support_density as sd
 import time as timc
 import timeit
 import resource
-import ZonalMeans
+#import ZonalMeans
 #from regrid import Regridder
 #import matplotlib.pyplot as plt
 #
@@ -100,6 +100,9 @@ timeint      = args.timeint
 file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
 file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
 file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+#file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
+#file_T = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/IPSL-CM5A-LR_piControl_r1i1p1_180001-180012_Omon_thetao.nc'
+#file_S = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/IPSL-CM5A-LR_piControl_r1i1p1_180001-180012_Omon_so.nc'
 #
 if debug >= '1':
     print ' Debug - File names:'
@@ -239,12 +242,20 @@ x2_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask
 x2_bin = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
 
 # target horizonal grid for interp 
-fileg='/work/guilyardi/Density_bining/WOD13_masks.nc'
+fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
+#fileg = '/Users/ericg/Projets/Density_bining/WOD13_masks.nc'
 gt = cdm.open(fileg)
 maskg = gt('basinmask')
 outgrid = maskg.getGrid()
 gt.close()
+# global mask
 maski = maskg.mask[0,:,:]
+# regional masks
+maskAtl = maski*1
+maskAtl[...] = True
+maskAtl[npy.argwhere(maskg[0,:,:] == 1)] = False
+#maskPac[npy.argwhere(maskg[0,:,:] == 2)] = False
+
 #areai = ... TODO (Paul)
 #
 loni = maskg.getLongitude()
@@ -495,6 +506,10 @@ for tc in range(tcmax):
                 thickBini[t,ks,:,:].mask = maski
                 x1Bini   [t,ks,:,:].mask = maski
                 x2Bini   [t,ks,:,:].mask = maski
+                #
+                depthBinia[t,ks,:,:] = depthBini[t,ks,:,:]*1.
+                depthBinia[t,ks,:,:].mask = maskAtl
+        #
         depthBini._FillValue = valmask
         depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
         thickBini._FillValue = valmask
@@ -503,6 +518,9 @@ for tc in range(tcmax):
         x1Bini = mv.masked_where(depthBini > 1.e6, x1Bini)
         x2Bini._FillValue = valmask
         x2Bini = mv.masked_where(depthBini > 1.e6, x2Bini)
+        #
+        depthBinia._FillValue = valmask
+        depthBinia = mv.masked_where(depthBinia > 1.e6, depthBinia)
 
         tozi = timc.clock()
         # 10 sec for 12 months
@@ -519,6 +537,8 @@ for tc in range(tcmax):
         x2Binz    = cdu.averager(x2Bini,    axis=3)
         ##areazt    = cdu.averager(areai, axis=1, action='sum')
         # Basin
+        depthBinza = cdu.averager(depthBinia, axis=3)
+
 
         #areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
         #areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
@@ -532,10 +552,12 @@ for tc in range(tcmax):
         #vbz  = cdm.createVariable(volBinz*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvol')
         x1bz = cdm.createVariable(x1Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetao')
         x2bz = cdm.createVariable(x2Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'so')
+        #
+        dbza  = cdm.createVariable(depthBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth Atl')
         if tc == 0:
-            dbz.long_name = 'Depth of isopycnal'
+            dbz.long_name = 'Global zonal depth of isopycnal'
             dbz.units = 'm'
-            tbz.long_name = 'Thickness of isopycnal'
+            tbz.long_name = 'Global zonal thickness of isopycnal'
             tbz.units = 'm'
             #vbz.long_name = 'Volume of isopycnal'
             #vbz.units = '10.e6 m^3'
@@ -543,11 +565,16 @@ for tc in range(tcmax):
             x1bz.units = 'C'
             x2bz.long_name = so.long_name
             x2bz.units = so.units
+            #
+            dbza.long_name = 'Atl. zonal depth of isopycnal'
+            dbza.units = dbz.units
         gz.write(dbz, extend = 1, index = trmin/12)
         gz.write(tbz, extend = 1, index = trmin/12)
         #gz.write(vbz  , extend = 1, index = trmin/12)
         gz.write(x1bz, extend = 1, index = trmin/12)
         gz.write(x2bz, extend = 1, index = trmin/12)
+        #
+        gz.write(dbza, extend = 1, index = trmin/12)
 
     ticza = timc.clock()
     print '   CPU of zonal mean compute and write =', ticza-toz
