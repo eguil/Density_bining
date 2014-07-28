@@ -253,7 +253,8 @@ maski = maskg.mask[0,:,:]
 # regional masks
 maskAtl = maski*1
 maskAtl[...] = True
-maskAtl[npy.argwhere(maskg[0,:,:] == 1)] = False
+idxa = npy.argwhere(maskg[0,:,:] == 1)
+maskAtl[idxa[:,0],idxa[:,1]] = False
 #maskPac[npy.argwhere(maskg[0,:,:] == 2)] = False
 
 #areai = ... TODO (Paul)
