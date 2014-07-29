@@ -251,12 +251,11 @@ gt.close()
 # global mask
 maski = maskg.mask[0,:,:]
 # regional masks
-maskAtl = maski*1
-maskAtl[...] = True
-idxa = npy.argwhere(maskg[0,:,:] == 1)
-maskAtl[idxa[:,0],idxa[:,1]] = False
+maskAtl = maski*1 ; maskAtl[...] = True
+idxa = npy.argwhere(maskg[0,:,:] == 1).transpose()
+maskAtl[idxa[0],idxa[1]] = False
 #maskPac[npy.argwhere(maskg[0,:,:] == 2)] = False
-
+# test 28/7 tty 16
 #areai = ... TODO (Paul)
 #
 loni = maskg.getLongitude()
@@ -556,7 +555,7 @@ for tc in range(tcmax):
         x1bz = cdm.createVariable(x1Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetao')
         x2bz = cdm.createVariable(x2Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'so')
         #
-        dbza  = cdm.createVariable(depthBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth Atl')
+        dbza  = cdm.createVariable(depthBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth_atl')
         if tc == 0:
             dbz.long_name = 'Global zonal depth of isopycnal'
             dbz.units = 'm'
