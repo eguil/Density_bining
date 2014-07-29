@@ -254,21 +254,45 @@ maski = maskg.mask[0,:,:]
 maskAtl = maski*1 ; maskAtl[...] = True
 idxa = npy.argwhere(maskg[0,:,:] == 1).transpose()
 maskAtl[idxa[0],idxa[1]] = False
-#maskPac[npy.argwhere(maskg[0,:,:] == 2)] = False
-# test 28/7 tty 16
-#areai = ... TODO (Paul)
+maskPac = maski*1 ; maskPac[...] = True
+idxp = npy.argwhere(maskg[0,:,:] == 2).transpose()
+maskPac[idxp[0],idxp[1]] = False
+maskInd = maski*1 ; maskInd[...] = True
+idxi = npy.argwhere(maskg[0,:,:] == 3).transpose()
+maskInd[idxi[0],idxi[1]] = False
 #
 loni = maskg.getLongitude()
 lati = maskg.getLatitude()
 Nii = int(loni.shape[0])
 Nji = int(lati.shape[0])
+# Compute area of target grid and zonal sums
+areai = sd.compute_area(lon[:], lat[:])
+areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
+areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
+areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
+areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
+# Global arrays init
 depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-#
+# Atl
+# TODO: this is a lot of arrays - maybe there is a better way of doing this
 depthBinia = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-#   
+thickBinia = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x1Binia    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x2Binia    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+# Pac
+depthBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+thickBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x1Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x2Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+# Ind
+depthBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+thickBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x1Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x2Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+#
 # loop on time chunks
 for tc in range(tcmax):
     tuc = timc.clock()
@@ -500,6 +524,7 @@ for tc in range(tcmax):
         # Interpolate onto common grid
         for t in range(nyrtc):
             for ks in range(N_s+1):
+                # Global
                 depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
                 thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
                 x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
@@ -508,10 +533,35 @@ for tc in range(tcmax):
                 thickBini[t,ks,:,:].mask = maski
                 x1Bini   [t,ks,:,:].mask = maski
                 x2Bini   [t,ks,:,:].mask = maski
-                #
+                # Atl
+                # TODO: many arrays - there is maybe a way to optimize this
                 depthBinia[t,ks,:,:] = depthBini[t,ks,:,:]*1.
+                thickBinia[t,ks,:,:] = thickBini[t,ks,:,:]*1.
+                x1Binia[t,ks,:,:]    = x1Bini[t,ks,:,:]*1.
+                x2Binia[t,ks,:,:]    = x2Bini[t,ks,:,:]*1.
                 depthBinia[t,ks,:,:].mask = maskAtl
-        #
+                thickBinia[t,ks,:,:].mask = maskAtl
+                x1Binia   [t,ks,:,:].mask = maskAtl
+                x2Binia   [t,ks,:,:].mask = maskAtl
+                # Pac
+                depthBinip[t,ks,:,:] = depthBini[t,ks,:,:]*1.
+                thickBinip[t,ks,:,:] = thickBini[t,ks,:,:]*1.
+                x1Binip   [t,ks,:,:] = x1Bini[t,ks,:,:]*1.
+                x2Binip   [t,ks,:,:] = x2Bini[t,ks,:,:]*1.
+                depthBinip[t,ks,:,:].mask = maskPac
+                thickBinip[t,ks,:,:].mask = maskPac
+                x1Binip   [t,ks,:,:].mask = maskPac
+                x2Binip   [t,ks,:,:].mask = maskPac
+                # Ind
+                depthBinii[t,ks,:,:] = depthBini[t,ks,:,:]*1.
+                thickBinii[t,ks,:,:] = thickBini[t,ks,:,:]*1.
+                x1Binii   [t,ks,:,:] = x1Bini[t,ks,:,:]*1.
+                x2Binii   [t,ks,:,:] = x2Bini[t,ks,:,:]*1.
+                depthBinii[t,ks,:,:].mask = maskInd
+                thickBinii[t,ks,:,:].mask = maskInd
+                x1Binii   [t,ks,:,:].mask = maskInd
+                x2Binii   [t,ks,:,:].mask = maskInd
+        # Global
         depthBini._FillValue = valmask
         depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
         thickBini._FillValue = valmask
@@ -520,9 +570,33 @@ for tc in range(tcmax):
         x1Bini = mv.masked_where(depthBini > 1.e6, x1Bini)
         x2Bini._FillValue = valmask
         x2Bini = mv.masked_where(depthBini > 1.e6, x2Bini)
-        #
+        # Atl
         depthBinia._FillValue = valmask
         depthBinia = mv.masked_where(depthBinia > 1.e6, depthBinia)
+        thickBinia._FillValue = valmask
+        thickBinia = mv.masked_where(thickBinia > 1.e6, thickBinia)
+        x1Binia._FillValue = valmask
+        x1Binia = mv.masked_where(depthBinia > 1.e6, x1Binia)
+        x2Binia._FillValue = valmask
+        x2Binia = mv.masked_where(depthBinia > 1.e6, x2Binia)
+        # Pac
+        depthBinip._FillValue = valmask
+        depthBinip = mv.masked_where(depthBinip > 1.e6, depthBinip)
+        thickBinip._FillValue = valmask
+        thickBinip = mv.masked_where(thickBinip > 1.e6, thickBinip)
+        x1Binip._FillValue = valmask
+        x1Binip = mv.masked_where(depthBinip > 1.e6, x1Binip)
+        x2Binip._FillValue = valmask
+        x2Binip = mv.masked_where(depthBinip > 1.e6, x2Binip)
+        # Ind
+        depthBinii._FillValue = valmask
+        depthBinii = mv.masked_where(depthBinii > 1.e6, depthBinii)
+        thickBinii._FillValue = valmask
+        thickBinii = mv.masked_where(thickBinii > 1.e6, thickBinii)
+        x1Binii._FillValue = valmask
+        x1Binii = mv.masked_where(depthBinii > 1.e6, x1Binii)
+        x2Binii._FillValue = valmask
+        x2Binii = mv.masked_where(depthBinii > 1.e6, x2Binii)
 
         tozi = timc.clock()
         # 10 sec for 12 months
@@ -537,9 +611,21 @@ for tc in range(tcmax):
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
         x2Binz    = cdu.averager(x2Bini,    axis=3)
-        ##areazt    = cdu.averager(areai, axis=1, action='sum')
-        # Basin
+        # Atl
         depthBinza = cdu.averager(depthBinia, axis=3)
+        thickBinza = cdu.averager(thickBinia, axis=3)
+        x1Binza    = cdu.averager(x1Binia,    axis=3)
+        x2Binza    = cdu.averager(x2Binia,    axis=3)
+        # Pac
+        depthBinzp = cdu.averager(depthBinip, axis=3)
+        thickBinzp = cdu.averager(thickBinip, axis=3)
+        x1Binzp    = cdu.averager(x1Binip,    axis=3)
+        x2Binzp    = cdu.averager(x2Binip,    axis=3)
+        # Ind
+        depthBinzi = cdu.averager(depthBinii, axis=3)
+        thickBinzi = cdu.averager(thickBinii, axis=3)
+        x1Binzi    = cdu.averager(x1Binii,    axis=3)
+        x2Binzi    = cdu.averager(x2Binii,    axis=3)
 
 
         #areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
@@ -548,35 +634,104 @@ for tc in range(tcmax):
         #areaz , x2Binz   , inv = ZonalMeans.compute(x2y, area=area, delta_band=delta_lat)
         #
         # Compute volume of isopycnals
-        ##volBinz =  thickBinz*areazt
+        volBinz  = thickBinz  * areazt
+        volBinza = thickBinza * areazta
+        volBinzp = thickBinzp * areaztp
+        volBinzi = thickBinzi * areazti
+        # Init output variables
+        # Global
         dbz  = cdm.createVariable(depthBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth')
         tbz  = cdm.createVariable(thickBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthick')
-        #vbz  = cdm.createVariable(volBinz*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvol')
+        vbz  = cdm.createVariable(volBinz*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvol')
         x1bz = cdm.createVariable(x1Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetao')
         x2bz = cdm.createVariable(x2Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'so')
-        #
-        dbza  = cdm.createVariable(depthBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth_atl')
+        # Atl
+        dbza  = cdm.createVariable(depthBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isondeptha')
+        tbza  = cdm.createVariable(thickBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthicka')
+        vbza  = cdm.createVariable(volBinza*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvola')
+        x1bza = cdm.createVariable(x1Binza   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaoa')
+        x2bza = cdm.createVariable(x2Binza   , axes = [dy.getAxis(0), s_axis, lati], id = 'soa')
+        # Pac
+        dbzp  = cdm.createVariable(depthBinzp, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepthp')
+        tbzp  = cdm.createVariable(thickBinzp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthickp')
+        vbzp  = cdm.createVariable(volBinzp*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvolp')
+        x1bzp = cdm.createVariable(x1Binzp   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaop')
+        x2bzp = cdm.createVariable(x2Binzp   , axes = [dy.getAxis(0), s_axis, lati], id = 'sop')
+        # Ind
+        dbzi  = cdm.createVariable(depthBinzi, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepthi')
+        tbzi  = cdm.createVariable(thickBini, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthicki')
+        vbzi  = cdm.createVariable(volBinzi*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvoli')
+        x1bzi = cdm.createVariable(x1Binzi   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaoi')
+        x2bzi = cdm.createVariable(x2Binzi   , axes = [dy.getAxis(0), s_axis, lati], id = 'soi')
         if tc == 0:
+            # Global attributes
             dbz.long_name = 'Global zonal depth of isopycnal'
             dbz.units = 'm'
             tbz.long_name = 'Global zonal thickness of isopycnal'
             tbz.units = 'm'
-            #vbz.long_name = 'Volume of isopycnal'
-            #vbz.units = '10.e6 m^3'
+            vbz.long_name = 'Volume of isopycnal'
+            vbz.units = '10.e6 m^3'
             x1bz.long_name = temp.long_name
             x1bz.units = 'C'
             x2bz.long_name = so.long_name
             x2bz.units = so.units
-            #
+            # Atl
             dbza.long_name = 'Atl. zonal depth of isopycnal'
             dbza.units = dbz.units
-        gz.write(dbz, extend = 1, index = trmin/12)
-        gz.write(tbz, extend = 1, index = trmin/12)
-        #gz.write(vbz  , extend = 1, index = trmin/12)
+            tbza.long_name = 'Atl. zonal thickness of isopycnal'
+            tbza.units = 'm'
+            vbza.long_name = 'Atl. volume of isopycnal'
+            vbza.units = '10.e6 m^3'
+            x1bza.long_name = temp.long_name
+            x1bza.units = 'C'
+            x2bza.long_name = so.long_name
+            x2bza.units = so.units
+            # Pac
+            dbzp.long_name = 'Pac. zonal depth of isopycnal'
+            dbzp.units = dbz.units
+            tbzp.long_name = 'Pac. zonal thickness of isopycnal'
+            tbzp.units = 'm'
+            vbzp.long_name = 'Pac. volume of isopycnal'
+            vbzp.units = '10.e6 m^3'
+            x1bzp.long_name = temp.long_name
+            x1bzp.units = 'C'
+            x2bzp.long_name = so.long_name
+            x2bzp.units = so.units
+            # Ind
+            dbzi.long_name = 'Ind. zonal depth of isopycnal'
+            dbzi.units = dbz.units
+            tbzi.long_name = 'Ind. zonal thickness of isopycnal'
+            tbzi.units = 'm'
+            vbzi.long_name = 'Ind. volume of isopycnal'
+            vbzi.units = '10.e6 m^3'
+            x1bzi.long_name = temp.long_name
+            x1bzi.units = 'C'
+            x2bzi.long_name = so.long_name
+            x2bzi.units = so.units
+        # Write & append
+        gz.write(dbz , extend = 1, index = trmin/12)
+        gz.write(tbz , extend = 1, index = trmin/12)
+        gz.write(vbz , extend = 1, index = trmin/12)
         gz.write(x1bz, extend = 1, index = trmin/12)
         gz.write(x2bz, extend = 1, index = trmin/12)
-        #
-        gz.write(dbza, extend = 1, index = trmin/12)
+        # Atl
+        gz.write(dbza , extend = 1, index = trmin/12)
+        gz.write(tbza , extend = 1, index = trmin/12)
+        gz.write(vbza , extend = 1, index = trmin/12)
+        gz.write(x1bza, extend = 1, index = trmin/12)
+        gz.write(x2bza, extend = 1, index = trmin/12)
+        # Pac
+        gz.write(dbzp , extend = 1, index = trmin/12)
+        gz.write(tbzp , extend = 1, index = trmin/12)
+        gz.write(vbzp , extend = 1, index = trmin/12)
+        gz.write(x1bzp, extend = 1, index = trmin/12)
+        gz.write(x2bzp, extend = 1, index = trmin/12)
+        # Ind
+        gz.write(dbzi , extend = 1, index = trmin/12)
+        gz.write(tbzi , extend = 1, index = trmin/12)
+        gz.write(vbzi , extend = 1, index = trmin/12)
+        gz.write(x1bzi, extend = 1, index = trmin/12)
+        gz.write(x2bzi, extend = 1, index = trmin/12)
 
     ticza = timc.clock()
     print '   CPU of zonal mean compute and write =', ticza-toz

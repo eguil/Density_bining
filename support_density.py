@@ -112,3 +112,35 @@ def where_between(elements, reference_low, reference_high):
             index_list.append(index)
     return npy.asarray(index_list).astype(int)
     raise ValueError("No index found where_between")
+
+def compute_area(lon, lat):
+    # compute area of grid cells on earth
+    # use mid points and formula:
+    # area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
+    rade = 6371000.
+    radconv = npy.pi/180.
+    N_i = int(lon.shape[0])
+    N_j = int(lat.shape[0])
+    area = npy.ma.ones([N_j, N_i], dtype='float32')*0.
+    lonr = lon[:] * radconv
+    latr = lat[:] * radconv
+    #loop
+    for i in range(1,N_i-1):
+        lonm1 = (lonr[i-1] + lonr[i]  )*0.5
+        lonp1 = (lonr[i]   + lonr[i+1])*0.5
+        for j in range(1,N_j-1):
+            latm1 = (latr[j-1] + latr[j]  )*0.5
+            latp1 = (latr[j]   + latr[j+1])*0.5
+            area[j,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        # North and south bounds
+        latm1 = ((-90.*radconv) + latr[0] )*0.5
+        latp1 = (latr[0]        + latr[1] )*0.5
+        area[0,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        latm1 = (latr[N_j-2] + latr[N_j-1])*0.5
+        latp1 = (latr[N_j-1] + (90.*radconv)  )*0.5
+        area[N_j-1,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+    # East and west bounds
+    area[:,0]     = area[:,1]
+    area[:,N_i-1] = area[:,N_i-2] 
+
+    return area
