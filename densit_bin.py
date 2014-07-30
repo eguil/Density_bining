@@ -266,7 +266,7 @@ lati = maskg.getLatitude()
 Nii = int(loni.shape[0])
 Nji = int(lati.shape[0])
 # Compute area of target grid and zonal sums
-areai = sd.compute_area(lon[:], lat[:])
+areai = sd.compute_area(loni[:], lati[:])
 areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
 areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
 areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
