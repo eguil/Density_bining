@@ -659,7 +659,7 @@ for tc in range(tcmax):
         x2bzp = cdm.createVariable(x2Binzp   , axes = [dy.getAxis(0), s_axis, lati], id = 'sop')
         # Ind
         dbzi  = cdm.createVariable(depthBinzi, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepthi')
-        tbzi  = cdm.createVariable(thickBini, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthicki')
+        tbzi  = cdm.createVariable(thickBinzi,  axes = [dy.getAxis(0), s_axis, lati], id = 'isonthicki')
         vbzi  = cdm.createVariable(volBinzi*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvoli')
         x1bzi = cdm.createVariable(x1Binzi   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaoi')
         x2bzi = cdm.createVariable(x2Binzi   , axes = [dy.getAxis(0), s_axis, lati], id = 'soi')
