@@ -8,8 +8,6 @@
 #  - D(x,y,sigma,t) (depth of isopycnal)
 #  - Z(x,y,sigma,t) (thickness of isopycnal)
 #
-#  TO DO list:
-#    - add bowl interpolation on density
 #
 # Uses McDougall and Jackett 2005 EOS (IDL routine provided by G. Madec)
 # Inspired from IDL density bin routines by G. Roullet and G. Madec (1999)
@@ -447,17 +445,17 @@ for tc in range(tcmax):
     # end of loop on t <===      
     #        
     # Reshape i*j back to i,j
-    depth_bin = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
-    thick_bin = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
-    x1_bin    = npy.reshape(x1_bin,    (tcdel, N_s+1, N_j, N_i))
-    x2_bin    = npy.reshape(x2_bin,    (tcdel, N_s+1, N_j, N_i))
+    depth_bino = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
+    thick_bino = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
+    x1_bino    = npy.reshape(x1_bin,    (tcdel, N_s+1, N_j, N_i))
+    x2_bino    = npy.reshape(x2_bin,    (tcdel, N_s+1, N_j, N_i))
     #
     # Wash mask over variables
-    maskb = mv.masked_values(x1_bin, valmask).mask
-    depth_bin.mask = maskb
-    thick_bin.mask = maskb
-    x1_bin.mask = maskb
-    x2_bin.mask = maskb
+    maskb = mv.masked_values(x1_bino, valmask).mask
+    depth_bino.mask = maskb
+    thick_bino.mask = maskb
+    x1_bino.mask = maskb
+    x2_bino.mask = maskb
     #
     if tc == -1:
         # test write
@@ -466,10 +464,10 @@ for tc in range(tcmax):
         print 'ind = ',ind
         print "test point",i,j, area[j,i]
         print "lon,lat",lon[j,i],lat[j,i]
-        print 'depth_bin', depth_bin[0,:,j,i]
-        print 'thick_bin', thick_bin[0,:,j,i]
-        print 'x1_bin', x1_bin[0,:,j,i]
-        print 'x2_bin', x2_bin[0,:,j,i]
+        print 'depth_bin', depth_bino[0,:,j,i]
+        print 'thick_bin', thick_bino[0,:,j,i]
+        print 'x1_bin', x1_bino[0,:,j,i]
+        print 'x2_bin', x2_bino[0,:,j,i]
     tic = timc.clock()
     tic2 = timeit.default_timer()
     if debugp:
@@ -479,10 +477,10 @@ for tc in range(tcmax):
     # Output files as netCDF
     # Def variables 
     # QQ??: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
-    depthBin = cdm.createVariable(depth_bin, axes = [time, s_axis, grd], id = 'isondepth')
-    thickBin = cdm.createVariable(thick_bin, axes = [time, s_axis, grd], id = 'isonthick')
-    x1Bin    = cdm.createVariable(x1_bin   , axes = [time, s_axis, grd], id = 'thetao')
-    x2Bin    = cdm.createVariable(x2_bin   , axes = [time, s_axis, grd], id = 'so')
+    depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
+    thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
+    x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
+    x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, grd], id = 'so')
     if tc == 0:
         depthBin.long_name = 'Depth of isopycnal'
         depthBin.units = 'm'
