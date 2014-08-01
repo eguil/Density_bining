@@ -199,7 +199,7 @@ if grdsize <= 1.e6:
 elif grdsize <= 1.e7:
     tcdel = min(12, tmax)
 nyrtc = tcdel/12
-tcmax = tmax/tcdel ; # number of time chunks
+tcmax = (tmax-tmin)/tcdel ; # number of time chunks
 print '==> tcdel, tcmax:', tcdel, tcmax
 #
 # inits
