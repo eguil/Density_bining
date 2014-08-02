@@ -480,11 +480,11 @@ for tc in range(tcmax):
     # Output files as netCDF
     # Def variables 
     # QQ??: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
+    depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
+    thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
+    x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
+    x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, grd], id = 'so')
     if mthout == 0:
-        depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
-        thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
-        x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
-        x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, grd], id = 'so')
         if tc == 0:
             depthBin.long_name = 'Depth of isopycnal'
             depthBin.units = 'm'
