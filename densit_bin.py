@@ -510,15 +510,15 @@ for tc in range(tcmax):
     toz = timc.clock()
     if tcdel >= 12:
         # Note: HUGE COST: 30-60 sec for 12 months !!! and 120 sec for 24 !!!
-        #dy  = cdu.YEAR(depthBin)
-        #ty  = cdu.YEAR(thickBin)
-        #x1y = cdu.YEAR(x1Bin)
-        #x2y = cdu.YEAR(x2Bin)
+        dy  = cdu.YEAR(depthBin)
+        ty  = cdu.YEAR(thickBin)
+        x1y = cdu.YEAR(x1Bin)
+        x2y = cdu.YEAR(x2Bin)
         # this is 5 times cheaper but no grid is passed and ZonalMeans fails
-        dy  = cdu.averager(npy.reshape (depthBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
-        ty  = cdu.averager(npy.reshape (thickBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
-        x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
-        xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #dy  = cdu.averager(npy.reshape (depthBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #ty  = cdu.averager(npy.reshape (thickBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         toz = timc.clock()
         if debugp:
             print '   CPU of annual mean compute =', toz-ticz
