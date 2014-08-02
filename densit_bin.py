@@ -63,13 +63,14 @@ hist_file_dir=home
 # == Arguments
 #
 # == get command line options
-parser = argparse.ArgumentParser(description='Script to perform density bining analysis')
-parser.add_argument('-d', help='toggle debug mode', action='count', default=0)
+parser = argparse.ArgumentParser(description = 'Script to perform density bining analysis')
+parser.add_argument('-d', help = 'toggle debug mode', action = 'count', default = 0)
 #parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
 #parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
 #parser.add_argument('-i','--input', help='input directory', default="./")
 #parser.add_argument('-o','--output',help='output directory', default="./")
 parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
+parser.add_argument('-n','--nomthoutput', help = 'no monthly output', action = 'count', default = 0)
 #parser.add_argument('string', metavar='root for T and S files', type=str, help='netCDF input files root')
 args = parser.parse_args()
 #
@@ -85,6 +86,7 @@ debug        = str(args.d)
 #sigma_range  = args.sigma_range 
 #delta_sigma  = args.sigma_increment
 timeint      = args.timeint
+mthout       = args.nomthoutput
 #file_root    = args.string
 #
 # Define T and S file names (local mac...)
@@ -220,10 +222,11 @@ s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
 grd = temp.getGrid()
-file_out = outdir+'/out_density.nc'
-if os.path.exists(file_out):
-    os.remove(file_out)
-g = cdm.open(file_out,'w+')
+if mthout == 0:
+    file_out = outdir+'/out_density.nc'
+    if os.path.exists(file_out):
+        os.remove(file_out)
+    g = cdm.open(file_out,'w+')
 filez_out = outdir+'/outz_density.nc'
 if os.path.exists(filez_out):
     os.remove(filez_out)
@@ -477,28 +480,29 @@ for tc in range(tcmax):
     # Output files as netCDF
     # Def variables 
     # QQ??: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
-    depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
-    thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
-    x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
-    x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, grd], id = 'so')
-    if tc == 0:
-        depthBin.long_name = 'Depth of isopycnal'
-        depthBin.units = 'm'
+    if mthout == 0:
+        depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
+        thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
+        x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
+        x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, grd], id = 'so')
+        if tc == 0:
+            depthBin.long_name = 'Depth of isopycnal'
+            depthBin.units = 'm'
         #
-        thickBin.long_name = 'Thickness of isopycnal'
-        thickBin.units = 'm'
-        x1Bin.long_name = temp.long_name
-        x1Bin.units = 'C'
-        x2Bin.long_name = so.long_name
-        x2Bin.units = so.units
+            thickBin.long_name = 'Thickness of isopycnal'
+            thickBin.units = 'm'
+            x1Bin.long_name = temp.long_name
+            x1Bin.units = 'C'
+            x2Bin.long_name = so.long_name
+            x2Bin.units = so.units
         #
-        g.write(area) ; # Added area so isonvol can be computed
+            g.write(area) ; # Added area so isonvol can be computed
         # write global attributes (inherited from thetao file)
-        for i in range(0,len(file_dic)):
-            dm=file_dic[i]
-            setattr(g,dm[0],dm[1])
-        setattr(g,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
-        setattr(gz,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
+            for i in range(0,len(file_dic)):
+                dm=file_dic[i]
+                setattr(g,dm[0],dm[1])
+                setattr(g,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
+                setattr(gz,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
     #
     # Compute annual mean, make zonal mean and write
     # 
@@ -735,10 +739,11 @@ for tc in range(tcmax):
     print '   CPU of zonal mean compute and write =', ticza-toz
     #    
     # Write/append to file
-    g.write(depthBin, extend = 1, index = trmin)
-    g.write(thickBin, extend = 1, index = trmin)
-    g.write(x1Bin,    extend = 1, index = trmin)
-    g.write(x2Bin,    extend = 1, index = trmin)
+    if mthout == 0:
+        g.write(depthBin, extend = 1, index = trmin)
+        g.write(thickBin, extend = 1, index = trmin)
+        g.write(x1Bin,    extend = 1, index = trmin)
+        g.write(x2Bin,    extend = 1, index = trmin)
     #
 
 #
@@ -750,7 +755,8 @@ print ' Ratio to grid*nyears',ratio,'kB/unit(size*nyears)'
 #
 ft.close()
 fs.close()
-g.close()
+if mthout == 0:
+    g.close()
 gz.close()
 
 print ' CPU use, elapsed', timc.clock() - ti0, timeit.default_timer() - te0
