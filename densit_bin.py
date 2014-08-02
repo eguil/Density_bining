@@ -222,10 +222,10 @@ s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
 grd = temp.getGrid()
+file_out = outdir+'/out_density.nc'
+if os.path.exists(file_out):
+    os.remove(file_out)
 if mthout == 0:
-    file_out = outdir+'/out_density.nc'
-    if os.path.exists(file_out):
-        os.remove(file_out)
     g = cdm.open(file_out,'w+')
 filez_out = outdir+'/outz_density.nc'
 if os.path.exists(filez_out):
