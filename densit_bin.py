@@ -306,7 +306,10 @@ for tc in range(tcmax):
     trmin = tmin + tc*tcdel ; # define as function of tc and tcdel
     trmax = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
     print ' --> time chunk (bounds) = ',tc, ' (',trmin,trmax-1,')'
-    temp = ft('thetao', time = slice(trmin,trmax))-273.15
+    temp = ft('thetao', time = slice(trmin,trmax))
+    tmin = min(temp.data[0,:,N_j/2,N_i/2])
+    if tmin > 273.:
+        temp = temp -273.15
     so   = fs('so', time = slice(trmin,trmax))
     time  = temp.getTime()
     tur = timc.clock()
