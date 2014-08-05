@@ -408,7 +408,7 @@ for tc in range(tcmax):
                 c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                 c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
         tac6 = timc.clock()
-        if debugp and (t==-1):
+        if debugp and (t==0):
                 print '    CPU stage 0 :', tac00-tac0
                 print '    CPU stage 1 :', tac3-tac00
                 print '    CPU stage 2 :', tac4-tac3
@@ -435,7 +435,7 @@ for tc in range(tcmax):
         x2_bin    [t,:,:]     = c2_s
         #
         # debug
-        if t == -1:
+        if t == 0:
             ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
             print 'test point',ijtest
             print ' i_bottom',i_bottom[ijtest]
