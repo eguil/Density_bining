@@ -307,11 +307,12 @@ for tc in range(tcmax):
     trmax = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
     print ' --> time chunk (bounds) = ',tc, ' (',trmin,trmax-1,')'
     temp = ft('thetao', time = slice(trmin,trmax))
+    so   = fs('so'    , time = slice(trmin,trmax))
+    time  = temp.getTime()
+    # Kelvin or celsius ?
     tmin = min(temp.data[0,:,N_j/2,N_i/2])
     if tmin > 273.:
         temp = temp -273.15
-    so   = fs('so', time = slice(trmin,trmax))
-    time  = temp.getTime()
     tur = timc.clock()
     #print '     read  CPU:',tur-tuc
     # Compute neutral density (TODO optimize: 22 % CPU)
@@ -436,21 +437,6 @@ for tc in range(tcmax):
         thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
         x1_bin    [t,:,:]     = c1_s
         x2_bin    [t,:,:]     = c2_s
-        #
-        # debug
-        if t == 0:
-            ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
-            print 'test point',ijtest
-            print ' i_bottom',i_bottom[ijtest]
-            print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
-            #print ' ind',ind[0][npy.where(ind[1] == ijtest)]
-            print ' i_profil',ir
-            print ' s_z[i_profil] ', szm[ir,ijtest]
-            print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
-            print ' z_zt[i_profil] ', zzm[ir,ijtest]
-            print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-            print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-            print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
     #
     # end of loop on t <===      
     #        
@@ -467,11 +453,11 @@ for tc in range(tcmax):
     x1_bino.mask = maskb
     x2_bino.mask = maskb
     #
-    if tc == -1:
+    if debugp and (tc == 0):
         # test write
         i = itest
         j = jtest
-        print 'ind = ',ind
+        #print 'ind = ',ind
         print "test point",i,j, area[j,i]
         print "lon,lat",lon[j,i],lat[j,i]
         print 'depth_bin', depth_bino[0,:,j,i]
