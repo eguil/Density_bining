@@ -203,7 +203,7 @@ grdsize = N_i * N_j * N_z
 if grdsize <= 1.e6:
     tcdel = min(120, tmax)
 elif grdsize <= 1.e7:
-    tcdel = min(12, tmax)
+    tcdel = min(24, tmax)
 nyrtc = tcdel/12
 tcmax = (tmax-tmin)/tcdel ; # number of time chunks
 print '==> tcdel, tcmax:', tcdel, tcmax
@@ -292,7 +292,7 @@ depthBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 thickBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-# Ind
+tcmax# Ind
 depthBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -310,8 +310,8 @@ for tc in range(tcmax):
     so   = fs('so'    , time = slice(trmin,trmax))
     time  = temp.getTime()
     # Kelvin or celsius ?
-    tmin = min(temp.data[0,:,N_j/2,N_i/2])
-    if tmin > 273.:
+    tempmin = min(temp.data[0,:,N_j/2,N_i/2])
+    if tempmin > 273.:
         temp = temp -273.15
     tur = timc.clock()
     #print '     read  CPU:',tur-tuc
