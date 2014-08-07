@@ -97,12 +97,14 @@ mthout       = args.nomthoutput
 #if socket.gethostname() == 'crunchy.llnl.gov':
 #    file_T = indir+'/thetao/cmip5.'+file_root+'.thetao.ver-v20111010.latestX.xml'
 #    file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
-#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
-file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
-file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
+file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+modeln = 'IPSL-CM5A-LR'
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
+#file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
+#file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
+#modeln = 'GFDL-CM2p1'
 
 #file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
 #file_T = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/IPSL-CM5A-LR_piControl_r1i1p1_180001-180012_Omon_thetao.nc'
@@ -226,12 +228,12 @@ s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
 grd = temp.getGrid()
-file_out = outdir+'/out_density.nc'
+file_out = outdir+'/'+modeln+'_out_density.nc'
 if os.path.exists(file_out):
     os.remove(file_out)
 if mthout == 0:
     g = cdm.open(file_out,'w+')
-filez_out = outdir+'/outz_density.nc'
+filez_out = outdir+'/'+modeln+'_outz_density.nc'
 if os.path.exists(filez_out):
     os.remove(filez_out)
 gz = cdm.open(filez_out,'w+')
@@ -250,20 +252,19 @@ x2_bin = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
 fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
 #fileg = '/Users/ericg/Projets/Density_bining/WOD13_masks.nc'
 gt = cdm.open(fileg)
-maskg = gt('basinmask')
+maskg = gt('basinmask3')
 outgrid = maskg.getGrid()
-gt.close()
 # global mask
-maski = maskg.mask[0,:,:]
+maski = maskg.mask
 # regional masks
 maskAtl = maski*1 ; maskAtl[...] = True
-idxa = npy.argwhere(maskg[0,:,:] == 1).transpose()
+idxa = npy.argwhere(maskg == 1).transpose()
 maskAtl[idxa[0],idxa[1]] = False
 maskPac = maski*1 ; maskPac[...] = True
-idxp = npy.argwhere(maskg[0,:,:] == 2).transpose()
+idxp = npy.argwhere(maskg == 2).transpose()
 maskPac[idxp[0],idxp[1]] = False
 maskInd = maski*1 ; maskInd[...] = True
-idxi = npy.argwhere(maskg[0,:,:] == 3).transpose()
+idxi = npy.argwhere(maskg == 3).transpose()
 maskInd[idxi[0],idxi[1]] = False
 #
 loni = maskg.getLongitude()
@@ -271,7 +272,9 @@ lati = maskg.getLatitude()
 Nii = int(loni.shape[0])
 Nji = int(lati.shape[0])
 # Compute area of target grid and zonal sums
-areai = sd.compute_area(loni[:], lati[:])
+#areai = sd.compute_area(loni[:], lati[:])
+areai   = gt('basinmask3_area')
+gt.close()
 areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
 areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
 areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
@@ -513,8 +516,8 @@ for tc in range(tcmax):
         #x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         toz = timc.clock()
-        if debugp:
-            print '   CPU of annual mean compute =', toz-ticz
+        #if debugp:
+        print '   CPU of annual mean compute =', toz-ticz
         #
         # Interpolate onto common grid
         for t in range(nyrtc):
@@ -637,25 +640,25 @@ for tc in range(tcmax):
         # Global
         dbz  = cdm.createVariable(depthBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth')
         tbz  = cdm.createVariable(thickBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthick')
-        vbz  = cdm.createVariable(volBinz*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvol')
+        vbz  = cdm.createVariable(volBinz*1.e-12, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvol')
         x1bz = cdm.createVariable(x1Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetao')
         x2bz = cdm.createVariable(x2Binz   , axes = [dy.getAxis(0), s_axis, lati], id = 'so')
         # Atl
         dbza  = cdm.createVariable(depthBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isondeptha')
         tbza  = cdm.createVariable(thickBinza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthicka')
-        vbza  = cdm.createVariable(volBinza*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvola')
+        vbza  = cdm.createVariable(volBinza*1.e-12, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvola')
         x1bza = cdm.createVariable(x1Binza   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaoa')
         x2bza = cdm.createVariable(x2Binza   , axes = [dy.getAxis(0), s_axis, lati], id = 'soa')
         # Pac
         dbzp  = cdm.createVariable(depthBinzp, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepthp')
         tbzp  = cdm.createVariable(thickBinzp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthickp')
-        vbzp  = cdm.createVariable(volBinzp*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvolp')
+        vbzp  = cdm.createVariable(volBinzp*1.e-12, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvolp')
         x1bzp = cdm.createVariable(x1Binzp   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaop')
         x2bzp = cdm.createVariable(x2Binzp   , axes = [dy.getAxis(0), s_axis, lati], id = 'sop')
         # Ind
         dbzi  = cdm.createVariable(depthBinzi, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepthi')
         tbzi  = cdm.createVariable(thickBinzi,  axes = [dy.getAxis(0), s_axis, lati], id = 'isonthicki')
-        vbzi  = cdm.createVariable(volBinzi*1.e-6, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvoli')
+        vbzi  = cdm.createVariable(volBinzi*1.e-12, axes = [dy.getAxis(0), s_axis, lati], id = 'isonvoli')
         x1bzi = cdm.createVariable(x1Binzi   , axes = [dy.getAxis(0), s_axis, lati], id = 'thetaoi')
         x2bzi = cdm.createVariable(x2Binzi   , axes = [dy.getAxis(0), s_axis, lati], id = 'soi')
         if tc == 0:
@@ -665,7 +668,7 @@ for tc in range(tcmax):
             tbz.long_name = 'Global zonal thickness of isopycnal'
             tbz.units = 'm'
             vbz.long_name = 'Volume of isopycnal'
-            vbz.units = '10.e6 m^3'
+            vbz.units = '10.e12 m^3'
             x1bz.long_name = temp.long_name
             x1bz.units = 'C'
             x2bz.long_name = so.long_name
@@ -676,7 +679,7 @@ for tc in range(tcmax):
             tbza.long_name = 'Atl. zonal thickness of isopycnal'
             tbza.units = 'm'
             vbza.long_name = 'Atl. volume of isopycnal'
-            vbza.units = '10.e6 m^3'
+            vbza.units = '10.e12 m^3'
             x1bza.long_name = temp.long_name
             x1bza.units = 'C'
             x2bza.long_name = so.long_name
@@ -687,7 +690,7 @@ for tc in range(tcmax):
             tbzp.long_name = 'Pac. zonal thickness of isopycnal'
             tbzp.units = 'm'
             vbzp.long_name = 'Pac. volume of isopycnal'
-            vbzp.units = '10.e6 m^3'
+            vbzp.units = '10.e12 m^3'
             x1bzp.long_name = temp.long_name
             x1bzp.units = 'C'
             x2bzp.long_name = so.long_name
@@ -698,7 +701,7 @@ for tc in range(tcmax):
             tbzi.long_name = 'Ind. zonal thickness of isopycnal'
             tbzi.units = 'm'
             vbzi.long_name = 'Ind. volume of isopycnal'
-            vbzi.units = '10.e6 m^3'
+            vbzi.units = '10.e12 m^3'
             x1bzi.long_name = temp.long_name
             x1bzi.units = 'C'
             x2bzi.long_name = so.long_name
