@@ -97,14 +97,28 @@ mthout       = args.nomthoutput
 #if socket.gethostname() == 'crunchy.llnl.gov':
 #    file_T = indir+'/thetao/cmip5.'+file_root+'.thetao.ver-v20111010.latestX.xml'
 #    file_S = indir+'/so/cmip5.'+file_root+'.so.ver-v20111010.latestX.xml'
+
+#
+# IPSL-CM5A-LR
+#
 file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
 file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
 file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
 modeln = 'IPSL-CM5A-LR'
+#
+# GFDL-CM2p1
+#
 #file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
 #file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
 #file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
 #modeln = 'GFDL-CM2p1'
+#
+# CCSM4
+#
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.CCSM4.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20130312.latestX.xml'
+#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.CCSM4.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20121128.latestX.xml'
+#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.CCSM4.historical.r1i1p1.mo.ocn.Omon.so.ver-v20121128.latestX.xml'
+#modeln = 'CCSM4'
 
 #file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
 #file_T = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/IPSL-CM5A-LR_piControl_r1i1p1_180001-180012_Omon_thetao.nc'
@@ -140,7 +154,7 @@ if debugp:
 print '  time interval: ', tmin, tmax - 1
 #
 # Define temperature and salinity arrays
-temp = ft('thetao', time = slice(0,1))-273.15
+temp = ft('thetao', time = slice(0,1))
 so   = fs('so', time = slice(0,1))
 #
 # Read file attributes
@@ -202,13 +216,14 @@ ijtest = jtest*N_i+itest
 # Define time read interval (as function of 3D array size)
 grdsize = N_i * N_j * N_z
 # define number of months in each chunk
+print 'Grid size:', grdsize
 if grdsize <= 1.e6:
     tcdel = min(120, tmax)
 elif grdsize <= 1.e7:
     tcdel = min(24, tmax)
 nyrtc = tcdel/12
 tcmax = (tmax-tmin)/tcdel ; # number of time chunks
-print '==> tcdel, tcmax:', tcdel, tcmax
+print ' ==> tcdel, tcmax:', tcdel, tcmax
 #
 # inits
 # z profiles:
@@ -272,8 +287,8 @@ lati = maskg.getLatitude()
 Nii = int(loni.shape[0])
 Nji = int(lati.shape[0])
 # Compute area of target grid and zonal sums
-#areai = sd.compute_area(loni[:], lati[:])
-areai   = gt('basinmask3_area')
+areai = sd.compute_area(loni[:], lati[:])
+#areai   = gt('basinmask3_area').data*1.e6
 gt.close()
 areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
 areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
@@ -295,11 +310,14 @@ depthBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 thickBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-tcmax# Ind
+# Ind
 depthBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+#
+# Persistence arrays
+persist    = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
 #
 # loop on time chunks
 for tc in range(tcmax):
@@ -314,11 +332,16 @@ for tc in range(tcmax):
     time  = temp.getTime()
     # Kelvin or celsius ?
     tempmin = min(temp.data[0,:,N_j/2,N_i/2])
+    print ' tempmin = ',tempmin
+    if tempmin > valmask/10.:
+        tempmin = min(temp.data[0,:,N_j/4,N_i/2])
+        print ' tempmin = ',tempmin
     if tempmin > 273.:
         temp = temp -273.15
+        print ' Change unit to celsius'
     tur = timc.clock()
     #print '     read  CPU:',tur-tuc
-    # Compute neutral density (TODO optimize: 22 % CPU)
+    # Compute neutral density 
     rhon = sd.eos_neutral(temp,so)-1000.
     turn = timc.clock()
     #print '     rhon compute CPU:',turn-tur
@@ -332,10 +355,10 @@ for tc in range(tcmax):
     thick_bin[...] = valmask
     x1_bin[...] = valmask
     x2_bin[...] = valmask
-    #bowl_bin  = npy.ma.zeros([N_j, N_i]) # dim: i,j 
+    #
     tac = timc.clock()
     tac2 = timeit.default_timer()
-    print '     read, rhon compute and array init CPU, elapsed:',tac-tuc, tac2-tuc2
+    #print '     read, rhon compute and array init CPU, elapsed:',tac-tuc, tac2-tuc2
     #
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
@@ -597,11 +620,8 @@ for tc in range(tcmax):
         x2Binii = mv.masked_where(depthBinii > 1.e6, x2Binii)
 
         tozi = timc.clock()
-        # 10 sec for 12 months
-        if debugp:
-            print '   CPU of interpolation =', tozi-toz
-            print '   test '
-            print dy[0,:,80,60]
+        # 
+        print '   CPU of interpolation =', tozi-toz
         #
         # Compute zonal mean
         # Global
@@ -625,6 +645,9 @@ for tc in range(tcmax):
         x1Binzi    = cdu.averager(x1Binii,    axis=3)
         x2Binzi    = cdu.averager(x2Binii,    axis=3)
 
+        toziz = timc.clock()
+        # 
+        print '   CPU of Zonal mean =', toziz-tozi
 
         #areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
         #areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
@@ -636,6 +659,8 @@ for tc in range(tcmax):
         volBinza = thickBinza * areazta
         volBinzp = thickBinzp * areaztp
         volBinzi = thickBinzi * areazti
+        #
+        #
         # Init output variables
         # Global
         dbz  = cdm.createVariable(depthBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth')
@@ -707,39 +732,40 @@ for tc in range(tcmax):
             x2bzi.long_name = so.long_name
             x2bzi.units = so.units
         # Write & append
-        gz.write(dbz , extend = 1, index = trmin/12)
-        gz.write(tbz , extend = 1, index = trmin/12)
-        gz.write(vbz , extend = 1, index = trmin/12)
-        gz.write(x1bz, extend = 1, index = trmin/12)
-        gz.write(x2bz, extend = 1, index = trmin/12)
+        gz.write(dbz , extend = 1, index = (trmin-tmin)/12)
+        gz.write(tbz , extend = 1, index = (trmin-tmin)/12)
+        gz.write(vbz , extend = 1, index = (trmin-tmin)/12)
+        gz.write(x1bz, extend = 1, index = (trmin-tmin)/12)
+        gz.write(x2bz, extend = 1, index = (trmin-tmin)/12)
         # Atl
-        gz.write(dbza , extend = 1, index = trmin/12)
-        gz.write(tbza , extend = 1, index = trmin/12)
-        gz.write(vbza , extend = 1, index = trmin/12)
-        gz.write(x1bza, extend = 1, index = trmin/12)
-        gz.write(x2bza, extend = 1, index = trmin/12)
+        gz.write(dbza , extend = 1, index = (trmin-tmin)/12)
+        gz.write(tbza , extend = 1, index = (trmin-tmin)/12)
+        gz.write(vbza , extend = 1, index = (trmin-tmin)/12)
+        gz.write(x1bza, extend = 1, index = (trmin-tmin)/12)
+        gz.write(x2bza, extend = 1, index = (trmin-tmin)/12)
         # Pac
-        gz.write(dbzp , extend = 1, index = trmin/12)
-        gz.write(tbzp , extend = 1, index = trmin/12)
-        gz.write(vbzp , extend = 1, index = trmin/12)
-        gz.write(x1bzp, extend = 1, index = trmin/12)
-        gz.write(x2bzp, extend = 1, index = trmin/12)
+        gz.write(dbzp , extend = 1, index = (trmin-tmin)/12)
+        gz.write(tbzp , extend = 1, index = (trmin-tmin)/12)
+        gz.write(vbzp , extend = 1, index = (trmin-tmin)/12)
+        gz.write(x1bzp, extend = 1, index = (trmin-tmin)/12)
+        gz.write(x2bzp, extend = 1, index = (trmin-tmin)/12)
         # Ind
-        gz.write(dbzi , extend = 1, index = trmin/12)
-        gz.write(tbzi , extend = 1, index = trmin/12)
-        gz.write(vbzi , extend = 1, index = trmin/12)
-        gz.write(x1bzi, extend = 1, index = trmin/12)
-        gz.write(x2bzi, extend = 1, index = trmin/12)
+        gz.write(dbzi , extend = 1, index = (trmin-tmin)/12)
+        gz.write(tbzi , extend = 1, index = (trmin-tmin)/12)
+        gz.write(vbzi , extend = 1, index = (trmin-tmin)/12)
+        gz.write(x1bzi, extend = 1, index = (trmin-tmin)/12)
+        gz.write(x2bzi, extend = 1, index = (trmin-tmin)/12)
 
-    ticza = timc.clock()
-    print '   CPU of zonal mean compute and write =', ticza-toz
+    if tcdel >= 12:
+        ticza = timc.clock()
+        print '   CPU of zonal mean write =', ticza-toziz
     #    
     # Write/append to file
     if mthout == 0:
-        g.write(depthBin, extend = 1, index = trmin)
-        g.write(thickBin, extend = 1, index = trmin)
-        g.write(x1Bin,    extend = 1, index = trmin)
-        g.write(x2Bin,    extend = 1, index = trmin)
+        g.write(depthBin, extend = 1, index = trmin-tmin)
+        g.write(thickBin, extend = 1, index = trmin-tmin)
+        g.write(x1Bin,    extend = 1, index = trmin-tmin)
+        g.write(x2Bin,    extend = 1, index = trmin-tmin)
     #
 
 #
@@ -753,7 +779,10 @@ ft.close()
 fs.close()
 if mthout == 0:
     g.close()
+    print ' Wrote file: ', file_out
 gz.close()
+if tcdel >= 12:
+    print ' Wrote file: ', filez_out
 
 print ' CPU use, elapsed', timc.clock() - ti0, timeit.default_timer() - te0
 ratio = 1.e6*(timc.clock() - ti0)/float(grdsize*tmax)
