@@ -557,6 +557,26 @@ for tc in range(tcmax):
         #if debugp:
         print '   CPU of annual mean compute =', toz-ticz
         #
+        # Compute persistence of isopycnal bins
+        #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
+        for t in range(nyrtc):
+            # inits
+            idxvm = npy.ma.ones([12, N_s+1, N_j, N_i], dtype='float32')*valmask 
+            inim = (nyrtc-1)*12
+            finm = (nyrtc-1)*12 + 11
+            idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
+            persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
+            persist._FillValue = valmask
+            persist = mv.masked_where(persist <= 1.e-6, persist)
+            # TO DO:
+            #     - interpolate to WOA grid
+            #     - make zonal mean, global and per basins (2D)
+            #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
+            #     - write output in file 
+            # persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), rhon, thick_bino.getGrid()], id = 'isonpersist')
+            # persbin.long_name = 'persistence of isopycnal bins'
+            # persbin.units = '% of time'
+            
         # Interpolate onto common grid
         for t in range(nyrtc):
             for ks in range(N_s+1):
