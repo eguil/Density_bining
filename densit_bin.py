@@ -323,7 +323,6 @@ persisti  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 # loop on time chunks
 for tc in range(tcmax):
     tuc = timc.clock()
-    tuc2 = timeit.default_timer()
     # read tcdel month by tcdel month to optimise memory
     trmin = tmin + tc*tcdel ; # define as function of tc and tcdel
     trmax = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
@@ -340,12 +339,10 @@ for tc in range(tcmax):
     if tempmin > 273.:
         temp = temp -273.15
         print ' Change unit to celsius'
-    tur = timc.clock()
-    #print '     read  CPU:',tur-tuc
+    #
     # Compute neutral density 
     rhon = sd.eos_neutral(temp,so)-1000.
-    turn = timc.clock()
-    #print '     rhon compute CPU:',turn-tur
+    #
     # reorganise i,j dims in single dimension data
     temp = npy.reshape(temp, (tcdel, N_z, N_i*N_j))
     so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
@@ -356,10 +353,6 @@ for tc in range(tcmax):
     thick_bin[...] = valmask
     x1_bin[...] = valmask
     x2_bin[...] = valmask
-    #
-    tac = timc.clock()
-    tac2 = timeit.default_timer()
-    #print '     read, rhon compute and array init CPU, elapsed:',tac-tuc, tac2-tuc2
     #
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
@@ -480,6 +473,9 @@ for tc in range(tcmax):
     x1_bino.mask = maskb
     x2_bino.mask = maskb
     #
+    tucf = timc.clock()
+    print '   CPU of density bining =', tucf-tuc
+    #
     if debugp and (tc == 0):
         # test write
         i = itest
@@ -508,26 +504,25 @@ for tc in range(tcmax):
         if tc == 0:
             depthBin.long_name = 'Depth of isopycnal'
             depthBin.units = 'm'
-        #
+            #
             thickBin.long_name = 'Thickness of isopycnal'
             thickBin.units = 'm'
             x1Bin.long_name = temp.long_name
             x1Bin.units = 'C'
             x2Bin.long_name = so.long_name
             x2Bin.units = so.units
-        #
+            #
             g.write(area) ; # Added area so isonvol can be computed
-        # write global attributes (inherited from thetao file)
+            # write global attributes (inherited from thetao file)
             for i in range(0,len(file_dic)):
                 dm=file_dic[i]
                 setattr(g,dm[0],dm[1])
                 setattr(g,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
                 setattr(gz,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
     #
-    # Compute annual mean, make zonal mean and write
+    # Compute annual mean, persistence, make zonal mean and write
     # 
     ticz = timc.clock()
-    toz = timc.clock()
     if tcdel >= 12:
         # Note: HUGE COST: 30-60 sec for 12 months !!! and 120 sec for 24 !!!
         dy  = cdu.YEAR(depthBin)
@@ -543,7 +538,7 @@ for tc in range(tcmax):
         #if debugp:
         print '   CPU of annual mean compute =', toz-ticz
         #
-        # Compute annual persistence of isopycnal bins
+        # Compute annual persistence of isopycnal bins (from their thickness)
         #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
         for t in range(nyrtc):
             # inits
@@ -555,8 +550,10 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
+            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpersist')           
+            # regrid
             for ks in range(N_s+1):
-                persisti[t,ks,:,:] = persist [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
+                persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
                 persisti[t,ks,:,:].mask = maski
             # Compute zonal mean
             # Global
