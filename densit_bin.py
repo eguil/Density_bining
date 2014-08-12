@@ -446,11 +446,11 @@ for tc in range(tcmax):
             #print ' ind',ind[0][npy.where(ind[1] == ijtest)]
             print ' i_profil',ir
             print ' s_z[i_profil] ', szm[ir,ijtest]
-            print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
+            #print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
             print ' z_zt[i_profil] ', zzm[ir,ijtest]
-            print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-            print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-            print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            #print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            #print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
+            #print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
     #
     # end of loop on t <===      
     #        
