@@ -317,7 +317,8 @@ x1Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 x2Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 #
 # Persistence arrays
-persist    = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
+persist   = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
+persisti  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 #
 # loop on time chunks
 for tc in range(tcmax):
@@ -463,21 +464,6 @@ for tc in range(tcmax):
         thick_bin [t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
         x1_bin    [t,:,:]     = c1_s
         x2_bin    [t,:,:]     = c2_s
-        #
-        # debug
-        if t == 0:
-            ir=range(int(i_min[ijtest]),int(i_max[ijtest])+1)
-            print 'test point',ijtest
-            print ' i_bottom',i_bottom[ijtest]
-            print ' i_min,i_max',i_min[ijtest],i_max[ijtest]
-            #print ' ind',ind[0][npy.where(ind[1] == ijtest)]
-            print ' i_profil',ir
-            print ' s_z[i_profil] ', szm[ir,ijtest]
-            #print ' s_s[ind] ', s_s[ind[0][npy.where(ind[1]==ijtest)],ijtest]
-            print ' z_zt[i_profil] ', zzm[ir,ijtest]
-            #print ' z_s[ind] ', z_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-            #print ' c1_s[ind] ', c1_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
-            #print ' c2_s[ind] ', c2_s[ind[0][npy.where(ind[1] == ijtest)],ijtest]
     #
     # end of loop on t <===      
     #        
@@ -557,7 +543,7 @@ for tc in range(tcmax):
         #if debugp:
         print '   CPU of annual mean compute =', toz-ticz
         #
-        # Compute persistence of isopycnal bins
+        # Compute annual persistence of isopycnal bins
         #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
         for t in range(nyrtc):
             # inits
@@ -566,16 +552,25 @@ for tc in range(tcmax):
             finm = (nyrtc-1)*12 + 11
             idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
             persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
+            # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
+            for ks in range(N_s+1):
+                persisti[t,ks,:,:] = persist [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
+                persisti[t,ks,:,:].mask = maski
+            # Compute zonal mean
+            # Global
+            persistiz = cdu.averager(persisti, axis=3)
             # TO DO:
-            #     - interpolate to WOA grid
+            #     
             #     - make zonal mean, global and per basins (2D)
             #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
             #     - write output in file 
             # persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), rhon, thick_bino.getGrid()], id = 'isonpersist')
             # persbin.long_name = 'persistence of isopycnal bins'
             # persbin.units = '% of time'
+        tozp = timc.clock()
+        print '   CPU of persistence compute =', tozp-toz
             
         # Interpolate onto common grid
         for t in range(nyrtc):
