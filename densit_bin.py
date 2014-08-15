@@ -243,15 +243,22 @@ s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
 grd = temp.getGrid()
+# Monthly mean of T,S, thickness and depth on neutral density bins on source grid
 file_out = outdir+'/'+modeln+'_out_density.nc'
 if os.path.exists(file_out):
     os.remove(file_out)
 if mthout == 0:
     g = cdm.open(file_out,'w+')
+# Annual zonal mean of T,S, thick, depth and volume per basin on WOA grid
 filez_out = outdir+'/'+modeln+'_outz_density.nc'
 if os.path.exists(filez_out):
     os.remove(filez_out)
 gz = cdm.open(filez_out,'w+')
+# Annual mean of persistence + zonal mean + volume of persistent domain
+filep_out = outdir+'/'+modeln+'_out_persist.nc'
+if os.path.exists(filep_out):
+    os.remove(filep_out)
+gp = cdm.open(filep_out,'w+')
 #
 # output arrays for each chunk
 depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
@@ -559,17 +566,26 @@ for tc in range(tcmax):
             # Global
             persistiz = cdu.averager(persisti, axis=3)
             # TO DO:
-            #     
-            #     - make zonal mean, global and per basins (2D)
+            #     - make zonal mean per basins (2D)
             #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
             #     - write output in file 
-            # persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), rhon, thick_bino.getGrid()], id = 'isonpersist')
-            # persbin.long_name = 'persistence of isopycnal bins'
-            # persbin.units = '% of time'
+        #
+        # Write persistence variables
+        dbpz  = cdm.createVariable(persistiz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersist')
+        if tc == 0:
+            # Global attributes
+            persbin.long_name = 'persistence of isopycnal bins'
+            persbin.units = '% of time'
+            dbpz.long_name = 'zonal persistence of isopycnal bins'
+            dbpz.units = '% of time'
+        # Write & append
+        gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
+        #
         tozp = timc.clock()
         print '   CPU of persistence compute =', tozp-toz
             
-        # Interpolate onto common grid
+        # Interpolate onto common grid (~90% of total CPU !!)
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
@@ -688,7 +704,7 @@ for tc in range(tcmax):
         volBinzi = thickBinzi * areazti
         #
         #
-        # Init output variables
+        # Init zonal mean output variables
         # Global
         dbz  = cdm.createVariable(depthBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isondepth')
         tbz  = cdm.createVariable(thickBinz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonthick')
@@ -783,9 +799,6 @@ for tc in range(tcmax):
         gz.write(x1bzi, extend = 1, index = (trmin-tmin)/12)
         gz.write(x2bzi, extend = 1, index = (trmin-tmin)/12)
 
-    if tcdel >= 12:
-        ticza = timc.clock()
-        print '   CPU of zonal mean write =', ticza-toziz
     #    
     # Write/append to file
     if mthout == 0:
@@ -808,8 +821,10 @@ if mthout == 0:
     g.close()
     print ' Wrote file: ', file_out
 gz.close()
+gp.close()
 if tcdel >= 12:
     print ' Wrote file: ', filez_out
+    print ' Wrote file: ', filep_out
 
 print ' CPU use, elapsed', timc.clock() - ti0, timeit.default_timer() - te0
 ratio = 1.e6*(timc.clock() - ti0)/float(grdsize*tmax)
