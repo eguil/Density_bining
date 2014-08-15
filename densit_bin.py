@@ -481,7 +481,6 @@ for tc in range(tcmax):
     x2_bino.mask = maskb
     #
     tucf = timc.clock()
-    print '   CPU of density bining =', tucf-tuc
     #
     if debugp and (tc == 0):
         # test write
@@ -543,7 +542,6 @@ for tc in range(tcmax):
         #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         toz = timc.clock()
         #if debugp:
-        print '   CPU of annual mean compute =', toz-ticz
         #
         # Compute annual persistence of isopycnal bins (from their thickness)
         #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
@@ -557,10 +555,10 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
-            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpersist')           
+            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
-                persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
+                persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 persisti[t,ks,:,:].mask = maski
             # Compute zonal mean
             # Global
@@ -571,7 +569,7 @@ for tc in range(tcmax):
             #     - write output in file 
         #
         # Write persistence variables
-        dbpz  = cdm.createVariable(persistiz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersist')
+        dbpz  = cdm.createVariable(persistiz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
         if tc == 0:
             # Global attributes
             persbin.long_name = 'persistence of isopycnal bins'
@@ -583,19 +581,18 @@ for tc in range(tcmax):
         gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
         #
         tozp = timc.clock()
-        print '   CPU of persistence compute =', tozp-toz
             
         # Interpolate onto common grid (~90% of total CPU !!)
-        #diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
-        diag = {}
+        diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
+        #diag = {}
         # soInterp = so.regrid(tas.getGrid(), regridMethod = 'conserve', diag = diag)        
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
-                thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
-                x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
-                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
+                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
                 depthBini[t,ks,:,:].mask = maski
                 thickBini[t,ks,:,:].mask = maski
                 x1Bini   [t,ks,:,:].mask = maski
@@ -667,7 +664,6 @@ for tc in range(tcmax):
 
         tozi = timc.clock()
         # 
-        print '   CPU of interpolation =', tozi-toz
         #
         # Compute zonal mean
         # Global
@@ -693,8 +689,6 @@ for tc in range(tcmax):
 
         toziz = timc.clock()
         # 
-        print '   CPU of Zonal mean =', toziz-tozi
-
         #areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
         #areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
         #areaz , x1Binz   , inv = ZonalMeans.compute(x1y, area=area, delta_band=delta_lat)
@@ -810,6 +804,12 @@ for tc in range(tcmax):
         g.write(x1Bin,    extend = 1, index = trmin-tmin)
         g.write(x2Bin,    extend = 1, index = trmin-tmin)
     #
+    print '   CPU of density bining =', tucf-tuc
+    if tcdel >= 12:
+        print '   CPU of annual mean compute =', toz-ticz
+        print '   CPU of persistence compute =', tozp-toz
+        print '   CPU of interpolation =', tozi-toz
+        print '   CPU of zonal mean =', toziz-tozi
 
 #
 # end loop on tc <===
