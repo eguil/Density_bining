@@ -586,8 +586,8 @@ for tc in range(tcmax):
         print '   CPU of persistence compute =', tozp-toz
             
         # Interpolate onto common grid (~90% of total CPU !!)
-        #diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
-        diag = {}
+        diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
+        #diag = {}
         # soInterp = so.regrid(tas.getGrid(), regridMethod = 'conserve', diag = diag)        
         for t in range(nyrtc):
             for ks in range(N_s+1):
