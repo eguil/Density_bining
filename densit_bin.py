@@ -254,7 +254,7 @@ filez_out = outdir+'/'+modeln+'_outz_density.nc'
 if os.path.exists(filez_out):
     os.remove(filez_out)
 gz = cdm.open(filez_out,'w+')
-# Annual mean of persistence + zonal mean + volume of persistent domain
+# Annual mean zonal mean of persistence on WOA grid + volume of persistent domain
 filep_out = outdir+'/'+modeln+'_out_persist.nc'
 if os.path.exists(filep_out):
     os.remove(filep_out)
@@ -579,7 +579,7 @@ for tc in range(tcmax):
             dbpz.long_name = 'zonal persistence of isopycnal bins'
             dbpz.units = '% of time'
         # Write & append
-        gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
+        #gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
         #
         tozp = timc.clock()
