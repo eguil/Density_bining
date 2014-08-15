@@ -586,13 +586,16 @@ for tc in range(tcmax):
         print '   CPU of persistence compute =', tozp-toz
             
         # Interpolate onto common grid (~90% of total CPU !!)
+        #diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
+        diag = {}
+        # soInterp = so.regrid(tas.getGrid(), regridMethod = 'conserve', diag = diag)        
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
-                thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
-                x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
-                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear')
+                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
+                thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
+                x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
+                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid,regridTool='ESMF',regridMethod='linear',diag = diag)
                 depthBini[t,ks,:,:].mask = maski
                 thickBini[t,ks,:,:].mask = maski
                 x1Bini   [t,ks,:,:].mask = maski
