@@ -585,7 +585,8 @@ for tc in range(tcmax):
         # Interpolate onto common grid (~90% of total CPU !!)
         diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
         #diag = {}
-        # soInterp = so.regrid(tas.getGrid(), regridMethod = 'conserve', diag = diag)        
+        # soInterp = so.regrid(tas.getGrid(), regridMethod = 'conserve', diag = diag)  
+        # try cdmsRegrid https://ice.txcorp.com/trac/modave/wiki/regrid
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
