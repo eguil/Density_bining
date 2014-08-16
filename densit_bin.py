@@ -635,8 +635,8 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
-        depthBini._FillValue = valmask
-        depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
+        #depthBini._FillValue = valmask
+        #depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
         thickBini._FillValue = valmask
         thickBini = mv.masked_where(thickBini > 1.e6, thickBini)
         x1Bini._FillValue = valmask
