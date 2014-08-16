@@ -857,13 +857,13 @@ for tc in range(tcmax):
         g.write(x1Bin,    extend = 1, index = trmin-tmin)
         g.write(x2Bin,    extend = 1, index = trmin-tmin)
     #
-    print '   CPU of density bining =', ticz-tuc
+    print '   CPU of density bining      =', ticz-tuc
     if tcdel >= 12:
         print '   CPU of annual mean compute =', toz-ticz
         print '   CPU of persistence compute =', tozp-toz
-        print '   CPU of interpolation =', tozi-tozp
-        print '   CPU of zonal mean =', toziz-tozi
-
+        print '   CPU of interpolation       =', tozi-tozp
+        print '   CPU of zonal mean          =', toziz-tozi
+    print '   CPU of chunk               =', toziz-tuc
 #
 # end loop on tc <===
 print
