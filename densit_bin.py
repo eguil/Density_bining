@@ -702,7 +702,7 @@ for tc in range(tcmax):
         depthBinz = cdu.averager(depthBini, axis=3)
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
-        x2Binz    = cdu.averager(x2Bini0,    axis=3)
+        x2Binz    = cdu.averager(x2Bini,    axis=3)
         # Atl
         depthBinza = cdu.averager(depthBinia, axis=3)
         thickBinza = cdu.averager(thickBinia, axis=3)
