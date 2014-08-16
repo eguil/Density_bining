@@ -310,12 +310,10 @@ ESMP.ESMP_Initialize()
 regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
 #
 # Global arrays init
-depthBini0 = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-x2Bini0    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 # Atl
 # TODO: this is a lot of arrays - maybe there is a better way of doing this
 depthBinia = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -583,7 +581,6 @@ for tc in range(tcmax):
             # TO DO:
             #     - make zonal mean per basins (2D)
             #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
-            #     - write output in file 
         #
         # Write persistence variables
         dbpz  = cdm.createVariable(persistiz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
@@ -606,11 +603,11 @@ for tc in range(tcmax):
                 #depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
                 thickBini[t,ks,:,:] = regridObj(ty [t,ks,:,:])
                 x1Bini   [t,ks,:,:] = regridObj(x1y[t,ks,:,:])
-                x2Bini0  [t,ks,:,:] = regridObj(x2y[t,ks,:,:])
+                x2Bini   [t,ks,:,:] = regridObj(x2y[t,ks,:,:])
                 #
                 depthBini[t,ks,:,:].mask = maski
                 thickBini[t,ks,:,:].mask = maski
@@ -645,43 +642,55 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
+        depthBini[npy.isnan(depthBini.data)] = valmask
         depthBini._FillValue = valmask
         depthBini = mv.masked_where(depthBini > valmask/10, depthBini)
+        thickBini[npy.isnan(thickBini.data)] = valmask
         thickBini._FillValue = valmask
         thickBini = mv.masked_where(thickBini > valmask/10, thickBini)
+        x1Bini[npy.isnan(x1Bini.data)] = valmask
         x1Bini._FillValue = valmask
         x1Bini = mv.masked_where(depthBini > valmask/10, x1Bini)
+        x2Bini[npy.isnan(x2Bini.data)] = valmask
         x2Bini._FillValue = valmask
         x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
-        isn = npy.isnan(x2Bini0.data)
-        x2Bini0[isn] = valmask
-        x2Bini0._FillValue = valmask
-        x2Bini0 = mv.masked_where(x2Bini0 > valmask/10, x2Bini0)
         # Atl
+        depthBinia[npy.isnan(depthBinia.data)] = valmask
         depthBinia._FillValue = valmask
         depthBinia = mv.masked_where(depthBinia > valmask/10, depthBinia)
+        thickBinia[npy.isnan(thickBinia.data)] = valmask
         thickBinia._FillValue = valmask
         thickBinia = mv.masked_where(thickBinia > valmask/10, thickBinia)
+        x1Binia[npy.isnan(x1Binia.data)] = valmask
         x1Binia._FillValue = valmask
         x1Binia = mv.masked_where(depthBinia > valmask/10, x1Binia)
+        x2Binia[npy.isnan(x2Binia.data)] = valmask
         x2Binia._FillValue = valmask
         x2Binia = mv.masked_where(depthBinia > valmask/10, x2Binia)
         # Pac
+        depthBinip[npy.isnan(depthBinip.data)] = valmask
         depthBinip._FillValue = valmask
         depthBinip = mv.masked_where(depthBinip > valmask/10, depthBinip)
+        thickBinip[npy.isnan(thickBinip.data)] = valmask
         thickBinip._FillValue = valmask
         thickBinip = mv.masked_where(thickBinip > valmask/10, thickBinip)
+        x1Binip[npy.isnan(x1Binip.data)] = valmask
         x1Binip._FillValue = valmask
         x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)
+        x2Binip[npy.isnan(x2Binip.data)] = valmask
         x2Binip._FillValue = valmask
         x2Binip = mv.masked_where(depthBinip > valmask/10, x2Binip)
         # Ind
+        depthBinii[npy.isnan(depthBinii.data)] = valmask
         depthBinii._FillValue = valmask
         depthBinii = mv.masked_where(depthBinii > valmask/10, depthBinii)
+        thickBinii[npy.isnan(thickBinii.data)] = valmask
         thickBinii._FillValue = valmask
         thickBinii = mv.masked_where(thickBinii > valmask/10, thickBinii)
+        x1Binii[npy.isnan(x1Binii.data)] = valmask
         x1Binii._FillValue = valmask
         x1Binii = mv.masked_where(depthBinii > valmask/10, x1Binii)
+        x2Binii[npy.isnan(x2Binii.data)] = valmask
         x2Binii._FillValue = valmask
         x2Binii = mv.masked_where(depthBinii > valmask/10, x2Binii)
 
@@ -694,9 +703,6 @@ for tc in range(tcmax):
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
         x2Binz    = cdu.averager(x2Bini0,    axis=3)
-        x2Binz0    = cdu.averager(x2Bini0,    axis=3)
-#        depthBinz._FillValue = valmask
-#        depthBinz = mv.masked_where(depthBinz > valmask/10, depthBinz)
         # Atl
         depthBinza = cdu.averager(depthBinia, axis=3)
         thickBinza = cdu.averager(thickBinia, axis=3)
@@ -714,11 +720,6 @@ for tc in range(tcmax):
         x2Binzi    = cdu.averager(x2Binii,    axis=3)
 
         toziz = timc.clock()
-        # 
-        #areaz , depthBinz, inv = ZonalMeans.compute(dy , area=area, delta_band=delta_lat)
-        #areazt, thickBinz, inv = ZonalMeans.compute(ty , area=area, delta_band=delta_lat)
-        #areaz , x1Binz   , inv = ZonalMeans.compute(x1y, area=area, delta_band=delta_lat)
-        #areaz , x2Binz   , inv = ZonalMeans.compute(x2y, area=area, delta_band=delta_lat)
         #
         # Compute volume of isopycnals
         volBinz  = thickBinz  * areazt
