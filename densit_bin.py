@@ -635,41 +635,41 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
-        #depthBini._FillValue = valmask
-        #depthBini = mv.masked_where(depthBini > 1.e6, depthBini)
+        depthBini._FillValue = valmask
+        depthBini = mv.masked_where(depthBini > valmask/10, depthBini)
         thickBini._FillValue = valmask
-        thickBini = mv.masked_where(thickBini > 1.e6, thickBini)
+        thickBini = mv.masked_where(thickBini > valmask/10, thickBini)
         x1Bini._FillValue = valmask
-        x1Bini = mv.masked_where(depthBini > 1.e6, x1Bini)
+        x1Bini = mv.masked_where(depthBini > valmask/10, x1Bini)
         x2Bini._FillValue = valmask
-        x2Bini = mv.masked_where(depthBini > 1.e6, x2Bini)
+        x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
         # Atl
         depthBinia._FillValue = valmask
-        depthBinia = mv.masked_where(depthBinia > 1.e6, depthBinia)
+        depthBinia = mv.masked_where(depthBinia > valmask/10, depthBinia)
         thickBinia._FillValue = valmask
-        thickBinia = mv.masked_where(thickBinia > 1.e6, thickBinia)
+        thickBinia = mv.masked_where(thickBinia > valmask/10, thickBinia)
         x1Binia._FillValue = valmask
-        x1Binia = mv.masked_where(depthBinia > 1.e6, x1Binia)
+        x1Binia = mv.masked_where(depthBinia > valmask/10, x1Binia)
         x2Binia._FillValue = valmask
-        x2Binia = mv.masked_where(depthBinia > 1.e6, x2Binia)
+        x2Binia = mv.masked_where(depthBinia > valmask/10, x2Binia)
         # Pac
         depthBinip._FillValue = valmask
-        depthBinip = mv.masked_where(depthBinip > 1.e6, depthBinip)
+        depthBinip = mv.masked_where(depthBinip > valmask/10, depthBinip)
         thickBinip._FillValue = valmask
-        thickBinip = mv.masked_where(thickBinip > 1.e6, thickBinip)
+        thickBinip = mv.masked_where(thickBinip > valmask/10, thickBinip)
         x1Binip._FillValue = valmask
-        x1Binip = mv.masked_where(depthBinip > 1.e6, x1Binip)
+        x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)
         x2Binip._FillValue = valmask
-        x2Binip = mv.masked_where(depthBinip > 1.e6, x2Binip)
+        x2Binip = mv.masked_where(depthBinip > valmask/10, x2Binip)
         # Ind
         depthBinii._FillValue = valmask
-        depthBinii = mv.masked_where(depthBinii > 1.e6, depthBinii)
+        depthBinii = mv.masked_where(depthBinii > valmask/10, depthBinii)
         thickBinii._FillValue = valmask
-        thickBinii = mv.masked_where(thickBinii > 1.e6, thickBinii)
+        thickBinii = mv.masked_where(thickBinii > valmask/10, thickBinii)
         x1Binii._FillValue = valmask
-        x1Binii = mv.masked_where(depthBinii > 1.e6, x1Binii)
+        x1Binii = mv.masked_where(depthBinii > valmask/10, x1Binii)
         x2Binii._FillValue = valmask
-        x2Binii = mv.masked_where(depthBinii > 1.e6, x2Binii)
+        x2Binii = mv.masked_where(depthBinii > valmask/10, x2Binii)
 
         tozi = timc.clock()
         # 
