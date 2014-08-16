@@ -595,7 +595,7 @@ for tc in range(tcmax):
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
