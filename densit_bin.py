@@ -310,6 +310,7 @@ ESMP.ESMP_Initialize()
 regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
 #
 # Global arrays init
+depthBini0 = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -593,7 +594,7 @@ for tc in range(tcmax):
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                #depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                depthBini0[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
                 #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
                 #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
                 #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
@@ -635,6 +636,8 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
+        depthBini0._FillValue = valmask
+        depthBini0 = mv.masked_where(depthBini > valmask/10, depthBini)
         depthBini._FillValue = valmask
         depthBini = mv.masked_where(depthBini > valmask/10, depthBini)
         thickBini._FillValue = valmask
@@ -673,10 +676,13 @@ for tc in range(tcmax):
 
         tozi = timc.clock()
         # 
+        diffbin = depthBini0-depthBini
         #
         # Compute zonal mean
         # Global
+        depthBinz0 = cdu.averager(depthBini0, axis=3)
         depthBinz = cdu.averager(depthBini, axis=3)
+        diffbinz = depthBinz0-depthBinz
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
         x2Binz    = cdu.averager(x2Bini,    axis=3)
