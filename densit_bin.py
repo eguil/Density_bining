@@ -653,6 +653,8 @@ for tc in range(tcmax):
         x1Bini = mv.masked_where(depthBini > valmask/10, x1Bini)
         x2Bini._FillValue = valmask
         x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
+        isn = npy.isnan(x2Bini0.data)
+        x2Bini0[isn] = valmask
         x2Bini0._FillValue = valmask
         x2Bini0 = mv.masked_where(x2Bini0 > valmask/10, x2Bini0)
         # Atl
@@ -691,7 +693,7 @@ for tc in range(tcmax):
         depthBinz = cdu.averager(depthBini, axis=3)
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
-        x2Binz    = cdu.averager(x2Bini,    axis=3)
+        x2Binz    = cdu.averager(x2Bini0,    axis=3)
         x2Binz0    = cdu.averager(x2Bini0,    axis=3)
 #        depthBinz._FillValue = valmask
 #        depthBinz = mv.masked_where(depthBinz > valmask/10, depthBinz)
