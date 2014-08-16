@@ -305,7 +305,7 @@ areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
 areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
 areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
 #
-# Interpolation init
+# Interpolation init (regrid)
 ESMP.ESMP_Initialize()
 regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
 #
