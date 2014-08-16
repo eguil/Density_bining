@@ -306,8 +306,8 @@ areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
 areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
 #
 # Interpolation init
-ESMP.ESMP_Initialize()
-regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
+#ESMP.ESMP_Initialize()
+#regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
 #
 # Global arrays init
 depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
