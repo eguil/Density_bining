@@ -637,16 +637,14 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
-        depthBini0._FillValue = valmask
-        depthBini0 = mv.masked_where(depthBini > valmask/10, depthBini)
         depthBini._FillValue = valmask
         depthBini = mv.masked_where(depthBini > valmask/10, depthBini)
         thickBini._FillValue = valmask
         thickBini = mv.masked_where(thickBini > valmask/10, thickBini)
         x1Bini._FillValue = valmask
         x1Bini = mv.masked_where(depthBini > valmask/10, x1Bini)
-        x2Bini._FillValue = valmask
-        x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
+        #x2Bini._FillValue = valmask
+        #x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
         # Atl
         depthBinia._FillValue = valmask
         depthBinia = mv.masked_where(depthBinia > valmask/10, depthBinia)
@@ -662,7 +660,7 @@ for tc in range(tcmax):
         thickBinip._FillValue = valmask
         thickBinip = mv.masked_where(thickBinip > valmask/10, thickBinip)
         x1Binip._FillValue = valmask
-        x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)3666
+        x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)
         x2Binip._FillValue = valmask
         x2Binip = mv.masked_where(depthBinip > valmask/10, x2Binip)
         # Ind
