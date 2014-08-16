@@ -560,11 +560,9 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
-            #persist[mv.masked_values(persist, valmask).mask]=valmask
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
-                #persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 persisti[t,ks,:,:] = regridObj(persbin [t,ks,:,:])
                 persisti[t,ks,:,:].mask = maski
             persisti._FillValue = valmask
