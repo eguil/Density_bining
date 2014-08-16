@@ -594,11 +594,11 @@ for tc in range(tcmax):
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                depthBini0[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
-                #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
-                #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
-                depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
+                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
                 thickBini[t,ks,:,:] = regridObj(ty [t,ks,:,:])
                 x1Bini   [t,ks,:,:] = regridObj(x1y[t,ks,:,:])
                 x2Bini   [t,ks,:,:] = regridObj(x2y[t,ks,:,:])
@@ -680,12 +680,12 @@ for tc in range(tcmax):
         #
         # Compute zonal mean
         # Global
-        depthBinz0 = cdu.averager(depthBini0, axis=3)
         depthBinz = cdu.averager(depthBini, axis=3)
-        diffbinz = depthBinz0-depthBinz
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
         x2Binz    = cdu.averager(x2Bini,    axis=3)
+#        depthBinz._FillValue = valmask
+#        depthBinz = mv.masked_where(depthBinz > valmask/10, depthBinz)
         # Atl
         depthBinza = cdu.averager(depthBinia, axis=3)
         thickBinza = cdu.averager(thickBinia, axis=3)
