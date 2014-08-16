@@ -571,28 +571,55 @@ for tc in range(tcmax):
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
-                persisti[t,ks,:,:] = regridObj(persbin [t,ks,:,:])
-                persisti[t,ks,:,:].mask = maski
+                persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
+                persisti [t,ks,:,:].mask = maski
+                persistia[t,ks,:,:] = persisti[t,ks,:,:]*1.
+                persistia[t,ks,:,:].mask = maskAtl
+                persistip[t,ks,:,:] = persisti[t,ks,:,:]*1.
+                persistip[t,ks,:,:].mask = maskPac
+                persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
+                persistii[t,ks,:,:].mask = maskInd
             persisti._FillValue = valmask
             persisti = mv.masked_where(persisti > valmask/10, persisti)
+            persistia._FillValue = valmask
+            persistia = mv.masked_where(persistia > valmask/10, persistia)
+            persistip._FillValue = valmask
+            persistip = mv.masked_where(persistip > valmask/10, persistip)
+            persistii._FillValue = valmask
+            persistii = mv.masked_where(persistii > valmask/10, persistii)
             # Compute zonal mean
             # Global
-            persistiz = cdu.averager(persisti, axis=3)
+            persistiz  = cdu.averager(persisti , axis=3)
+            persistiza = cdu.averager(persistia, axis=3)
+            persistizp = cdu.averager(persistip, axis=3)
+            persistizi = cdu.averager(persistii, axis=3)
             # TO DO:
             #     - make zonal mean per basins (2D)
             #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
         #
         # Write persistence variables
-        dbpz  = cdm.createVariable(persistiz, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
+        dbpz  = cdm.createVariable(persistiz , axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
+        dbpza = cdm.createVariable(persistiza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersa')
+        dbpzp = cdm.createVariable(persistizp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersp')
+        dbpzi = cdm.createVariable(persistizi, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersi')
         if tc == 0:
             # Global attributes
             persbin.long_name = 'persistence of isopycnal bins'
             persbin.units = '% of time'
             dbpz.long_name = 'zonal persistence of isopycnal bins'
             dbpz.units = '% of time'
+            dbpza.long_name = 'Atl. zonal persistence of isopycnal bins'
+            dbpza.units = '% of time'
+            dbpzp.long_name = 'Pac. zonal persistence of isopycnal bins'
+            dbpzp.units = '% of time'
+            dbpzi.long_name = 'Ind. zonal persistence of isopycnal bins'
+            dbpzi.units = '% of time'
         # Write & append
         #gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpza   , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpzp   , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpzi   , extend = 1, index = (trmin-tmin)/12)
         #
         tozp = timc.clock()
             
@@ -844,6 +871,10 @@ print
 print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
 ratio =  12.*float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/float(grdsize*tmax)
 print ' Ratio to grid*nyears',ratio,'kB/unit(size*nyears)'
+print ' CPU use, elapsed', timc.clock() - ti0, timeit.default_timer() - te0
+ratio = 1.e6*(timc.clock() - ti0)/float(grdsize*tmax)
+print ' Ratio to grid*nyears',ratio,'1.e-6 sec/unit(size*nyears)'
+print
 #
 ft.close()
 fs.close()
@@ -856,21 +887,4 @@ if tcdel >= 12:
     print ' Wrote file: ', filez_out
     print ' Wrote file: ', filep_out
 
-print ' CPU use, elapsed', timc.clock() - ti0, timeit.default_timer() - te0
-ratio = 1.e6*(timc.clock() - ti0)/float(grdsize*tmax)
-print ' Ratio to grid*nyears',ratio,'1.e-6 sec/unit(size*nyears)'
-print
 # -----------------------------------------------------------------------------
-
-# multiprocs:
-# http://stackoverflow.com/questions/20820367/more-complex-parallel-for-loop-in-python
-
-# ----------------------------------------
-# some useful commands....
-
-# array or tuple to list:
-#array.tolist()
-# find index: eg: where(s_s LT s_z[i_min])
-#   ind = next(x[0] for x in enumerate(s_s) if x[1] < s_z[i_min])
-#   see support procs: ind = sd.whereLT(s_s, s_z[i_min])
-
