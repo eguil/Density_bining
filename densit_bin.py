@@ -567,7 +567,8 @@ for tc in range(tcmax):
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
-                persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                persisti[t,ks,:,:] = regridObj(persbin [t,ks,:,:])
                 persisti[t,ks,:,:].mask = maski
             # Compute zonal mean
             # Global
@@ -592,10 +593,6 @@ for tc in range(tcmax):
         tozp = timc.clock()
             
         # Interpolate onto common grid (~90% of total CPU !!)
-        diag = {'srcAreaFractions':None, 'srcAreas':None, 'dstAreas':None}
-        #diag = {}
-        # soInterp = so.regrid(tas.getGrid(), regridMethod = 'conserve', diag = diag)  
-        # try cdmsRegrid https://ice.txcorp.com/trac/modave/wiki/regrid
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
@@ -819,11 +816,11 @@ for tc in range(tcmax):
         g.write(x1Bin,    extend = 1, index = trmin-tmin)
         g.write(x2Bin,    extend = 1, index = trmin-tmin)
     #
-    print '   CPU of density bining =', tucf-tuc
+    print '   CPU of density bining =', ticz-tuc
     if tcdel >= 12:
         print '   CPU of annual mean compute =', toz-ticz
         print '   CPU of persistence compute =', tozp-toz
-        print '   CPU of interpolation =', tozi-toz
+        print '   CPU of interpolation =', tozi-tozp
         print '   CPU of zonal mean =', toziz-tozi
 
 #
