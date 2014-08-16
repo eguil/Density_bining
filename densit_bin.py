@@ -502,10 +502,6 @@ for tc in range(tcmax):
         print 'x1_bin', x1_bino[0,:,j,i]
         print 'x2_bin', x2_bino[0,:,j,i]
     tic = timc.clock()
-    tic2 = timeit.default_timer()
-    if debugp:
-        print '   Loop on t done - CPU & elapsed total (per month) = ',tic-tac, tic2-tac2, '(',(tic-tac)/float(tcdel),(tic2-tac2)/float(tcdel),')'
-        print '   Rhon computation vs. rest and % ',turn-tur,tic-tac,100.*(turn-tur)/(tic-tuc)
     #
     # Output files as netCDF
     # Def variables 
