@@ -307,7 +307,7 @@ areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
 #
 # Interpolation init
 ESMP.ESMP_Initialize()
-regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, regridMethod = 'linear', regridTool = 'esmf')
+regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
 #
 # Global arrays init
 depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -560,6 +560,7 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
+            persist[mv.masked_values(persist, valmask).mask]=valmask
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
