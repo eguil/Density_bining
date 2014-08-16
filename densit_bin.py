@@ -535,7 +535,7 @@ for tc in range(tcmax):
     ticz = timc.clock()
     if tcdel >= 12:
         # Annual mean
-        # Note: HUGE COST: 30-60 sec for 12 months !!! and 120 sec for 24 !!!
+        # Note: large coat 20 sec for 12 months
         dy  = cdu.YEAR(depthBin)
         ty  = cdu.YEAR(thickBin)
         x1y = cdu.YEAR(x1Bin)
@@ -560,7 +560,7 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
-            persist[mv.masked_values(persist, valmask).mask]=valmask
+            #persist[mv.masked_values(persist, valmask).mask]=valmask
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
