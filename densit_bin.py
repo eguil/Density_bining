@@ -35,6 +35,8 @@ import support_density as sd
 import time as timc
 import timeit
 import resource
+import ESMP
+from cdms2 import CdmsRegrid
 #import ZonalMeans
 #from regrid import Regridder
 #import matplotlib.pyplot as plt
@@ -297,10 +299,16 @@ Nji = int(lati.shape[0])
 areai = sd.compute_area(loni[:], lati[:])
 #areai   = gt('basinmask3_area').data*1.e6
 gt.close()
+#
 areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
 areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
 areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
 areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
+#
+# Interpolation init
+ESMP.ESMP_Initialize()
+regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, regridMethod = 'linear', regridTool = 'esmf')
+#
 # Global arrays init
 depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -530,6 +538,7 @@ for tc in range(tcmax):
     # 
     ticz = timc.clock()
     if tcdel >= 12:
+        # Annual mean
         # Note: HUGE COST: 30-60 sec for 12 months !!! and 120 sec for 24 !!!
         dy  = cdu.YEAR(depthBin)
         ty  = cdu.YEAR(thickBin)
@@ -590,10 +599,15 @@ for tc in range(tcmax):
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
-                thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
-                x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
-                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                #depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear', diag = diag)
+                depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
+                thickBini[t,ks,:,:] = regridObj(ty [t,ks,:,:])
+                x1Bini   [t,ks,:,:] = regridObj(x1y[t,ks,:,:])
+                x2Bini   [t,ks,:,:] = regridObj(x2y[t,ks,:,:])
+                #
                 depthBini[t,ks,:,:].mask = maski
                 thickBini[t,ks,:,:].mask = maski
                 x1Bini   [t,ks,:,:].mask = maski
