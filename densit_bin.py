@@ -315,6 +315,7 @@ depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+x2Bini0    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 # Atl
 # TODO: this is a lot of arrays - maybe there is a better way of doing this
 depthBinia = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -597,11 +598,11 @@ for tc in range(tcmax):
                 depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                #depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
+                x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
                 thickBini[t,ks,:,:] = regridObj(ty [t,ks,:,:])
                 x1Bini   [t,ks,:,:] = regridObj(x1y[t,ks,:,:])
-                x2Bini   [t,ks,:,:] = regridObj(x2y[t,ks,:,:])
+                x2Bini0  [t,ks,:,:] = regridObj(x2y[t,ks,:,:])
                 #
                 depthBini[t,ks,:,:].mask = maski
                 thickBini[t,ks,:,:].mask = maski
@@ -661,7 +662,7 @@ for tc in range(tcmax):
         thickBinip._FillValue = valmask
         thickBinip = mv.masked_where(thickBinip > valmask/10, thickBinip)
         x1Binip._FillValue = valmask
-        x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)
+        x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)3666
         x2Binip._FillValue = valmask
         x2Binip = mv.masked_where(depthBinip > valmask/10, x2Binip)
         # Ind
@@ -676,7 +677,6 @@ for tc in range(tcmax):
 
         tozi = timc.clock()
         # 
-        diffbin = depthBini0-depthBini
         #
         # Compute zonal mean
         # Global
@@ -684,6 +684,7 @@ for tc in range(tcmax):
         thickBinz = cdu.averager(thickBini, axis=3)
         x1Binz    = cdu.averager(x1Bini,    axis=3)
         x2Binz    = cdu.averager(x2Bini,    axis=3)
+        x2Binz0    = cdu.averager(x2Bini0,    axis=3)
 #        depthBinz._FillValue = valmask
 #        depthBinz = mv.masked_where(depthBinz > valmask/10, depthBinz)
         # Atl
