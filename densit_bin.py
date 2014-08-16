@@ -564,8 +564,8 @@ for tc in range(tcmax):
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
-                #persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                persisti[t,ks,:,:] = regridObj(persbin [t,ks,:,:])
+                persisti[t,ks,:,:] = persbin [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
+                #persisti[t,ks,:,:] = regridObj(persbin [t,ks,:,:])
                 persisti[t,ks,:,:].mask = maski
             # Compute zonal mean
             # Global
