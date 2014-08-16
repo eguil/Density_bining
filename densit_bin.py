@@ -489,6 +489,14 @@ for tc in range(tcmax):
     thick_bino.mask = maskb
     x1_bino.mask = maskb
     x2_bino.mask = maskb
+    depth_bino._FillValue = valmask
+    depth_bino = mv.masked_where(depth_bino > valmask/10, depth_bino)
+    thick_bino._FillValue = valmask
+    thick_bino = mv.masked_where(thick_bino > valmask/10, thick_bino)
+    x1_bino._FillValue = valmask
+    x1_bino = mv.masked_where(x1_bino > valmask/10, x1_bino)
+    x2_bino._FillValue = valmask
+    x2_bino = mv.masked_where(x2_bino > valmask/10, x2_bino)
     #
     tucf = timc.clock()
     #
@@ -643,8 +651,10 @@ for tc in range(tcmax):
         thickBini = mv.masked_where(thickBini > valmask/10, thickBini)
         x1Bini._FillValue = valmask
         x1Bini = mv.masked_where(depthBini > valmask/10, x1Bini)
-        #x2Bini._FillValue = valmask
-        #x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
+        x2Bini._FillValue = valmask
+        x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
+        x2Bini0._FillValue = valmask
+        x2Bini0 = mv.masked_where(x2Bini0 > valmask/10, x2Bini0)
         # Atl
         depthBinia._FillValue = valmask
         depthBinia = mv.masked_where(depthBinia > valmask/10, depthBinia)
