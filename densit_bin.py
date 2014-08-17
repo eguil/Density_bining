@@ -223,7 +223,7 @@ print 'Grid size:', grdsize
 #    tcdel = min(120, tmax)
 #elif grdsize <= 1.e7:
 #    tcdel = min(24, tmax)
-tcdel = min(24, tmax) # seems faster ?
+tcdel = min(24, tmax) # faster than higher tcdel
 nyrtc = tcdel/12
 tcmax = (tmax-tmin)/tcdel ; # number of time chunks
 print ' ==> tcdel, tcmax:', tcdel, tcmax
@@ -351,10 +351,8 @@ for tc in range(tcmax):
     time  = temp.getTime()
     # Kelvin or celsius ?
     tempmin = min(temp.data[0,:,N_j/2,N_i/2])
-    print ' tempmin = ',tempmin
     if tempmin > valmask/10.:
         tempmin = min(temp.data[0,:,N_j/4,N_i/2])
-        print ' tempmin = ',tempmin
     if tempmin > 273.:
         temp = temp -273.15
         print ' Change unit to celsius'
@@ -517,7 +515,6 @@ for tc in range(tcmax):
     #
     # Output files as netCDF
     # Def variables 
-    # QQ??: only do for tc==0 ? depth_bin update enought for tc >= 1 ?
     depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
     thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
     x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
@@ -630,10 +627,6 @@ for tc in range(tcmax):
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
-                #depthBini[t,ks,:,:] = dy [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                #thickBini[t,ks,:,:] = ty [t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                #x1Bini   [t,ks,:,:] = x1y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
-                #x2Bini   [t,ks,:,:] = x2y[t,ks,:,:].regrid(outgrid, regridTool='ESMF', regridMethod='linear')
                 depthBini[t,ks,:,:] = regridObj(dy [t,ks,:,:])
                 thickBini[t,ks,:,:] = regridObj(ty [t,ks,:,:])
                 x1Bini   [t,ks,:,:] = regridObj(x1y[t,ks,:,:])
@@ -868,6 +861,7 @@ for tc in range(tcmax):
         print '   CPU of interpolation       =', tozi-tozp
         print '   CPU of zonal mean          =', toziz-tozi
     print '   CPU of chunk               =', toziz-tuc
+    print
 #
 # end loop on tc <===
 print
