@@ -332,8 +332,11 @@ x1Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 x2Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 #
 # Persistence arrays
-persist   = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
-persisti  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+persist    = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
+persisti   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+persistia  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+persistip  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+persistii  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 #
 # loop on time chunks
 for tc in range(tcmax):
