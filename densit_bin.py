@@ -564,8 +564,8 @@ for tc in range(tcmax):
         for t in range(nyrtc):
             # inits
             idxvm = npy.ma.ones([12, N_s+1, N_j, N_i], dtype='float32')*valmask 
-            inim = (nyrtc-1)*12
-            finm = (nyrtc-1)*12 + 11
+            inim = t*12
+            finm = t*12 + 11
             idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
             persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
             # mask where value is zero
