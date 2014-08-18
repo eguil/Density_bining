@@ -708,7 +708,6 @@ for tc in range(tcmax):
                 persistip[t,ks,:,:].mask = maskPac
                 persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
                 persistii[t,ks,:,:].mask = maskInd
-                persistv [t,ks,:,:] = persisti [t,ks,:,:] * thickBini[t,ks,:,:]
             persisti._FillValue = valmask
             persisti = mv.masked_where(persisti > valmask/10, persisti)
             persistia._FillValue = valmask
@@ -723,6 +722,10 @@ for tc in range(tcmax):
             persistiza = cdu.averager(persistia, axis = 3)
             persistizp = cdu.averager(persistip, axis = 3)
             persistizi = cdu.averager(persistii, axis = 3)
+            # Persistence * thickness
+            persistv [t,:,:,:] = persisti [t,:,:,:] * thickBini[t,:,:,:]
+        #
+        # end of loop on t <==
         #
         # Compute % of persistent ocean on the vertical
         persistm = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))*100.
