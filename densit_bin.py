@@ -338,8 +338,8 @@ persisti   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 persistia  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 persistip  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 persistii  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-persistv   = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
-persistm   = npy.ma.ones([nyrtc, N_j, N_i], dtype='float32')*valmask
+persistv   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
+persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
 #
 # loop on time chunks
 for tc in range(tcmax):
