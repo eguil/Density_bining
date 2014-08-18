@@ -338,6 +338,8 @@ persisti   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 persistia  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 persistip  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 persistii  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+persistv   = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
+persistm   = npy.ma.ones([nyrtc, N_j, N_i], dtype='float32')*valmask
 #
 # loop on time chunks
 for tc in range(tcmax):
@@ -555,75 +557,8 @@ for tc in range(tcmax):
         #x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         toz = timc.clock()
-        #if debugp:
-        #
-        # Compute annual persistence of isopycnal bins (from their thickness)
-        #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
-        for t in range(nyrtc):
-            # inits
-            idxvm = npy.ma.ones([12, N_s+1, N_j, N_i], dtype='float32')*valmask 
-            inim = t*12
-            finm = t*12 + 11
-            idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
-            persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
-            # mask where value is zero
-            persist._FillValue = valmask
-            persist = mv.masked_where(persist <= 1.e-6, persist)
-            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
-            # regrid
-            for ks in range(N_s+1):
-                persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
-                persisti [t,ks,:,:].mask = maski
-                persistia[t,ks,:,:] = persisti[t,ks,:,:]*1.
-                persistia[t,ks,:,:].mask = maskAtl
-                persistip[t,ks,:,:] = persisti[t,ks,:,:]*1.
-                persistip[t,ks,:,:].mask = maskPac
-                persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
-                persistii[t,ks,:,:].mask = maskInd
-            persisti._FillValue = valmask
-            persisti = mv.masked_where(persisti > valmask/10, persisti)
-            persistia._FillValue = valmask
-            persistia = mv.masked_where(persistia > valmask/10, persistia)
-            persistip._FillValue = valmask
-            persistip = mv.masked_where(persistip > valmask/10, persistip)
-            persistii._FillValue = valmask
-            persistii = mv.masked_where(persistii > valmask/10, persistii)
-            # Compute zonal mean
-            # Global
-            persistiz  = cdu.averager(persisti , axis=3)
-            persistiza = cdu.averager(persistia, axis=3)
-            persistizp = cdu.averager(persistip, axis=3)
-            persistizi = cdu.averager(persistii, axis=3)
-            # TO DO:
-            #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
-        #
-        # Write persistence variables
-        dbpz  = cdm.createVariable(persistiz , axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
-        dbpza = cdm.createVariable(persistiza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersa')
-        dbpzp = cdm.createVariable(persistizp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersp')
-        dbpzi = cdm.createVariable(persistizi, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersi')
-        if tc == 0:
-            # Global attributes
-            persbin.long_name = 'persistence of isopycnal bins'
-            persbin.units = '% of time'
-            dbpz.long_name = 'zonal persistence of isopycnal bins'
-            dbpz.units = '% of time'
-            dbpza.long_name = 'Atl. zonal persistence of isopycnal bins'
-            dbpza.units = '% of time'
-            dbpzp.long_name = 'Pac. zonal persistence of isopycnal bins'
-            dbpzp.units = '% of time'
-            dbpzi.long_name = 'Ind. zonal persistence of isopycnal bins'
-            dbpzi.units = '% of time'
-        # Write & append
-        #gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpza   , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpzp   , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpzi   , extend = 1, index = (trmin-tmin)/12)
-        #
-        tozp = timc.clock()
             
-        # Interpolate onto common grid (~90% of total CPU !!)
+        # Interpolate onto common grid
         for t in range(nyrtc):
             for ks in range(N_s+1):
                 # Global
@@ -722,27 +657,25 @@ for tc in range(tcmax):
         #
         # Compute zonal mean
         # Global
-        depthBinz = cdu.averager(depthBini, axis=3)
-        thickBinz = cdu.averager(thickBini, axis=3)
-        x1Binz    = cdu.averager(x1Bini,    axis=3)
-        x2Binz    = cdu.averager(x2Bini,    axis=3)
+        depthBinz = cdu.averager(depthBini, axis = 3)
+        thickBinz = cdu.averager(thickBini, axis = 3)
+        x1Binz    = cdu.averager(x1Bini,    axis = 3)
+        x2Binz    = cdu.averager(x2Bini,    axis = 3)
         # Atl
-        depthBinza = cdu.averager(depthBinia, axis=3)
-        thickBinza = cdu.averager(thickBinia, axis=3)
-        x1Binza    = cdu.averager(x1Binia,    axis=3)
-        x2Binza    = cdu.averager(x2Binia,    axis=3)
+        depthBinza = cdu.averager(depthBinia, axis = 3)
+        thickBinza = cdu.averager(thickBinia, axis = 3)
+        x1Binza    = cdu.averager(x1Binia,    axis = 3)
+        x2Binza    = cdu.averager(x2Binia,    axis = 3)
         # Pac
-        depthBinzp = cdu.averager(depthBinip, axis=3)
-        thickBinzp = cdu.averager(thickBinip, axis=3)
-        x1Binzp    = cdu.averager(x1Binip,    axis=3)
-        x2Binzp    = cdu.averager(x2Binip,    axis=3)
+        depthBinzp = cdu.averager(depthBinip, axis = 3)
+        thickBinzp = cdu.averager(thickBinip, axis = 3)
+        x1Binzp    = cdu.averager(x1Binip,    axis = 3)
+        x2Binzp    = cdu.averager(x2Binip,    axis = 3)
         # Ind
-        depthBinzi = cdu.averager(depthBinii, axis=3)
-        thickBinzi = cdu.averager(thickBinii, axis=3)
-        x1Binzi    = cdu.averager(x1Binii,    axis=3)
-        x2Binzi    = cdu.averager(x2Binii,    axis=3)
-
-        toziz = timc.clock()
+        depthBinzi = cdu.averager(depthBinii, axis = 3)
+        thickBinzi = cdu.averager(thickBinii, axis = 3)
+        x1Binzi    = cdu.averager(x1Binii,    axis = 3)
+        x2Binzi    = cdu.averager(x2Binii,    axis = 3)
         #
         # Compute volume of isopycnals
         volBinz  = thickBinz  * areazt
@@ -750,6 +683,83 @@ for tc in range(tcmax):
         volBinzp = thickBinzp * areaztp
         volBinzi = thickBinzi * areazti
         #
+        toziz = timc.clock()
+        #
+        # Compute annual persistence of isopycnal bins (from their thickness)
+        #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
+        for t in range(nyrtc):
+            # inits
+            idxvm = npy.ma.ones([12, N_s+1, N_j, N_i], dtype='float32')*valmask 
+            inim = t*12
+            finm = t*12 + 11
+            idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
+            persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
+            # mask where value is zero
+            persist._FillValue = valmask
+            persist = mv.masked_where(persist <= 1.e-6, persist)
+            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
+            # regrid
+            for ks in range(N_s+1):
+                persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
+                persisti [t,ks,:,:].mask = maski
+                persistia[t,ks,:,:] = persisti[t,ks,:,:]*1.
+                persistia[t,ks,:,:].mask = maskAtl
+                persistip[t,ks,:,:] = persisti[t,ks,:,:]*1.
+                persistip[t,ks,:,:].mask = maskPac
+                persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
+                persistii[t,ks,:,:].mask = maskInd
+                persistv [t,ks,:,:] = persisti [t,ks,:,:] * thickBini[t,ks,:,:]
+            persisti._FillValue = valmask
+            persisti = mv.masked_where(persisti > valmask/10, persisti)
+            persistia._FillValue = valmask
+            persistia = mv.masked_where(persistia > valmask/10, persistia)
+            persistip._FillValue = valmask
+            persistip = mv.masked_where(persistip > valmask/10, persistip)
+            persistii._FillValue = valmask
+            persistii = mv.masked_where(persistii > valmask/10, persistii)
+            #
+            # Compute zonal mean
+            persistiz  = cdu.averager(persisti , axis = 3)
+            persistiza = cdu.averager(persistia, axis = 3)
+            persistizp = cdu.averager(persistip, axis = 3)
+            persistizi = cdu.averager(persistii, axis = 3)
+        #
+        # Compute % of persistent ocean on the vertical
+        persistm = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))*100.
+        #
+        # TO DO:
+        #     - compute % of persistent ocean (% of point on the vertical) (2D)
+        #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
+        #
+        # Write persistence variables
+        dbpz   = cdm.createVariable(persistiz , axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
+        dbpza  = cdm.createVariable(persistiza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersa')
+        dbpzp  = cdm.createVariable(persistizp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersp')
+        dbpzi  = cdm.createVariable(persistizi, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersi')
+        persim = cdm.createVariable(persistm  , axes = [dy.getAxis(0), lati, loni],   id = 'persim')
+        if tc == 0:
+            # Global attributes
+            persbin.long_name = 'persistence of isopycnal bins'
+            persbin.units = '% of time'
+            dbpz.long_name = 'zonal persistence of isopycnal bins'
+            dbpz.units = '% of time'
+            dbpza.long_name = 'Atl. zonal persistence of isopycnal bins'
+            dbpza.units = '% of time'
+            dbpzp.long_name = 'Pac. zonal persistence of isopycnal bins'
+            dbpzp.units = '% of time'
+            dbpzi.long_name = 'Ind. zonal persistence of isopycnal bins'
+            dbpzi.units = '% of time'
+            persim.long_name = 'Fraction of persistence on isopycnal bins'
+            persim.units = '% of column'
+        # Write & append
+        #gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpza   , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpzp   , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpzi   , extend = 1, index = (trmin-tmin)/12)
+        gp.write(persim  , extend = 1, index = (trmin-tmin)/12)
+        #
+        tozp = timc.clock()
         #
         # Init zonal mean output variables
         # Global
@@ -854,13 +864,14 @@ for tc in range(tcmax):
         g.write(x1Bin,    extend = 1, index = trmin-tmin)
         g.write(x2Bin,    extend = 1, index = trmin-tmin)
     #
+    tozf = timc.clock()
     print '   CPU of density bining      =', ticz-tuc
     if tcdel >= 12:
         print '   CPU of annual mean compute =', toz-ticz
-        print '   CPU of persistence compute =', tozp-toz
-        print '   CPU of interpolation       =', tozi-tozp
+        print '   CPU of interpolation       =', tozi-toz
         print '   CPU of zonal mean          =', toziz-tozi
-    print '   CPU of chunk               =', toziz-tuc
+        print '   CPU of persistence compute =', tozp-toziz
+    print '   CPU of chunk               =', tozf-tuc
     print
 #
 # end loop on tc <===
