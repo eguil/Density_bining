@@ -724,22 +724,25 @@ for tc in range(tcmax):
             persistizi = cdu.averager(persistii, axis = 3)
             # Persistence * thickness
             persistv [t,:,:,:] = persisti [t,:,:,:] * thickBini[t,:,:,:]
+            persistv._FillValue = valmask
+            persistv = mv.masked_where(persistv > valmask/10, persistv)
         #
         # end of loop on t <==
         #
         # Compute % of persistent ocean on the vertical
-        persistm = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))*100.
+        persistm = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))
+        persistm._FillValue = valmask
+        persistm = mv.masked_where(persistm > valmask/10, persistm)
         #
         # TO DO:
-        #     - compute % of persistent ocean (% of point on the vertical) (2D)
         #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
         #
         # Write persistence variables
-        dbpz   = cdm.createVariable(persistiz , axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
-        dbpza  = cdm.createVariable(persistiza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersa')
-        dbpzp  = cdm.createVariable(persistizp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersp')
-        dbpzi  = cdm.createVariable(persistizi, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersi')
-        persim = cdm.createVariable(persistm  , axes = [dy.getAxis(0), lati, loni],   id = 'persim')
+        dbpz   = cdm.createVariable (persistiz , axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
+        dbpza  = cdm.createVariable (persistiza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersa')
+        dbpzp  = cdm.createVariable (persistizp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersp')
+        dbpzi  = cdm.createVariable (persistizi, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersi')
+        persim = cdm.createVariable (persistm  , axes = [dy.getAxis(0), lati, loni],   id = 'persim')
         if tc == 0:
             # Global attributes
             persbin.long_name = 'persistence of isopycnal bins'
