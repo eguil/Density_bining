@@ -103,17 +103,17 @@ mthout       = args.nomthoutput
 #
 # IPSL-CM5A-LR
 #
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
-modeln = 'IPSL-CM5A-LR'
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
+#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+#modeln = 'IPSL-CM5A-LR'
 #
 # GFDL-CM2p1
 #
-#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
-#file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
-#file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
-#modeln = 'GFDL-CM2p1'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
+file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
+file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
+modeln = 'GFDL-CM2p1'
 #
 # CCSM4
 #
@@ -376,8 +376,6 @@ for tc in range(tcmax):
     # Loop on time within chunk tc
     for t in range(trmax-trmin): 
         tac0 = timc.clock()
-        if (t/20*20 == t): 
-            print '      t = ',t
         # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
         x1_content = temp.data[t] 
         x2_content = so.data[t] 
@@ -726,6 +724,7 @@ for tc in range(tcmax):
             persistv [t,:,:,:] = persisti [t,:,:,:] * thickBini[t,:,:,:]
             persistv._FillValue = valmask
             persistv = mv.masked_where(persistv > valmask/10, persistv)
+            #p_ind = npy.argwhere(persisti[t,:,:,:] >= 100.)
         #
         # end of loop on t <==
         #
@@ -735,6 +734,8 @@ for tc in range(tcmax):
         persistm = mv.masked_where(persistm > valmask/10, persistm)
         persistm.mask = maski
         #
+        # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
+        
         # TO DO:
         #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
         #
