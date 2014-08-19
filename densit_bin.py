@@ -733,6 +733,7 @@ for tc in range(tcmax):
         persistm = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))
         persistm._FillValue = valmask
         persistm = mv.masked_where(persistm > valmask/10, persistm)
+        persistm.mask = maski
         #
         # TO DO:
         #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
