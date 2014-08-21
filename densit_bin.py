@@ -103,10 +103,10 @@ mthout       = args.nomthoutput
 #
 # IPSL-CM5A-LR
 #
-#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
-#modeln = 'IPSL-CM5A-LR'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
+file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+modeln = 'IPSL-CM5A-LR'
 #
 # GFDL-CM2p1
 #
@@ -124,10 +124,10 @@ mthout       = args.nomthoutput
 #
 # MPI-ESM-LR
 #
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
-file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
-file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
-modeln = 'MPI-ESM-LR'
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
+#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
+#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
+#modeln = 'MPI-ESM-LR'
 
 
 #file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
@@ -552,15 +552,21 @@ for tc in range(tcmax):
     if tcdel >= 12:
         # Annual mean
         # Note: large cost: 40 sec for 12 months
-        dy  = cdu.YEAR(depthBin)
-        ty  = cdu.YEAR(thickBin)
-        x1y = cdu.YEAR(x1Bin)
-        x2y = cdu.YEAR(x2Bin)
+        #dy  = cdu.YEAR(depthBin)
+        #ty  = cdu.YEAR(thickBin)
+        #x1y = cdu.YEAR(x1Bin)
+        #x2y = cdu.YEAR(x2Bin)
         # this is 5 times cheaper but no grid is passed and ZonalMeans fails
-        #dy  = cdu.averager(npy.reshape (depthBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
-        #ty  = cdu.averager(npy.reshape (thickBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
-        #x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
-        #xy2 = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        dy  = cdu.averager(npy.reshape (depthBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        ty  = cdu.averager(npy.reshape (thickBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+        x2y = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
+
+        dy   = cdm.createVariable (dy  , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isondy')
+        ty   = cdm.createVariable (ty  , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isonty')
+        x1y  = cdm.createVariable (x1y , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isonx1y')
+        x2y  = cdm.createVariable (x2y , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isonx2y')
+        
         toz = timc.clock()
             
         # Interpolate onto common grid
