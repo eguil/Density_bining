@@ -328,18 +328,16 @@ depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 thickBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Bini    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-# Atl
+# Basin
 # TODO: this is a lot of arrays - maybe there is a better way of doing this
 depthBinia = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBinia = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binia    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Binia    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-# Pac
 depthBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBinip = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x2Binip    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-# Ind
 depthBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 thickBinii = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 x1Binii    = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
@@ -356,6 +354,16 @@ persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
 ptopdepthi = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
 ptoptempi  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
 ptopsalti  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+# Basin
+ptopdepthia = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptoptempia  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopsaltia  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopdepthip = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptoptempip  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopsaltip  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopdepthii = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptoptempii  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopsaltii  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
 #
 # loop on time chunks
 for tc in range(tcmax):
