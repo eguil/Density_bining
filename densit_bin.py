@@ -551,8 +551,8 @@ for tc in range(tcmax):
     ticz = timc.clock()
     if tcdel >= 12:
         # Annual mean
-        # Note: large cost: 40 sec for 12 months
-        #dy  = cdu.YEAR(depthBin)
+        # Note: large cost: 40 sec for 12 months for 800k grid points
+        dy1  = cdu.YEAR(depthBin)
         #ty  = cdu.YEAR(thickBin)
         #x1y = cdu.YEAR(x1Bin)
         #x2y = cdu.YEAR(x2Bin)
@@ -562,10 +562,10 @@ for tc in range(tcmax):
         x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         x2y = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
 
-        dy   = cdm.createVariable (dy  , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isondy')
-        ty   = cdm.createVariable (ty  , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isonty')
-        x1y  = cdm.createVariable (x1y , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isonx1y')
-        x2y  = cdm.createVariable (x2y , axes = [dy.getAxis(0), s_axis, N_j, N_i], id = 'isonx2y')
+        dy   = cdm.createVariable (dy  , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isondy')
+        ty   = cdm.createVariable (ty  , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isonty')
+        x1y  = cdm.createVariable (x1y , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isonx1y')
+        x2y  = cdm.createVariable (x2y , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isonx2y')
         
         toz = timc.clock()
             
