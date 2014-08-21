@@ -103,10 +103,10 @@ mthout       = args.nomthoutput
 #
 # IPSL-CM5A-LR
 #
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
-modeln = 'IPSL-CM5A-LR'
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
+#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+#modeln = 'IPSL-CM5A-LR'
 #
 # GFDL-CM2p1
 #
@@ -124,10 +124,10 @@ modeln = 'IPSL-CM5A-LR'
 #
 # MPI-ESM-LR
 #
-#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
-#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
-#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
-#modeln = 'MPI-ESM-LR'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
+file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
+file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
+modeln = 'MPI-ESM-LR'
 
 
 #file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
@@ -225,7 +225,6 @@ ijtest = jtest*N_i+itest
 # Define time read interval (as function of 3D array size)
 grdsize = N_i * N_j * N_z
 # define number of months in each chunk
-print 'Grid size:', grdsize
 if grdsize <= 1.e6:
     tcdel = min(120, tmax)
 elif grdsize <= 1.e7:
@@ -233,7 +232,7 @@ elif grdsize <= 1.e7:
 #tcdel = min(24, tmax) # faster than higher tcdel ?
 nyrtc = tcdel/12
 tcmax = (tmax-tmin)/tcdel ; # number of time chunks
-print ' ==> model:', modeln
+print ' ==> model:', modeln,' grid size:', grdsize
 print ' ==> tcdel, tcmax:', tcdel, tcmax
 #
 # inits
