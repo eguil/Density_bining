@@ -113,6 +113,16 @@ def where_between(elements, reference_low, reference_high):
     return npy.asarray(index_list).astype(int)
     raise ValueError("No index found where_between")
 
+def interp_mask(ifield, ofield, regrido, maski):
+    ofield = regrido(ifield)
+    ofield.mask = maski
+    return ofield
+
+def mask_val(field, valmask):
+    field._FillValue = valmask
+    field = mv.masked_where(field > valmask/10, field)
+    return field
+
 def compute_area(lon, lat):
     # compute area of grid cells on earth
     # use mid points and formula:

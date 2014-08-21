@@ -160,7 +160,6 @@ if debugp:
     #tmin = 0
     #tmax = 1
 #
-print '  time interval: ', tmin, tmax - 1
 #
 # Define temperature and salinity arrays
 temp = ft('thetao', time = slice(0,1))
@@ -232,8 +231,10 @@ elif grdsize <= 1.e7:
 #tcdel = min(24, tmax) # faster than higher tcdel ?
 nyrtc = tcdel/12
 tcmax = (tmax-tmin)/tcdel ; # number of time chunks
-print ' ==> model:', modeln,' grid size:', grdsize
-print ' ==> tcdel, tcmax:', tcdel, tcmax
+print
+print ' ==> model:', modeln,' (grid size:', grdsize,')'
+print ' ==> time interval: ', tmin, tmax - 1
+print ' ==> tcdel, tcmax :', tcdel, tcmax
 #
 # inits
 # z profiles:
@@ -254,18 +255,23 @@ s_axis.units = ''
 s_axis.designateLevel()
 #
 # Monthly mean of T,S, thickness and depth on neutral density bins on source grid
-file_out = outdir+'/'+modeln+'_out_density.nc'
+file_out = outdir+'/'+modeln+'_out_1m_density.nc'
 if os.path.exists(file_out):
     os.remove(file_out)
 if mthout == 0:
     g = cdm.open(file_out,'w+')
 # Annual zonal mean of T,S, thick, depth and volume per basin on WOA grid
-filez_out = outdir+'/'+modeln+'_outz_density.nc'
+filez_out = outdir+'/'+modeln+'_outz_1y_density.nc'
 if os.path.exists(filez_out):
     os.remove(filez_out)
 gz = cdm.open(filez_out,'w+')
-# Annual mean zonal mean of persistence on WOA grid + volume of persistent domain
-filep_out = outdir+'/'+modeln+'_out_persist.nc'
+# Annual mean persistence variables on WOA grid 
+fileq_out = outdir+'/'+modeln+'_out_1y_persist.nc'
+if os.path.exists(fileq_out):
+    os.remove(fileq_out)
+gq = cdm.open(fileq_out,'w+')
+# Annual mean zonal mean of persistence on WOA grid 
+filep_out = outdir+'/'+modeln+'_outz_1y_persist.nc'
 if os.path.exists(filep_out):
     os.remove(filep_out)
 gp = cdm.open(filep_out,'w+')
@@ -347,6 +353,9 @@ persistip  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 persistii  = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
 persistv   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
 persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopdepthi = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptoptempi  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
+ptopsalti  = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
 #
 # loop on time chunks
 for tc in range(tcmax):
@@ -496,14 +505,10 @@ for tc in range(tcmax):
     thick_bino.mask = maskb
     x1_bino.mask = maskb
     x2_bino.mask = maskb
-    depth_bino._FillValue = valmask
-    depth_bino = mv.masked_where(depth_bino > valmask/10, depth_bino)
-    thick_bino._FillValue = valmask
-    thick_bino = mv.masked_where(thick_bino > valmask/10, thick_bino)
-    x1_bino._FillValue = valmask
-    x1_bino = mv.masked_where(x1_bino > valmask/10, x1_bino)
-    x2_bino._FillValue = valmask
-    x2_bino = mv.masked_where(x2_bino > valmask/10, x2_bino)
+    depth_bino = mask_val(depth_bino, valmask)
+    thick_bino = mask_val(thick_bino, valmask)
+    x1_bino    = mask_val(x1_bino   , valmask)
+    x2_bino    = mask_val(x2_bino   , valmask)
     #
     tucf = timc.clock()
     #
@@ -545,6 +550,8 @@ for tc in range(tcmax):
                 setattr(g,dm[0],dm[1])
                 setattr(g,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
                 setattr(gz,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
+                setattr(gq,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
+                setattr(gp,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
     #
     # Compute annual mean, persistence, make zonal mean and write
     # 
@@ -611,57 +618,41 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
-        depthBini[npy.isnan(depthBini.data)] = valmask
-        depthBini._FillValue = valmask
-        depthBini = mv.masked_where(depthBini > valmask/10, depthBini)
-        thickBini[npy.isnan(thickBini.data)] = valmask
-        thickBini._FillValue = valmask
-        thickBini = mv.masked_where(thickBini > valmask/10, thickBini)
-        x1Bini[npy.isnan(x1Bini.data)] = valmask
-        x1Bini._FillValue = valmask
-        x1Bini = mv.masked_where(depthBini > valmask/10, x1Bini)
-        x2Bini[npy.isnan(x2Bini.data)] = valmask
-        x2Bini._FillValue = valmask
-        x2Bini = mv.masked_where(depthBini > valmask/10, x2Bini)
+        depthBini [npy.isnan(depthBini.data)] = valmask
+        depthBini = mask_val(depthBini, valmask)
+        thickBini [npy.isnan(thickBini.data)] = valmask
+        thickBini = mask_val(thickBini, valmask)
+        x1Bini    [npy.isnan(x1Bini.data)] = valmask
+        x1Bini    = mask_val(x1Bini, valmask)
+        x2Bini    [npy.isnan(x2Bini.data)] = valmask
+        x2Bini    = mask_val(x2Bini, valmask)
         # Atl
-        depthBinia[npy.isnan(depthBinia.data)] = valmask
-        depthBinia._FillValue = valmask
-        depthBinia = mv.masked_where(depthBinia > valmask/10, depthBinia)
-        thickBinia[npy.isnan(thickBinia.data)] = valmask
-        thickBinia._FillValue = valmask
-        thickBinia = mv.masked_where(thickBinia > valmask/10, thickBinia)
-        x1Binia[npy.isnan(x1Binia.data)] = valmask
-        x1Binia._FillValue = valmask
-        x1Binia = mv.masked_where(depthBinia > valmask/10, x1Binia)
-        x2Binia[npy.isnan(x2Binia.data)] = valmask
-        x2Binia._FillValue = valmask
-        x2Binia = mv.masked_where(depthBinia > valmask/10, x2Binia)
+        depthBinia [npy.isnan(depthBinia.data)] = valmask
+        depthBinia = mask_val(depthBinia, valmask)
+        thickBinia [npy.isnan(thickBinia.data)] = valmask
+        thickBinia = mask_val(thickBinia, valmask)
+        x1Binia    [npy.isnan(x1Binia.data)] = valmask
+        x1Binia    = mask_val(x1Binia, valmask)
+        x2Binia    [npy.isnan(x2Binia.data)] = valmask
+        x2Binia    = mask_val(x2Binia, valmask)
         # Pac
-        depthBinip[npy.isnan(depthBinip.data)] = valmask
-        depthBinip._FillValue = valmask
-        depthBinip = mv.masked_where(depthBinip > valmask/10, depthBinip)
-        thickBinip[npy.isnan(thickBinip.data)] = valmask
-        thickBinip._FillValue = valmask
-        thickBinip = mv.masked_where(thickBinip > valmask/10, thickBinip)
-        x1Binip[npy.isnan(x1Binip.data)] = valmask
-        x1Binip._FillValue = valmask
-        x1Binip = mv.masked_where(depthBinip > valmask/10, x1Binip)
-        x2Binip[npy.isnan(x2Binip.data)] = valmask
-        x2Binip._FillValue = valmask
-        x2Binip = mv.masked_where(depthBinip > valmask/10, x2Binip)
+        depthBinip [npy.isnan(depthBinip.data)] = valmask
+        depthBinip = mask_val(depthBinip, valmask)
+        thickBinip [npy.isnan(thickBinip.data)] = valmask
+        thickBinip = mask_val(thickBinip, valmask)
+        x1Binip    [npy.isnan(x1Binip.data)] = valmask
+        x1Binip    = mask_val(x1Binip, valmask)
+        x2Binip    [npy.isnan(x2Binip.data)] = valmask
+        x2Binip    = mask_val(x2Binip, valmask)
         # Ind
-        depthBinii[npy.isnan(depthBinii.data)] = valmask
-        depthBinii._FillValue = valmask
-        depthBinii = mv.masked_where(depthBinii > valmask/10, depthBinii)
-        thickBinii[npy.isnan(thickBinii.data)] = valmask
-        thickBinii._FillValue = valmask
-        thickBinii = mv.masked_where(thickBinii > valmask/10, thickBinii)
-        x1Binii[npy.isnan(x1Binii.data)] = valmask
-        x1Binii._FillValue = valmask
-        x1Binii = mv.masked_where(depthBinii > valmask/10, x1Binii)
-        x2Binii[npy.isnan(x2Binii.data)] = valmask
-        x2Binii._FillValue = valmask
-        x2Binii = mv.masked_where(depthBinii > valmask/10, x2Binii)
+        depthBinii [npy.isnan(depthBinii.data)] = valmask
+        depthBinii = mask_val(depthBinii, valmask)
+        thickBinii [npy.isnan(thickBinii.data)] = valmask
+        thickBinii = mask_val(thickBinii, valmask)
+        x1Binii    [npy.isnan(x1Binii.data)] = valmask
+        x1Binii    = mask_val(x1Binii, valmask)
+        x2Binii    [npy.isnan(x2Binii.data)] = valmask
+        x2Binii    = mask_val(x2Binii, valmask)
 
         tozi = timc.clock()
         # 
@@ -705,11 +696,16 @@ for tc in range(tcmax):
             finm = t*12 + 11
             idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
             persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
+            # Shallowest persistent ocean index (2D)
+            p_top = idxvm.argmin(axis=1)-1 # TODO check index value !!!
+            ptopdepth = depthBin[t,p_top[0], p_top[1], p_top[2]]
+            ptoptemp  = x1Bin[t,p_top[0], p_top[1], p_top[2]]
+            ptopsalt  = x2Bin[t,p_top[0], p_top[1], p_top[2]]
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
             persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonpers')           
-            # regrid
+            # regrid (TODO: can we remove the loop ?)
             for ks in range(N_s+1):
                 persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
                 persisti [t,ks,:,:].mask = maski
@@ -719,25 +715,71 @@ for tc in range(tcmax):
                 persistip[t,ks,:,:].mask = maskPac
                 persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
                 persistii[t,ks,:,:].mask = maskInd
-            persisti._FillValue = valmask
-            persisti = mv.masked_where(persisti > valmask/10, persisti)
-            persistia._FillValue = valmask
-            persistia = mv.masked_where(persistia > valmask/10, persistia)
-            persistip._FillValue = valmask
-            persistip = mv.masked_where(persistip > valmask/10, persistip)
-            persistii._FillValue = valmask
-            persistii = mv.masked_where(persistii > valmask/10, persistii)
-            #
-            # Compute zonal mean
+                #
+            persisti  = mask_val(persisti , valmask)
+            persistia = mask_val(persistia, valmask)
+            persistip = mask_val(persistip, valmask)
+            persistii = mask_val(persistii, valmask)
+            # Persistence * thickness
+            persistv [t,:,:,:] = persisti [t,:,:,:] * thickBini[t,:,:,:]
+            persistv  = mask_val(persistv , valmask)
+            # Depth, temperature and salinity at shallowest persistent ocean (2D) 
+            ptopdepthi [t,:,:] = regridObj(ptopdepth)
+            ptoptempi  [t,:,:] = regridObj(ptoptemp)
+            ptopsalti  [t,:,:] = regridObj(ptopsalt)
+            ptopdepthi [t,:,:].mask = maski
+            ptoptempi  [t,:,:].mask = maski
+            ptopsalti  [t,:,:].mask = maski
+
+            ptopdepthia[t,:,:] = ptopdepthi[t,:,:]*1.
+            ptopdepthip[t,:,:] = ptopdepthi[t,:,:]*1.
+            ptopdepthii[t,:,:] = ptopdepthi[t,:,:]*1.
+            ptopdepthia[t,:,:].mask = maskAtl
+            ptopdepthip[t,:,:].mask = maskPac
+            ptopdepthii[t,:,:].mask = maskInd
+            ptoptempia[t,:,:] = ptoptempi[t,:,:]*1.
+            ptoptempip[t,:,:] = ptoptempi[t,:,:]*1.
+            ptoptempii[t,:,:] = ptoptempi[t,:,:]*1.
+            ptoptempia[t,:,:].mask = maskAtl
+            ptoptempip[t,:,:].mask = maskPac
+            ptoptempii[t,:,:].mask = maskInd
+            ptopsaltia[t,:,:] = ptopsalti[t,:,:]*1.
+            ptopsaltip[t,:,:] = ptopsalti[t,:,:]*1.
+            ptopsaltii[t,:,:] = ptopsalti[t,:,:]*1.
+            ptopsaltia[t,:,:].mask = maskAtl
+            ptopsaltip[t,:,:].mask = maskPac
+            ptopsaltii[t,:,:].mask = maskInd
+
+            ptopdepthi  = mask_val(ptopdepthi , valmask)
+            ptopdepthia = mask_val(ptopdepthia, valmask)
+            ptopdepthip = mask_val(ptopdepthip, valmask)
+            ptopdepthii = mask_val(ptopdepthii, valmask)
+            ptoptempi   = mask_val(ptoptempi  , valmask)
+            ptoptempia  = mask_val(ptoptempia , valmask)
+            ptoptempip  = mask_val(ptoptempip , valmask)
+            ptoptempii  = mask_val(ptoptempii , valmask)
+            ptopsalti   = mask_val(ptopsalti  , valmask)
+            ptopsaltia  = mask_val(ptopsaltia , valmask)
+            ptopsaltip  = mask_val(ptopsaltip , valmask)
+            ptopsaltii  = mask_val(ptopsaltii , valmask)
+            # Volume/temp/salinity of persistent ocean (global, per basin) (1D)
+            #p_ind = npy.argwhere(persisti[t,:,:,:] >= 100.)
+            # Compute zonal mean (2D)
             persistiz  = cdu.averager(persisti , axis = 3)
             persistiza = cdu.averager(persistia, axis = 3)
             persistizp = cdu.averager(persistip, axis = 3)
             persistizi = cdu.averager(persistii, axis = 3)
-            # Persistence * thickness
-            persistv [t,:,:,:] = persisti [t,:,:,:] * thickBini[t,:,:,:]
-            persistv._FillValue = valmask
-            persistv = mv.masked_where(persistv > valmask/10, persistv)
-            #p_ind = npy.argwhere(persisti[t,:,:,:] >= 100.)
+            # Compute zonal mean (1D)
+            ptopdiz  = cdu.averager(ptopdepthi , axis = 3)
+            ptopdiza = cdu.averager(ptopdepthia, axis = 3)
+            ptopdizp = cdu.averager(ptopdepthip, axis = 3)
+            ptopdizi = cdu.averager(ptopdepthii, axis = 3)
+            ptoptiza = cdu.averager(ptoptempia, axis = 3)
+            ptoptizp = cdu.averager(ptoptempip, axis = 3)
+            ptoptizi = cdu.averager(ptoptempii, axis = 3)
+            ptopsiza = cdu.averager(ptopsaltia, axis = 3)
+            ptopsizp = cdu.averager(ptopsaltip, axis = 3)
+            ptopsizi = cdu.averager(ptopsaltii, axis = 3)
         #
         # end of loop on t <==
         #
@@ -746,18 +788,35 @@ for tc in range(tcmax):
         persistm._FillValue = valmask
         persistm = mv.masked_where(persistm > valmask/10, persistm)
         persistm.mask = maski
-        #
-        # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
         
         # TO DO:
-        #     - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
+        #  - compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
         #
         # Write persistence variables
         dbpz   = cdm.createVariable (persistiz , axes = [dy.getAxis(0), s_axis, lati], id = 'isonpers')
         dbpza  = cdm.createVariable (persistiza, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersa')
         dbpzp  = cdm.createVariable (persistizp, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersp')
         dbpzi  = cdm.createVariable (persistizi, axes = [dy.getAxis(0), s_axis, lati], id = 'isonpersi')
+
+        dbpdz  = cdm.createVariable (ptopdiz   , axes = [dy.getAxis(0), lati], id = 'ptopdepth')
+        dbpdza = cdm.createVariable (ptopdiza  , axes = [dy.getAxis(0), lati], id = 'ptopdeptha')
+        dbpdzp = cdm.createVariable (ptopdizp  , axes = [dy.getAxis(0), lati], id = 'ptopdepthp')
+        dbpdzi = cdm.createVariable (ptopdizi  , axes = [dy.getAxis(0), lati], id = 'ptopdepthi')
+
+        dbptz  = cdm.createVariable (ptoptiz   , axes = [dy.getAxis(0), lati], id = 'ptoptemp')
+        dbptza = cdm.createVariable (ptoptiza  , axes = [dy.getAxis(0), lati], id = 'ptoptempa')
+        dbptzp = cdm.createVariable (ptoptizp  , axes = [dy.getAxis(0), lati], id = 'ptoptempp')
+        dbptzi = cdm.createVariable (ptoptizi  , axes = [dy.getAxis(0), lati], id = 'ptoptempi')
+
+        dbpsz  = cdm.createVariable (ptopsiz   , axes = [dy.getAxis(0), lati], id = 'ptopsalt')
+        dbpsza = cdm.createVariable (ptopsiza  , axes = [dy.getAxis(0), lati], id = 'ptopsalta')
+        dbpszp = cdm.createVariable (ptopsizp  , axes = [dy.getAxis(0), lati], id = 'ptopsaltp')
+        dbpszi = cdm.createVariable (ptopsizi  , axes = [dy.getAxis(0), lati], id = 'ptopsalti')
+        #
         persim = cdm.createVariable (persistm  , axes = [dy.getAxis(0), lati, loni],   id = 'persim')
+        ptopd  = cdm.createVariable (ptopdepthi, axes = [dy.getAxis(0), lati, loni],   id = 'ptopdepth')
+        ptopt  = cdm.createVariable (ptoptempi , axes = [dy.getAxis(0), lati, loni],   id = 'ptoptemp')
+        ptops  = cdm.createVariable (ptopsalti , axes = [dy.getAxis(0), lati, loni],   id = 'ptopsalt')
         if tc == 0:
             # Global attributes
             persbin.long_name = 'persistence of isopycnal bins'
@@ -770,15 +829,64 @@ for tc in range(tcmax):
             dbpzp.units = '% of time'
             dbpzi.long_name = 'Ind. zonal persistence of isopycnal bins'
             dbpzi.units = '% of time'
+            #
             persim.long_name = 'Fraction of persistence on isopycnal bins'
             persim.units = '% of column'
+            ptopd.long_name = 'Depth of shallowest persistent ocean on ison'
+            ptopd.units = 'm'
+            ptopt.long_name = 'Temp. of shallowest persistent ocean on ison'
+            ptopt.units = 'C'   
+            ptops.long_name = 'Salinity of shallowest persistent ocean on ison'
+            ptops.units = so.units
+            #
+            dbpdz.long_name = 'Zonal depth of shallowest persistent ocean on ison'
+            dbpdz.units = 'm'
+            dbptz.long_name = 'Zonal Temp. of shallowest persistent ocean on ison'
+            dbptz.units = 'C'   
+            dbpsz.long_name = 'Zonal Salinity of shallowest persistent ocean on ison'
+            dbpsz.units = so.units  
+            dbpdza.long_name = 'Atl. zonal depth of shallowest persistent ocean on ison'
+            dbpdza.units = 'm'
+            dbptza.long_name = 'Atl. zonal Temp. of shallowest persistent ocean on ison'
+            dbptza.units = 'C'   
+            dbpsza.long_name = 'Atl. Zonal Salinity of shallowest persistent ocean on ison'
+            dbpsza.units = so.units  
+            dbpdzp.long_name = 'Pac. zonal depth of shallowest persistent ocean on ison'
+            dbpdzp.units = 'm'
+            dbptzp.long_name = 'Pac. zonal Temp. of shallowest persistent ocean on ison'
+            dbptzp.units = 'C'   
+            dbpszp.long_name = 'Pac. zonal Salinity of shallowest persistent ocean on ison'
+            dbpszp.units = so.units  
+            dbpdzi.long_name = 'Ind. zonal depth of shallowest persistent ocean on ison'
+            dbpdzi.units = 'm'
+            dbptzi.long_name = 'Ind. zonal Temp. of shallowest persistent ocean on ison'
+            dbptzi.units = 'C'   
+            dbpszi.long_name = 'Ind. zonal Salinity of shallowest persistent ocean on ison'
+            dbpszi.units = so.units  
+
         # Write & append
         #gp.write(persbin , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpz    , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpza   , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpzp   , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpzi   , extend = 1, index = (trmin-tmin)/12)
-        gp.write(persim  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpz   , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpza  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpzp  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpzi  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpdz  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbptz  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpsz  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpdza , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbptza , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpsza , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpdzp , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbptzp , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpszp , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpdzi , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
+        #
+        gq.write(persim , extend = 1, index = (trmin-tmin)/12)
+        gq.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
+        gq.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
+        gq.write(ptops  , extend = 1, index = (trmin-tmin)/12)
         #
         tozp = timc.clock()
         #
