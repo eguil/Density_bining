@@ -252,7 +252,7 @@ s_axis = cdm.createAxis(s_sd, id = 'rhon')
 s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
-grd = temp.getGrid()
+#
 # Monthly mean of T,S, thickness and depth on neutral density bins on source grid
 file_out = outdir+'/'+modeln+'_out_density.nc'
 if os.path.exists(file_out):
@@ -522,10 +522,10 @@ for tc in range(tcmax):
     #
     # Output files as netCDF
     # Def variables 
-    depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, grd], id = 'isondepth')
-    thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, grd], id = 'isonthick')
-    x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, grd], id = 'thetao')
-    x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, grd], id = 'so')
+    depthBin = cdm.createVariable(depth_bino, axes = [time, s_axis, ingrid], id = 'isondepth')
+    thickBin = cdm.createVariable(thick_bino, axes = [time, s_axis, ingrid], id = 'isonthick')
+    x1Bin    = cdm.createVariable(x1_bino   , axes = [time, s_axis, ingrid], id = 'thetao')
+    x2Bin    = cdm.createVariable(x2_bino   , axes = [time, s_axis, ingrid], id = 'so')
     if mthout == 0:
         if tc == 0:
             depthBin.long_name = 'Depth of isopycnal'
@@ -552,7 +552,7 @@ for tc in range(tcmax):
     if tcdel >= 12:
         # Annual mean
         # Note: large cost: 40 sec for 12 months for 800k grid points
-        dy1  = cdu.YEAR(depthBin)
+        #dy  = cdu.YEAR(depthBin)
         #ty  = cdu.YEAR(thickBin)
         #x1y = cdu.YEAR(x1Bin)
         #x2y = cdu.YEAR(x2Bin)
@@ -562,10 +562,10 @@ for tc in range(tcmax):
         x1y = cdu.averager(npy.reshape (x1Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
         x2y = cdu.averager(npy.reshape (x2Bin,    (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
 
-        dy   = cdm.createVariable (dy  , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isondy')
-        ty   = cdm.createVariable (ty  , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isonty')
-        x1y  = cdm.createVariable (x1y , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isonx1y')
-        x2y  = cdm.createVariable (x2y , axes = [dy1.getAxis(0), s_axis, N_j, N_i], id = 'isonx2y')
+        dy   = cdm.createVariable (dy  , axes = [dy.getAxis(0), s_axis, ingrid], id = 'isondy')
+        ty   = cdm.createVariable (ty  , axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonty')
+        x1y  = cdm.createVariable (x1y , axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonx1y')
+        x2y  = cdm.createVariable (x2y , axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonx2y')
         
         toz = timc.clock()
             
@@ -708,7 +708,7 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
-            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, grd], id = 'isonpers')           
+            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonpers')           
             # regrid
             for ks in range(N_s+1):
                 persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
