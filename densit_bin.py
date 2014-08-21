@@ -110,10 +110,10 @@ mthout       = args.nomthoutput
 #
 # GFDL-CM2p1
 #
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
-file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
-file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
-modeln = 'GFDL-CM2p1'
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.GFDL-CM2p1.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20110601.latestX.xml'
+#file_T  = '/work/cmip5/historical/ocn/mo/thetao/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20110601.latestX.xml'
+#file_S  = '/work/cmip5/historical/ocn/mo/so/cmip5.GFDL-CM2p1.historical.r1i1p1.mo.ocn.Omon.so.ver-v20110601.latestX.xml'
+#modeln = 'GFDL-CM2p1'
 #
 # CCSM4
 #
@@ -121,11 +121,18 @@ modeln = 'GFDL-CM2p1'
 #file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.CCSM4.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20121128.latestX.xml'
 #file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.CCSM4.historical.r1i1p1.mo.ocn.Omon.so.ver-v20121128.latestX.xml'
 #modeln = 'CCSM4'
+#
+# MPI-ESM-LR
+#
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
+file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
+file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
+modeln = 'MPI-ESM-LR'
+
 
 #file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
 #file_T = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/IPSL-CM5A-LR_piControl_r1i1p1_180001-180012_Omon_thetao.nc'
 #file_S = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/IPSL-CM5A-LR_piControl_r1i1p1_180001-180012_Omon_so.nc'
-#
 if debug >= '1':
     print ' Debug - File names:'
     print '    ', file_T
@@ -356,8 +363,8 @@ for tc in range(tcmax):
     if tempmin > valmask/10.:
         tempmin = min(temp.data[0,:,N_j/4,N_i/2])
     if tempmin > 273.:
-        temp = temp -273.15
-        print ' Change unit to celsius'
+        temp = temp - 273.15
+        print '     Change unit to celsius'
     #
     # Compute neutral density 
     rhon = sd.eos_neutral(temp,so)-1000.
@@ -544,7 +551,7 @@ for tc in range(tcmax):
     ticz = timc.clock()
     if tcdel >= 12:
         # Annual mean
-        # Note: large coat 20 sec for 12 months
+        # Note: large cost: 40 sec for 12 months
         dy  = cdu.YEAR(depthBin)
         ty  = cdu.YEAR(thickBin)
         x1y = cdu.YEAR(x1Bin)
