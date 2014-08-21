@@ -226,13 +226,14 @@ ijtest = jtest*N_i+itest
 grdsize = N_i * N_j * N_z
 # define number of months in each chunk
 print 'Grid size:', grdsize
-#if grdsize <= 1.e6:
-#    tcdel = min(120, tmax)
-#elif grdsize <= 1.e7:
-#    tcdel = min(24, tmax)
-tcdel = min(24, tmax) # faster than higher tcdel
+if grdsize <= 1.e6:
+    tcdel = min(120, tmax)
+elif grdsize <= 1.e7:
+    tcdel = min(24, tmax)
+#tcdel = min(24, tmax) # faster than higher tcdel ?
 nyrtc = tcdel/12
 tcmax = (tmax-tmin)/tcdel ; # number of time chunks
+print ' ==> model:', modeln
 print ' ==> tcdel, tcmax:', tcdel, tcmax
 #
 # inits
