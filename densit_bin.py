@@ -32,6 +32,7 @@ import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
 import support_density as sd
+from support_density import mask_val
 import time as timc
 import timeit
 import resource
