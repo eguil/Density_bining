@@ -720,6 +720,9 @@ for tc in range(tcmax):
             ptopdepth = npy.reshape(ptopdepth, (N_j, N_i))
             ptoptemp  = npy.reshape(ptopdepth, (N_j, N_i))
             ptopsalt  = npy.reshape(ptopdepth, (N_j, N_i))
+            ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'toto')           
+            ptoptemp  = cdm.createVariable(ptoptemp , axes = [ingrid], id = 'toto')           
+            ptopsalt  = cdm.createVariable(ptopsalt , axes = [ingrid], id = 'toto')           
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
