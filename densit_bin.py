@@ -104,10 +104,10 @@ mthout       = args.nomthoutput
 #
 # IPSL-CM5A-LR
 #
-#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
-#modeln = 'IPSL-CM5A-LR'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
+file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+modeln = 'IPSL-CM5A-LR'
 #
 # GFDL-CM2p1
 #
@@ -125,10 +125,10 @@ mthout       = args.nomthoutput
 #
 # MPI-ESM-LR
 #
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
-file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
-file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
-modeln = 'MPI-ESM-LR'
+#file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
+#file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-1.latestX.xml'
+#file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-1.latestX.xml'
+#modeln = 'MPI-ESM-LR'
 
 
 #file_fx = '/Users/ericg/Desktop/Data/CMIP5/piControl/test_3d_ocn/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
@@ -702,14 +702,24 @@ for tc in range(tcmax):
             # inits
             idxvm = npy.ma.ones([12, N_s+1, N_j, N_i], dtype='float32')*valmask 
             inim = t*12
-            finm = t*12 + 11
+            finm = t*12 + 12
             idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
             persist[t,:,:,:] = cdu.averager(idxvm, axis=0)*100.
             # Shallowest persistent ocean index (2D)
-            p_top = idxvm.argmin(axis=1)-1 # TODO check index value !!!
-            ptopdepth = depthBin[t,p_top[0], p_top[1], p_top[2]]
-            ptoptemp  = x1Bin[t,p_top[0], p_top[1], p_top[2]]
-            ptopsalt  = x2Bin[t,p_top[0], p_top[1], p_top[2]]
+            maskp = persist[t,:,:,:]*1. ; maskp[...] = 'NaN'
+            maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
+            maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
+            p_top = maskp.argmax(axis=0) 
+            ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
+            ptoptemp  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
+            ptopsalt  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
+            for i in range(N_j*N_i):
+                ptopdepth[i] = depth_bin [t,p_top[i],i]
+                ptoptemp [i] = x1_bin    [t,p_top[i],i]
+                ptopsalt [i] = x2_bin    [t,p_top[i],i]
+            ptopdepth = npy.reshape(ptopdepth, (N_j, N_i))
+            ptoptemp  = npy.reshape(ptopdepth, (N_j, N_i))
+            ptopsalt  = npy.reshape(ptopdepth, (N_j, N_i))
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
