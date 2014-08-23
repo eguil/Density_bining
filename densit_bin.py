@@ -710,7 +710,7 @@ for tc in range(tcmax):
             # mask where value is zero
             persist._FillValue = valmask
             persist = mv.masked_where(persist <= 1.e-6, persist)
-            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonpers')           
+            persbin = cdm.createVariable(persist, axes = [dy.getAxis(0), s_axis, ingrid], id = 'isonpers') 
             # regrid (TODO: can we remove the loop ?)
             for ks in range(N_s+1):
                 persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
@@ -776,6 +776,9 @@ for tc in range(tcmax):
             persistizp = cdu.averager(persistip, axis = 3)
             persistizi = cdu.averager(persistii, axis = 3)
             # Compute zonal mean (1D)
+            #ptopdepthi = cdm.createVariable (ptopdepthi, axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            #ptoptempi  = cdm.createVariable (ptoptempi , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            #ptopsalti  = cdm.createVariable (ptopsalti , axes = [dy.getAxis(0), lati, loni], id = 'toto')
             ptopdiz  = cdu.averager(ptopdepthi , axis = 2)
             ptopdiza = cdu.averager(ptopdepthia, axis = 2)
             ptopdizp = cdu.averager(ptopdepthip, axis = 2)
@@ -821,10 +824,10 @@ for tc in range(tcmax):
         dbpszp = cdm.createVariable (ptopsizp  , axes = [dy.getAxis(0), lati], id = 'ptopsaltp')
         dbpszi = cdm.createVariable (ptopsizi  , axes = [dy.getAxis(0), lati], id = 'ptopsalti')
         #
-        persim = cdm.createVariable (persistm  , axes = [dy.getAxis(0), lati, loni],   id = 'persim')
-        ptopd  = cdm.createVariable (ptopdepthi, axes = [dy.getAxis(0), lati, loni],   id = 'ptopdepth')
-        ptopt  = cdm.createVariable (ptoptempi , axes = [dy.getAxis(0), lati, loni],   id = 'ptoptemp')
-        ptops  = cdm.createVariable (ptopsalti , axes = [dy.getAxis(0), lati, loni],   id = 'ptopsalt')
+        persim = cdm.createVariable (persistm  , axes = [dy.getAxis(0), lati, loni], id = 'persim')
+        ptopd  = cdm.createVariable (ptopdepthi, axes = [dy.getAxis(0), lati, loni], id = 'ptopdepth')
+        ptopt  = cdm.createVariable (ptoptempi , axes = [dy.getAxis(0), lati, loni], id = 'ptoptemp')
+        ptops  = cdm.createVariable (ptopsalti , axes = [dy.getAxis(0), lati, loni], id = 'ptopsalt')
         if tc == 0:
             # Global attributes
             persbin.long_name = 'persistence of isopycnal bins'
