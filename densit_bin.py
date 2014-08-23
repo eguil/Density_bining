@@ -699,7 +699,6 @@ for tc in range(tcmax):
         # Compute annual persistence of isopycnal bins (from their thickness)
         #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
         for t in range(nyrtc):
-            # inits
             idxvm = npy.ma.ones([12, N_s+1, N_j, N_i], dtype='float32')*valmask 
             inim = t*12
             finm = t*12 + 12
@@ -710,16 +709,17 @@ for tc in range(tcmax):
             maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
             maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
             p_top = maskp.argmax(axis=0) 
+            # test i = 14640 IPSL (p_top = 22, depth_bin = 67.83...)
             ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptoptemp  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptopsalt  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
-            for i in range(N_j*N_i):
+            for i in range(N_j*N_i): ; # (TODO: can we remove the loop ?)
                 ptopdepth[i] = depth_bin [t,p_top[i],i]
                 ptoptemp [i] = x1_bin    [t,p_top[i],i]
                 ptopsalt [i] = x2_bin    [t,p_top[i],i]
             ptopdepth = npy.reshape(ptopdepth, (N_j, N_i))
-            ptoptemp  = npy.reshape(ptopdepth, (N_j, N_i))
-            ptopsalt  = npy.reshape(ptopdepth, (N_j, N_i))
+            ptoptemp  = npy.reshape(ptoptemp , (N_j, N_i))
+            ptopsalt  = npy.reshape(ptopsalt , (N_j, N_i))
             ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'toto')           
             ptoptemp  = cdm.createVariable(ptoptemp , axes = [ingrid], id = 'toto')           
             ptopsalt  = cdm.createVariable(ptopsalt , axes = [ingrid], id = 'toto')           
@@ -1044,8 +1044,10 @@ if mthout == 0:
     print ' Wrote file: ', file_out
 gz.close()
 gp.close()
+gq.close()
 if tcdel >= 12:
     print ' Wrote file: ', filez_out
     print ' Wrote file: ', filep_out
+    print ' Wrote file: ', fileq_out
 
 # -----------------------------------------------------------------------------
