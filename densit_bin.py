@@ -627,40 +627,24 @@ for tc in range(tcmax):
                 x1Binii   [t,ks,:,:].mask = maskInd
                 x2Binii   [t,ks,:,:].mask = maskInd
         # Global
-        depthBini [npy.isnan(depthBini.data)] = valmask
         depthBini = mask_val(depthBini, valmask)
-        thickBini [npy.isnan(thickBini.data)] = valmask
         thickBini = mask_val(thickBini, valmask)
-        x1Bini    [npy.isnan(x1Bini.data)] = valmask
         x1Bini    = mask_val(x1Bini, valmask)
-        x2Bini    [npy.isnan(x2Bini.data)] = valmask
         x2Bini    = mask_val(x2Bini, valmask)
         # Atl
-        depthBinia [npy.isnan(depthBinia.data)] = valmask
         depthBinia = mask_val(depthBinia, valmask)
-        thickBinia [npy.isnan(thickBinia.data)] = valmask
         thickBinia = mask_val(thickBinia, valmask)
-        x1Binia    [npy.isnan(x1Binia.data)] = valmask
         x1Binia    = mask_val(x1Binia, valmask)
-        x2Binia    [npy.isnan(x2Binia.data)] = valmask
         x2Binia    = mask_val(x2Binia, valmask)
         # Pac
-        depthBinip [npy.isnan(depthBinip.data)] = valmask
         depthBinip = mask_val(depthBinip, valmask)
-        thickBinip [npy.isnan(thickBinip.data)] = valmask
         thickBinip = mask_val(thickBinip, valmask)
-        x1Binip    [npy.isnan(x1Binip.data)] = valmask
         x1Binip    = mask_val(x1Binip, valmask)
-        x2Binip    [npy.isnan(x2Binip.data)] = valmask
         x2Binip    = mask_val(x2Binip, valmask)
         # Ind
-        depthBinii [npy.isnan(depthBinii.data)] = valmask
         depthBinii = mask_val(depthBinii, valmask)
-        thickBinii [npy.isnan(thickBinii.data)] = valmask
         thickBinii = mask_val(thickBinii, valmask)
-        x1Binii    [npy.isnan(x1Binii.data)] = valmask
         x1Binii    = mask_val(x1Binii, valmask)
-        x2Binii    [npy.isnan(x2Binii.data)] = valmask
         x2Binii    = mask_val(x2Binii, valmask)
 
         tozi = timc.clock()

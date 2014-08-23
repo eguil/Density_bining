@@ -119,6 +119,7 @@ def interp_mask(ifield, ofield, regrido, maski):
     return ofield
 
 def mask_val(field, valmask):
+    field [npy.isnan(field.data)] = valmask
     field._FillValue = valmask
     field = mv.masked_where(field > valmask/10, field)
     return field
