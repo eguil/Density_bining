@@ -31,16 +31,82 @@ import numpy as npy
 import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
-import support_density as sd
-from support_density import mask_val
+#import support_density as sd
+#from support_density import mask_val
 import time as timc
 import timeit
 import resource
 import ESMP
 from cdms2 import CdmsRegrid
-#import ZonalMeans
-#from regrid import Regridder
-#import matplotlib.pyplot as plt
+#
+# Clean mask of fields
+#
+def mask_val(field, valmask):
+    field [npy.isnan(field.data)] = valmask
+    field._FillValue = valmask
+    field = mv.masked_where(field > valmask/10, field)
+    return field
+# compute area of grid cells on earth
+def compute_area(lon, lat):
+    # use mid points and formula:
+    # area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
+    rade = 6371000.
+    radconv = npy.pi/180.
+    N_i = int(lon.shape[0])
+    N_j = int(lat.shape[0])
+    area = npy.ma.ones([N_j, N_i], dtype='float32')*0.
+    lonr = lon[:] * radconv
+    latr = lat[:] * radconv
+    #loop
+    for i in range(1,N_i-1):
+        lonm1 = (lonr[i-1] + lonr[i]  )*0.5
+        lonp1 = (lonr[i]   + lonr[i+1])*0.5
+        for j in range(1,N_j-1):
+            latm1 = (latr[j-1] + latr[j]  )*0.5
+            latp1 = (latr[j]   + latr[j+1])*0.5
+            area[j,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        # North and south bounds
+        latm1 = ((-90.*radconv) + latr[0] )*0.5
+        latp1 = (latr[0]        + latr[1] )*0.5
+        area[0,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        latm1 = (latr[N_j-2] + latr[N_j-1])*0.5
+        latp1 = (latr[N_j-1] + (90.*radconv)  )*0.5
+        area[N_j-1,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+    # East and west bounds
+    area[:,0]     = area[:,1]
+    area[:,N_i-1] = area[:,N_i-2] 
+
+    return area
+#
+# Computes rhon, neutral density  (in situ volumic mass)
+def eos_neutral(t, s):
+    # REFERENCE:
+    #	Compute the neutral volumic mass (Kg/m3) from known potential 
+    #   temperature and salinity fields using McDougall and Jackett 2005
+    #   equation of state.
+    #          potential temperature         t        deg celsius
+    #          salinity                      s        psu
+    #          neutral density               rho      kg/m**3
+    #
+    #         Check value: rho(35,20) = 1024.59416751197 kg/m**3 
+    #          t = 20 deg celcius, s=35 psu
+    #
+    #       McDougall and Jackett, J. Mar Res., 2005
+    #
+    # mask t and s fields
+    zt=t
+    zs=s
+    # neutral density
+    zsr= npy.ma.sqrt(zs)
+    zr1= ( ( -4.3159255086706703e-4*zt+8.1157118782170051e-2 )*zt+2.2280832068441331e-1 )*zt+1002.3063688892480
+    zr2= ( -1.7052298331414675e-7*zs-3.1710675488863952e-3*zt-1.0304537539692924e-4 )*zs
+    zr3= ( ( (-2.3850178558212048e-9*zt -1.6212552470310961e-7 )*zt+7.8717799560577725e-5 )*zt+4.3907692647825900e-5 )*zt+     1.0
+    zr4= ( ( -2.2744455733317707e-9*zt*zt+6.0399864718597388e-6)*zt-5.1268124398160734e-4 )*zs
+    zr5= ( -1.3409379420216683e-9*zt*zt-3.6138532339703262e-5)*zs*zsr
+    zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 )
+    return zrho 
+#
+# ===> start code <===
 #
 # Keep track of time (CPU and elapsed)
 ti0 = timc.clock()
@@ -311,7 +377,7 @@ lati = maskg.getLatitude()
 Nii = int(loni.shape[0])
 Nji = int(lati.shape[0])
 # Compute area of target grid and zonal sums
-areai = sd.compute_area(loni[:], lati[:])
+areai = compute_area(loni[:], lati[:])
 #areai   = gt('basinmask3_area').data*1.e6
 gt.close()
 #
@@ -385,7 +451,7 @@ for tc in range(tcmax):
         print '     Change unit to celsius'
     #
     # Compute neutral density 
-    rhon = sd.eos_neutral(temp,so)-1000.
+    rhon = eos_neutral(temp,so)-1000.
     #
     # reorganise i,j dims in single dimension data
     temp = npy.reshape(temp, (tcdel, N_z, N_i*N_j))
