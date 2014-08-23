@@ -697,7 +697,8 @@ for tc in range(tcmax):
             ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptoptemp  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptopsalt  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
-            for i in range(N_j*N_i): ; # (TODO: can we remove the loop ?)
+            # (TODO: can we remove the loop ?)
+            for i in range(N_j*N_i): 
                 ptopdepth[i] = depth_bin [t,p_top[i],i]
                 ptoptemp [i] = x1_bin    [t,p_top[i],i]
                 ptopsalt [i] = x2_bin    [t,p_top[i],i]
@@ -776,9 +777,18 @@ for tc in range(tcmax):
             persistizp = cdu.averager(persistip, axis = 3)
             persistizi = cdu.averager(persistii, axis = 3)
             # Compute zonal mean (1D)
-            #ptopdepthi = cdm.createVariable (ptopdepthi, axes = [dy.getAxis(0), lati, loni], id = 'toto')
-            #ptoptempi  = cdm.createVariable (ptoptempi , axes = [dy.getAxis(0), lati, loni], id = 'toto')
-            #ptopsalti  = cdm.createVariable (ptopsalti , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopdepthi = cdm.createVariable (ptopdepthi, axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptoptempi  = cdm.createVariable (ptoptempi , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopsalti  = cdm.createVariable (ptopsalti , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopdepthia = cdm.createVariable (ptopdepthia, axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptoptempia  = cdm.createVariable (ptoptempia , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopsaltia  = cdm.createVariable (ptopsaltia , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopdepthip = cdm.createVariable (ptopdepthip, axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptoptempip  = cdm.createVariable (ptoptempip , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopsaltip  = cdm.createVariable (ptopsaltip , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopdepthii = cdm.createVariable (ptopdepthii, axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptoptempii  = cdm.createVariable (ptoptempii , axes = [dy.getAxis(0), lati, loni], id = 'toto')
+            ptopsaltii  = cdm.createVariable (ptopsaltii , axes = [dy.getAxis(0), lati, loni], id = 'toto')
             ptopdiz  = cdu.averager(ptopdepthi , axis = 2)
             ptopdiza = cdu.averager(ptopdepthia, axis = 2)
             ptopdizp = cdu.averager(ptopdepthip, axis = 2)
