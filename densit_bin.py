@@ -265,17 +265,21 @@ N_z = int(depth.shape[0])
 #
 # Define sigma grid
 rho_min = 19
-rho_max = 31
-del_s = 0.2
-s_s = npy.arange(rho_min, rho_max, del_s)
+rho_int = 26
+rho_max = 29.1
+del_s1  = 0.2
+del_s2  = 0.1
+s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
+s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
+s_s = npy.concatenate([s_s1, s_s2])
 N_s = len(s_s)
-sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s]]) # make bounds for zonal mean computation
+sigma_bnds1 = mv.asarray([[s_s1[:]],[s_s1[:]+del_s1]]) # make bounds for zonal mean computation
+sigma_bnds2 = mv.asarray([[s_s2[:]],[s_s2[:]+del_s2]]) 
+sigma_bnds = npy.concatenate([sigma_bnds1, sigma_bnds2])
 s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose() # make 3D for matrix computation
 #
 # Define zonal grid
 delta_lat = 1.
-
-#w=sys.stdin.readline() # stop the code here. [Ret] to keep going
 #
 # start density bining (loop on t and horizontal grid)
 imin = 0
@@ -287,10 +291,6 @@ jmax = temp.shape[2]
 itest = 80 
 jtest = 60
 ijtest = jtest*N_i+itest
-#imin = itest
-#jmin = jtest
-#imax = itest+1
-#jmax = jtest+1
 #
 # Define time read interval (as function of 3D array size)
 grdsize = N_i * N_j * N_z
@@ -319,8 +319,7 @@ toc2 = timeit.default_timer()
 #
 # File output inits
 #
-s_sd = npy.arange(rho_min, rho_max+del_s, del_s, dtype = npy.float32)
-s_axis = cdm.createAxis(s_sd, id = 'rhon')
+s_axis = cdm.createAxis(s_s, id = 'rhon')
 s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
@@ -452,7 +451,7 @@ for tc in range(tcmax):
         tempmin = min(temp.data[0,:,N_j/4,N_i/2])
     if tempmin > 273.:
         temp = temp - 273.15
-        print '     Change unit to celsius for'
+        print '     [Change units to celsius]'
     #
     # Compute neutral density 
     rhon = eos_neutral(temp,so)-1000.
@@ -502,8 +501,8 @@ for tc in range(tcmax):
         i_min[i_min > i_max] = i_max[i_min > i_max]
         # Test on bottom - surface stratification
         delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
-        i_min[delta_rho < del_s] = 0
-        i_max[delta_rho < del_s] = i_bottom[delta_rho < del_s]
+        i_min[delta_rho < del_s1] = 0
+        i_max[delta_rho < del_s1] = i_bottom[delta_rho < del_s1]
         #
         # General case
         # find min/max of density for each z profile
@@ -627,10 +626,11 @@ for tc in range(tcmax):
             for i in range(0,len(file_dic)):
                 dm=file_dic[i]
                 setattr(g,dm[0],dm[1])
-                setattr(g,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
-                setattr(gz,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
-                setattr(gq,'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s))
-                setattr(gp,'Post_processing_history','Zonal mean annual Density bining via densit_bin.py using monthly means and delta_sigma = '+str(del_s))
+                post_txt = 'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
+                setattr(g , post_txt)
+                setattr(gz, post_txt)
+                setattr(gq, post_txt)
+                setattr(gp, post_txt)
     #
     # Compute annual mean, persistence, make zonal mean and write
     # 
