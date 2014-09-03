@@ -263,7 +263,7 @@ N_j = int(lon.shape[0])
 N_z = int(depth.shape[0])
 #N_t = int(time.shape[0])
 #
-# Define sigma grid
+# Define sigma grid with zoom on higher densities
 rho_min = 19
 rho_int = 26
 rho_max = 29.1
@@ -628,11 +628,11 @@ for tc in range(tcmax):
             for i in range(0,len(file_dic)):
                 dm=file_dic[i]
                 setattr(g,dm[0],dm[1])
-                post_txt = 'Post_processing_history','Density bining via densit_bin.py using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
-                setattr(g , post_txt)
-                setattr(gz, post_txt)
-                setattr(gq, post_txt)
-                setattr(gp, post_txt)
+                post_txt = 'Density bining via densit_bin.py using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
+                setattr(g , 'Post_processing_history', post_txt)
+                setattr(gz, 'Post_processing_history', post_txt)
+                setattr(gq, 'Post_processing_history', post_txt)
+                setattr(gp, 'Post_processing_history', post_txt)
     #
     # Compute annual mean, persistence, make zonal mean and write
     # 
