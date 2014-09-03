@@ -897,10 +897,10 @@ for tc in range(tcmax):
             ptopdiza = cdu.averager(ptopdepthia, axis = 2)
             ptopdizp = cdu.averager(ptopdepthip, axis = 2)
             ptopdizi = cdu.averager(ptopdepthii, axis = 2)
-            ptopsiz  = cdu.averager(ptopsigmai , axis = 2)
-            ptopsiza = cdu.averager(ptopsigmaia, axis = 2)
-            ptopsizp = cdu.averager(ptopsigmaip, axis = 2)
-            ptopsizi = cdu.averager(ptopsigmaii, axis = 2)
+            ptopriz  = cdu.averager(ptopsigmai , axis = 2)
+            ptopriza = cdu.averager(ptopsigmaia, axis = 2)
+            ptoprizp = cdu.averager(ptopsigmaip, axis = 2)
+            ptoprizi = cdu.averager(ptopsigmaii, axis = 2)
             ptoptiz  = cdu.averager(ptoptempi , axis = 2)
             ptoptiza = cdu.averager(ptoptempia, axis = 2)
             ptoptizp = cdu.averager(ptoptempip, axis = 2)
@@ -932,10 +932,10 @@ for tc in range(tcmax):
         dbpdzp = cdm.createVariable (ptopdizp  , axes = [timeyr, lati], id = 'ptopdepthp')
         dbpdzi = cdm.createVariable (ptopdizi  , axes = [timeyr, lati], id = 'ptopdepthi')
 
-        dbpsz  = cdm.createVariable (ptopsiz   , axes = [timeyr, lati], id = 'ptopsigma')
-        dbpsza = cdm.createVariable (ptopsiza  , axes = [timeyr, lati], id = 'ptopsigmaa')
-        dbpszp = cdm.createVariable (ptopsizp  , axes = [timeyr, lati], id = 'ptopsigmap')
-        dbpszi = cdm.createVariable (ptopsizi  , axes = [timeyr, lati], id = 'ptopsigmai')
+        dbprz  = cdm.createVariable (ptopriz   , axes = [timeyr, lati], id = 'ptopsigma')
+        dbprza = cdm.createVariable (ptopriza  , axes = [timeyr, lati], id = 'ptopsigmaa')
+        dbprzp = cdm.createVariable (ptoprizp  , axes = [timeyr, lati], id = 'ptopsigmap')
+        dbprzi = cdm.createVariable (ptoprizi  , axes = [timeyr, lati], id = 'ptopsigmai')
 
         dbptz  = cdm.createVariable (ptoptiz   , axes = [timeyr, lati], id = 'ptoptemp')
         dbptza = cdm.createVariable (ptoptiza  , axes = [timeyr, lati], id = 'ptoptempa')
@@ -975,32 +975,32 @@ for tc in range(tcmax):
             #
             dbpdz.long_name = 'Zonal depth of shallowest persistent ocean on ison'
             dbpdz.units = 'm'
-            dbpsz.long_name = 'Zonal rhon of shallowest persistent ocean on ison'
-            dbpsz.units = 'sigma_n'
+            dbprz.long_name = 'Zonal rhon of shallowest persistent ocean on ison'
+            dbprz.units = 'sigma_n'
             dbptz.long_name = 'Zonal Temp. of shallowest persistent ocean on ison'
             dbptz.units = 'C'   
             dbpsz.long_name = 'Zonal Salinity of shallowest persistent ocean on ison'
             dbpsz.units = so.units  
             dbpdza.long_name = 'Atl. zonal depth of shallowest persistent ocean on ison'
             dbpdza.units = 'm'
-            dbpsza.long_name = 'Atl. Zonal rhon of shallowest persistent ocean on ison'
-            dbpsza.units = 'sigma_n'
+            dbprza.long_name = 'Atl. Zonal rhon of shallowest persistent ocean on ison'
+            dbprza.units = 'sigma_n'
             dbptza.long_name = 'Atl. zonal Temp. of shallowest persistent ocean on ison'
             dbptza.units = 'C'   
             dbpsza.long_name = 'Atl. Zonal Salinity of shallowest persistent ocean on ison'
             dbpsza.units = so.units  
             dbpdzp.long_name = 'Pac. zonal depth of shallowest persistent ocean on ison'
             dbpdzp.units = 'm'
-            dbpszp.long_name = 'Pac. Zonal rhon of shallowest persistent ocean on ison'
-            dbpszp.units = 'sigma_n'
+            dbprzp.long_name = 'Pac. Zonal rhon of shallowest persistent ocean on ison'
+            dbprzp.units = 'sigma_n'
             dbptzp.long_name = 'Pac. zonal Temp. of shallowest persistent ocean on ison'
             dbptzp.units = 'C'   
             dbpszp.long_name = 'Pac. zonal Salinity of shallowest persistent ocean on ison'
             dbpszp.units = so.units  
             dbpdzi.long_name = 'Ind. zonal depth of shallowest persistent ocean on ison'
             dbpdzi.units = 'm'
-            dbpszi.long_name = 'Ind. Zonal rhon of shallowest persistent ocean on ison'
-            dbpszi.units = 'sigma_n'
+            dbprzi.long_name = 'Ind. Zonal rhon of shallowest persistent ocean on ison'
+            dbprzi.units = 'sigma_n'
             dbptzi.long_name = 'Ind. zonal Temp. of shallowest persistent ocean on ison'
             dbptzi.units = 'C'   
             dbpszi.long_name = 'Ind. zonal Salinity of shallowest persistent ocean on ison'
@@ -1013,19 +1013,19 @@ for tc in range(tcmax):
         gp.write(dbpzp  , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpzi  , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpdz  , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpsz  , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbprz  , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbptz  , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpsz  , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpdza , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpsza , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbprza , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbptza , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpsza , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpdzp , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpszp , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbprzp , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbptzp , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpszp , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpdzi , extend = 1, index = (trmin-tmin)/12)
-        gp.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
+        gp.write(dbprzi , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
         gp.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
         #
