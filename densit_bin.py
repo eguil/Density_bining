@@ -277,6 +277,7 @@ N_s2 = len(s_s2)
 N_s = len(s_s)
 del_s = npy.concatenate([npy.tile(del_s1, N_s1), npy.tile(del_s2, N_s2)])
 sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s[:]]]) # make bounds for zonal mean computation
+s_sax = s_s
 s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose() # make 3D for matrix computation
 #
 # Define zonal grid
@@ -320,7 +321,7 @@ toc2 = timeit.default_timer()
 #
 # File output inits
 #
-s_axis = cdm.createAxis(s_s, id = 'rhon')
+s_axis = cdm.createAxis(s_sax, id = 'rhon')
 s_axis.long_name = 'Neutral density'
 s_axis.units = ''
 s_axis.designateLevel()
