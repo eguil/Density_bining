@@ -782,10 +782,10 @@ for tc in range(tcmax):
             ptopsigma = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptoptemp  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptopsalt  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
+            ptopsigma = s_sax [p_top]
             # (TODO: can we remove the loop ?)
             for i in range(N_j*N_i): 
                 ptopdepth[i] = depth_bin [t,p_top[i],i]
-                ptopsigma[i] = s_s [p_top[i]]
                 ptoptemp [i] = x1_bin    [t,p_top[i],i]
                 ptopsalt [i] = x2_bin    [t,p_top[i],i]
             ptopdepth = npy.reshape(ptopdepth, (N_j, N_i))
