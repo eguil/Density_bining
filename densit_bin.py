@@ -272,10 +272,11 @@ del_s2  = 0.1
 s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
 s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
 s_s = npy.concatenate([s_s1, s_s2])
+N_s1 = len(s_s1)
+N_s2 = len(s_s2)
 N_s = len(s_s)
-sigma_bnds1 = mv.asarray([[s_s1[:]],[s_s1[:]+del_s1]]) # make bounds for zonal mean computation
-sigma_bnds2 = mv.asarray([[s_s2[:]],[s_s2[:]+del_s2]]) 
-sigma_bnds = npy.concatenate([sigma_bnds1, sigma_bnds2])
+del_s = npy.concatenate([npy.tile(del_s1, N_s1), npy.tile(del_s2, N_s2)])
+sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s[:]]]) # make bounds for zonal mean computation
 s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose() # make 3D for matrix computation
 #
 # Define zonal grid
