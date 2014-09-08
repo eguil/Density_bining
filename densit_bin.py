@@ -449,7 +449,7 @@ for tc in range(tcmax):
     # read tcdel month by tcdel month to optimise memory
     trmin = tmin + tc*tcdel ; # define as function of tc and tcdel
     trmax = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
-    print ' --> time chunk (bounds) = ',tc, ' (',trmin,trmax-1,')', modeln
+    print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
     temp = ft('thetao', time = slice(trmin,trmax))
     so   = fs('so'    , time = slice(trmin,trmax))
     time  = temp.getTime()
@@ -777,7 +777,7 @@ for tc in range(tcmax):
             maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
             maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
             p_top = maskp.argmax(axis=0) 
-            # test i = 14640 IPSL (p_top = 22, depth_bin = 67.83...)
+            #
             ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptopsigma = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
             ptoptemp  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
@@ -1151,6 +1151,7 @@ for tc in range(tcmax):
 #
 # end loop on tc <===
 print
+print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
 print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
 ratio =  12.*float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/float(grdsize*tmax)
 print ' Ratio to grid*nyears',ratio,'kB/unit(size*nyears)'
