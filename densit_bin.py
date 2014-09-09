@@ -24,15 +24,12 @@
 import cdms2 as cdm
 import MV2 as mv
 import os, sys
-#import socket
 import argparse
 import string
 import numpy as npy
 import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
-#import support_density as sd
-#from support_density import mask_val
 import time as timc
 import timeit
 import resource
@@ -107,6 +104,18 @@ def eos_neutral(t, s):
     zr5= ( -1.3409379420216683e-9*zt*zt-3.6138532339703262e-5)*zs*zsr
     zrho= ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 )
     return zrho 
+#
+# Compute density grid
+def rhon_grid(rho_min, rho_int, rho_max, del_s1, del_s2):
+    s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
+    s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
+    s_s  = npy.concatenate([s_s1, s_s2])
+    N_s1 = len(s_s1)
+    N_s2 = len(s_s2)
+    N_s  = len(s_s)
+    del_s = npy.concatenate([npy.tile(del_s1, N_s1), npy.tile(del_s2, N_s2)])
+    s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
+    return s_s, s_sax, del_s, N_s
 #
 # -----------------------------------------------------------------------------
 #                ===> start code <===
@@ -226,10 +235,7 @@ else:
     tmax = tmin + int(timeint.split(',')[1])
 
 if debugp:
-    #print; print ' Debug - Read only first month...'
     print; print ' Debug mode'
-    #tmin = 0
-    #tmax = 1
 #
 #
 # Define temperature and salinity arrays
@@ -269,15 +275,16 @@ rho_int = 26
 rho_max = 28.5
 del_s1  = 0.2
 del_s2  = 0.1
-s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
-s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
-s_s  = npy.concatenate([s_s1, s_s2])
-N_s1 = len(s_s1)
-N_s2 = len(s_s2)
-N_s  = len(s_s)
-del_s = npy.concatenate([npy.tile(del_s1, N_s1), npy.tile(del_s2, N_s2)])
-sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s[:]]]) # make bounds for zonal mean computation
-s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
+#s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
+#s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
+#s_s  = npy.concatenate([s_s1, s_s2])
+#N_s1 = len(s_s1)
+#N_s2 = len(s_s2)
+#N_s  = len(s_s)
+#del_s = npy.concatenate([npy.tile(del_s1, N_s1), npy.tile(del_s2, N_s2)])
+#sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s[:]]]) # make bounds for zonal mean computation
+#s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
+s_s, s_sax, del_s, N_s = rhon_grid(rho_min, rho_int, rho_max, del_s1, del_s2)
 s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose() # make 3D for matrix computation
 #
 # ---------------------
@@ -359,7 +366,6 @@ x2_bin = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
 
 # target horizonal grid for interp 
 fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
-#fileg = '/Users/ericg/Projets/Density_bining/WOD13_masks.nc'
 gt = cdm.open(fileg)
 maskg = gt('basinmask3')
 outgrid = maskg.getGrid()
