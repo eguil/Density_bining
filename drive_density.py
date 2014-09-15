@@ -1,11 +1,11 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jul 23 13:53:04 2013
+Created on Sun Sep 14 21:32:13 2014
 
-Paul J. Durack 23rd July 2013
+Paul J. Durack 14th September 2014
 
-This script generates input lists of cmip5 ocean fields and drives densit_bin
+This script generates input lists of cmip5 ocean fields and drives densityBin
 
 PJD 14 Sep 2014     - Started file
                     - TODO:
@@ -14,11 +14,10 @@ PJD 14 Sep 2014     - Started file
 """
 
 import argparse,datetime,gc,glob,os,sys ; #re
-import cdms2 as cdm
+from binDensity import densityBin
 from durolib import fixVarUnits,trimModelList,writeToLog
-from makeStericLib import makeSteric
-#from socket import gethostname
 from string import replace
+from socket import gethostname
 
 # Set netcdf file criterion - turned on from default 0s
 #cdm.setCompressionWarnings(0) ; # Suppress warnings
@@ -41,6 +40,7 @@ timeFormat = datetime.datetime.now().strftime("%y%m%d")
 parser = argparse.ArgumentParser()
 parser.add_argument('modelSuite',metavar='str',type=str,help='including \'cmip3/5\' as a command line argument will select one model suite to process')
 parser.add_argument('experiment',metavar='str',type=str,help='include \'experiment\' as a command line argument')
+parser.add_argument('outPath',metavar='str',type=str,help='include \'outPath\' as a command line argument')
 args = parser.parse_args()
 # Test arguments
 if (args.modelSuite in ['cmip3','cmip5']):
@@ -51,19 +51,23 @@ if (args.experiment in ['20c3m','historical','historicalNat','rcp26','rcp45','rc
     experiment   = args.experiment
 else:
    print "** Invalid arguments - no *.nc files will be written **"
-
+if not (os.path.exists(args.outPath)):
+    outPath   = os.path.join('/work/durack1/Shared/data_density',timeFormat);
+else:
+   print "** Invalid arguments - no *.nc files will be written **"
+   
 #%%
 # Create logfile
-#timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-#logfile = os.path.join(replace(outPath,out_path_ext,''),"".join([time_format,'_drive_models-',model_suite,'-',experiment,'-',time_str,'-',drift,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
-#writeToLog(logfile,"".join(['TIME: ',time_format]))
-#writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
-#print "".join(['** Processing files from ',model_suite,' for ',experiment,': ',drift,' **'])
-#writeToLog(logfile,"".join(['** Processing files from ',model_suite,' for ',experiment,': ',drift,' **']))
+timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+logfile = os.path.join(outPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
+writeToLog(logfile,"".join(['TIME: ',timeFormat]))
+writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
+print "".join(['** Processing files from ',modelSuite,' for ',experiment,' **'])
+writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',experiment,' **']))
 #%%
 
-## TEST ## 
 '''
+## TEST ##
 modelSuite = 'cmip5'
 experiment = 'historical'
 experiment = 'rcp85'
@@ -72,9 +76,9 @@ modelSuite = 'cmip3'
 experiment = '20c3m'
 experiment = 'sresa2'
 '''
+
 #%%
 # Set generic paths
-outPath    = os.path.join('/work/durack1/Shared/data_density',timeFormat);
 soPath     = os.path.join('/work',modelSuite,experiment,'ocn/mo/so');
 thetaoPath = os.path.join('/work',modelSuite,experiment,'ocn/mo/thetao');
 fxPath     = os.path.join('/work',modelSuite,'fx/fx/areacello');
@@ -82,8 +86,7 @@ fxPath     = os.path.join('/work',modelSuite,'fx/fx/areacello');
 # Validate paths
 if not os.path.exists(outPath):
     pass
-    #os.makedirs(outPath
-
+    #os.makedirs(outPath)
 if not os.path.exists(soPath) or not os.path.exists(thetaoPath) or not os.path.exists(fxPath):
     print "** Invalid source data path - no *.nc files will be written **"
     sys.exit()
@@ -132,11 +135,11 @@ for x,model in enumerate(list_so):
     matching = [s for s in list_thetao if model in s]
     if not matching and list_soAndthetao[x] != [None, None, None, None, None]:
         print ''.join(['** Version clash - so: ',model]) ; #,' thetao: ',','.join(matching)])
-        #writeToLog(logfile,''.join(['** Version clash - so: ',model]))
+        writeToLog(logfile,''.join(['** Version clash - so: ',model]))
         print ''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]])
-        #writeToLog(logfile,''.join(['so    : ',list_soAndthetaoAndfx[x][1].split('/')[-1]]))
+        writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]]))
         print ''.join(['thetao: ',list_soAndthetao[x][3].split('/')[-1]])
-        #writeToLog(logfile,''.join(['so    : ',list_soAndthetaoAndfx[x][3].split('/')[-1]]))
+        writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][3].split('/')[-1]]))
 del(model,x,index,list_so,list_so_files,list_thetao,list_thetao_files,list_thetao_noVer,matching,modelNoVer,s) ; gc.collect()
 
 # Remove blank entries - First remove duplicate None*5 fields then remove final
@@ -185,13 +188,11 @@ del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.
 # Process model list
 for x,model in enumerate(list_soAndthetaoAndfx):
     # Get steric outfile name
-    outfileDensity = os.path.join(outPath,list_soAndthetaoAndfx[x][4])
+    outfileDensity = os.path.join(outPath,model[4])
     print "".join(['Processing:   ',outfileDensity.split('/')[-1]])
-    #writeToLog(logfile,"".join(['Processing:   ',outfileDensity.split('/')[-1]]))
-
-    # Start steric file creation
-    #make_steric(salinity,salinityChg,temp,tempChg,outFileName,thetao,pressure)   
-    makeSteric(so,so_chg,thetao,thetao_chg,outfile_steric,True,pressure)
+    writeToLog(logfile,"".join(['Processing:   ',outfileDensity.split('/')[-1]]))
+    # Call densityBin
+    densityBin(model[3],model[1],model[5],outPath)
 
 '''
 # Check code for input variables
