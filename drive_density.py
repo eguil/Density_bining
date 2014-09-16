@@ -19,15 +19,6 @@ from durolib import trimModelList,writeToLog #fixVarUnits,
 from string import replace
 from socket import gethostname
 
-# Set netcdf file criterion - turned on from default 0s
-#cdm.setCompressionWarnings(0) ; # Suppress warnings
-#cdm.setNetcdfShuffleFlag(0)
-#cdm.setNetcdfDeflateFlag(1)
-#cdm.setNetcdfDeflateLevelFlag(9)
-# Hi compression: 1.4Gb file ; # Single salt variable
-# No compression: 5.6Gb ; Standard (compression/shuffling): 1.5Gb ; Hi compression w/ shuffling: 1.5Gb
-#cdm.setAutoBounds(1) ; # Ensure bounds on time and depth axes are generated
-
 # Purge spyder variables
 if 'e' in locals():
     del(e,pi,sctypeNA,typeNA)
@@ -42,27 +33,28 @@ parser.add_argument('outPath',metavar='str',type=str,help='include \'outPath\' a
 args = parser.parse_args()
 # Test arguments
 if (args.modelSuite in ['cmip3','cmip5']):
-   modelSuite  = args.modelSuite ; # 1 = make files
+    modelSuite  = args.modelSuite ; # 1 = make files
 else:
-   print "** Invalid arguments - no *.nc files will be written **"
+    print "** Invalid arguments - no *.nc files will be written **"
 if (args.experiment in ['20c3m','historical','historicalNat','rcp26','rcp45','rcp60','rcp85','sresa1b','sresa2','sresb1']):
     experiment   = args.experiment
 else:
-   print "** Invalid arguments - no *.nc files will be written **"
+    print "** Invalid arguments - no *.nc files will be written **"
 if not (os.path.exists(args.outPath)):
-    outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+    outPath     = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 else:
-   print "** Invalid arguments - no *.nc files will be written **"
+    outPath     = args.outPath
+    print "** Invalid arguments - no *.nc files will be written **"
    
 #%%
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-logfile = os.path.join(outPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
-#writeToLog(logfile,"".join(['TIME: ',timeFormat]))
-#writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
+logPath = '/export/durack1/git/Density_bining/'
+logfile = os.path.join(logPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
+writeToLog(logfile,"".join(['TIME: ',timeFormat]))
+writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
 print "".join(['** Processing files from ',modelSuite,' for ',experiment,' **'])
-#writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',experiment,' **']))
-#%%
+writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',experiment,' **']))
 
 '''
 ## TEST ##
@@ -135,13 +127,11 @@ for x,model in enumerate(list_so):
     matching = [s for s in list_thetao if model in s]
     if not matching and list_soAndthetao[x] != [None, None, None, None, None]:
         print ''.join(['** Version clash - so: ',model]) ; #,' thetao: ',','.join(matching)])
-        #writeToLog(logfile,''.join(['** Version clash - so: ',model]))
+        writeToLog(logfile,''.join(['** Version clash - so: ',model]))
         print ''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]])
-        #writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]]))
+        writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]]))
         print ''.join(['thetao: ',list_soAndthetao[x][3].split('/')[-1]])
-        #writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][3].split('/')[-1]]))
-
-#%%
+        writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][3].split('/')[-1]]))
 del(model,x,index,list_so,list_so_files,list_thetao,list_thetao_files,list_thetao_noVer,matching,modelNoVer,s) ; gc.collect()
 
 # Remove blank entries - First remove duplicate None*5 fields then remove final
@@ -159,7 +149,6 @@ list_soAndthetao = tmp
 del(tmp,x) ; gc.collect()
 
 #%%
-
 # Trim out dupes using versioning info
 if 'cmip5' in modelSuite:
     list_so = [tmp[1] for tmp in list_soAndthetao]
@@ -187,20 +176,21 @@ for count,pairs in enumerate(list_soAndthetao):
             list_soAndthetaoAndfx[count][5] = list_fx_files[count2]
             continue
 del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.collect()
-#%%
 
+#%%
 # Process model list
-for x,model in enumerate(list_soAndthetaoAndfx[0:20]):
+for x,model in enumerate(list_soAndthetaoAndfx[0:1]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     print ''.join(['Processing:   ',outfileDensity.split('/')[-1]])
-    #writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
+    writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
     print 'outfile:',outfileDensity
     print 'so:     ',model[1].split('/')[-1]
     print 'thetao: ',model[3].split('/')[-1]
     # Call densityBin
-    #densityBin(model[3],model[1],model[5],outfileDensity)
+    densityBin(model[3],model[1],model[5],outfileDensity)
 
+#%%
 '''
 # Check code for input variables
     # Load z-axis from salt file to check validity

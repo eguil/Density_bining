@@ -4,3 +4,4 @@
 *.pyc
 out_density.nc
 densit_bin.py.orig
+/test
