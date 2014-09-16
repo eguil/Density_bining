@@ -1,6 +1,17 @@
-#!/usr/local/uvcdat/latest/bin/cdat
-##!/Users/ericg/Projets/CMIP/Metrics/WGNE/bin/python
-#
+#!/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Sep 14 21:32:13 2014
+
+Paul J. Durack 14th September 2014
+
+This script generates input lists of cmip5 ocean fields and drives densityBin
+
+PJD 14 Sep 2014     - Started file
+                    - TODO:
+
+@author: durack1
+"""
 # 
 # Program to compute density bins and replace vertical z coordinate by neutral density
 # Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes 
@@ -8,20 +19,13 @@
 #  - D(x,y,sigma,t) (depth of isopycnal)
 #  - Z(x,y,sigma,t) (thickness of isopycnal)
 #
-#
 # Uses McDougall and Jackett 2005 EOS (IDL routine provided by G. Madec)
 # Inspired from IDL density bin routines by G. Roullet and G. Madec (1999)
 #
 # --------------------------------------------------------------
 #  E. Guilyardi - while at LBNL/LLNL -  March 2014
-# 
-# git add densit_bin.py
-# git commit -m "with Paul"
-# git push
-# git checkout master
-# git checkout <branch>
 
-import argparse,ESMP,os,resource,sys,timeit
+import ESMP,os,resource,timeit ; #argparse,sys
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu
@@ -35,7 +39,32 @@ import time as timc
 # ----- Defs ------------------------------------------------------------------------
 #
 # Clean mask of fields
-def mask_val(field, valmask):
+def maskVal(field,valmask):
+    '''
+    The maskVal() function applies a mask to an array provided
+    
+    Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+    Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
+    
+    Created on Sun Sep 14 21:13:30 2014
+
+    Inputs:
+    ------
+    - field     - 2D/3D array
+    - vamask    - 1D scalar of mask value
+    
+    Output:
+    - field     - 2D/3D masked array
+    
+    Usage:
+    ------
+    >>> from binDensity import maskVal
+    >>> maskedVariable = maskVal(unMaskedVariable,valmask)
+
+    Notes:
+    -----
+    - PJD 15 Sep 2014 - 
+    '''
     field [npy.isnan(field.data)] = valmask
     field._FillValue = valmask
     field = mv.masked_where(field > valmask/10, field)
@@ -43,10 +72,34 @@ def mask_val(field, valmask):
 
 
 # Compute area of grid cells on earth
-def compute_area(lon, lat):
-    # use mid points and formula:
-    # area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
-    rade = 6371000.
+def computeArea(lon,lat):
+    '''
+    The computeArea() function calculates grid cell area assuming values are
+    cell mid-points and formula area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
+    
+    Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+    Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
+    
+    Created on Sun Sep 14 21:13:30 2014
+
+    Inputs:
+    ------
+    - lon   - 1D longitude  - >0, <360
+    - lat   - 1D latitude   - >-90, <90
+    
+    Output:
+    - area(lon,lat)     - 2D area array     - m^-^2
+    
+    Usage:
+    ------
+    >>> from binDensity import computeArea
+    >>> computeArea(lon,lat)
+
+    Notes:
+    -----
+    - PJD 15 Sep 2014 - 
+    '''
+    radius = 6371000. ; # Earth radius (metres)
     radconv = npy.pi/180.
     N_i = int(lon.shape[0])
     N_j = int(lat.shape[0])
@@ -60,14 +113,14 @@ def compute_area(lon, lat):
         for j in range(1,N_j-1):
             latm1 = (latr[j-1] + latr[j]  )*0.5
             latp1 = (latr[j]   + latr[j+1])*0.5
-            area[j,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+            area[j,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
         # North and south bounds
         latm1 = ((-90.*radconv) + latr[0] )*0.5
         latp1 = (latr[0]        + latr[1] )*0.5
-        area[0,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        area[0,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
         latm1 = (latr[N_j-2] + latr[N_j-1])*0.5
         latp1 = (latr[N_j-1] + (90.*radconv)  )*0.5
-        area[N_j-1,i] = npy.float(rade**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        area[N_j-1,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
     # East and west bounds
     area[:,0]     = area[:,1]
     area[:,N_i-1] = area[:,N_i-2] 
@@ -75,11 +128,15 @@ def compute_area(lon, lat):
     return area
 
 
-# Computes rhon, neutral density (in situ volumic mass)
-def eosNeutral(t,s):
+def eosNeutral(pottemp,salt):
     '''
-    The eosNeutral() function takes in-situ and salinity arguments and creates
-    approximate density fields which are returned as a variable
+    The eosNeutral() function takes potential temperature and salinity arguments
+    and calculates approximate neutral density (gamma_a) which is returned as a
+    variable. The function uses the McDougall & Jackett (2005) equation of state
+    
+    McDougall, T. J. and D. R. Jackett (2005) The material derivative of neutral
+    density. Journal of Marine Research, 63 (1), pp 159-185. doi: 10.1357/0022240053693734    
+    
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
     
@@ -87,34 +144,24 @@ def eosNeutral(t,s):
 
     Inputs:
     ------
-    - t(time,lev,lat,lon) - 4D potential temperature array
-    - s(time,lev,lat,lon) - 4D salinity array
-
+    - pottemp(time,lev,lat,lon)     - 4D potential temperature  - deg_C
+    - salt(time,lev,lat,lon)        - 4D salinity               - PSS-78
+    
+    Output:
+    - rho(time,lev,lat,lon)         - 4D neutral density array  - kg m^-^3
+    
     Usage:
     ------
     >>> from binDensity import eosNeutral
-    >>> eosNeutral(temp,salt)
+    >>> eosNeutral(pottemp,salt)
+    >>> eosNeutral(20.,35.) ; # Check value 1024.5941675119673
 
     Notes:
     -----
     - PJD 14 Sep 2014 - 
     '''
-    # REFERENCE:
-    #	Compute the neutral volumic mass (Kg/m3) from known potential 
-    #   temperature and salinity fields using McDougall and Jackett 2005
-    #   equation of state.
-    #          potential temperature         t        deg celsius
-    #          salinity                      s        psu
-    #          neutral density               rho      kg/m**3
-    #
-    #         Check value: rho(35,20) = 1024.59416751197 kg/m**3 
-    #          t = 20 deg celcius, s=35 psu
-    #
-    #       McDougall and Jackett, J. Mar Res., 2005
-    #
-    # mask t and s fields
-    zt = t
-    zs = s
+    zt = pottemp
+    zs = salt
     # neutral density
     zsr     = npy.ma.sqrt(zs)
     zr1     = ( ( -4.3159255086706703e-4*zt+8.1157118782170051e-2 )*zt+2.2280832068441331e-1 )*zt+1002.3063688892480
@@ -139,7 +186,7 @@ def rhon_grid(rho_min, rho_int, rho_max, del_s1, del_s2):
     return s_s, s_sax, del_s, N_s
 
 
-def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
+def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -153,7 +200,7 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
     - fileT(time,lev,lat,lon) - 4D potential temperature array
     - fileS(time,lev,lat,lon) - 4D salinity array
     - fileFx(lev,lat,lon) - 3D array containing the cell area values
-    - outDir(str) - output directory with full path specified.
+    - outFile(str) - output file with full path specified.
     - debug - boolean value
     - timeint - specify temporal step for binning
     - mthout - write out monthly data (1) or only annual data (0)
@@ -207,6 +254,28 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
     # Determine file name from inputs
     modeln = fileT.split('/')[-1].split('.')[1]
 
+    # Declare and open files for writing too
+    # Monthly mean of T,S, thickness and depth on neutral density bins on source grid - IPSL (182x149x61) ~6GB 20yrs
+    file_out = outdir+'/'+modeln+'_out_1m_density.nc'
+    if os.path.exists(file_out):
+        os.remove(file_out)
+    if mthout == 0:
+        g = cdm.open(file_out,'w+')
+    # Annual zonal mean of T,S, thick, depth and volume per basin on WOA grid - IPSL 60MB 275yrs
+    filez_out = outdir+'/'+modeln+'_outz_1y_density.nc'
+    if os.path.exists(filez_out):
+        os.remove(filez_out)
+    gz = cdm.open(filez_out,'w+')
+    # Annual mean persistence variables on WOA grid - IPSL 200MB 150yrs
+    fileq_out = outdir+'/'+modeln+'_out_1y_persist.nc'
+    if os.path.exists(fileq_out):
+        os.remove(fileq_out)
+    gq = cdm.open(fileq_out,'w+')
+    # Annual mean zonal mean of persistence on WOA grid - IPSL 60MB 150yrs
+    filep_out = outdir+'/'+modeln+'_outz_1y_persist.nc'
+    if os.path.exists(filep_out):
+        os.remove(filep_out)
+    gp = cdm.open(filep_out,'w+')
 
     if debug >= '1':
         print 'Debug - File names:'
@@ -304,11 +373,10 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
-    print
     print ' ==> model:', modeln,' (grid size:', grdsize,')'
     print ' ==> time interval: ', tmin, tmax - 1
     print ' ==> tcdel, tcmax :', tcdel, tcmax
-    #
+
     # inits
     # z profiles:
     z_zt = depth[:]
@@ -325,29 +393,7 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
     s_axis.long_name = 'Neutral density'
     s_axis.units = ''
     s_axis.designateLevel()
-    #
-    # Monthly mean of T,S, thickness and depth on neutral density bins on source grid
-    file_out = outdir+'/'+modeln+'_out_1m_density.nc'
-    if os.path.exists(file_out):
-        os.remove(file_out)
-    if mthout == 0:
-        g = cdm.open(file_out,'w+')
-    # Annual zonal mean of T,S, thick, depth and volume per basin on WOA grid
-    filez_out = outdir+'/'+modeln+'_outz_1y_density.nc'
-    if os.path.exists(filez_out):
-        os.remove(filez_out)
-    gz = cdm.open(filez_out,'w+')
-    # Annual mean persistence variables on WOA grid 
-    fileq_out = outdir+'/'+modeln+'_out_1y_persist.nc'
-    if os.path.exists(fileq_out):
-        os.remove(fileq_out)
-    gq = cdm.open(fileq_out,'w+')
-    # Annual mean zonal mean of persistence on WOA grid 
-    filep_out = outdir+'/'+modeln+'_outz_1y_persist.nc'
-    if os.path.exists(filep_out):
-        os.remove(filep_out)
-    gp = cdm.open(filep_out,'w+')
-    #
+
     # output arrays for each chunk
     depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
     depth_bin = mv.masked_where(mv.equal(depth_bin,valmask), depth_bin)
@@ -363,8 +409,7 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
     gt = cdm.open(fileg)
     maskg = gt('basinmask3')
     outgrid = maskg.getGrid()
-    # global mask
-    maski = maskg.mask
+    maski = maskg.mask ; # Global mask
     # regional masks
     maskAtl = maski*1 ; maskAtl[...] = True
     idxa = npy.argwhere(maskg == 1).transpose()
@@ -381,7 +426,7 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
     Nii = int(loni.shape[0])
     Nji = int(lati.shape[0])
     # Compute area of target grid and zonal sums
-    areai = compute_area(loni[:], lati[:])
+    areai = computeArea(loni[:], lati[:])
     #areai   = gt('basinmask3_area').data*1.e6
     gt.close()
     #
@@ -589,10 +634,10 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
         thick_bino.mask = maskb
         x1_bino.mask    = maskb
         x2_bino.mask    = maskb
-        depth_bino      = mask_val(depth_bino, valmask)
-        thick_bino      = mask_val(thick_bino, valmask)
-        x1_bino         = mask_val(x1_bino   , valmask)
-        x2_bino         = mask_val(x2_bino   , valmask)
+        depth_bino      = maskVal(depth_bino, valmask)
+        thick_bino      = maskVal(thick_bino, valmask)
+        x1_bino         = maskVal(x1_bino   , valmask)
+        x2_bino         = maskVal(x2_bino   , valmask)
         #
         #tucf = timc.clock()
         #
@@ -709,25 +754,25 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
                     x1Binii[t,ks,:,:].mask    = maskInd
                     x2Binii[t,ks,:,:].mask    = maskInd
             # Global
-            depthBini = mask_val(depthBini, valmask)
-            thickBini = mask_val(thickBini, valmask)
-            x1Bini    = mask_val(x1Bini, valmask)
-            x2Bini    = mask_val(x2Bini, valmask)
+            depthBini = maskVal(depthBini, valmask)
+            thickBini = maskVal(thickBini, valmask)
+            x1Bini    = maskVal(x1Bini, valmask)
+            x2Bini    = maskVal(x2Bini, valmask)
             # Atl
-            depthBinia = mask_val(depthBinia, valmask)
-            thickBinia = mask_val(thickBinia, valmask)
-            x1Binia    = mask_val(x1Binia, valmask)
-            x2Binia    = mask_val(x2Binia, valmask)
+            depthBinia = maskVal(depthBinia, valmask)
+            thickBinia = maskVal(thickBinia, valmask)
+            x1Binia    = maskVal(x1Binia, valmask)
+            x2Binia    = maskVal(x2Binia, valmask)
             # Pac
-            depthBinip = mask_val(depthBinip, valmask)
-            thickBinip = mask_val(thickBinip, valmask)
-            x1Binip    = mask_val(x1Binip, valmask)
-            x2Binip    = mask_val(x2Binip, valmask)
+            depthBinip = maskVal(depthBinip, valmask)
+            thickBinip = maskVal(thickBinip, valmask)
+            x1Binip    = maskVal(x1Binip, valmask)
+            x2Binip    = maskVal(x2Binip, valmask)
             # Ind
-            depthBinii = mask_val(depthBinii, valmask)
-            thickBinii = mask_val(thickBinii, valmask)
-            x1Binii    = mask_val(x1Binii, valmask)
-            x2Binii    = mask_val(x2Binii, valmask)
+            depthBinii = maskVal(depthBinii, valmask)
+            thickBinii = maskVal(thickBinii, valmask)
+            x1Binii    = maskVal(x1Binii, valmask)
+            x2Binii    = maskVal(x2Binii, valmask)
     
             tozi = timc.clock()
             # 
@@ -808,13 +853,13 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
                     persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
                     persistii[t,ks,:,:].mask = maskInd
                     #
-                persisti  = mask_val(persisti, valmask)
-                persistia = mask_val(persistia, valmask)
-                persistip = mask_val(persistip, valmask)
-                persistii = mask_val(persistii, valmask)
+                persisti  = maskVal(persisti, valmask)
+                persistia = maskVal(persistia, valmask)
+                persistip = maskVal(persistip, valmask)
+                persistii = maskVal(persistii, valmask)
                 # Persistence * thickness
                 persistv[t,:,:,:] = persisti[t,:,:,:] * thickBini[t,:,:,:]
-                persistv  = mask_val(persistv, valmask)
+                persistv  = maskVal(persistv, valmask)
                 # Depth, temperature and salinity at shallowest persistent ocean (2D) 
                 ptopdepthi[t,:,:] = regridObj(ptopdepth)
                 ptopsigmai[t,:,:] = regridObj(ptopsigma)
@@ -850,22 +895,22 @@ def densityBin(fileT,fileS,fileFx,outDir,debug=1,timeint='all',mthout=0):
                 ptopsaltip[t,:,:].mask = maskPac
                 ptopsaltii[t,:,:].mask = maskInd
     
-                ptopdepthi  = mask_val(ptopdepthi , valmask)
-                ptopdepthia = mask_val(ptopdepthia, valmask)
-                ptopdepthip = mask_val(ptopdepthip, valmask)
-                ptopdepthii = mask_val(ptopdepthii, valmask)
-                ptopsigmai  = mask_val(ptopsigmai , valmask)
-                ptopsigmaia = mask_val(ptopsigmaia, valmask)
-                ptopsigmaip = mask_val(ptopsigmaip, valmask)
-                ptopsigmaii = mask_val(ptopsigmaii, valmask)
-                ptoptempi   = mask_val(ptoptempi  , valmask)
-                ptoptempia  = mask_val(ptoptempia , valmask)
-                ptoptempip  = mask_val(ptoptempip , valmask)
-                ptoptempii  = mask_val(ptoptempii , valmask)
-                ptopsalti   = mask_val(ptopsalti  , valmask)
-                ptopsaltia  = mask_val(ptopsaltia , valmask)
-                ptopsaltip  = mask_val(ptopsaltip , valmask)
-                ptopsaltii  = mask_val(ptopsaltii , valmask)
+                ptopdepthi  = maskVal(ptopdepthi , valmask)
+                ptopdepthia = maskVal(ptopdepthia, valmask)
+                ptopdepthip = maskVal(ptopdepthip, valmask)
+                ptopdepthii = maskVal(ptopdepthii, valmask)
+                ptopsigmai  = maskVal(ptopsigmai , valmask)
+                ptopsigmaia = maskVal(ptopsigmaia, valmask)
+                ptopsigmaip = maskVal(ptopsigmaip, valmask)
+                ptopsigmaii = maskVal(ptopsigmaii, valmask)
+                ptoptempi   = maskVal(ptoptempi  , valmask)
+                ptoptempia  = maskVal(ptoptempia , valmask)
+                ptoptempip  = maskVal(ptoptempip , valmask)
+                ptoptempii  = maskVal(ptoptempii , valmask)
+                ptopsalti   = maskVal(ptopsalti  , valmask)
+                ptopsaltia  = maskVal(ptopsaltia , valmask)
+                ptopsaltip  = maskVal(ptopsaltip , valmask)
+                ptopsaltii  = maskVal(ptopsaltii , valmask)
                 # Volume/temp/salinity of persistent ocean (global, per basin) (1D)
                 #p_ind = npy.argwhere(persisti[t,:,:,:] >= 100.)
                 # Compute zonal mean (2D)

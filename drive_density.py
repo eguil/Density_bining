@@ -15,7 +15,7 @@ PJD 14 Sep 2014     - Started file
 
 import argparse,datetime,gc,glob,os,sys ; #re
 from binDensity import densityBin
-from durolib import fixVarUnits,trimModelList,writeToLog
+from durolib import trimModelList,writeToLog #fixVarUnits,
 from string import replace
 from socket import gethostname
 
@@ -33,9 +33,7 @@ if 'e' in locals():
     del(e,pi,sctypeNA,typeNA)
     gc.collect()
 
-# Get time format
-timeFormat = datetime.datetime.now().strftime("%y%m%d")
-
+#%%
 # Set conditional whether files are created or just numbers are calculated
 parser = argparse.ArgumentParser()
 parser.add_argument('modelSuite',metavar='str',type=str,help='including \'cmip3/5\' as a command line argument will select one model suite to process')
@@ -52,7 +50,7 @@ if (args.experiment in ['20c3m','historical','historicalNat','rcp26','rcp45','rc
 else:
    print "** Invalid arguments - no *.nc files will be written **"
 if not (os.path.exists(args.outPath)):
-    outPath   = os.path.join('/work/durack1/Shared/data_density',timeFormat);
+    outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 else:
    print "** Invalid arguments - no *.nc files will be written **"
    
@@ -60,10 +58,10 @@ else:
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 logfile = os.path.join(outPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
-writeToLog(logfile,"".join(['TIME: ',timeFormat]))
-writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
+#writeToLog(logfile,"".join(['TIME: ',timeFormat]))
+#writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
 print "".join(['** Processing files from ',modelSuite,' for ',experiment,' **'])
-writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',experiment,' **']))
+#writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',experiment,' **']))
 #%%
 
 '''
@@ -71,7 +69,7 @@ writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',exper
 modelSuite = 'cmip5'
 experiment = 'historical'
 experiment = 'rcp85'
-
+outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 modelSuite = 'cmip3'
 experiment = '20c3m'
 experiment = 'sresa2'
@@ -93,9 +91,11 @@ if not os.path.exists(soPath) or not os.path.exists(thetaoPath) or not os.path.e
 
 # thetao
 list_thetao_files = glob.glob(os.path.join(thetaoPath,'*.xml'))
+list_thetao_files = trimModelList(list_thetao_files) ; # only need to match model, no version info required
 list_thetao_files.sort()
 # salinity
 list_so_files = glob.glob(os.path.join(soPath,'*.xml'))
+list_so_files = trimModelList(list_so_files) ; # only need to match model, no version info required
 list_so_files.sort()
 # areacello
 list_fx_files = glob.glob(os.path.join(fxPath,'*.xml'))
@@ -135,11 +135,13 @@ for x,model in enumerate(list_so):
     matching = [s for s in list_thetao if model in s]
     if not matching and list_soAndthetao[x] != [None, None, None, None, None]:
         print ''.join(['** Version clash - so: ',model]) ; #,' thetao: ',','.join(matching)])
-        writeToLog(logfile,''.join(['** Version clash - so: ',model]))
+        #writeToLog(logfile,''.join(['** Version clash - so: ',model]))
         print ''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]])
-        writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]]))
+        #writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][1].split('/')[-1]]))
         print ''.join(['thetao: ',list_soAndthetao[x][3].split('/')[-1]])
-        writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][3].split('/')[-1]]))
+        #writeToLog(logfile,''.join(['so    : ',list_soAndthetao[x][3].split('/')[-1]]))
+
+#%%
 del(model,x,index,list_so,list_so_files,list_thetao,list_thetao_files,list_thetao_noVer,matching,modelNoVer,s) ; gc.collect()
 
 # Remove blank entries - First remove duplicate None*5 fields then remove final
@@ -155,6 +157,8 @@ except Exception,err:
     print 'Exception thrown: ',err
 list_soAndthetao = tmp
 del(tmp,x) ; gc.collect()
+
+#%%
 
 # Trim out dupes using versioning info
 if 'cmip5' in modelSuite:
@@ -186,13 +190,16 @@ del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.
 #%%
 
 # Process model list
-for x,model in enumerate(list_soAndthetaoAndfx):
+for x,model in enumerate(list_soAndthetaoAndfx[0:20]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
-    print "".join(['Processing:   ',outfileDensity.split('/')[-1]])
-    writeToLog(logfile,"".join(['Processing:   ',outfileDensity.split('/')[-1]]))
+    print ''.join(['Processing:   ',outfileDensity.split('/')[-1]])
+    #writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
+    print 'outfile:',outfileDensity
+    print 'so:     ',model[1].split('/')[-1]
+    print 'thetao: ',model[3].split('/')[-1]
     # Call densityBin
-    densityBin(model[3],model[1],model[5],outPath)
+    #densityBin(model[3],model[1],model[5],outfileDensity)
 
 '''
 # Check code for input variables
