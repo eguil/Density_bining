@@ -60,7 +60,7 @@ writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',exper
 ## TEST ##
 modelSuite = 'cmip5'
 experiment = 'historical'
-experiment = 'rcp85'
+#experiment = 'rcp85'
 outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 modelSuite = 'cmip3'
 experiment = '20c3m'
@@ -150,17 +150,16 @@ del(tmp,x) ; gc.collect()
 
 #%%
 # Trim out dupes using versioning info
-if 'cmip5' in modelSuite:
-    list_so = [tmp[1] for tmp in list_soAndthetao]
-    list_so = trimModelList(list_so) ; # Trim out dupes using versioning info
-    # Use trim list to remove dupes
-    list_soAndthetao_noDupes = []
-    for count,pairs in enumerate(list_soAndthetao):
-        if pairs[1] in list_so:
-            list_soAndthetao_noDupes += [pairs]
-    del(list_so,count,pairs,tmp); gc.collect()
-    list_soAndthetao = list_soAndthetao_noDupes
-    del(list_soAndthetao_noDupes) ; gc.collect()
+list_so = [tmp[1] for tmp in list_soAndthetao]
+list_so = trimModelList(list_so) ; # Trim out dupes using versioning info
+# Use trim list to remove dupes
+list_soAndthetao_noDupes = []
+for count,pairs in enumerate(list_soAndthetao):
+    if pairs[1] in list_so:
+        list_soAndthetao_noDupes += [pairs]
+del(list_so,count,pairs,tmp); gc.collect()
+list_soAndthetao = list_soAndthetao_noDupes
+del(list_soAndthetao_noDupes) ; gc.collect()
 
 # Add in fx file
 list_soAndthetaoAndfx = [[None] * 6 for i in range(len(list_soAndthetao))]
@@ -179,7 +178,8 @@ del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.
 
 #%%
 # Process model list
-for x,model in enumerate(list_soAndthetaoAndfx[0:1]):
+# 150 IPSL-CM5A-LR
+for x,model in enumerate(list_soAndthetaoAndfx[150:151]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     print ''.join(['Processing:   ',outfileDensity.split('/')[-1]])

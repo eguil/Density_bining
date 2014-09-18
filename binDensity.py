@@ -19,6 +19,7 @@ Inspired from IDL density bin routines by G. Roullet and G. Madec (1999)
 E. Guilyardi - while at LBNL/LLNL -  March 2014
 
 PJD 14 Sep 2014     - Started file
+PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for final code version
                     - TODO:
 
 @author: durack1
@@ -32,6 +33,9 @@ import MV2 as mv
 import numpy as npy
 from string import replace
 import time as timc
+
+# Turn off numpy warnings
+npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
 
 # Function definitions
 
@@ -436,49 +440,20 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     
     # Global arrays init
     depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
-    thickBini = depthBini.copy()
-    x1Bini    = depthBini.copy()
-    x2Bini    = depthBini.copy()
+    thickBini,x1Bini,x2Bini = [npy.ma.ones(npy.shape(depthBini)) for _ in range(3)]
     # Basin
     # TODO: this is a lot of arrays - maybe there is a better way of doing this
-    depthBinia = depthBini.copy()
-    thickBinia = depthBini.copy()
-    x1Binia    = depthBini.copy()
-    x2Binia    = depthBini.copy()
-    depthBinip = depthBini.copy()
-    thickBinip = depthBini.copy()
-    x1Binip    = depthBini.copy()
-    x2Binip    = depthBini.copy()
-    depthBinii = depthBini.copy()
-    thickBinii = depthBini.copy()
-    x1Binii    = depthBini.copy()
-    x2Binii    = depthBini.copy()
+    depthBinia,thickBinia,x1Binia,x2Binia,depthBinip,thickBinip,\
+    x1Binip,x2Binip,depthBinii,thickBinii,x1Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(12)]
     
     # Persistence arrays
     persist    = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
-    persisti   = depthBini.copy()
-    persistia  = depthBini.copy()
-    persistip  = depthBini.copy()
-    persistii  = depthBini.copy()
-    persistv   = depthBini.copy()
+    persisti,persistia,persistip,persistii,persistv = [npy.ma.ones(npy.shape(persist)) for _ in range(5)]
     persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
-    ptopdepthi = persistm.copy()
-    ptopsigmai = persistm.copy()
-    ptoptempi  = persistm.copy()
-    ptopsalti  = persistm.copy()
+    ptopdepthi,ptopsigmai,ptoptempi,ptopsalti = [npy.ma.ones(npy.shape(persistm)) for _ in range(4)]
     # Basin
-    ptopdepthia = persistm.copy()
-    ptopsigmaia = persistm.copy()
-    ptoptempia  = persistm.copy()
-    ptopsaltia  = persistm.copy()
-    ptopdepthip = persistm.copy()
-    ptopsigmaip = persistm.copy()
-    ptoptempip  = persistm.copy()
-    ptopsaltip  = persistm.copy()
-    ptopdepthii = persistm.copy()
-    ptopsigmaii = persistm.copy()
-    ptoptempii  = persistm.copy()
-    ptopsaltii  = persistm.copy()
+    ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptopdepthip,ptopsigmaip,\
+    ptoptempip,ptopsaltip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii = [npy.ma.ones(npy.shape(persistm)) for _ in range(12)]
 
     # -----------------------------------------
     #  Density bining loop (on time chunks tc)
@@ -658,14 +633,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
             if tc == 0:
                 depthBin.long_name = 'Depth of isopycnal'
                 depthBin.units = 'm'
-                #
                 thickBin.long_name = 'Thickness of isopycnal'
                 thickBin.units = 'm'
                 x1Bin.long_name = temp.long_name
                 x1Bin.units = 'C'
                 x2Bin.long_name = so.long_name
                 x2Bin.units = so.units
-                #
                 outFileMon_f.write(area) ; # Added area so isonvol can be computed
                 # write global attributes (inherited from thetao file)
                 for i in range(0,len(file_dic)):
@@ -815,14 +788,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
                 p_top = maskp.argmax(axis=0) 
                 #
                 ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
-                ptopsigma = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
-                ptoptemp  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
-                ptopsalt  = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
+                ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 # (TODO: can we remove the loop ?)
                 for i in range(N_j*N_i): 
-                    ptopdepth[i] = depth_bin [t,p_top[i],i]
-                    ptoptemp [i] = x1_bin    [t,p_top[i],i]
-                    ptopsalt [i] = x2_bin    [t,p_top[i],i]
+                    ptopdepth[i]    = depth_bin[t,p_top[i],i]
+                    ptoptemp[i]     = x1_bin[t,p_top[i],i]
+                    ptopsalt[i]     = x2_bin[t,p_top[i],i]
                 ptopsigma = ptopdepth*0. + s_sax [p_top] # to keep mask of ptopdepth
                 ptopdepth = npy.reshape(ptopdepth, (N_j, N_i))
                 ptopsigma = npy.reshape(ptopsigma, (N_j, N_i))
@@ -1063,7 +1034,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
             outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
             #
+            print 'persim: ',persim.shape
             outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12)
+            print 'ptopd:  ',ptopd.shape
             outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
