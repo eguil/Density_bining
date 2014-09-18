@@ -25,7 +25,7 @@ PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for fi
 @author: durack1
 """
 
-import ESMP,os,resource,timeit ; #argparse,sys
+import ESMP,gc,os,resource,timeit ; #argparse,sys
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu
@@ -236,6 +236,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     Notes:
     -----
     - PJD 14 Sep 2014   - Initial function rewrite
+    - PJD 18 Sep 2014   - Added gc.collect calls
                 TODO:   - Deal with NaN values with mask variables:
                 /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
@@ -392,18 +393,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     # File output inits
     s_axis              = cdm.createAxis(s_sax, id = 'rhon')
     s_axis.long_name    = 'Neutral density'
-    s_axis.units        = ''
+    s_axis.units        = 'kg m-3 (anomaly, minus 1000)'
     s_axis.designateLevel()
 
     # output arrays for each chunk
-    depth_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    depth_bin = mv.masked_where(mv.equal(depth_bin,valmask), depth_bin)
-    thick_bin = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    thick_bin = mv.masked_where(mv.equal(thick_bin,valmask), thick_bin)
-    x1_bin    = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    x1_bin    = mv.masked_where(mv.equal(x1_bin,valmask), x1_bin)
-    x2_bin    = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
-    x2_bin    = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
+    tmp         = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask
+    depth_bin   = tmp.copy()
+    depth_bin   = mv.masked_where(mv.equal(depth_bin,valmask),depth_bin)
+    thick_bin   = tmp.copy()
+    thick_bin   = mv.masked_where(mv.equal(thick_bin,valmask),thick_bin)
+    x1_bin      = tmp.copy()
+    x1_bin      = mv.masked_where(mv.equal(x1_bin,valmask),x1_bin)
+    x2_bin      = tmp.copy() ; del(tmp) ; gc.collect()
+    x2_bin      = mv.masked_where(mv.equal(x2_bin,valmask),x2_bin)
     
     # Target horizonal grid for interp 
     gridFile    = '140807_WOD13_masks.nc'
@@ -954,9 +956,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
             dbpszi = cdm.createVariable(ptopsizi  , axes = [timeyr, lati], id = 'ptopsalti')
             # ??
             persim = cdm.createVariable(persistm  , axes = [timeyr, lati, loni], id = 'persim')
-            ptopd  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'ptopdepth')
-            ptopt  = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'ptoptemp')
-            ptops  = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalt')
+            ptopd  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'ptopdepth2')
+            ptopt  = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'ptoptemp2')
+            ptops  = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalt2')
             if tc == 0:
                 # Global attributes
                 persbin.long_name = 'persistence of isopycnal bins'
@@ -1034,10 +1036,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
             outFile_f.write(dbprzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.sync() ; # Synchronise changes to file handle
             #
             print 'persim: ',persim.shape
+            print 'persim: ',persim.getAxisIds()
             outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12)
             print 'ptopd:  ',ptopd.shape
+            print 'ptopd:  ',ptopd.getAxisIds()
+            tmp = outFile_f['ptopdepth']
+            print 'tmp:    ',tmp.shape
+            print 'tmp:    ',tmp.getAxisIds()
             outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
