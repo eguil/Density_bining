@@ -224,18 +224,20 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     - fileS(time,lev,lat,lon)   - 4D salinity array
     - fileFx(lev,lat,lon)       - 3D array containing the cell area values
     - outFile(str)              - output file with full path specified.
-    - debug                     - boolean value
-    - timeint                   - specify temporal step for binning
-    - mthout                    - write monthly data (1) or only annual data (0)
+    - debug <optional>          - boolean value
+    - timeint <optional>        - specify temporal step for binning
+    - mthout <optional>         - write monthly data (1) or only annual data (0)
 
     Usage:
     ------
     >>> from binDensity import densityBin
-    >>> densityBin(fileT,fileS,fileFx,'./')
+    >>> densityBin(fileT,fileS,fileFx,'./out.nc')
 
     Notes:
     -----
-    - PJD 14 Sep 2014 - 
+    - PJD 14 Sep 2014   - Initial function rewrite
+                TODO:   - Deal with NaN values with mask variables:
+                /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -403,13 +405,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     x2_bin    = npy.ma.ones([tcdel, N_s+1, N_j*N_i], dtype='float32')*valmask 
     x2_bin    = mv.masked_where(mv.equal(x2_bin,valmask), x2_bin)
     
-    # target horizonal grid for interp 
+    # Target horizonal grid for interp 
     gridFile    = '140807_WOD13_masks.nc'
     gridFile_f  = cdm.open(gridFile)
     maskg       = gridFile_f('basinmask3')
     outgrid     = maskg.getGrid()
     maski       = maskg.mask ; # Global mask
-    # regional masks
+    # Regional masks
     maskAtl = maski*1 ; maskAtl[...] = True
     idxa = npy.argwhere(maskg == 1).transpose()
     maskAtl[idxa[0],idxa[1]] = False
@@ -420,10 +422,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     idxi = npy.argwhere(maskg == 3).transpose()
     maskInd[idxi[0],idxi[1]] = False
     
-    loni = maskg.getLongitude()
-    lati = maskg.getLatitude()
-    Nii = int(loni.shape[0])
-    Nji = int(lati.shape[0])
+    loni    = maskg.getLongitude()
+    lati    = maskg.getLatitude()
+    Nii     = int(loni.shape[0])
+    Nji     = int(lati.shape[0])
     # Compute area of target grid and zonal sums
     areai = computeArea(loni[:], lati[:])
     #areai   = gt('basinmask3_area').data*1.e6
@@ -442,13 +444,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
     thickBini,x1Bini,x2Bini = [npy.ma.ones(npy.shape(depthBini)) for _ in range(3)]
     # Basin
-    # TODO: this is a lot of arrays - maybe there is a better way of doing this
     depthBinia,thickBinia,x1Binia,x2Binia,depthBinip,thickBinip,\
     x1Binip,x2Binip,depthBinii,thickBinii,x1Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(12)]
-    
     # Persistence arrays
-    persist    = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
-    persisti,persistia,persistip,persistii,persistv = [npy.ma.ones(npy.shape(persist)) for _ in range(5)]
+    persist     = npy.ma.ones([nyrtc, N_s+1, N_j, N_i], dtype='float32')*valmask
+    persisti,persistia,persistip,persistii,persistv = [npy.ma.ones(npy.shape(depthBini)) for _ in range(5)]
     persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
     ptopdepthi,ptopsigmai,ptoptempi,ptopsalti = [npy.ma.ones(npy.shape(persistm)) for _ in range(4)]
     # Basin
@@ -467,6 +467,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
         temp = ft('thetao', time = slice(trmin,trmax))
         so   = fs('so'    , time = slice(trmin,trmax))
         time  = temp.getTime()
+        
+        # Test variable units - both thetao and so
         # Kelvin or celsius ?
         tempmin = min(temp.data[0,:,N_j/2,N_i/2])
         if tempmin > valmask/10.:
