@@ -20,6 +20,7 @@ E. Guilyardi - while at LBNL/LLNL -  March 2014
 
 PJD 14 Sep 2014     - Started file
 PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for final code version
+PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
                     - TODO:
 
 @author: durack1
@@ -29,6 +30,7 @@ import ESMP,gc,os,resource,timeit ; #argparse,sys
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu
+from durolib import fixVarUnits
 import MV2 as mv
 import numpy as npy
 from string import replace
@@ -237,6 +239,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
     -----
     - PJD 14 Sep 2014   - Initial function rewrite
     - PJD 18 Sep 2014   - Added gc.collect calls
+    - PJD 18 Sep 2014   - Added so/thetao units check (fixVarUnits)
                 TODO:   - Deal with NaN values with mask variables:
                 /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
@@ -470,14 +473,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
         so   = fs('so'    , time = slice(trmin,trmax))
         time  = temp.getTime()
         
-        # Test variable units - both thetao and so
-        # Kelvin or celsius ?
-        tempmin = min(temp.data[0,:,N_j/2,N_i/2])
-        if tempmin > valmask/10.:
-            tempmin = min(temp.data[0,:,N_j/4,N_i/2])
-        if tempmin > 273.:
-            temp = temp - 273.15
-            print '     [Change units to celsius]'
+        # Test variable units
+        [so,soFixed] = fixVarUnits(so,'so',True)#,'logfile.txt')
+        if soFixed:
+            print 'so:     units corrected'
+        [thetao,thetaoFixed] = fixVarUnits(temp,'thetao',True)#,'logfile.txt')
+        if thetaoFixed:
+            print 'thetao: units corrected'        
         
         # Compute neutral density 
         rhon = eosNeutral(temp,so)-1000.
@@ -1038,14 +1040,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.sync() ; # Synchronise changes to file handle
             #
-            print 'persim: ',persim.shape
-            print 'persim: ',persim.getAxisIds()
+            #print 'persim: ',persim.shape
+            #print 'persim: ',persim.getAxisIds()
             outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12)
-            print 'ptopd:  ',ptopd.shape
-            print 'ptopd:  ',ptopd.getAxisIds()
-            tmp = outFile_f['ptopdepth']
-            print 'tmp:    ',tmp.shape
-            print 'tmp:    ',tmp.getAxisIds()
+            #print 'ptopd:  ',ptopd.shape
+            #print 'ptopd:  ',ptopd.getAxisIds()
+            #tmp = outFile_f['ptopdepth']
+            #print 'tmp:    ',tmp.shape
+            #print 'tmp:    ',tmp.getAxisIds()
             outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
