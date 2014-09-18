@@ -19,7 +19,7 @@ from binDensity import densityBin
 modelSo = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
 modelThetao = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
 modelAreacello = '/work/cmip5/fx/fx/areacello/cmip5.ACCESS1-0.rcp85.r0i0p0.fx.ocn.fx.areacello.ver-1.latestX.xml'
-outfileDensity = 'test/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.density.ver-v20111119.nc'
+outfileDensity = 'test/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.density.ver-v20111119-compressed.nc'
 
 print 'outfile:   ',outfileDensity
 print 'so:        ',modelSo
