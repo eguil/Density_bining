@@ -61,7 +61,8 @@ writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',exper
 modelSuite = 'cmip5'
 experiment = 'historical'
 #experiment = 'rcp85'
-outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+outPath     = '/export/durack1/git/Density_bining/test'
+#outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 modelSuite = 'cmip3'
 experiment = '20c3m'
 experiment = 'sresa2'
@@ -122,7 +123,7 @@ for x,model in enumerate(list_so):
         list_soAndthetao[x][3] = list_thetao_files[index] ; # Write thetao file
         list_soAndthetao[x][4] = ''.join([''.join([modelSuite,'.']),replace(model,'.ocn.Omon','.ocn.Omon.density'),'.nc']) ; # Write output filename
     except:
-        print x,''.join(['No so match for thetao: ',model])
+        print format(x,'03d'),''.join(['No so match for thetao: ',model])
     # Test for version inconsistency
     matching = [s for s in list_thetao if model in s]
     if not matching and list_soAndthetao[x] != [None, None, None, None, None]:
@@ -168,10 +169,12 @@ for count,pairs in enumerate(list_soAndthetao):
         list_soAndthetaoAndfx[count][x] = val
     del(x,val)
     # Match with fx and fill
-    model = list_soAndthetaoAndfx[0][1].split('.')[1]
+    model = list_soAndthetaoAndfx[count][1].split('.')[1]
+    #print model
     for count2,fx in enumerate(list_fx_files):
         model_fx = fx.split('.')[1]
         if model == model_fx:
+            #print model,model_fx
             list_soAndthetaoAndfx[count][5] = list_fx_files[count2]
             continue
 del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.collect()
@@ -182,11 +185,12 @@ del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.
 for x,model in enumerate(list_soAndthetaoAndfx[150:151]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
-    print ''.join(['Processing:   ',outfileDensity.split('/')[-1]])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
-    print 'outfile:',outfileDensity
-    print 'so:     ',model[1].split('/')[-1]
-    print 'thetao: ',model[3].split('/')[-1]
+    print 'outPath:   ','/'.join(outfileDensity.split('/')[0:-1])    
+    print 'outfile:   ',outfileDensity.split('/')[-1]
+    print 'so:        ',model[1].split('/')[-1]
+    print 'thetao:    ',model[3].split('/')[-1]
+    print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
     densityBin(model[3],model[1],model[5],outfileDensity)
 

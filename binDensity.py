@@ -809,14 +809,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
                 persbin = cdm.createVariable(persist, axes = [timeyr, s_axis, ingrid], id = 'isonpers') 
                 # regrid (TODO: can we remove the loop ?)
                 for ks in range(N_s+1):
-                    persisti [t,ks,:,:] = regridObj(persbin [t,ks,:,:])
-                    persisti [t,ks,:,:].mask = maski
-                    persistia[t,ks,:,:] = persisti[t,ks,:,:]*1.
-                    persistia[t,ks,:,:].mask = maskAtl
-                    persistip[t,ks,:,:] = persisti[t,ks,:,:]*1.
-                    persistip[t,ks,:,:].mask = maskPac
-                    persistii[t,ks,:,:] = persisti[t,ks,:,:]*1.
-                    persistii[t,ks,:,:].mask = maskInd
+                    persisti [t,ks,:,:]         = regridObj(persbin[t,ks,:,:])
+                    persisti [t,ks,:,:].mask    = maski
+                    persistia[t,ks,:,:]         = persisti[t,ks,:,:]*1.
+                    persistia[t,ks,:,:].mask    = maskAtl
+                    persistip[t,ks,:,:]         = persisti[t,ks,:,:]*1.
+                    persistip[t,ks,:,:].mask    = maskPac
+                    persistii[t,ks,:,:]         = persisti[t,ks,:,:]*1.
+                    persistii[t,ks,:,:].mask    = maskInd
                     #
                 persisti  = maskVal(persisti, valmask)
                 persistia = maskVal(persistia, valmask)
@@ -877,29 +877,28 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=1,timeint='all',mthout=0):
                 ptopsaltip  = maskVal(ptopsaltip , valmask)
                 ptopsaltii  = maskVal(ptopsaltii , valmask)
                 # Volume/temp/salinity of persistent ocean (global, per basin) (1D)
-                #p_ind = npy.argwhere(persisti[t,:,:,:] >= 100.)
                 # Compute zonal mean (2D)
                 persistiz   = cdu.averager(persisti , axis = 3)
                 persistiza  = cdu.averager(persistia, axis = 3)
                 persistizp  = cdu.averager(persistip, axis = 3)
                 persistizi  = cdu.averager(persistii, axis = 3)
                 # Compute zonal mean (1D)
-                ptopdepthi  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'toto')
-                ptopsigmai  = cdm.createVariable(ptopsigmai, axes = [timeyr, lati, loni], id = 'toto')
-                ptoptempi   = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'toto')
-                ptopsalti   = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'toto')
-                ptopdepthia = cdm.createVariable(ptopdepthia, axes = [timeyr, lati, loni], id = 'toto')
-                ptopsigmaia = cdm.createVariable(ptopsigmaia, axes = [timeyr, lati, loni], id = 'toto')
-                ptoptempia  = cdm.createVariable(ptoptempia , axes = [timeyr, lati, loni], id = 'toto')
-                ptopsaltia  = cdm.createVariable(ptopsaltia , axes = [timeyr, lati, loni], id = 'toto')
-                ptopdepthip = cdm.createVariable(ptopdepthip, axes = [timeyr, lati, loni], id = 'toto')
-                ptopsigmaip = cdm.createVariable(ptopsigmaip, axes = [timeyr, lati, loni], id = 'toto')
-                ptoptempip  = cdm.createVariable(ptoptempip , axes = [timeyr, lati, loni], id = 'toto')
-                ptopsaltip  = cdm.createVariable(ptopsaltip , axes = [timeyr, lati, loni], id = 'toto')
-                ptopdepthii = cdm.createVariable(ptopdepthii, axes = [timeyr, lati, loni], id = 'toto')
-                ptopsigmaii = cdm.createVariable(ptopsigmaii, axes = [timeyr, lati, loni], id = 'toto')
-                ptoptempii  = cdm.createVariable(ptoptempii , axes = [timeyr, lati, loni], id = 'toto')
-                ptopsaltii  = cdm.createVariable(ptopsaltii , axes = [timeyr, lati, loni], id = 'toto')
+                ptopdepthi  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'ptopdepthi')
+                ptopsigmai  = cdm.createVariable(ptopsigmai, axes = [timeyr, lati, loni], id = 'ptopsigmai')
+                ptoptempi   = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'ptoptempi')
+                ptopsalti   = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalti')
+                ptopdepthia = cdm.createVariable(ptopdepthia, axes = [timeyr, lati, loni], id = 'ptopdepthia')
+                ptopsigmaia = cdm.createVariable(ptopsigmaia, axes = [timeyr, lati, loni], id = 'ptopsigmaia')
+                ptoptempia  = cdm.createVariable(ptoptempia , axes = [timeyr, lati, loni], id = 'ptoptempia')
+                ptopsaltia  = cdm.createVariable(ptopsaltia , axes = [timeyr, lati, loni], id = 'ptopsaltia')
+                ptopdepthip = cdm.createVariable(ptopdepthip, axes = [timeyr, lati, loni], id = 'ptopdepthip')
+                ptopsigmaip = cdm.createVariable(ptopsigmaip, axes = [timeyr, lati, loni], id = 'ptopsigmaip')
+                ptoptempip  = cdm.createVariable(ptoptempip , axes = [timeyr, lati, loni], id = 'ptoptempip')
+                ptopsaltip  = cdm.createVariable(ptopsaltip , axes = [timeyr, lati, loni], id = 'ptopsaltip')
+                ptopdepthii = cdm.createVariable(ptopdepthii, axes = [timeyr, lati, loni], id = 'ptopdepthii')
+                ptopsigmaii = cdm.createVariable(ptopsigmaii, axes = [timeyr, lati, loni], id = 'ptopsigmaii')
+                ptoptempii  = cdm.createVariable(ptoptempii , axes = [timeyr, lati, loni], id = 'ptoptempii')
+                ptopsaltii  = cdm.createVariable(ptopsaltii , axes = [timeyr, lati, loni], id = 'ptopsaltii')
                 ptopdiz  = cdu.averager(ptopdepthi, axis = 2)
                 ptopdiza = cdu.averager(ptopdepthia, axis = 2)
                 ptopdizp = cdu.averager(ptopdepthip, axis = 2)

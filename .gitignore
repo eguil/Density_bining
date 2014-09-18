@@ -1,7 +1,6 @@
 # other files and folders
-.settings/
 *~
 *.pyc
-out_density.nc
-densit_bin.py.orig
+*.nc
 /test
+*oceanonly.log
