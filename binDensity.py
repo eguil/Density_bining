@@ -250,7 +250,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     te0 = timeit.default_timer()
 
     # netCDF compression
-    comp = 0 ; # 0 for no compression
+    comp = 1 ; # 0 for no compression
     cdm.setNetcdfShuffleFlag(comp)
     cdm.setNetcdfDeflateFlag(comp)
     cdm.setNetcdfDeflateLevelFlag(comp)
@@ -1176,11 +1176,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     fs.close()
     if mthout:
         outFileMon_f.close()
-        print ' Wrote file: ', outFileMon
-    outFile_f.close()
-    outFile_f.close()
+        print ' Wrote file: ',outFileMon
     outFile_f.close()
     if tcdel >= 12:
-        print ' Wrote file: ', outFile
-        print ' Wrote file: ', outFile
-        print ' Wrote file: ', outFile
+        print ' Wrote file: ',outFile
