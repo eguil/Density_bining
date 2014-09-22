@@ -22,6 +22,7 @@ PJD 14 Sep 2014     - Started file
 PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for final code version
 PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
                     - TODO:
+test
 
 @author: durack1
 """
