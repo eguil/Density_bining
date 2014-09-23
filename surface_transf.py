@@ -144,7 +144,6 @@ def surface_transf(sst, sss, emo, qnet, area, sigrid, del_s, regrido, outgrid, m
         t_wafl[t] = cdu.averager(fwafl*area, action='sum')*dt*convw
       
         
-
     #+ create a basins variables (loop on n masks)
 
     return denflx, denflxh, t_heat, t_wafl
@@ -186,8 +185,9 @@ timeint      = args.timeint
 # IPSL-CM5A-LR
 #
 file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-file_T = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-file_S = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+file_sst = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
+file_sss = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
+file_fluxes = ...
 modeln = 'IPSL-CM5A-LR'
 
 if debug >= '1':
@@ -213,6 +213,23 @@ else:
 
 if debugp:
     print; print ' Debug mode'
+#
+# Read masking value
+valmask = sst._FillValue
+#
+# Read time and grid
+lon  = sst.getLongitude()
+lat  = sst.getLatitude()
+ingrid = sst.getGrid()
+#
+# Read cell area
+ff = cdm.open(file_fx)
+area = ff('areacello')
+ff.close()
+#
+# Define dimensions
+N_i = int(lon.shape[1])
+N_j = int(lon.shape[0])
 #
 # Define sigma grid 
 rho_min = 19
@@ -261,6 +278,15 @@ areai = compute_area(loni[:], lati[:])
 #areai   = gt('basinmask3_area').data*1.e6
 gt.close()
 #
+# Read data
+...
+# Kelvin or celsius ?
+tempmin = min(sst.data[0,:,N_j/2,N_i/2])
+if tempmin > valmask/10.:
+    tempmin = min(sst.data[0,:,N_j/4,N_i/2])
+if tempmin > 273.:
+    temp = temp - 273.15
+    print '     [Change units to celsius]'
 # Interpolation init (regrid)
 ESMP.ESMP_Initialize()
 regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
@@ -270,6 +296,7 @@ regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regr
 # -----------------------------------------
 #
 denflx, denflxh, t_heat, t_wafl = surface_transf(sst, sss, emo, qnet, area, s_s, del_s, regridObj, outgrid, masks)
+denflxw = denflx - denflxh
 
 # CPU use
 print
