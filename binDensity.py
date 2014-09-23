@@ -571,7 +571,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x2_bin[t,:,:]        = c2_s
         #
         # end of loop on t <===      
-        #        
+        #      
+        # Free memory for thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z
+        del (thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z) ; gc.collect()
         # Reshape i*j back to i,j
         depth_bino = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
         thick_bino = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
@@ -688,6 +690,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     thickBinii[t,ks,:,:].mask   = maskInd
                     x1Binii[t,ks,:,:].mask      = maskInd
                     x2Binii[t,ks,:,:].mask      = maskInd
+            # Free memory
+            del (dy, ty, x1y, x2y); gc.collect()
             # Global
             depthBini   = maskVal(depthBini, valmask)
             thickBini   = maskVal(thickBini, valmask)
@@ -737,7 +741,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinza    = thickBinza * areazta
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
-
+            # Free memory (!! to be removed if we store these at some point)
+            del (depthBini , thickBini , x1Bini , x2Bini)
+            del (depthBinia, thickBinia, x1Binia, x2Binia)
+            del (depthBinip, thickBinip, x1Binip, x2Binip)
+            del (depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
             toziz = timc.clock()
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
@@ -753,6 +761,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
                 maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
                 p_top = maskp.argmax(axis=0) 
+                del maskp ; gc.collect()
                 # Define properties on bowl (= shallowest persistent ocean)
                 ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
@@ -850,6 +859,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsaltia  = maskVal(ptopsaltia , valmask)
                 ptopsaltip  = maskVal(ptopsaltip , valmask)
                 ptopsaltii  = maskVal(ptopsaltii , valmask)
+                # Free memory
+                del (persbin, ptopdepth, ptopsigma, ptoptemp, ptopsalt) ; gc.collect()
                 # Create cdms2 transient variables
                 ptopdepthi  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'ptopdepthi')
                 ptopsigmai  = cdm.createVariable(ptopsigmai, axes = [timeyr, lati, loni], id = 'ptopsigmai')
@@ -926,8 +937,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptops  = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalt2')
             if tc == 0:
                 # Global attributes
-                persbin.long_name = 'persistence of isopycnal bins'
-                persbin.units = '% of time'
                 dbpz.long_name = 'zonal persistence of isopycnal bins'
                 dbpz.units = '% of time'
                 dbpza.long_name = 'Atl. zonal persistence of isopycnal bins'
@@ -980,7 +989,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbpszi.units = so.units  
     
             # Write & append
-            #outFile_f.write(persbin , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpz   , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpza  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpzp  , extend = 1, index = (trmin-tmin)/12)
