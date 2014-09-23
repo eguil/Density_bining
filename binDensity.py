@@ -259,17 +259,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
     # == Inits
     npy.set_printoptions(precision = 2)
-    # == get command line options
-    #parser = argparse.ArgumentParser(description = 'Script to perform density bining analysis')
-    #parser.add_argument('-d', help = 'toggle debug mode', action = 'count', default = True)
     #parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
-    #parser.add_argument('-n','--nomthoutput', help = 'no monthly output', action = 'count', default = 0)
-    #parser.add_argument('-r','--sigma_range', help='neutral sigma range', required=True)
-    #parser.add_argument('-s','--sigma_increment', help='neutral sigma increment', required=True)
-    #parser.add_argument('-i','--input', help='input directory', default="./")
-    #parser.add_argument('-o','--output',help='output directory', default="./")
-    #parser.add_argument('string', metavar='root for T and S files', type=str, help='netCDF input files root')
-    #args = parser.parse_args()
     
     # Determine file name from inputs
     modeln = fileT.split('/')[-1].split('.')[1]
@@ -285,10 +275,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if os.path.isfile(outFileMon):
             os.remove(outFileMon)
         outFileMon_f = cdm.open(outFileMon,'w') ; # g
-    # Monthly mean of T,S, thickness and depth on neutral density bins on source grid - IPSL (182x149x61) ~6GB 20yrs
-    # Annual zonal mean of T,S, thick, depth and volume per basin on WOA grid - IPSL 60MB 275yrs
-    # Annual mean persistence variables on WOA grid - IPSL 200MB 150yrs
-    # Annual mean zonal mean of persistence on WOA grid - IPSL 60MB 150yrs
+    # Size of uncompressed files:
+    #  Monthly mean of T,S, thickness and depth on neutral density bins on source grid - IPSL (182x149x61) ~6GB 20yrs
+    #  Annual zonal mean of T,S, thick, depth and volume per basin on WOA grid - IPSL 60MB 275yrs
+    #  Annual mean persistence variables on WOA grid - IPSL 200MB 150yrs
+    #  Annual mean zonal mean of persistence on WOA grid - IPSL 60MB 150yrs
 
     if debug:
         print 'Debug - File names:'
@@ -351,26 +342,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     rho_max = 28.5
     del_s1  = 0.2
     del_s2  = 0.1
-    #s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
-    #s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
-    #s_s  = npy.concatenate([s_s1, s_s2])
-    #N_s1 = len(s_s1)
-    #N_s2 = len(s_s2)
-    #N_s  = len(s_s)
-    #del_s = npy.concatenate([npy.tile(del_s1, N_s1), npy.tile(del_s2, N_s2)])
-    #sigma_bnds = mv.asarray([[s_s[:]],[s_s[:]+del_s[:]]]) # make bounds for zonal mean computation
-    #s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
     s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
     s_s = npy.tile(s_s, N_i*N_j).reshape(N_i*N_j,N_s).transpose() # make 3D for matrix computation
     
     # ---------------------
     #  Init density bining
     # ---------------------
-    #imin = 0
-    #jmin = 0
-    #imax = thetao.shape[3]
-    #jmax = thetao.shape[2]
-    
     # test point  
     itest = 80 
     jtest = 60
@@ -499,7 +476,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
-            tac0 = timc.clock()
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content  = thetao.data[t] 
             x2_content  = so.data[t] 
@@ -536,7 +512,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             
             # General case
             # find min/max of density for each z profile
-            tac00 = timc.clock()
             for i in range(N_i*N_j):
                 if nomask[i]:
                     szmin[i] = s_z[i_min[i],i]
@@ -544,17 +519,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 else:
                     szmin[i] = 0.
                     szmax[i] = rho_max+10.
-            tac3 = timc.clock()
             # Find indices between min and max of density (costing ~ 12% CPU)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
-            # same for zztm from z_zt (30% CPU)
+            # same for zztm from z_zt 
             szm = s_z*1. ; szm[...] = 'NaN'
             zzm = s_z*1. ; zzm[...] = 'NaN'
             c1m = c1_z*1. ; c1m[...] = 'NaN'
             c2m = c2_z*1. ; c2m[...] = 'NaN'
             
-            tac4 = timc.clock()        
             for k in range(N_z):
                 k_ind = i_min*1.; k_ind[:] = valmask
                 k_ind = npy.argwhere( (k >= i_min) & (k <= i_max))
@@ -563,21 +536,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
                 
-            tac5 = timc.clock()
             # interpolate depth(z) (z_zt) to depth(s) at s_s densities (z_s) using density(z) s_z
-            # TODO: no loop (35% CPU)
+            # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
-            tac6 = timc.clock()
-            if debugp and (t == 0):
-                print '    CPU stage 0 :', tac00-tac0
-                print '    CPU stage 1 :', tac3-tac00
-                print '    CPU stage 2 :', tac4-tac3
-                print '    CPU stage 3 :', tac5-tac4
-                print '    CPU stage 4 :', tac6-tac5
             
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s=0)
             inds = npy.argwhere(s_s < szmin).transpose()
@@ -615,8 +580,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thick_bino      = maskVal(thick_bino, valmask)
         x1_bino         = maskVal(x1_bino   , valmask)
         x2_bino         = maskVal(x2_bino   , valmask)
-        
-        #tucf = timc.clock()
         #
         if debugp and (tc == 0):
             # test write
@@ -629,7 +592,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'thick_bin', thick_bino[0,:,j,i]
             print 'x1_bin', x1_bino[0,:,j,i]
             print 'x2_bin', x2_bino[0,:,j,i]
-        #tic = timc.clock()
         #
         # Output files as netCDF
         # Def variables 
@@ -662,11 +624,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         ticz = timc.clock()
         if tcdel >= 12:
             # Annual mean
-            # Note: large cost: 40 sec for 12 months for 800k grid points
-            #dy  = cdu.YEAR(depthBin)
-            #ty  = cdu.YEAR(thickBin)
-            #x1y = cdu.YEAR(x1Bin)
-            #x2y = cdu.YEAR(x2Bin)
             #
             dy  = cdu.averager(npy.reshape(depthBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
             ty  = cdu.averager(npy.reshape(thickBin, (nyrtc, 12, N_s+1, N_j, N_i)), axis=1)
