@@ -316,8 +316,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print ' Debug mode'
     
     # Define temperature and salinity arrays
-    thetao = ft('thetao', time = slice(0,1))
-    so   = fs('so', time = slice(0,1))
+    thetao      = ft('thetao', time = slice(0,1))
+    thetao_h    = ft['thetao'] ; # Create variable handle
+    so          = fs('so', time = slice(0,1))
+    so_h        = fs['so'] ; # Create variable handle
     
     # Read file attributes to carry on to output files
     list_file=ft.attributes.keys()
@@ -329,11 +331,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     valmask = so._FillValue
     
     # Read time and grid
-    lon     = thetao.getLongitude()
-    lat     = thetao.getLatitude()
-    depth   = thetao.getLevel()
+    lon     = thetao_h.getLongitude()
+    lat     = thetao_h.getLatitude()
+    depth   = thetao_h.getLevel()
     bounds  = ft('lev_bnds')
-    ingrid  = thetao.getGrid()
+    ingrid  = thetao_h.getGrid()
     
     # Read cell area
     ff      = cdm.open(fileFx)
@@ -457,7 +459,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         trmin   = tmin + tc*tcdel ; # define as function of tc and tcdel
         trmax   = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
         print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
-        thetao    = ft('thetao', time = slice(trmin,trmax))
+        thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
         time    = thetao.getTime()
         
@@ -473,9 +475,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         rhon = eosNeutral(thetao,so)-1000.
         
         # reorganise i,j dims in single dimension data (speeds up loops)
-        thetao = npy.reshape(thetao, (tcdel, N_z, N_i*N_j))
-        so   = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
-        rhon = npy.reshape(rhon, (tcdel, N_z, N_i*N_j))
+        thetao  = npy.reshape(thetao, (tcdel, N_z, N_i*N_j))
+        so      = npy.reshape(so  , (tcdel, N_z, N_i*N_j))
+        rhon    = npy.reshape(rhon, (tcdel, N_z, N_i*N_j))
         
         # init output arrays for bined fields
         depth_bin[...] = valmask
@@ -615,10 +617,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 depthBin.units      = 'm'
                 thickBin.long_name  = 'Thickness of isopycnal'
                 thickBin.units      = 'm'
-                x1Bin.long_name     = thetao.long_name
+                x1Bin.long_name     = thetao_h.long_name
                 x1Bin.units         = 'C'
-                x2Bin.long_name     = so.long_name
-                x2Bin.units         = so.units
+                x2Bin.long_name     = so_h.long_name
+                x2Bin.units         = so_h.units
                 outFileMon_f.write(area) ; # Added area so isonvol can be computed
                 # write global attributes (inherited from thetao file)
                 for i in range(0,len(file_dic)):
@@ -937,56 +939,56 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptops  = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalt2')
             if tc == 0:
                 # Global attributes
-                dbpz.long_name = 'zonal persistence of isopycnal bins'
-                dbpz.units = '% of time'
-                dbpza.long_name = 'Atl. zonal persistence of isopycnal bins'
-                dbpza.units = '% of time'
-                dbpzp.long_name = 'Pac. zonal persistence of isopycnal bins'
-                dbpzp.units = '% of time'
-                dbpzi.long_name = 'Ind. zonal persistence of isopycnal bins'
-                dbpzi.units = '% of time'
+                dbpz.long_name      = 'zonal persistence of isopycnal bins'
+                dbpz.units          = '% of time'
+                dbpza.long_name     = 'Atl. zonal persistence of isopycnal bins'
+                dbpza.units         = '% of time'
+                dbpzp.long_name     = 'Pac. zonal persistence of isopycnal bins'
+                dbpzp.units         = '% of time'
+                dbpzi.long_name     = 'Ind. zonal persistence of isopycnal bins'
+                dbpzi.units         = '% of time'
                 #
-                persim.long_name = 'Fraction of persistence on isopycnal bins'
-                persim.units = '% of column'
-                ptopd.long_name = 'Depth of shallowest persistent ocean on ison'
-                ptopd.units = 'm'
-                ptopt.long_name = 'Temp. of shallowest persistent ocean on ison'
-                ptopt.units = 'C'   
-                ptops.long_name = 'Salinity of shallowest persistent ocean on ison'
-                ptops.units = so.units
+                persim.long_name    = 'Fraction of persistence on isopycnal bins'
+                persim.units        = '% of column'
+                ptopd.long_name     = 'Depth of shallowest persistent ocean on ison'
+                ptopd.units         = 'm'
+                ptopt.long_name     = 'Temp. of shallowest persistent ocean on ison'
+                ptopt.units         = 'C'   
+                ptops.long_name     = 'Salinity of shallowest persistent ocean on ison'
+                ptops.units         = so_h.units
                 #
-                dbpdz.long_name = 'Zonal depth of shallowest persistent ocean on ison'
-                dbpdz.units = 'm'
-                dbprz.long_name = 'Zonal rhon of shallowest persistent ocean on ison'
-                dbprz.units = 'sigma_n'
-                dbptz.long_name = 'Zonal Temp. of shallowest persistent ocean on ison'
-                dbptz.units = 'C'   
-                dbpsz.long_name = 'Zonal Salinity of shallowest persistent ocean on ison'
-                dbpsz.units = so.units  
-                dbpdza.long_name = 'Atl. zonal depth of shallowest persistent ocean on ison'
-                dbpdza.units = 'm'
-                dbprza.long_name = 'Atl. Zonal rhon of shallowest persistent ocean on ison'
-                dbprza.units = 'sigma_n'
-                dbptza.long_name = 'Atl. zonal Temp. of shallowest persistent ocean on ison'
-                dbptza.units = 'C'   
-                dbpsza.long_name = 'Atl. Zonal Salinity of shallowest persistent ocean on ison'
-                dbpsza.units = so.units  
-                dbpdzp.long_name = 'Pac. zonal depth of shallowest persistent ocean on ison'
-                dbpdzp.units = 'm'
-                dbprzp.long_name = 'Pac. Zonal rhon of shallowest persistent ocean on ison'
-                dbprzp.units = 'sigma_n'
-                dbptzp.long_name = 'Pac. zonal Temp. of shallowest persistent ocean on ison'
-                dbptzp.units = 'C'   
-                dbpszp.long_name = 'Pac. zonal Salinity of shallowest persistent ocean on ison'
-                dbpszp.units = so.units  
-                dbpdzi.long_name = 'Ind. zonal depth of shallowest persistent ocean on ison'
-                dbpdzi.units = 'm'
-                dbprzi.long_name = 'Ind. Zonal rhon of shallowest persistent ocean on ison'
-                dbprzi.units = 'sigma_n'
-                dbptzi.long_name = 'Ind. zonal Temp. of shallowest persistent ocean on ison'
-                dbptzi.units = 'C'   
-                dbpszi.long_name = 'Ind. zonal Salinity of shallowest persistent ocean on ison'
-                dbpszi.units = so.units  
+                dbpdz.long_name     = 'Zonal depth of shallowest persistent ocean on ison'
+                dbpdz.units         = 'm'
+                dbprz.long_name     = 'Zonal rhon of shallowest persistent ocean on ison'
+                dbprz.units         = 'sigma_n'
+                dbptz.long_name     = 'Zonal Temp. of shallowest persistent ocean on ison'
+                dbptz.units         = 'C'   
+                dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
+                dbpsz.units         = so_h.units  
+                dbpdza.long_name    = 'Atl. zonal depth of shallowest persistent ocean on ison'
+                dbpdza.units        = 'm'
+                dbprza.long_name    = 'Atl. Zonal rhon of shallowest persistent ocean on ison'
+                dbprza.units        = 'sigma_n'
+                dbptza.long_name    = 'Atl. zonal Temp. of shallowest persistent ocean on ison'
+                dbptza.units        = 'C'   
+                dbpsza.long_name    = 'Atl. Zonal Salinity of shallowest persistent ocean on ison'
+                dbpsza.units        = so_h.units  
+                dbpdzp.long_name    = 'Pac. zonal depth of shallowest persistent ocean on ison'
+                dbpdzp.units        = 'm'
+                dbprzp.long_name    = 'Pac. Zonal rhon of shallowest persistent ocean on ison'
+                dbprzp.units        = 'sigma_n'
+                dbptzp.long_name    = 'Pac. zonal Temp. of shallowest persistent ocean on ison'
+                dbptzp.units        = 'C'   
+                dbpszp.long_name    = 'Pac. zonal Salinity of shallowest persistent ocean on ison'
+                dbpszp.units        = so_h.units  
+                dbpdzi.long_name    = 'Ind. zonal depth of shallowest persistent ocean on ison'
+                dbpdzi.units        = 'm'
+                dbprzi.long_name    = 'Ind. Zonal rhon of shallowest persistent ocean on ison'
+                dbprzi.units        = 'sigma_n'
+                dbptzi.long_name    = 'Ind. zonal Temp. of shallowest persistent ocean on ison'
+                dbptzi.units        = 'C'   
+                dbpszi.long_name    = 'Ind. zonal Salinity of shallowest persistent ocean on ison'
+                dbpszi.units        = so_h.units  
     
             # Write & append
             outFile_f.write(dbpz   , extend = 1, index = (trmin-tmin)/12)
@@ -1009,16 +1011,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbprzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.sync() ; # Synchronise changes to file handle
-            #
-            #print 'persim: ',persim.shape
-            #print 'persim: ',persim.getAxisIds()
             outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12)
-            #print 'ptopd:  ',ptopd.shape
-            #print 'ptopd:  ',ptopd.getAxisIds()
-            #tmp = outFile_f['ptopdepth']
-            #print 'tmp:    ',tmp.shape
-            #print 'tmp:    ',tmp.getAxisIds()
             outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
@@ -1052,49 +1045,50 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x2bzi = cdm.createVariable(x2Binzi   , axes = [timeyr, s_axis, lati], id = 'soi')
             if tc == 0:
                 # Global attributes
-                dbz.long_name = 'Global zonal depth of isopycnal'
-                dbz.units = 'm'
-                tbz.long_name = 'Global zonal thickness of isopycnal'
-                tbz.units = 'm'
-                vbz.long_name = 'Volume of isopycnal'
-                vbz.units = '10.e12 m^3'
-                x1bz.long_name = thetao.long_name
-                x1bz.units = 'C'
-                x2bz.long_name = so.long_name
-                x2bz.units = so.units
+                dbz.long_name   = 'Global zonal depth of isopycnal'
+                dbz.units       = 'm'
+                tbz.long_name   = 'Global zonal thickness of isopycnal'
+                tbz.units       = 'm'
+                vbz.long_name   = 'Volume of isopycnal'
+                vbz.units       = '10.e12 m^3'
+                x1bz.long_name  = thetao_h.long_name
+                x1bz.units      = 'degrees_C'
+                x2bz.long_name  = so_h.long_name
+                x2bz.units      = so_h.units
                 # Atl
-                dbza.long_name = 'Atl. zonal depth of isopycnal'
-                dbza.units = dbz.units
-                tbza.long_name = 'Atl. zonal thickness of isopycnal'
-                tbza.units = 'm'
-                vbza.long_name = 'Atl. volume of isopycnal'
-                vbza.units = '10.e12 m^3'
-                x1bza.long_name = thetao.long_name
-                x1bza.units = 'C'
-                x2bza.long_name = so.long_name
-                x2bza.units = so.units
+                dbza.long_name  = 'Atl. zonal depth of isopycnal'
+                dbza.units      = dbz.units
+                tbza.long_name  = 'Atl. zonal thickness of isopycnal'
+                tbza.units      = 'm'
+                vbza.long_name  = 'Atl. volume of isopycnal'
+                vbza.units      = '10.e12 m^3'
+                x1bza.long_name = thetao_h.long_name
+                x1bza.units     = 'C'
+                x2bza.long_name = so_h.long_name
+                x2bza.units     = so_h.units
                 # Pac
-                dbzp.long_name = 'Pac. zonal depth of isopycnal'
-                dbzp.units = dbz.units
-                tbzp.long_name = 'Pac. zonal thickness of isopycnal'
-                tbzp.units = 'm'
-                vbzp.long_name = 'Pac. volume of isopycnal'
-                vbzp.units = '10.e12 m^3'
-                x1bzp.long_name = thetao.long_name
-                x1bzp.units = 'C'
-                x2bzp.long_name = so.long_name
-                x2bzp.units = so.units
+                dbzp.long_name  = 'Pac. zonal depth of isopycnal'
+                dbzp.units      = dbz.units
+                tbzp.long_name  = 'Pac. zonal thickness of isopycnal'
+                tbzp.units      = 'm'
+                vbzp.long_name  = 'Pac. volume of isopycnal'
+                vbzp.units      = '10.e12 m^3'
+                x1bzp.long_name = thetao_h.long_name
+                x1bzp.units     = 'C'
+                x2bzp.long_name = so_h.long_name
+                x2bzp.units     = so_h.units
                 # Ind
-                dbzi.long_name = 'Ind. zonal depth of isopycnal'
-                dbzi.units = dbz.units
-                tbzi.long_name = 'Ind. zonal thickness of isopycnal'
-                tbzi.units = 'm'
-                vbzi.long_name = 'Ind. volume of isopycnal'
-                vbzi.units = '10.e12 m^3'
-                x1bzi.long_name = thetao.long_name
-                x1bzi.units = 'C'
-                x2bzi.long_name = so.long_name
-                x2bzi.units = so.units
+                dbzi.long_name  = 'Ind. zonal depth of isopycnal'
+                dbzi.units      = dbz.units
+                tbzi.long_name  = 'Ind. zonal thickness of isopycnal'
+                tbzi.units      = 'm'
+                vbzi.long_name  = 'Ind. volume of isopycnal'
+                vbzi.units      = '10.e12 m^3'
+                x1bzi.long_name = thetao_h.long_name
+                x1bzi.units     = 'C'
+                x2bzi.long_name = so_h.long_name
+                x2bzi.units     = so_h.units
+                # Cleanup
             # Write & append
             outFile_f.write(dbz , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(tbz , extend = 1, index = (trmin-tmin)/12)
