@@ -721,25 +721,25 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
             # Compute zonal mean
             # Global
-            depthBinz   = cdu.averager(depthBini, axis = 3)
-            thickBinz   = cdu.averager(thickBini, axis = 3)
-            x1Binz      = cdu.averager(x1Bini,    axis = 3)
-            x2Binz      = cdu.averager(x2Bini,    axis = 3)
+            depthBinz   = cdu.averager(depthBini,   axis = 3)
+            thickBinz   = cdu.averager(thickBini,   axis = 3)
+            x1Binz      = cdu.averager(x1Bini,      axis = 3)
+            x2Binz      = cdu.averager(x2Bini,      axis = 3)
             # Atl
-            depthBinza  = cdu.averager(depthBinia, axis = 3)
-            thickBinza  = cdu.averager(thickBinia, axis = 3)
-            x1Binza     = cdu.averager(x1Binia,    axis = 3)
-            x2Binza     = cdu.averager(x2Binia,    axis = 3)
+            depthBinza  = cdu.averager(depthBinia,  axis = 3)
+            thickBinza  = cdu.averager(thickBinia,  axis = 3)
+            x1Binza     = cdu.averager(x1Binia,     axis = 3)
+            x2Binza     = cdu.averager(x2Binia,     axis = 3)
             # Pac
-            depthBinzp  = cdu.averager(depthBinip, axis = 3)
-            thickBinzp  = cdu.averager(thickBinip, axis = 3)
-            x1Binzp     = cdu.averager(x1Binip,    axis = 3)
-            x2Binzp     = cdu.averager(x2Binip,    axis = 3)
+            depthBinzp  = cdu.averager(depthBinip,  axis = 3)
+            thickBinzp  = cdu.averager(thickBinip,  axis = 3)
+            x1Binzp     = cdu.averager(x1Binip,     axis = 3)
+            x2Binzp     = cdu.averager(x2Binip,     axis = 3)
             # Ind
-            depthBinzi  = cdu.averager(depthBinii, axis = 3)
-            thickBinzi  = cdu.averager(thickBinii, axis = 3)
-            x1Binzi     = cdu.averager(x1Binii,    axis = 3)
-            x2Binzi     = cdu.averager(x2Binii,    axis = 3)
+            depthBinzi  = cdu.averager(depthBinii,  axis = 3)
+            thickBinzi  = cdu.averager(thickBinii,  axis = 3)
+            x1Binzi     = cdu.averager(x1Binii,     axis = 3)
+            x2Binzi     = cdu.averager(x2Binii,     axis = 3)
             # Compute volume of isopycnals
             volBinz     = thickBinz  * areazt
             volBinza    = thickBinza * areazta
