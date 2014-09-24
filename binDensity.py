@@ -577,7 +577,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # end of loop on t <===      
         #      
         # Free memory for thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z
-        del(thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z) ; gc.collect()
+        del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z) ; gc.collect()
         # Reshape i*j back to i,j
         depth_bino = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
         thick_bino = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
@@ -745,11 +745,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinza    = thickBinza * areazta
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
-            # Free memory (!! to be removed if we store these at some point)
-            del(depthBini,  x1Bini,     x2Bini)
-            del(depthBinia, thickBinia, x1Binia, x2Binia)
-            del(depthBinip, thickBinip, x1Binip, x2Binip)
-            del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
+
             toziz = timc.clock()
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
