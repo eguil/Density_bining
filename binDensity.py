@@ -237,7 +237,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - fileFx(lat,lon)           - 2D array containing the cell area values
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
-    - timeint <optional>        - specify temporal step for binning
+    - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
     - mthout <optional>         - write annual data (False) or all monthly data (True)
 
     Usage:
@@ -252,6 +252,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - PJD 18 Sep 2014   - Added so/thetao units check (fixVarUnits)
     - PJD 18 Sep 2014   - Renamed temp to thetao for clarity
     - EG  23 Sep 2014   - Clean up and documentation
+    - PJD 23 Sep 2014   - Added so/thetao variable handles so variable attributes can be copied without a heavy memory overhead
                 TODO:   - Deal with NaN values with mask variables:
                 /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
@@ -269,7 +270,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
     # == Inits
     npy.set_printoptions(precision = 2)
-    #parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
     
     # Determine file name from inputs
     modeln = fileT.split('/')[-1].split('.')[1]
@@ -575,7 +575,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # end of loop on t <===      
         #      
         # Free memory for thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z
-        del (thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z) ; gc.collect()
+        del(thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z) ; gc.collect()
         # Reshape i*j back to i,j
         depth_bino = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
         thick_bino = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
@@ -590,8 +590,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x2_bino.mask    = maskb
         depth_bino      = maskVal(depth_bino, valmask)
         thick_bino      = maskVal(thick_bino, valmask)
-        x1_bino         = maskVal(x1_bino   , valmask)
-        x2_bino         = maskVal(x2_bino   , valmask)
+        x1_bino         = maskVal(x1_bino,    valmask)
+        x2_bino         = maskVal(x2_bino,    valmask)
         #
         if debugp and (tc == 0):
             # test write
@@ -744,10 +744,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
             # Free memory (!! to be removed if we store these at some point)
-            del (depthBini , x1Bini , x2Bini)
-            del (depthBinia, thickBinia, x1Binia, x2Binia)
-            del (depthBinip, thickBinip, x1Binip, x2Binip)
-            del (depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
+            del(depthBini,  x1Bini,     x2Bini)
+            del(depthBinia, thickBinia, x1Binia, x2Binia)
+            del(depthBinip, thickBinip, x1Binip, x2Binip)
+            del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
             toziz = timc.clock()
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
@@ -798,12 +798,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     persistii[t,ks,:,:]         = persisti[t,ks,:,:]*1.
                     persistii[t,ks,:,:].mask    = maskInd
 
-                persisti                    = maskVal(persisti, valmask)
-                persistia                   = maskVal(persistia, valmask)
-                persistip                   = maskVal(persistip, valmask)
-                persistii                   = maskVal(persistii, valmask)
+                persisti    = maskVal(persisti,  valmask)
+                persistia   = maskVal(persistia, valmask)
+                persistip   = maskVal(persistip, valmask)
+                persistii   = maskVal(persistii, valmask)
                 # Compute zonal mean (2D)
-                persistiz   = cdu.averager(persisti , axis = 3)
+                persistiz   = cdu.averager(persisti,  axis = 3)
                 persistiza  = cdu.averager(persistia, axis = 3)
                 persistizp  = cdu.averager(persistip, axis = 3)
                 persistizi  = cdu.averager(persistii, axis = 3)
@@ -819,7 +819,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsigmai[t,:,:].mask      = maski
                 ptoptempi[t,:,:].mask       = maski
                 ptopsalti[t,:,:].mask       = maski
-    
                 ptopdepthia[t,:,:]          = ptopdepthi[t,:,:]*1.
                 ptopdepthip[t,:,:]          = ptopdepthi[t,:,:]*1.
                 ptopdepthii[t,:,:]          = ptopdepthi[t,:,:]*1.
@@ -845,58 +844,58 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsaltip[t,:,:].mask      = maskPac
                 ptopsaltii[t,:,:].mask      = maskInd
     
-                ptopdepthi  = maskVal(ptopdepthi , valmask)
+                ptopdepthi  = maskVal(ptopdepthi,  valmask)
                 ptopdepthia = maskVal(ptopdepthia, valmask)
                 ptopdepthip = maskVal(ptopdepthip, valmask)
                 ptopdepthii = maskVal(ptopdepthii, valmask)
-                ptopsigmai  = maskVal(ptopsigmai , valmask)
+                ptopsigmai  = maskVal(ptopsigmai,  valmask)
                 ptopsigmaia = maskVal(ptopsigmaia, valmask)
                 ptopsigmaip = maskVal(ptopsigmaip, valmask)
                 ptopsigmaii = maskVal(ptopsigmaii, valmask)
-                ptoptempi   = maskVal(ptoptempi  , valmask)
-                ptoptempia  = maskVal(ptoptempia , valmask)
-                ptoptempip  = maskVal(ptoptempip , valmask)
-                ptoptempii  = maskVal(ptoptempii , valmask)
-                ptopsalti   = maskVal(ptopsalti  , valmask)
-                ptopsaltia  = maskVal(ptopsaltia , valmask)
-                ptopsaltip  = maskVal(ptopsaltip , valmask)
-                ptopsaltii  = maskVal(ptopsaltii , valmask)
+                ptoptempi   = maskVal(ptoptempi,   valmask)
+                ptoptempia  = maskVal(ptoptempia,  valmask)
+                ptoptempip  = maskVal(ptoptempip,  valmask)
+                ptoptempii  = maskVal(ptoptempii,  valmask)
+                ptopsalti   = maskVal(ptopsalti,   valmask)
+                ptopsaltia  = maskVal(ptopsaltia,  valmask)
+                ptopsaltip  = maskVal(ptopsaltip,  valmask)
+                ptopsaltii  = maskVal(ptopsaltii,  valmask)
                 # Free memory
                 del (persbin, ptopdepth, ptopsigma, ptoptemp, ptopsalt) ; gc.collect()
                 # Create cdms2 transient variables
-                ptopdepthi  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'ptopdepthi')
-                ptopsigmai  = cdm.createVariable(ptopsigmai, axes = [timeyr, lati, loni], id = 'ptopsigmai')
-                ptoptempi   = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'ptoptempi')
-                ptopsalti   = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalti')
+                ptopdepthi  = cdm.createVariable(ptopdepthi,  axes = [timeyr, lati, loni], id = 'ptopdepthi')
+                ptopsigmai  = cdm.createVariable(ptopsigmai,  axes = [timeyr, lati, loni], id = 'ptopsigmai')
+                ptoptempi   = cdm.createVariable(ptoptempi,   axes = [timeyr, lati, loni], id = 'ptoptempi')
+                ptopsalti   = cdm.createVariable(ptopsalti,   axes = [timeyr, lati, loni], id = 'ptopsalti')
                 ptopdepthia = cdm.createVariable(ptopdepthia, axes = [timeyr, lati, loni], id = 'ptopdepthia')
                 ptopsigmaia = cdm.createVariable(ptopsigmaia, axes = [timeyr, lati, loni], id = 'ptopsigmaia')
-                ptoptempia  = cdm.createVariable(ptoptempia , axes = [timeyr, lati, loni], id = 'ptoptempia')
-                ptopsaltia  = cdm.createVariable(ptopsaltia , axes = [timeyr, lati, loni], id = 'ptopsaltia')
+                ptoptempia  = cdm.createVariable(ptoptempia,  axes = [timeyr, lati, loni], id = 'ptoptempia')
+                ptopsaltia  = cdm.createVariable(ptopsaltia,  axes = [timeyr, lati, loni], id = 'ptopsaltia')
                 ptopdepthip = cdm.createVariable(ptopdepthip, axes = [timeyr, lati, loni], id = 'ptopdepthip')
                 ptopsigmaip = cdm.createVariable(ptopsigmaip, axes = [timeyr, lati, loni], id = 'ptopsigmaip')
-                ptoptempip  = cdm.createVariable(ptoptempip , axes = [timeyr, lati, loni], id = 'ptoptempip')
-                ptopsaltip  = cdm.createVariable(ptopsaltip , axes = [timeyr, lati, loni], id = 'ptopsaltip')
+                ptoptempip  = cdm.createVariable(ptoptempip,  axes = [timeyr, lati, loni], id = 'ptoptempip')
+                ptopsaltip  = cdm.createVariable(ptopsaltip,  axes = [timeyr, lati, loni], id = 'ptopsaltip')
                 ptopdepthii = cdm.createVariable(ptopdepthii, axes = [timeyr, lati, loni], id = 'ptopdepthii')
                 ptopsigmaii = cdm.createVariable(ptopsigmaii, axes = [timeyr, lati, loni], id = 'ptopsigmaii')
-                ptoptempii  = cdm.createVariable(ptoptempii , axes = [timeyr, lati, loni], id = 'ptoptempii')
-                ptopsaltii  = cdm.createVariable(ptopsaltii , axes = [timeyr, lati, loni], id = 'ptopsaltii')
+                ptoptempii  = cdm.createVariable(ptoptempii,  axes = [timeyr, lati, loni], id = 'ptoptempii')
+                ptopsaltii  = cdm.createVariable(ptopsaltii,  axes = [timeyr, lati, loni], id = 'ptopsaltii')
                 # Compute zonal mean (1D)
-                ptopdiz     = cdu.averager(ptopdepthi, axis = 2)
+                ptopdiz     = cdu.averager(ptopdepthi,  axis = 2)
                 ptopdiza    = cdu.averager(ptopdepthia, axis = 2)
                 ptopdizp    = cdu.averager(ptopdepthip, axis = 2)
                 ptopdizi    = cdu.averager(ptopdepthii, axis = 2)
-                ptopriz     = cdu.averager(ptopsigmai, axis = 2)
+                ptopriz     = cdu.averager(ptopsigmai,  axis = 2)
                 ptopriza    = cdu.averager(ptopsigmaia, axis = 2)
                 ptoprizp    = cdu.averager(ptopsigmaip, axis = 2)
                 ptoprizi    = cdu.averager(ptopsigmaii, axis = 2)
-                ptoptiz     = cdu.averager(ptoptempi, axis = 2)
-                ptoptiza    = cdu.averager(ptoptempia, axis = 2)
-                ptoptizp    = cdu.averager(ptoptempip, axis = 2)
-                ptoptizi    = cdu.averager(ptoptempii, axis = 2)
-                ptopsiz     = cdu.averager(ptopsalti, axis = 2)
-                ptopsiza    = cdu.averager(ptopsaltia, axis = 2)
-                ptopsizp    = cdu.averager(ptopsaltip, axis = 2)
-                ptopsizi    = cdu.averager(ptopsaltii, axis = 2)
+                ptoptiz     = cdu.averager(ptoptempi,   axis = 2)
+                ptoptiza    = cdu.averager(ptoptempia,  axis = 2)
+                ptoptizp    = cdu.averager(ptoptempip,  axis = 2)
+                ptoptizi    = cdu.averager(ptoptempii,  axis = 2)
+                ptopsiz     = cdu.averager(ptopsalti,   axis = 2)
+                ptopsiza    = cdu.averager(ptopsaltia,  axis = 2)
+                ptopsizp    = cdu.averager(ptopsaltip,  axis = 2)
+                ptopsizi    = cdu.averager(ptopsaltii,  axis = 2)
             #
             # end of loop on t <==
             #
@@ -1090,27 +1089,27 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x2bzi.units     = so_h.units
                 # Cleanup
             # Write & append
-            outFile_f.write(dbz , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbz , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbz , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bz, extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bz, extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbz,   extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbz,   extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbz,   extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x1bz,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x2bz,  extend = 1, index = (trmin-tmin)/12)
             # Atl
-            outFile_f.write(dbza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbza , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbza,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbza,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbza,  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bza, extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bza, extend = 1, index = (trmin-tmin)/12)
             # Pac
-            outFile_f.write(dbzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbzp , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbzp,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbzp,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbzp,  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bzp, extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bzp, extend = 1, index = (trmin-tmin)/12)
             # Ind
-            outFile_f.write(dbzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbzi , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbzi,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbzi,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbzi,  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bzi, extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bzi, extend = 1, index = (trmin-tmin)/12)
     
