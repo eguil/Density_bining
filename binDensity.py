@@ -746,10 +746,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
             # Free memory (!! to be removed if we store these at some point)
-            del(depthBini,  x1Bini,     x2Bini)
-            del(depthBinia, thickBinia, x1Binia, x2Binia)
-            del(depthBinip, thickBinip, x1Binip, x2Binip)
-            del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
+            #del(depthBini,  x1Bini,     x2Bini)
+            #del(depthBinia, thickBinia, x1Binia, x2Binia)
+            #del(depthBinip, thickBinip, x1Binip, x2Binip)
+            #del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
             toziz = timc.clock()
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
