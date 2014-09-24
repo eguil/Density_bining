@@ -695,7 +695,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     x1Binii[t,ks,:,:].mask      = maskInd
                     x2Binii[t,ks,:,:].mask      = maskInd
             # Free memory
-            del (dy, ty, x1y, x2y); gc.collect()
+            del(dy, ty, x1y, x2y); gc.collect()
             # Global
             depthBini   = maskVal(depthBini, valmask)
             thickBini   = maskVal(thickBini, valmask)
@@ -765,7 +765,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
                 maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
                 p_top = maskp.argmax(axis=0) 
-                del maskp ; gc.collect()
+                del(maskp) ; gc.collect()
                 # Define properties on bowl (= shallowest persistent ocean)
                 ptopdepth = npy.ma.ones([N_j*N_i], dtype='float32')*valmask 
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
@@ -863,7 +863,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsaltip  = maskVal(ptopsaltip,  valmask)
                 ptopsaltii  = maskVal(ptopsaltii,  valmask)
                 # Free memory
-                del (persbin, ptopdepth, ptopsigma, ptoptemp, ptopsalt) ; gc.collect()
+                del(persbin, ptopdepth, ptopsigma, ptoptemp, ptopsalt) ; gc.collect()
                 # Create cdms2 transient variables
                 ptopdepthi  = cdm.createVariable(ptopdepthi,  axes = [timeyr, lati, loni], id = 'ptopdepthi')
                 ptopsigmai  = cdm.createVariable(ptopsigmai,  axes = [timeyr, lati, loni], id = 'ptopsigmai')
@@ -1021,29 +1021,29 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Init zonal mean output variables
             # Global
-            dbz  = cdm.createVariable(depthBinz, axes = [timeyr, s_axis, lati], id = 'isondepth')
-            tbz  = cdm.createVariable(thickBinz, axes = [timeyr, s_axis, lati], id = 'isonthick')
-            vbz  = cdm.createVariable(volBinz*1.e-12, axes = [timeyr, s_axis, lati], id = 'isonvol')
-            x1bz = cdm.createVariable(x1Binz   , axes = [timeyr, s_axis, lati], id = 'thetao')
-            x2bz = cdm.createVariable(x2Binz   , axes = [timeyr, s_axis, lati], id = 'so')
+            dbz  = cdm.createVariable(depthBinz,        axes = [timeyr, s_axis, lati], id = 'isondepth')
+            tbz  = cdm.createVariable(thickBinz,        axes = [timeyr, s_axis, lati], id = 'isonthick')
+            vbz  = cdm.createVariable(volBinz*1.e-12,   axes = [timeyr, s_axis, lati], id = 'isonvol')
+            x1bz = cdm.createVariable(x1Binz,           axes = [timeyr, s_axis, lati], id = 'thetao')
+            x2bz = cdm.createVariable(x2Binz,           axes = [timeyr, s_axis, lati], id = 'so')
             # Atl
-            dbza  = cdm.createVariable(depthBinza, axes = [timeyr, s_axis, lati], id = 'isondeptha')
-            tbza  = cdm.createVariable(thickBinza, axes = [timeyr, s_axis, lati], id = 'isonthicka')
+            dbza  = cdm.createVariable(depthBinza,      axes = [timeyr, s_axis, lati], id = 'isondeptha')
+            tbza  = cdm.createVariable(thickBinza,      axes = [timeyr, s_axis, lati], id = 'isonthicka')
             vbza  = cdm.createVariable(volBinza*1.e-12, axes = [timeyr, s_axis, lati], id = 'isonvola')
-            x1bza = cdm.createVariable(x1Binza   , axes = [timeyr, s_axis, lati], id = 'thetaoa')
-            x2bza = cdm.createVariable(x2Binza   , axes = [timeyr, s_axis, lati], id = 'soa')
+            x1bza = cdm.createVariable(x1Binza,         axes = [timeyr, s_axis, lati], id = 'thetaoa')
+            x2bza = cdm.createVariable(x2Binza,         axes = [timeyr, s_axis, lati], id = 'soa')
             # Pac
-            dbzp  = cdm.createVariable(depthBinzp, axes = [timeyr, s_axis, lati], id = 'isondepthp')
-            tbzp  = cdm.createVariable(thickBinzp, axes = [timeyr, s_axis, lati], id = 'isonthickp')
+            dbzp  = cdm.createVariable(depthBinzp,      axes = [timeyr, s_axis, lati], id = 'isondepthp')
+            tbzp  = cdm.createVariable(thickBinzp,      axes = [timeyr, s_axis, lati], id = 'isonthickp')
             vbzp  = cdm.createVariable(volBinzp*1.e-12, axes = [timeyr, s_axis, lati], id = 'isonvolp')
-            x1bzp = cdm.createVariable(x1Binzp   , axes = [timeyr, s_axis, lati], id = 'thetaop')
-            x2bzp = cdm.createVariable(x2Binzp   , axes = [timeyr, s_axis, lati], id = 'sop')
+            x1bzp = cdm.createVariable(x1Binzp,         axes = [timeyr, s_axis, lati], id = 'thetaop')
+            x2bzp = cdm.createVariable(x2Binzp,         axes = [timeyr, s_axis, lati], id = 'sop')
             # Ind
-            dbzi  = cdm.createVariable(depthBinzi, axes = [timeyr, s_axis, lati], id = 'isondepthi')
-            tbzi  = cdm.createVariable(thickBinzi,  axes = [timeyr, s_axis, lati], id = 'isonthicki')
+            dbzi  = cdm.createVariable(depthBinzi,      axes = [timeyr, s_axis, lati], id = 'isondepthi')
+            tbzi  = cdm.createVariable(thickBinzi,      axes = [timeyr, s_axis, lati], id = 'isonthicki')
             vbzi  = cdm.createVariable(volBinzi*1.e-12, axes = [timeyr, s_axis, lati], id = 'isonvoli')
-            x1bzi = cdm.createVariable(x1Binzi   , axes = [timeyr, s_axis, lati], id = 'thetaoi')
-            x2bzi = cdm.createVariable(x2Binzi   , axes = [timeyr, s_axis, lati], id = 'soi')
+            x1bzi = cdm.createVariable(x1Binzi,         axes = [timeyr, s_axis, lati], id = 'thetaoi')
+            x2bzi = cdm.createVariable(x2Binzi,         axes = [timeyr, s_axis, lati], id = 'soi')
             if tc == 0:
                 # Global attributes
                 dbz.long_name   = 'Global zonal depth of isopycnal'
