@@ -505,22 +505,22 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             i_max       = npy.ones((N_i*N_j))*0
             delta_rho   = npy.ones((N_i*N_j))*valmask
             # find bottom level at each lat/lon point
-            i_bottom    = vmask_3D.argmax(axis=0)-1
-            z_s [N_s, nomask] = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
-            c1_s[N_s, nomask] = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
-            c2_s[N_s, nomask] = x2_content[N_z-1,nomask] ; # Cell bottom tempi_profilerature/salinity
+            i_bottom            = vmask_3D.argmax(axis=0)-1
+            z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+            c1_s[N_s, nomask]   = x1_content[N_z-1,nomask] ; # Cell bottom temperature/salinity
+            c2_s[N_s, nomask]   = x2_content[N_z-1,nomask] ; # Cell bottom tempi_profilerature/salinity
             # init arrays as a function of depth = f(z)
             s_z = rhon.data[t]
             c1_z = x1_content
             c2_z = x2_content
             # Extract a strictly increasing sub-profile
-            i_min[nomask] = s_z.argmin(axis=0)[nomask]
-            i_max[nomask] = s_z.argmax(axis=0)[nomask]-1
-            i_min[i_min > i_max] = i_max[i_min > i_max]
+            i_min[nomask]           = s_z.argmin(axis=0)[nomask]
+            i_max[nomask]           = s_z.argmax(axis=0)[nomask]-1
+            i_min[i_min > i_max]    = i_max[i_min > i_max]
             # Test on bottom minus surface stratification to check that it is larger than delta_rho
-            delta_rho[nomask] = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
-            i_min[delta_rho < del_s1] = 0
-            i_max[delta_rho < del_s1] = i_bottom[delta_rho < del_s1]
+            delta_rho[nomask]           = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
+            i_min[delta_rho < del_s1]   = 0
+            i_max[delta_rho < del_s1]   = i_bottom[delta_rho < del_s1]
             
             # General case
             # find min/max of density for each z profile
@@ -535,8 +535,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ; szm[...] = 'NaN'
-            zzm = s_z*1. ; zzm[...] = 'NaN'
+            szm = s_z*1. ;  szm[...] = 'NaN'
+            zzm = s_z*1. ;  zzm[...] = 'NaN'
             c1m = c1_z*1. ; c1m[...] = 'NaN'
             c2m = c2_z*1. ; c2m[...] = 'NaN'
             
