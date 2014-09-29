@@ -568,6 +568,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
+            idzmc1 = npy.argwhere(c1_s == valmask).transpose()
+            z_s [idzmc1[0],idzmc1[1]] = valmask
             if debug and t == 0:
                 i = ijtest
                 print ' s_s[i]', s_s[:,i]
