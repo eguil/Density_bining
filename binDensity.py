@@ -536,10 +536,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ;  szm[...] = 'NaN'
-            zzm = s_z*1. ;  zzm[...] = 'NaN' 
-            c1m = c1_z*1. ; c1m[...] = 'NaN' 
-            c2m = c2_z*1. ; c2m[...] = 'NaN' 
+            szm = s_z*1. ;  szm[...] = valmask
+            zzm = s_z*1. ;  zzm[...] = valmask
+            c1m = c1_z*1. ; c1m[...] = valmask
+            c2m = c2_z*1. ; c2m[...] = valmask
             
             for k in range(N_z):
                 k_ind = i_min*1.; k_ind[:] = valmask
@@ -577,7 +577,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            # assign to final arrays
+            if debug and t ==0: 
+                i = ijtest
+                print ' i_min,i_max ',i_min[i],i_max[i]
+                print ' s_s[i]', s_s[:,i]
+                print ' szm[i]', szm[:,i]
+                print ' zzm[i]', zzm[:,i]
+                print ' z_s[i]', z_s[0:N_s,i]
+                print ' c1_s[i]', c1_s[0:N_s,i]
+             # assign to final arrays
             depth_bin[t,:,:]     = z_s
             thick_bin[t,0,:]     = z_s[0,:]
             thick_bin[t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
