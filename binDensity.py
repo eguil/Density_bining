@@ -253,8 +253,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - PJD 18 Sep 2014   - Renamed temp to thetao for clarity
     - EG  23 Sep 2014   - Clean up and documentation
     - PJD 23 Sep 2014   - Added so/thetao variable handles so variable attributes can be copied without a heavy memory overhead
-                TODO:   - Deal with NaN values with mask variables:
-                /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
+    - EG  29 Sep 2014   - remove NaN in array inits
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -555,9 +554,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 if nomask[i]:
                     szm [npy.isnan(szm[:,i]),i] = szm[i_max[i],i]
                     zzm [npy.isnan(zzm[:,i]),i] = zzm[i_max[i],i]
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right=valmask) ; # consider spline           
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right=valmask) 
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right=valmask) 
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # consider spline           
+                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) 
+                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) 
             
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             inds = npy.argwhere(s_s < szmin).transpose()
