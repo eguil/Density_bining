@@ -553,11 +553,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
-                    szm [npy.isnan(szm[:,i]),i] = szm[i_max[i],i]
-                    zzm [npy.isnan(zzm[:,i]),i] = zzm[i_max[i],i]
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right=valmask) ; # consider spline           
+                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right=valmask) 
+                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right=valmask) 
                     if debug and t ==0 and i == ijtest:
                         print ' i_min,i_max ',i_min[i],i_max[i]
                         print ' s_s[i]', s_s[:,i]
