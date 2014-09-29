@@ -533,7 +533,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmax[i] = rho_max+10.            
             # Find indices between density min and density max
             #
-            # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
+            # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt 
             szm = s_z*1. ;  szm[...] = valmask
             zzm = s_z*1. ;  zzm[...] = valmask
@@ -568,8 +568,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            idzmc1 = npy.argwhere(c1_s == valmask).transpose()
-            z_s [idzmc1[0],idzmc1[1]] = valmask
+            #idzmc1 = npy.argwhere(c1_s == valmask).transpose()
+            #z_s [idzmc1[0],idzmc1[1]] = valmask
             if debug and t == 0:
                 i = ijtest
                 print ' s_s[i]', s_s[:,i]
