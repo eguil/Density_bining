@@ -364,6 +364,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # test point  
     itest = 80 
     jtest = 60
+    ijtest = jtest*N_i + itest
     
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
@@ -552,10 +553,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
-                    stop
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
+                    if debug and if i == ijtest:
+                        print ' s_s[i]', s_s[:,i]
+                        print ' szm[i]', szm[:,i]
+                        print ' zzm[i]', zzm[:,i]
+                        print ' z_s[i]', z_s[0:N_s,i]
+                        print ' c1_s[i]', c1_s[0:N_s,i]
             
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             inds = npy.argwhere(s_s < szmin).transpose()
