@@ -556,7 +556,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
-                    if debug and if i == ijtest:
+                    if debug and i == ijtest:
                         print ' s_s[i]', s_s[:,i]
                         print ' szm[i]', szm[:,i]
                         print ' zzm[i]', zzm[:,i]
