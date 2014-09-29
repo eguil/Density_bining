@@ -567,11 +567,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
+            idzmc1 = npy.argwhere(c1_s == valmask).transpose()
+            z_s [idzmc1[0],idzmc1[1]] = valmask
             # Thickness of isopycnal
             t_s [0,:] = z_s [0,:] 
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            idzmc1 = npy.argwhere(c1_s == valmask).transpose()
-            t_s [idzmc1[0]-1,idzmc1[1]] = valmask  # mask level above as diff with valmask was taken
+            t_s [idzmc1[0],idzmc1[1]] = valmask  
+            t_s [idzmc1[0]-1,idzmc1[1]] = valmask  # also mask level above as diff with valmask was taken
             if debug and t == 0:
                 i = ijtest
                 print ' s_s[i]', s_s[:,i]
@@ -607,6 +609,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
         thick_bino      = maskVal(thick_bino, valmask)
         #
+        del (maskb)
         if debugp and (tc == 0):
             # test write
             i = itest
