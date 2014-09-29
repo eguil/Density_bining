@@ -558,13 +558,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right=valmask) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right=valmask) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right=valmask) 
-                    if debug and t ==0 and i == ijtest:
-                        print ' i_min,i_max ',i_min[i],i_max[i]
-                        print ' s_s[i]', s_s[:,i]
-                        print ' szm[i]', szm[:,i]
-                        print ' zzm[i]', zzm[:,i]
-                        print ' z_s[i]', z_s[0:N_s,i]
-                        print ' c1_s[i]', c1_s[0:N_s,i]
             
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             inds = npy.argwhere(s_s < szmin).transpose()
@@ -577,14 +570,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            if debug and t ==0: 
-                i = ijtest
-                print ' i_min,i_max ',i_min[i],i_max[i]
-                print ' s_s[i]', s_s[:,i]
-                print ' szm[i]', szm[:,i]
-                print ' zzm[i]', zzm[:,i]
-                print ' z_s[i]', z_s[0:N_s,i]
-                print ' c1_s[i]', c1_s[0:N_s,i]
              # assign to final arrays
             depth_bin[t,:,:]     = z_s
             thick_bin[t,0,:]     = z_s[0,:]
@@ -602,7 +587,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x1_bino    = npy.reshape(x1_bin,    (tcdel, N_s+1, N_j, N_i))
         x2_bino    = npy.reshape(x2_bin,    (tcdel, N_s+1, N_j, N_i))
         
-        # Wash mask over variables
+        # Wash mask (from temp) over variables
         maskb           = mv.masked_values(x1_bino, valmask).mask
         depth_bino.mask = maskb
         thick_bino.mask = maskb
