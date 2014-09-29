@@ -559,7 +559,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) 
                     idzmc1 = npy.argwhere(c1_s[0:N_s,i] == valmask)
                     z_s [idzmc1,i] = valmask
-            
+                    if debug and t == 0 and if i == ijtest:
+                        print ' s_s[i]', s_s[:,i]
+                        print ' szm[i]', szm[:,i]
+                        print ' zzm[i]', zzm[:,i]
+                        print ' z_s[i]', z_s[0:N_s,i]
+                        print ' c1_s[i]', c1_s[0:N_s,i]            
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             inds = npy.argwhere(s_s < szmin).transpose()
             z_s [inds[0],inds[1]] = 0.
