@@ -569,7 +569,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
             if debug and t == 0:
-                i == ijtest
+                i = ijtest
                 print ' s_s[i]', s_s[:,i]
                 print ' szm[i]', szm[:,i]
                 print ' zzm[i]', zzm[:,i]
