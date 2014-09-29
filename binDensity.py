@@ -499,6 +499,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s         = npy.ones((N_s+1, N_i*N_j))*valmask
             c1_s        = npy.ones((N_s+1, N_i*N_j))*valmask
             c2_s        = npy.ones((N_s+1, N_i*N_j))*valmask
+            t_s         = npy.ones((N_s+1, N_i*N_j))*valmask
             szmin       = npy.ones((N_i*N_j))*valmask
             szmax       = npy.ones((N_i*N_j))*valmask
             i_min       = npy.ones((N_i*N_j))*0
@@ -555,8 +556,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) 
-                    idzmc1 = npy.argwhere(c1_s[0:N_s,i] == valmask)
-                    z_s [idzmc1,i] = valmask
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             inds = npy.argwhere(s_s < szmin).transpose()
             z_s [inds[0],inds[1]] = 0.
@@ -568,21 +567,24 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            #idzmc1 = npy.argwhere(c1_s == valmask).transpose()
-            #z_s [idzmc1[0],idzmc1[1]] = valmask
+            # Thickness of isopycnal
+            t_s [0,:] = z_s [0,:] 
+            t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            idzmc1 = npy.argwhere(c1_s == valmask).transpose()
+            t_s [idzmc1[0]-1,idzmc1[1]] = valmask  # mask level above as diff with valmask was taken
             if debug and t == 0:
                 i = ijtest
                 print ' s_s[i]', s_s[:,i]
                 print ' szm[i]', szm[:,i]
                 print ' zzm[i]', zzm[:,i]
-                print ' z_s[i]', z_s[0:N_s,i]
-                print ' c1_s[i]', c1_s[0:N_s,i]            
+                print ' z_s[i]', z_s[:,i]
+                print ' t_s[i]', t_s[:,i]
+                print ' c1_s[i]', c1_s[:,i]            
              # assign to final arrays
-            depth_bin[t,:,:]     = z_s
-            thick_bin[t,0,:]     = z_s[0,:]
-            thick_bin[t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            x1_bin[t,:,:]        = c1_s
-            x2_bin[t,:,:]        = c2_s
+            depth_bin[t,:,:] = z_s
+            thick_bin[t,:,:] = t_s
+            x1_bin[t,:,:]    = c1_s
+            x2_bin[t,:,:]    = c2_s
         #
         # end of loop on t <===      
         #      
