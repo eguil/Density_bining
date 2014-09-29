@@ -385,6 +385,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # depth profiles:
     z_zt = depth[:]
     z_zw = bounds.data[:,0]
+    max_depth_ocean = 6000. # maximum depth of ocean
     
     # File output inits
     s_axis              = cdm.createAxis(s_sax, id = 'rhon')
@@ -572,10 +573,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Thickness of isopycnal
             t_s [0,:] = z_s [0,:] 
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= 5000.)).transpose()
-            t_s[inds[0],inds[1]] = valmask
+            inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
+            t_s [inds[0],inds[1]] = valmask
             t_s [idzmc1[0],idzmc1[1]] = valmask  
-            #t_s [idzmc1[0]-1,idzmc1[1]] = valmask  # also mask level above as diff with valmask was taken
             if debug and t == 0:
                 i = ijtest
                 print ' s_s[i]', s_s[:,i]
@@ -583,7 +583,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' zzm[i]', zzm[:,i]
                 print ' z_s[i]', z_s[:,i]
                 print ' t_s[i]', t_s[:,i]
-                print ' c1_s[i]', c1_s[:,i]            
              # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
@@ -776,7 +775,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
                 # Shallowest persistent ocean index: p_top (2D)
-                maskp = persist[t,:,:,:]*1. ; maskp[...] = 'NaN'
+                maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
                 maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
                 maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
                 p_top = maskp.argmax(axis=0) 
