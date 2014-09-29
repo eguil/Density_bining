@@ -530,8 +530,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmax[i] = s_z[i_max[i],i]
                 else:
                     szmin[i] = 0.
-                    szmax[i] = rho_ma            # Free memory (!! to be removed if we store these at some point)
-x+10.
+                    szmax[i] = rho_max+10.            
             # Find indices between density min and density max
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
