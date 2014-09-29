@@ -536,10 +536,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ;  szm[...] = 'NaN'
-            zzm = s_z*1. ;  zzm[...] = 'NaN'
-            c1m = c1_z*1. ; c1m[...] = 'NaN'
-            c2m = c2_z*1. ; c2m[...] = 'NaN'
+            szm = s_z*1. ;  szm[...] = valmask
+            zzm = s_z*1. ;  zzm[...] = valmask
+            c1m = c1_z*1. ; c1m[...] = valmask
+            c2m = c2_z*1. ; c2m[...] = valmask
             
             for k in range(N_z):
                 k_ind = i_min*1.; k_ind[:] = valmask
@@ -553,10 +553,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
+                    szm [npy.isnan(szm)] = szm[i_max,i]
+                    zzm [npy.isnan(zzm)] = zzm[i_max,i]
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
-                    if debug and i == ijtest:
+                    if debug and t ==0 and i == ijtest:
+                        print ' i_min,i_max ',i_min[i],i_max[i]
                         print ' s_s[i]', s_s[:,i]
                         print ' szm[i]', szm[:,i]
                         print ' zzm[i]', zzm[:,i]
