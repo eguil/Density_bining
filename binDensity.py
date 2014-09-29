@@ -530,7 +530,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmax[i] = s_z[i_max[i],i]
                 else:
                     szmin[i] = 0.
-                    szmax[i] = rho_max+10.
+                    szmax[i] = rho_ma            # Free memory (!! to be removed if we store these at some point)
+x+10.
             # Find indices between density min and density max
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
@@ -552,6 +553,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
+                    stop
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
