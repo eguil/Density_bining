@@ -576,7 +576,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
             t_s [idzmc1[0],idzmc1[1]] = valmask  
-            if debug and t == 0:
+            if debug and t < 0:
                 i = ijtest
                 print ' s_s[i]', s_s[:,i]
                 print ' szm[i]', szm[:,i]
@@ -794,10 +794,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptoptemp  = npy.reshape(ptoptemp , (N_j, N_i))
                 ptopsalt  = npy.reshape(ptopsalt , (N_j, N_i))
                 # Create variables to attribute right axis for zonal mean
-                ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'ptopdepth')           
-                ptopsigma = cdm.createVariable(ptopsigma, axes = [ingrid], id = 'ptopsigma')           
-                ptoptemp  = cdm.createVariable(ptoptemp , axes = [ingrid], id = 'ptoptemp')           
-                ptopsalt  = cdm.createVariable(ptopsalt , axes = [ingrid], id = 'ptopsalt')           
+                ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'ptopdepth')
+                ptopsigma = cdm.createVariable(ptopsigma, axes = [ingrid], id = 'ptopsigma')
+                ptoptemp  = cdm.createVariable(ptoptemp , axes = [ingrid], id = 'ptoptemp')
+                ptopsalt  = cdm.createVariable(ptopsalt , axes = [ingrid], id = 'ptopsalt')
                 # Mask persist where value is zero
                 persist._FillValue = valmask
                 persist = mv.masked_where(persist <= 1.e-6, persist)
