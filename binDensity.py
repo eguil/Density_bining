@@ -254,6 +254,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - EG  23 Sep 2014   - Clean up and documentation
     - PJD 23 Sep 2014   - Added so/thetao variable handles so variable attributes can be copied without a heavy memory overhead
     - EG  29 Sep 2014   - remove NaN in array inits
+    - TODO: - Deal with NaN values with mask variables:
+            - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -532,7 +534,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmax[i] = s_z[i_max[i],i]
                 else:
                     szmin[i] = 0.
-                    szmax[i] = rho_max+10.            
+                    szmax[i] = rho_max+10.
             # Find indices between density min and density max
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
@@ -763,15 +765,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinza    = thickBinza * areazta
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
-<<<<<<< HEAD
+
             # Free memory (!! to be removed if we store these at some point)
-            #del(depthBini,  x1Bini,     x2Bini)
+            #del(depthBini, x1Bini, x2Bini)
             #del(depthBinia, thickBinia, x1Binia, x2Binia)
             #del(depthBinip, thickBinip, x1Binip, x2Binip)
             #del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
-=======
 
->>>>>>> eguil_master
             toziz = timc.clock()
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
