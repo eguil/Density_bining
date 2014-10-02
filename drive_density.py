@@ -181,8 +181,8 @@ del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.
 
 #%%
 # Process model list
-# 150 IPSL-CM5A-LR
-for x,model in enumerate(list_soAndthetaoAndfx[150:151]):
+# 150 IPSL-CM5A-LR - 150:151
+for x,model in enumerate(list_soAndthetaoAndfx[0:10]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))

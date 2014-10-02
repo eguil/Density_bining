@@ -253,8 +253,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - PJD 18 Sep 2014   - Renamed temp to thetao for clarity
     - EG  23 Sep 2014   - Clean up and documentation
     - PJD 23 Sep 2014   - Added so/thetao variable handles so variable attributes can be copied without a heavy memory overhead
-                TODO:   - Deal with NaN values with mask variables:
-                /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
+    - EG  29 Sep 2014   - remove NaN in array inits
+    - TODO: - Deal with NaN values with mask variables:
+            - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -364,6 +365,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # test point  
     itest = 80 
     jtest = 60
+    ijtest = jtest*N_i + itest
     
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
@@ -385,6 +387,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # depth profiles:
     z_zt = depth[:]
     z_zw = bounds.data[:,0]
+    max_depth_ocean = 6000. # maximum depth of ocean
     
     # File output inits
     s_axis              = cdm.createAxis(s_sax, id = 'rhon')
@@ -499,6 +502,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s         = npy.ones((N_s+1, N_i*N_j))*valmask
             c1_s        = npy.ones((N_s+1, N_i*N_j))*valmask
             c2_s        = npy.ones((N_s+1, N_i*N_j))*valmask
+            t_s         = npy.ones((N_s+1, N_i*N_j))*valmask
             szmin       = npy.ones((N_i*N_j))*valmask
             szmax       = npy.ones((N_i*N_j))*valmask
             i_min       = npy.ones((N_i*N_j))*0
@@ -533,12 +537,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmax[i] = rho_max+10.
             # Find indices between density min and density max
             #
-            # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and 'NaN' otherwise
+            # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ;  szm[...] = 'NaN'
-            zzm = s_z*1. ;  zzm[...] = 'NaN'
-            c1m = c1_z*1. ; c1m[...] = 'NaN'
-            c2m = c2_z*1. ; c2m[...] = 'NaN'
+            szm = s_z*1. ;  szm[...] = valmask
+            zzm = s_z*1. ;  zzm[...] = valmask
+            c1m = c1_z*1. ; c1m[...] = valmask
+            c2m = c2_z*1. ; c2m[...] = valmask
             
             for k in range(N_z):
                 k_ind = i_min*1.; k_ind[:] = valmask
@@ -552,10 +556,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO: no loop 
             for i in range(N_i*N_j):
                 if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i]) ; # consider spline           
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i]) 
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i]) 
-            
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # consider spline           
+                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) 
+                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) 
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             inds = npy.argwhere(s_s < szmin).transpose()
             z_s [inds[0],inds[1]] = 0.
@@ -567,34 +570,51 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s,inds[1]]
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            # assign to final arrays
-            depth_bin[t,:,:]     = z_s
-            thick_bin[t,0,:]     = z_s[0,:]
-            thick_bin[t,1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            x1_bin[t,:,:]        = c1_s
-            x2_bin[t,:,:]        = c2_s
+            idzmc1 = npy.argwhere(c1_s == valmask).transpose()
+            z_s [idzmc1[0],idzmc1[1]] = valmask
+            # Thickness of isopycnal
+            t_s [0,:] = z_s [0,:] 
+            t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
+            t_s [inds[0],inds[1]] = valmask
+            t_s [idzmc1[0],idzmc1[1]] = valmask  
+            if debug and t < 0:
+                i = ijtest
+                print ' s_s[i]', s_s[:,i]
+                print ' szm[i]', szm[:,i]
+                print ' zzm[i]', zzm[:,i]
+                print ' z_s[i]', z_s[:,i]
+                print ' t_s[i]', t_s[:,i]
+             # assign to final arrays
+            depth_bin[t,:,:] = z_s
+            thick_bin[t,:,:] = t_s
+            x1_bin[t,:,:]    = c1_s
+            x2_bin[t,:,:]    = c2_s
         #
         # end of loop on t <===      
         #      
-        # Free memory for thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z
-        del(thetao, so, rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, inds, c1_z, c2_z) ; gc.collect()
+        # Free memory 
+        del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
         # Reshape i*j back to i,j
         depth_bino = npy.reshape(depth_bin, (tcdel, N_s+1, N_j, N_i))
         thick_bino = npy.reshape(thick_bin, (tcdel, N_s+1, N_j, N_i))
         x1_bino    = npy.reshape(x1_bin,    (tcdel, N_s+1, N_j, N_i))
         x2_bino    = npy.reshape(x2_bin,    (tcdel, N_s+1, N_j, N_i))
         
-        # Wash mask over variables
+        # Wash mask (from temp) over variables
         maskb           = mv.masked_values(x1_bino, valmask).mask
         depth_bino.mask = maskb
-        thick_bino.mask = maskb
         x1_bino.mask    = maskb
         x2_bino.mask    = maskb
         depth_bino      = maskVal(depth_bino, valmask)
-        thick_bino      = maskVal(thick_bino, valmask)
         x1_bino         = maskVal(x1_bino,    valmask)
         x2_bino         = maskVal(x2_bino,    valmask)
+
+        maskt           = mv.masked_values(thick_bino, valmask).mask
+        thick_bino.mask = maskt
+        thick_bino      = maskVal(thick_bino, valmask)
         #
+        del (maskb, maskt)
         if debugp and (tc == 0):
             # test write
             i = itest
@@ -745,11 +765,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinza    = thickBinza * areazta
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
+
             # Free memory (!! to be removed if we store these at some point)
-            del(depthBini,  x1Bini,     x2Bini)
-            del(depthBinia, thickBinia, x1Binia, x2Binia)
-            del(depthBinip, thickBinip, x1Binip, x2Binip)
-            del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
+            #del(depthBini, x1Bini, x2Bini)
+            #del(depthBinia, thickBinia, x1Binia, x2Binia)
+            #del(depthBinip, thickBinip, x1Binip, x2Binip)
+            #del(depthBinii, thickBinii, x1Binii, x2Binii); gc.collect()
+
             toziz = timc.clock()
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
@@ -761,7 +783,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
                 # Shallowest persistent ocean index: p_top (2D)
-                maskp = persist[t,:,:,:]*1. ; maskp[...] = 'NaN'
+                maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
                 maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
                 maskp = npy.reshape(maskp, (N_s+1, N_j*N_i))
                 p_top = maskp.argmax(axis=0) 
@@ -780,10 +802,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptoptemp  = npy.reshape(ptoptemp , (N_j, N_i))
                 ptopsalt  = npy.reshape(ptopsalt , (N_j, N_i))
                 # Create variables to attribute right axis for zonal mean
-                ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'ptopdepth')           
-                ptopsigma = cdm.createVariable(ptopsigma, axes = [ingrid], id = 'ptopsigma')           
-                ptoptemp  = cdm.createVariable(ptoptemp , axes = [ingrid], id = 'ptoptemp')           
-                ptopsalt  = cdm.createVariable(ptopsalt , axes = [ingrid], id = 'ptopsalt')           
+                ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'ptopdepth')
+                ptopsigma = cdm.createVariable(ptopsigma, axes = [ingrid], id = 'ptopsigma')
+                ptoptemp  = cdm.createVariable(ptoptemp , axes = [ingrid], id = 'ptoptemp')
+                ptopsalt  = cdm.createVariable(ptopsalt , axes = [ingrid], id = 'ptopsalt')
                 # Mask persist where value is zero
                 persist._FillValue = valmask
                 persist = mv.masked_where(persist <= 1.e-6, persist)
