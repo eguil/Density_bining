@@ -254,6 +254,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - EG  23 Sep 2014   - Clean up and documentation
     - PJD 23 Sep 2014   - Added so/thetao variable handles so variable attributes can be copied without a heavy memory overhead
     - EG  29 Sep 2014   - remove NaN in array inits
+    - PJD  2 Oct 2014   - Updated to write vars at float32 precision
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
     '''
@@ -643,7 +644,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x1Bin.units         = 'C'
                 x2Bin.long_name     = so_h.long_name
                 x2Bin.units         = so_h.units
-                outFileMon_f.write(area) ; # Added area so isonvol can be computed
+                outFileMon_f.write(area.astype('float32')) ; # Added area so isonvol can be computed
                 # write global attributes (inherited from thetao file)
                 for i in range(0,len(file_dic)):
                     dm = file_dic[i]
@@ -1014,30 +1015,30 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbpszi.units        = so_h.units  
     
             # Write & append
-            outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
-            outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpz   , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpza  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpzp  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpzi  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpsz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpsza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpszp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(persim.astype('float32') , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
+            outFile_f.write(ptopd.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(ptops.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpz.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpza.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpzp.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpzi.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpdz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbprz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbptz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpsz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpdza.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbprza.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbptza.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpsza.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpdzp.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbprzp.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbptzp.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpszp.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpdzi.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbprzi.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbptzi.astype('float32') , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbpszi.astype('float32') , extend = 1, index = (trmin-tmin)/12)
             #
             tozp = timc.clock()
             #
@@ -1113,36 +1114,36 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x2bzi.units     = so_h.units
                 # Cleanup
             # Write & append
-            outFile_f.write(dbz,   extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbz,   extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbz,   extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bz,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bz,  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x1bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x2bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             # Atl
-            outFile_f.write(dbza,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbza,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbza,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bza, extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bza, extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x1bza.astype('float32'), extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x2bza.astype('float32'), extend = 1, index = (trmin-tmin)/12)
             # Pac
-            outFile_f.write(dbzp,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbzp,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbzp,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bzp, extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bzp, extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbzp.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbzp.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbzp.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x1bzp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x2bzp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
             # Ind
-            outFile_f.write(dbzi,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbzi,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbzi,  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bzi, extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bzi, extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(dbzi.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(tbzi.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(vbzi.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x1bzi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x2bzi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
     
         # Write/append to file
         if mthout:
-            outFileMon_f.write(depthBin, extend = 1, index = trmin-tmin)
-            outFileMon_f.write(thickBin, extend = 1, index = trmin-tmin)
-            outFileMon_f.write(x1Bin,    extend = 1, index = trmin-tmin)
-            outFileMon_f.write(x2Bin,    extend = 1, index = trmin-tmin)
+            outFileMon_f.write(depthBin.astype('float32'), extend = 1, index = trmin-tmin)
+            outFileMon_f.write(thickBin.astype('float32'), extend = 1, index = trmin-tmin)
+            outFileMon_f.write(x1Bin.astype('float32'),    extend = 1, index = trmin-tmin)
+            outFileMon_f.write(x2Bin.astype('float32'),    extend = 1, index = trmin-tmin)
         
         tozf = timc.clock()
         print '   CPU of density bining      =', ticz-tuc
