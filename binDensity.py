@@ -263,15 +263,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ti0 = timc.clock()
     te0 = timeit.default_timer()
 
-    # netCDF compression
+    # CDMS initialisation - netCDF compression
     comp = 1 ; # 0 for no compression
     cdm.setNetcdfShuffleFlag(comp)
     cdm.setNetcdfDeflateFlag(comp)
     cdm.setNetcdfDeflateLevelFlag(comp)
     cdm.setAutoBounds('on')
-    
-    # == Inits
-    npy.set_printoptions(precision = 2)
+    # Numpy initialisation
+    npy.set_printoptions(precision=2)
     
     # Determine file name from inputs
     modeln = fileT.split('/')[-1].split('.')[1]
@@ -305,6 +304,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ft      = cdm.open(fileT)
     fs      = cdm.open(fileS)
     timeax  = ft.getAxis('time')
+    # Define temperature and salinity arrays
+    thetao      = ft('thetao', time = slice(0,1))
+    thetao_h    = ft['thetao'] ; # Create variable handle
+    so          = fs('so', time = slice(0,1))
+    so_h        = fs['so'] ; # Create variable handle
     
     # Need to add test to ensure thetao and so are equivalent sized (times equal)
     
@@ -316,16 +320,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
     
-    if debugp:
-        print ' Debug mode'
-    
-    # Define temperature and salinity arrays
-    thetao      = ft('thetao', time = slice(0,1))
-    thetao_h    = ft['thetao'] ; # Create variable handle
-    so          = fs('so', time = slice(0,1))
-    so_h        = fs['so'] ; # Create variable handle
-    
-    # Read file attributes to carry on to output files
+    # Read file attributes to carry on to output files - replace with so_h, open handle doesn't need this saved
     list_file   = ft.attributes.keys()
     file_dic    = {}
     for i in range(0,len(list_file)):
