@@ -297,11 +297,9 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debugp=T
 #
 # == get command line options
 parser = argparse.ArgumentParser(description = 'Script to perform density bining analysis')
-parser.add_argument('-d', help = 'toggle debug mode', action = 'count', default = 0)
 parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
 args = parser.parse_args()
 # read values
-debug        = str(args.d)
 timeint      = args.timeint
 #
 # IPSL-CM5A-LR
