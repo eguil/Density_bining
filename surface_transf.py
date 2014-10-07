@@ -82,7 +82,104 @@ def cpsw (t, s, p):
     cp = CP0 + CP1 + CP2
     return cp    
 
-def surface_transf(sst, sss, emp, qnet, area, sigrid, del_s, regrido, outgrid, masks):
+def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debugp=True,timeint='all'):
+    # Keep track of time (CPU and elapsed)
+    cpu0 = timc.clock()
+    #
+    # netCDF compression (use 0 for netCDF3)
+    comp = 1
+    cdm.setNetcdfShuffleFlag(comp)
+    cdm.setNetcdfDeflateFlag(comp)
+    cdm.setNetcdfDeflateLevelFlag(comp)
+    cdm.setAutoBounds('on')
+    # 
+    # == Inits
+    #
+    npy.set_printoptions(precision = 2)
+    # Determine file name from inputs
+    modeln = fileT.split('/')[-1].split('.')[1]
+    #
+    if debug >= '1':
+        print ' Debug - File names:'
+        print '    ', file_sst
+        print '    ', file_sss
+        debugp = True
+    else:
+        debugp = False
+    #
+    # Open files
+    fsst  = cdm.open(fileSst)
+    fsss  = cdm.open(fileSss)
+    fhef  = cdm.open(fileHef)
+    fwfo  = cdm.open(fileWfo)
+    timeax = fsst.getAxis('time')
+    #
+    # Dates to read
+    if timeint == 'all':
+        tmin = 0
+        tmax = timeax.shape[0]
+    else:
+        tmin = int(timeint.split(',')[0]) - 1
+        tmax = tmin + int(timeint.split(',')[1])
+
+    if debugp:
+        print; print ' Debug mode'
+ 
+    # Read file attributes to carry on to output files
+    list_file   = fsst.attributes.keys()
+    file_dic    = {}
+    for i in range(0,len(list_file)):
+        file_dic[i]=list_file[i],fsst.attributes[list_file[i] ]
+    #
+    # Read data
+    if debugp:
+        print' Read sst, sss',tmin,tmax
+    sst = fsst('tos' , time = slice(tmin,tmax))
+    sss = fsss('sos' , time = slice(tmin,tmax))
+    if debugp:
+        print' Read hfds, wfo'
+    qnet = fhef('hfds', time = slice(tmin,tmax))
+    emp  = fwfo('wfo' , time = slice(tmin,tmax))
+    #
+    # Read masking value
+    valmask = sst._FillValue
+    #
+    # Read time and grid
+    lon  = sst.getLongitude()
+    lat  = sst.getLatitude()
+    ingrid = sst.getGrid()
+    #
+    # Read cell area
+    ff = cdm.open(fileFx)
+    area = ff('areacello')
+    ff.close()
+    #
+    # Define dimensions
+    N_i = int(lon.shape[1])
+    N_j = int(lon.shape[0])
+    #
+    # Define sigma grid 
+    rho_min = 19
+    rho_int = 26
+    rho_max = 28.5
+    del_s1  = 0.2
+    del_s2  = 0.1
+    s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
+    print
+    print ' ==> model:', modeln
+    #
+    # File output inits
+    #
+    s_axis = cdm.createAxis(s_sax, id = 'rhon')
+    s_axis.long_name = 'Neutral density'
+    s_axis.units = ''
+    s_axis.designateLevel()
+    #
+    # Monthly transformation
+    outFile = replace(outFile,'.mo.','.an.')
+    if os.path.exists(outFile):
+        os.remove(outFile)
+    outFile_f = cdm.open(outFile,'w')
     # Define dimensions
     N_i = int(sst.shape[2])
     N_j = int(sst.shape[1])
@@ -115,6 +212,36 @@ def surface_transf(sst, sss, emp, qnet, area, sigrid, del_s, regrido, outgrid, m
     denflxw = npy.ones((N_t,N_s+1))*valmask # E-P contrib
     t_heat  = npy.ones((N_t))*valmask # integral heat flux
     t_wafl  = npy.ones((N_t))*valmask # integral E-P
+    #
+    # target horizonal grid for interp 
+    fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
+    gt = cdm.open(fileg)
+    maskg = gt('basinmask3')
+    outgrid = maskg.getGrid()
+    # global mask
+    maski = maskg.mask
+    # regional masks
+    maskAtl = maski*1 ; maskAtl[...] = True
+    idxa = npy.argwhere(maskg == 1).transpose()
+    maskAtl[idxa[0],idxa[1]] = False
+    maskPac = maski*1 ; maskPac[...] = True
+    idxp = npy.argwhere(maskg == 2).transpose()
+    maskPac[idxp[0],idxp[1]] = False
+    maskInd = maski*1 ; maskInd[...] = True
+    idxi = npy.argwhere(maskg == 3).transpose()
+    maskInd[idxi[0],idxi[1]] = False
+    masks = [maski, maskAtl, maskPac, maskInd]
+    loni    = maskg.getLongitude()
+    lati    = maskg.getLatitude()
+    Nii     = int(loni.shape[0])
+    Nji     = int(lati.shape[0])
+    #
+    # Compute area of target grid and zonal sums
+    areai = computeArea(loni[:], lati[:])
+    gt.close()
+    # Interpolation init (regrid)
+    ESMP.ESMP_Initialize()
+    regridObj = CdmsRegrid(ingrid, outgrid, denflxh.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
     # init integration intervals
     dt   = 1./float(N_t) 
 
@@ -153,33 +280,20 @@ def surface_transf(sst, sss, emp, qnet, area, sigrid, del_s, regrido, outgrid, m
       
         
     #+ create a basins variables (loop on n masks)
+    # CPU use
+    print
+    print ' CPU use', timc.clock() - cpu0
 
-    return denflx, denflxh, t_heat, t_wafl
+    print ' -> Calculated  denflx, denflxh, denflxw, t_heat, t_wafl'
+    if debugp:
+        print ' t_heat',t_heat
+        print ' t_wafl',t_wafl
 
 #
 # <------------------------------------------------>
 #       Test driver for surface transformation
 # <------------------------------------------------>
 #
-# Keep track of time (CPU and elapsed)
-cpu0 = timc.clock()
-#
-# netCDF compression (use 0 for netCDF3)
-comp = 1
-cdm.setNetcdfShuffleFlag(comp)
-cdm.setNetcdfDeflateFlag(comp)
-cdm.setNetcdfDeflateLevelFlag(comp)
-cdm.setAutoBounds('on')
-#
-# == Arguments
-#
-# 
-# == Inits
-#
-npy.set_printoptions(precision = 2)
-home   = os.getcwd()
-outdir = os.getcwd()#
-# == Arguments
 #
 # == get command line options
 parser = argparse.ArgumentParser(description = 'Script to perform density bining analysis')
@@ -197,131 +311,12 @@ file_sst = '/work/cmip5/historical/ocn/mo/tos/cmip5.MPI-ESM-LR.historical.r1i1p1
 file_sss = '/work/cmip5/historical/ocn/mo/sos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.sos.ver-1.latestX.xml'
 file_hef = '/work/cmip5/historical/ocn/mo/hfds/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.hfds.ver-1.latestX.xml'
 file_wfo = '/work/cmip5/historical/ocn/mo/wfo/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.wfo.ver-1.latestX.xml'
+outfileSurfDen = 'test/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.surfden.ver-ver-1.latest.nc'
 
-modeln = 'MPI-ESM-LR'
-
-if debug >= '1':
-    print ' Debug - File names:'
-    print '    ', file_sst
-    print '    ', file_sss
-    debugp = True
-else:
-    debugp = False
-#
-# Open files
-fsst  = cdm.open(file_sst)
-fsss  = cdm.open(file_sss)
-fhef  = cdm.open(file_hef)
-fwfo  = cdm.open(file_wfo)
-timeax = fsst.getAxis('time')
-#
-# Dates to read
-if timeint == 'all':
-    tmin = 0
-    tmax = timeax.shape[0]
-else:
-    tmin = int(timeint.split(',')[0]) - 1
-    tmax = tmin + int(timeint.split(',')[1])
-
-if debugp:
-    print; print ' Debug mode'
- 
-# Read file attributes to carry on to output files
-list_file   = fsst.attributes.keys()
-file_dic    = {}
-for i in range(0,len(list_file)):
-    file_dic[i]=list_file[i],fsst.attributes[list_file[i] ]
-#
-# Read data
-if debugp:
-    print' Read sst,sss',tmin,tmax
-sst = fsst('tos' , time = slice(tmin,tmax))
-sss = fsss('sos' , time = slice(tmin,tmax))
-if debugp:
-    print' Read hfds,wfo'
-hef = fhef('hfds', time = slice(tmin,tmax))
-wfo = fwfo('wfo' , time = slice(tmin,tmax))
-#
-# Read masking value
-valmask = sst._FillValue
-#
-# Read time and grid
-lon  = sst.getLongitude()
-lat  = sst.getLatitude()
-ingrid = sst.getGrid()
-#
-# Read cell area
-ff = cdm.open(file_fx)
-area = ff('areacello')
-ff.close()
-#
-# Define dimensions
-N_i = int(lon.shape[1])
-N_j = int(lon.shape[0])
-#
-# Define sigma grid 
-rho_min = 19
-rho_int = 26
-rho_max = 28.5
-del_s1  = 0.2
-del_s2  = 0.1
-s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
-print
-print ' ==> model:', modeln
-#
-# File output inits
-#
-s_axis = cdm.createAxis(s_sax, id = 'rhon')
-s_axis.long_name = 'Neutral density'
-s_axis.units = ''
-s_axis.designateLevel()
-#
-# Monthly transformation
-file_out = outdir+'/'+modeln+'_out_1m_sfc_transf.nc'
-if os.path.exists(file_out):
-    os.remove(file_out)
-g = cdm.open(file_out,'w+')
-#
-# target horizonal grid for interp 
-fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
-gt = cdm.open(fileg)
-maskg = gt('basinmask3')
-outgrid = maskg.getGrid()
-# global mask
-maski = maskg.mask
-# regional masks
-maskAtl = maski*1 ; maskAtl[...] = True
-idxa = npy.argwhere(maskg == 1).transpose()
-maskAtl[idxa[0],idxa[1]] = False
-maskPac = maski*1 ; maskPac[...] = True
-idxp = npy.argwhere(maskg == 2).transpose()
-maskPac[idxp[0],idxp[1]] = False
-maskInd = maski*1 ; maskInd[...] = True
-idxi = npy.argwhere(maskg == 3).transpose()
-maskInd[idxi[0],idxi[1]] = False
-masks = [maski, maskAtl, maskPac, maskInd]
-loni    = maskg.getLongitude()
-lati    = maskg.getLatitude()
-Nii     = int(loni.shape[0])
-Nji     = int(lati.shape[0])
-#
-# Compute area of target grid and zonal sums
-areai = computeArea(loni[:], lati[:])
-#areai   = gt('basinmask3_area').data*1.e6
-gt.close()
-
-        
-# Interpolation init (regrid)
-ESMP.ESMP_Initialize()
-regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
 #
 # -----------------------------------------
 #  Compute density flux and transformation
 # -----------------------------------------
 #
-denflx, denflxh, t_heat, t_wafl = surface_transf(sst, sss, wfo, hef, area, s_s, del_s, regridObj, outgrid, masks)
-denflxw = denflx - denflxh
+surface_transf(file_fx, file_sst, file_sss, file_hef, file_wfo, outfileSurfDen, debug=True,timeint='all')
 
-# CPU use
-print
-print ' CPU use', timc.clock() - cpu0
