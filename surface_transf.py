@@ -82,7 +82,7 @@ def cpsw (t, s, p):
     cp = CP0 + CP1 + CP2
     return cp    
 
-def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debugp=True,timeint='all'):
+def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=True,timeint='all'):
     # Keep track of time (CPU and elapsed)
     cpu0 = timc.clock()
     #
