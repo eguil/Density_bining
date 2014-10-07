@@ -194,8 +194,8 @@ modeln = 'MPI-ESM-LR'
 
 if debug >= '1':
     print ' Debug - File names:'
-    print '    ', file_T
-    print '    ', file_S
+    print '    ', file_sst
+    print '    ', file_sss
     debugp = True
 else:
     debugp = False
