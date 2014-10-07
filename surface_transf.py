@@ -287,9 +287,7 @@ masks = [maski, maskAtl, maskPac, maskInd]
 areai = compute_area(loni[:], lati[:])
 #areai   = gt('basinmask3_area').data*1.e6
 gt.close()
-#
-# Read data
-...
+
 # Kelvin or celsius ?
 tempmin = min(sst.data[0,:,N_j/2,N_i/2])
 if tempmin > valmask/10.:
