@@ -195,7 +195,7 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
     area = npy.reshape(area, (N_i*N_j))
     # Test variable units
     [sss,sssFixed] = fixVarUnits(sss,'sss',True)#,'logfile.txt')
-    if sosFixed:
+    if sssFixed:
         print '     sss: units corrected'
     [sst,sstFixed] = fixVarUnits(sst,'sst',True)#,'logfile.txt')
     if sstFixed:
