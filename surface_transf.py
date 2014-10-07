@@ -36,6 +36,7 @@ import timeit
 import resource
 import ESMP
 from cdms2 import CdmsRegrid
+from durolib import fixVarUnits
 #
 # inits
 # -----
@@ -95,6 +96,13 @@ def surface_transf(sst, sss, emp, qnet, area, sigrid, del_s, regrido, outgrid, m
     emp  = npy.reshape(emp, (N_t, N_i*N_j))
     qnet = npy.reshape(qnet, (N_t, N_i*N_j))
     area = npy.reshape(area, (N_i*N_j))
+    # Test variable units
+    [sss,sssFixed] = fixVarUnits(sss,'sss',True)#,'logfile.txt')
+    if sosFixed:
+        print '     sss: units corrected'
+    [sst,sstFixed] = fixVarUnits(sst,'sst',True)#,'logfile.txt')
+    if sstFixed:
+        print '     sst: units corrected'        
     # Physical inits
     P = 0          # surface pressure
     conwf = 1.e-3  # kg/m2/s=mm/s -> m/s
@@ -302,13 +310,7 @@ areai = computeArea(loni[:], lati[:])
 #areai   = gt('basinmask3_area').data*1.e6
 gt.close()
 
-# Kelvin or celsius ?
-tempmin = min(sst.data[0,:,N_j/2,N_i/2])
-if tempmin > valmask/10.:
-    tempmin = min(sst.data[0,:,N_j/4,N_i/2])
-if tempmin > 273.:
-    temp = temp - 273.15
-    print '     [Change units to celsius]'
+        
 # Interpolation init (regrid)
 ESMP.ESMP_Initialize()
 regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
