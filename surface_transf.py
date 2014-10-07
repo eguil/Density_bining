@@ -185,7 +185,6 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
     N_i = int(sst.shape[2])
     N_j = int(sst.shape[1])
     N_t = int(sst.shape[0])
-    N_s = len(sigrid)
     # Read masking value
     valmask = sst._FillValue
     # reorganise i,j dims in single dimension data
