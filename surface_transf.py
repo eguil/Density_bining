@@ -27,10 +27,10 @@ import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
 #import support_density as sd
-from binDensity import mask_val
-from binDensity import eo_neutral
-from binDensity import rhon_grid
-from binDensity import compute_area
+from binDensity import maskVal
+from binDensity import eosNeutral
+from binDensity import rhonGrid
+from binDensity import computeArea
 import time as timc
 import timeit
 import resource
@@ -115,7 +115,7 @@ def surface_transf(sst, sss, emp, qnet, area, sigrid, del_s, regrido, outgrid, m
         sstt = sst[t,:]
         ssst = sss[t,:]
         # Compute density
-        rhon = eso_neutral(sstt, ssst)
+        rhon = eosNeutral(sstt, ssst)
         # Compute buoyancy flux as mass fluxes in kg/m2/s (SI unts)
         fheat = (-alpha(sstt,ssst)/cpsw(sstt,ssst,P))*qnet[t,:]
         fwafl = (rhon+1000.)*beta(sstt,ssst)*ssst*emp[t,:]*convwf
@@ -217,6 +217,12 @@ else:
 
 if debugp:
     print; print ' Debug mode'
+ 
+# Read file attributes to carry on to output files
+list_file   = fsst.attributes.keys()
+file_dic    = {}
+for i in range(0,len(list_file)):
+    file_dic[i]=list_file[i],fsst.attributes[list_file[i] ]
 #
 # Read data
 sst = fsst('tos' , time = slice(tmin,tmax))
@@ -247,7 +253,7 @@ rho_int = 26
 rho_max = 28.5
 del_s1  = 0.2
 del_s2  = 0.1
-s_s, s_sax, del_s, N_s = rhon_grid(rho_min, rho_int, rho_max, del_s1, del_s2)
+s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
 print
 print ' ==> model:', modeln
 #
@@ -284,7 +290,7 @@ maskInd[idxi[0],idxi[1]] = False
 masks = [maski, maskAtl, maskPac, maskInd]
 #
 # Compute area of target grid and zonal sums
-areai = compute_area(loni[:], lati[:])
+areai = computeArea(loni[:], lati[:])
 #areai   = gt('basinmask3_area').data*1.e6
 gt.close()
 
