@@ -45,22 +45,25 @@ from string import replace
 def alpha (t, s):
     # compute alpha=-1/rho (d rho / d T)
     dt = 0.05
-    siga = eso_neutral(t, s)
-    sigb = eso_neutral(t+0.05, s)
+    siga = eosNeutral(t, s)
+    sigb = eosNeutral(t+0.05, s)
     alpha = -0.001*(sigb-siga)/dt/(1.+1.e-3*siga)
     return alpha
 def betar (t, s):
     # compute beta= 1/rho (d rho / d S)
     ds = 0.01
-    siga = eos_neutral(t, s)-1000.
-    sigb = eos_neutral(t, s+ds)-1000.    
+    siga = eosNeutral(t, s)-1000.
+    sigb = eosNeutral(t, s+ds)-1000.    
     beta = 0.001*(sigb-siga)/ds/(1.+1.e-3*siga)
     return beta
 def cpsw (t, s, p):
     # Specific heat of sea water (J/KG C)
     CP1 = 0.
     CP2 = 0.
-    SR=SQRT(ABS(S))
+    S = s
+    T = t
+    P = p
+    SR = npy.ma.sqrt(S)
     # SPECIFIC HEAT CP0 FOR P=0 (MILLERO ET AL. 1973)
     A = (-1.38E-3*T+0.10727)*T-7.644
     B = (5.35E-5*T-4.08E-3)*T+0.177
@@ -83,7 +86,7 @@ def cpsw (t, s, p):
     cp = CP0 + CP1 + CP2
     return cp    
 
-def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=True,timeint='all'):
+def surface_transf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,timeint='all'):
     # Keep track of time (CPU and elapsed)
     cpu0 = timc.clock()
     #
@@ -98,22 +101,22 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
     #
     npy.set_printoptions(precision = 2)
     # Determine file name from inputs
-    modeln = fileSst.split('/')[-1].split('.')[1]
+    modeln = fileTos.split('/')[-1].split('.')[1]
     #
-    if debug >= '1':
+    if debug:
         print ' Debug - File names:'
-        print '    ', file_sst
-        print '    ', file_sss
+        print '    ', file_tos
+        print '    ', file_sos
         debugp = True
     else:
         debugp = False
     #
     # Open files
-    fsst  = cdm.open(fileSst)
-    fsss  = cdm.open(fileSss)
+    ftos  = cdm.open(fileTos)
+    fsos  = cdm.open(fileSos)
     fhef  = cdm.open(fileHef)
     fwfo  = cdm.open(fileWfo)
-    timeax = fsst.getAxis('time')
+    timeax = ftos.getAxis('time')
     #
     # Dates to read
     if timeint == 'all':
@@ -127,33 +130,34 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
         print; print ' Debug mode'
  
     # Read file attributes to carry on to output files
-    list_file   = fsst.attributes.keys()
+    list_file   = ftos.attributes.keys()
     file_dic    = {}
     for i in range(0,len(list_file)):
-        file_dic[i]=list_file[i],fsst.attributes[list_file[i] ]
+        file_dic[i]=list_file[i],ftos.attributes[list_file[i] ]
     #
     # Read data
     if debugp:
-        print' Read sst, sss',tmin,tmax
-    sst = fsst('tos' , time = slice(tmin,tmax))
-    sss = fsss('sos' , time = slice(tmin,tmax))
+        print' Read tos, sos',tmin,tmax
+    tos = ftos('tos' , time = slice(tmin,tmax))
+    sos = fsos('sos' , time = slice(tmin,tmax))
     if debugp:
         print' Read hfds, wfo'
     qnet = fhef('hfds', time = slice(tmin,tmax))
     emp  = fwfo('wfo' , time = slice(tmin,tmax))
     #
     # Read masking value
-    valmask = sst._FillValue
+    valmask = tos._FillValue
     #
     # Read time and grid
-    lon  = sst.getLongitude()
-    lat  = sst.getLatitude()
-    ingrid = sst.getGrid()
+    lon  = tos.getLongitude()
+    lat  = tos.getLatitude()
+    ingrid = tos.getGrid()
     #
     # Read cell area
     ff = cdm.open(fileFx)
     area = ff('areacello')
     ff.close()
+    areain = area.data
     #
     # Define dimensions
     N_i = int(lon.shape[1])
@@ -165,7 +169,7 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
     rho_max = 28.5
     del_s1  = 0.2
     del_s2  = 0.1
-    s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
+    sigrid, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
     print
     print ' ==> model:', modeln
     #
@@ -182,32 +186,35 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
         os.remove(outFile)
     outFile_f = cdm.open(outFile,'w')
     # Define dimensions
-    N_i = int(sst.shape[2])
-    N_j = int(sst.shape[1])
-    N_t = int(sst.shape[0])
+    N_i = int(tos.shape[2])
+    N_j = int(tos.shape[1])
+    N_t = int(tos.shape[0])
     # Read masking value
-    valmask = sst._FillValue
+    valmask = tos._FillValue
     # reorganise i,j dims in single dimension data
-    sst  = npy.reshape(sst, (N_t, N_i*N_j))
-    sss  = npy.reshape(sss, (N_t, N_i*N_j))
+    tos  = npy.reshape(tos, (N_t, N_i*N_j))
+    sos  = npy.reshape(sos, (N_t, N_i*N_j))
     emp  = npy.reshape(emp, (N_t, N_i*N_j))
     qnet = npy.reshape(qnet, (N_t, N_i*N_j))
-    area = npy.reshape(area, (N_i*N_j))
+    areain = npy.reshape(areain, (N_i*N_j))
+    print 'tos', tos.data[0,1000:1100]
+    print 'sos', sos.data[0,1000:1100]
     # Test variable units
-    [sss,sssFixed] = fixVarUnits(sss,'sss',True)#,'logfile.txt')
-    if sssFixed:
-        print '     sss: units corrected'
-    [sst,sstFixed] = fixVarUnits(sst,'sst',True)#,'logfile.txt')
-    if sstFixed:
-        print '     sst: units corrected'        
+    [sos,sosFixed] = fixVarUnits(sos,'sos',True)#,'logfile.txt')
+    if sosFixed:
+        print '     sos: units corrected'
+    [tos,tosFixed] = fixVarUnits(tos,'thetao',True)#,'logfile.txt')
+    if tosFixed:
+        print '     tos: units corrected'        
     # Physical inits
     P = 0          # surface pressure
     conwf = 1.e-3  # kg/m2/s=mm/s -> m/s
     # find non-masked points
-    maskin = mv.masked_values(sst.data[0], valmask).mask 
+    maskin = mv.masked_values(tos.data[0], valmask).mask 
     nomask = npy.equal(maskin,0)
     # init arrays
     areabin = npy.ones((N_t,N_s+1))*valmask # surface of bin
+    denflx  = npy.ones((N_t,N_s+1))*valmask # Total density flux
     denflxh = npy.ones((N_t,N_s+1))*valmask # heat flux contrib
     denflxw = npy.ones((N_t,N_s+1))*valmask # E-P contrib
     t_heat  = npy.ones((N_t))*valmask # integral heat flux
@@ -247,37 +254,38 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
 
     # Bin on density grid
     for t in range(N_t):
-        print, sst.shape
-        sstt = sst[t,:]
-        ssst = sss[t,:]
+        tost = tos.data[t,:]
+        sost = sos.data[t,:]
         # Compute density
-        rhon = eosNeutral(sstt, ssst)
+        rhon = eosNeutral(tost, sost)-1000.
         # Compute buoyancy flux as mass fluxes in kg/m2/s (SI unts)
-        fheat = (-alpha(sstt,ssst)/cpsw(sstt,ssst,P))*qnet[t,:]
-        fwafl = (rhon+1000.)*beta(sstt,ssst)*ssst*emp[t,:]*convwf
+        #  convwf : kg/m2/s=mm/s -> m/s
+        convwf = 1.e-3
+        fheat = (-alpha(tost,sost)/cpsw(tost,sost,P))*qnet.data[t,:]
+        fwafl = (rhon+1000.)*betar(tost,sost)*sost*emp.data[t,:]*convwf
         # bining loop
-        for ks in range(N_s):
+        for ks in range(N_s-1):
             # find indices of points in density bin
-            idxbin = npy.argwhere( (rhon[t,:] >= sigrid[ks]) & (rhon[t,:] < sigrid[ks+1]) )
-            denflxh[t,ks] = cdu.averager(fheat[t, idxbin] * area[idxbin], axis=1, action='sum')
-            denflxw[t,ks] = cdu.averager(fwafl[t, idxbin] * area[idxbin], axis=1, action='sum')
-            areabin[t,ks] = cdu.averager(area[idxbin], axis=1, action='sum')
+            idxbin = npy.argwhere( (rhon >= sigrid[ks]) & (rhon < sigrid[ks+1]) )
+            denflxh[t,ks] = cdu.averager(fheat[idxbin] * areain[idxbin], axis=0, action='sum')
+            denflxw[t,ks] = cdu.averager(fwafl[idxbin] * areain[idxbin], axis=0, action='sum')
+            areabin[t,ks] = cdu.averager(areain[idxbin], axis=0, action='sum')
         # last bin
-        idxbin = npy.argwhere( (rhon[t,:] >= sigrid[N_s]))
-        denflxh[t,N_s] = cdu.averager(fheat[t, idxbin] * area[idxbin], axis=1, action='sum')
-        denflxw[t,N_s] = cdu.averager(fwafl[t, idxbin] * area[idxbin], axis=1, action='sum')
-        areabin[t,N_s] = cdu.averager(area[idxbin], axis=1, action='sum')
+        idxbin = npy.argwhere( (rhon >= sigrid[N_s-1]))
+        denflxh[t,N_s] = cdu.averager(fheat[idxbin] * areain[idxbin], axis=0, action='sum')
+        denflxw[t,N_s] = cdu.averager(fwafl[idxbin] * areain[idxbin], axis=0, action='sum')
+        areabin[t,N_s] = cdu.averager(areain[idxbin], axis=0, action='sum')
         # Total density flux
-        denflx[t,:] = denflxh[y,:] + denflxw[t,:]
+        denflx[t,:] = denflxh[t,:] + denflxw[t,:]
         # Transformation
         #transfh[t,:] = ...
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
-        t_heat[t] = cdu.averager(fheat*area, action='sum')*dt*convt
+        t_heat[t] = cdu.averager(fheat*areain, action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
-        t_wafl[t] = cdu.averager(fwafl*area, action='sum')*dt*convw
+        t_wafl[t] = cdu.averager(fwafl*areain, action='sum')*dt*convw
       
         
     #+ create a basins variables (loop on n masks)
@@ -299,8 +307,8 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
 # IPSL-CM5A-LR
 #
 file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
-file_sst = '/work/cmip5/historical/ocn/mo/tos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.tos.ver-1.latestX.xml'
-file_sss = '/work/cmip5/historical/ocn/mo/sos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.sos.ver-1.latestX.xml'
+file_tos = '/work/cmip5/historical/ocn/mo/tos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.tos.ver-1.latestX.xml'
+file_sos = '/work/cmip5/historical/ocn/mo/sos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.sos.ver-1.latestX.xml'
 file_hef = '/work/cmip5/historical/ocn/mo/hfds/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.hfds.ver-1.latestX.xml'
 file_wfo = '/work/cmip5/historical/ocn/mo/wfo/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.wfo.ver-1.latestX.xml'
 outfileSurfDen = 'test/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.surfden.ver-ver-1.latest.nc'
@@ -310,5 +318,5 @@ outfileSurfDen = 'test/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.surfden.ve
 #  Compute density flux and transformation
 # -----------------------------------------
 #
-surface_transf(file_fx, file_sst, file_sss, file_hef, file_wfo, outfileSurfDen, debug=True,timeint='1,1')
+surface_transf(file_fx, file_tos, file_sos, file_hef, file_wfo, outfileSurfDen, debug=2,timeint='1,1')
 
