@@ -225,8 +225,12 @@ for i in range(0,len(list_file)):
     file_dic[i]=list_file[i],fsst.attributes[list_file[i] ]
 #
 # Read data
+if debugp:
+    print' Read sst,sss',tmin,tmax
 sst = fsst('tos' , time = slice(tmin,tmax))
 sss = fsss('sos' , time = slice(tmin,tmax))
+if debugp:
+    print' Read hfds,wfo'
 hef = fhef('hfds', time = slice(tmin,tmax))
 wfo = fwfo('wfo' , time = slice(tmin,tmax))
 #
@@ -288,6 +292,10 @@ maskInd = maski*1 ; maskInd[...] = True
 idxi = npy.argwhere(maskg == 3).transpose()
 maskInd[idxi[0],idxi[1]] = False
 masks = [maski, maskAtl, maskPac, maskInd]
+loni    = maskg.getLongitude()
+lati    = maskg.getLatitude()
+Nii     = int(loni.shape[0])
+Nji     = int(lati.shape[0])
 #
 # Compute area of target grid and zonal sums
 areai = computeArea(loni[:], lati[:])
