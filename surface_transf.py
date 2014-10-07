@@ -37,6 +37,7 @@ import resource
 import ESMP
 from cdms2 import CdmsRegrid
 from durolib import fixVarUnits
+from string import replace
 #
 # inits
 # -----
