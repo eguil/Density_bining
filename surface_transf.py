@@ -227,7 +227,7 @@ for i in range(0,len(list_file)):
 # Read data
 sst = fsst('tos' , time = slice(tmin,tmax))
 sss = fsss('sos' , time = slice(tmin,tmax))
-hef = fhef('hdfs', time = slice(tmin,tmax))
+hef = fhef('hfds', time = slice(tmin,tmax))
 wfo = fwfo('wfo' , time = slice(tmin,tmax))
 #
 # Read masking value
