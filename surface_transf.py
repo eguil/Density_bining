@@ -81,7 +81,7 @@ def cpsw (t, s, p):
     cp = CP0 + CP1 + CP2
     return cp    
 
-def surface_transf(sst, sss, emo, qnet, area, sigrid, del_s, regrido, outgrid, masks):
+def surface_transf(sst, sss, emp, qnet, area, sigrid, del_s, regrido, outgrid, masks):
     # Define dimensions
     N_i = int(sst.shape[2])
     N_j = int(sst.shape[1])
@@ -157,7 +157,7 @@ def surface_transf(sst, sss, emo, qnet, area, sigrid, del_s, regrido, outgrid, m
 cpu0 = timc.clock()
 #
 # netCDF compression (use 0 for netCDF3)
-comp = 0
+comp = 1
 cdm.setNetcdfShuffleFlag(comp)
 cdm.setNetcdfDeflateFlag(comp)
 cdm.setNetcdfDeflateLevelFlag(comp)
@@ -184,11 +184,13 @@ timeint      = args.timeint
 #
 # IPSL-CM5A-LR
 #
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.IPSL-CM5A-LR.piControl.r0i0p0.fx.ocn.fx.areacello.ver-v20120430.latestX.xml'
-file_sst = '/work/cmip5/historical/ocn/mo/thetao/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.thetao.ver-v20111119.latestX.xml'
-file_sss = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
-file_fluxes = ...
-modeln = 'IPSL-CM5A-LR'
+file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
+file_sst = '/work/cmip5/historical/ocn/mo/tos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.tos.ver-1.latestX.xml'
+file_sss = '/work/cmip5/historical/ocn/mo/sos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.sos.ver-1.latestX.xml'
+file_hef = '/work/cmip5/historical/ocn/mo/hfds/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.hfds.ver-1.latestX.xml'
+file_wfo = '/work/cmip5/historical/ocn/mo/wfo/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.wfo.ver-1.latestX.xml'
+
+modeln = 'MPI-ESM-LR'
 
 if debug >= '1':
     print ' Debug - File names:'
@@ -199,9 +201,11 @@ else:
     debugp = False
 #
 # Open files
-ft  = cdm.open(file_T)
-fs  = cdm.open(file_S)
-timeax = ft.getAxis('time')
+fsst  = cdm.open(file_sst)
+fsss  = cdm.open(file_sss)
+fhef  = cdm.open(file_hef)
+fwfo  = cdm.open(file_wfo)
+timeax = fsst.getAxis('time')
 #
 # Dates to read
 if timeint == 'all':
@@ -213,6 +217,12 @@ else:
 
 if debugp:
     print; print ' Debug mode'
+#
+# Read data
+sst = fsst('tos' , time = slice(tmin,tmax))
+sss = fsss('sos' , time = slice(tmin,tmax))
+hef = fhef('hdfs', time = slice(tmin,tmax))
+wfo = fwfo('wfo' , time = slice(tmin,tmax))
 #
 # Read masking value
 valmask = sst._FillValue
@@ -295,7 +305,7 @@ regridObj = CdmsRegrid(ingrid, outgrid, depth_bin.dtype, missing = valmask, regr
 #  Compute density flux and transformation
 # -----------------------------------------
 #
-denflx, denflxh, t_heat, t_wafl = surface_transf(sst, sss, emo, qnet, area, s_s, del_s, regridObj, outgrid, masks)
+denflx, denflxh, t_heat, t_wafl = surface_transf(sst, sss, wfo, hef, area, s_s, del_s, regridObj, outgrid, masks)
 denflxw = denflx - denflxh
 
 # CPU use
