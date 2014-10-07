@@ -27,10 +27,10 @@ import numpy.ma as ma
 import cdutil as cdu
 from genutil import statistics
 #import support_density as sd
-from density_bin import mask_val
-from density_bin import eo_neutral
-from density_bin import rhon_grid
-from density_bin import compute_area
+from binDensity import mask_val
+from binDensity import eo_neutral
+from binDensity import rhon_grid
+from binDensity import compute_area
 import time as timc
 import timeit
 import resource
