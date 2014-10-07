@@ -97,7 +97,7 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
     #
     npy.set_printoptions(precision = 2)
     # Determine file name from inputs
-    modeln = fileT.split('/')[-1].split('.')[1]
+    modeln = fileSst.split('/')[-1].split('.')[1]
     #
     if debug >= '1':
         print ' Debug - File names:'
