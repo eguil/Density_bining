@@ -295,13 +295,6 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debugp=T
 # <------------------------------------------------>
 #
 #
-# == get command line options
-parser = argparse.ArgumentParser(description = 'Script to perform density bining analysis')
-parser.add_argument('-t','--timeint', help='specify time domain in bining <init_idx>,<ncount>', default="all")
-args = parser.parse_args()
-# read values
-timeint      = args.timeint
-#
 # IPSL-CM5A-LR
 #
 file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
@@ -316,5 +309,5 @@ outfileSurfDen = 'test/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.surfden.ve
 #  Compute density flux and transformation
 # -----------------------------------------
 #
-surface_transf(file_fx, file_sst, file_sss, file_hef, file_wfo, outfileSurfDen, debug=True,timeint='all')
+surface_transf(file_fx, file_sst, file_sss, file_hef, file_wfo, outfileSurfDen, debug=True,timeint='1,1')
 
