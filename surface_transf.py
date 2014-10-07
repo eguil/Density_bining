@@ -247,6 +247,7 @@ def surface_transf(fileFx, fileSst, fileSss, fileHef, fileWfo, outFile, debug=Tr
 
     # Bin on density grid
     for t in range(N_t):
+        print, sst.shape
         sstt = sst[t,:]
         ssst = sss[t,:]
         # Compute density
