@@ -276,7 +276,12 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denflx  = tmp.copy() # Total density flux
     denflxh = tmp.copy() # heat flux contrib
     denflxw = tmp.copy() # E-P contrib
-    rhon    = npy.ma.ones([Nji, Nii], dtype='float32')*valmask 
+    tmpi    = npy.ma.ones([Nji, Nii], dtype='float32')*valmask 
+    rhon    = tmpi.copy()
+    tost    = tmpi.copy()
+    sost    = tmpi.copy() 
+    heft    = tmpi.copy()
+    empt    = tmpi.copy()
     # Global
     atmp    = npy.ma.ones([N_t, N_s+1], dtype='float32')*valmask 
     transf  = atmp.copy() # Total tranformation
@@ -332,11 +337,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
 
     # Bin on density grid
     for t in range(N_t):
-        tost = regridObj(tos.data[t,:]) ; tost.mask  = maski
-        sost = regridObj(sos.data[t,:]) ; sost.mask  = maski
-        heft = regridObj(qnet.data[t,:]) ; heft.mask  = maski
-        empt = regridObj(emp.data[t,:]) ; empt.mask  = maski
-        
+        tost = regridObj(tos.data[t,:])
+        sost = regridObj(sos.data[t,:])
+        heft = regridObj(qnet.data[t,:])
+        empt = regridObj(emp.data[t,:])
+        tost.mask  = maski
+        sost.mask  = maski
+        heft.mask  = maski
+        empt.mask  = maski
         # Compute density
         rhon       = eosNeutral(tost, sost)-1000.
         rhon.mask  = maski
