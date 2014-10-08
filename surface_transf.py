@@ -166,6 +166,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
 
+    time = timeax[tmin,tmax]
     if debugp:
         print; print ' Debug mode'
  
@@ -192,7 +193,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     lon  = tos.getLongitude()
     lat  = tos.getLatitude()
     ingrid = tos.getGrid()
-    time = ftos.getAxis('time')
     #
     # Read cell area
     ff = cdm.open(fileFx)
