@@ -192,6 +192,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     lon  = tos.getLongitude()
     lat  = tos.getLatitude()
     ingrid = tos.getGrid()
+    time = tos.getAxis('time')
     #
     # Read cell area
     ff = cdm.open(fileFx)
