@@ -213,10 +213,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     del_s2  = 0.1
     sigrid, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
     print
-    ftos.close()
-    fsos.close()
-    fhef.close()
-    fwfo.close()
     print ' ==> model:', modeln
     #
     # File output inits
@@ -401,5 +397,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         post_txt = 'Density flux via surfTransf using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
         setattr(outFile_f, 'Post_processing_history', post_txt)
 
+    ftos.close()
+    fsos.close()
+    fhef.close()
+    fwfo.close()
     outFile_f.close()
     print ' Wrote file: ',outFile
