@@ -337,7 +337,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
 
     # Bin on density grid
     for t in range(N_t):
-        tost = regridObj(tos.data[t,:])
+        tost = regridObj(tos[t,:])
         sost = regridObj(sos.data[t,:])
         heft = regridObj(qnet.data[t,:])
         empt = regridObj(emp.data[t,:])
