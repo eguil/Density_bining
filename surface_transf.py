@@ -314,13 +314,13 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         for ks in range(N_s-1):
             # find indices of points in density bin
             idxbin = npy.argwhere( (rhon >= sigrid[ks]) & (rhon < sigrid[ks+1]) )
-            transfh[t,ks] = cdu.averager(denflxh[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
-            transfw[t,ks] = cdu.averager(denflxw[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
+            transfh[t,ks] = cdu.averager(denflxh[t,idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
+            transfw[t,ks] = cdu.averager(denflxw[t,idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
             areabin[t,ks] = cdu.averager(areain[idxbin], axis=0, action='sum')
         # last bin
         idxbin = npy.argwhere( (rhon >= sigrid[N_s-1]))
-        transfh[t,N_s] = cdu.averager(denflxh[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
-        transfw[t,N_s] = cdu.averager(denflxw[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
+        transfh[t,N_s] = cdu.averager(denflxh[t,idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
+        transfw[t,N_s] = cdu.averager(denflxw[t,idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
         areabin[t,N_s] = cdu.averager(areain[idxbin], axis=0, action='sum')
         # Total transformation
         transf[t,:] = transfh[t,:] + transfw[t,:]        
