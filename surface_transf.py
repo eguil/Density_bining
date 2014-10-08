@@ -265,6 +265,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     areabin = atmp.copy() # surface of bin
     t_heat  = npy.ones((N_t))*valmask # integral heat flux
     t_wafl  = npy.ones((N_t))*valmask # integral E-P
+    transfh = maskVal(transfh, valmask)
+    transfw = maskVal(transfw, valmask)
+    transf  = maskVal(transf , valmask)
+    areabin = maskVal(areabin, valmask)
     #
     # target horizonal grid for interp 
     fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
