@@ -212,6 +212,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     del_s2  = 0.1
     sigrid, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
     print
+    ftos.close()
+    fsos.close()
+    fhef.close()
+    fwfo.close()
     print ' ==> model:', modeln
     #
     # File output inits
@@ -230,6 +234,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     N_i = int(tos.shape[2])
     N_j = int(tos.shape[1])
     N_t = int(tos.shape[0])
+    print ' ==> dimensions N_t, N_j, N_i:', N_t, N_j, N_i
     # Read masking value
     valmask = tos._FillValue
     # reorganise i,j dims in single dimension data
@@ -393,3 +398,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         setattr(outFile_f,dm[0],dm[1])
         post_txt = 'Density flux vi surfTransf using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
         setattr(outFile_f, 'Post_processing_history', post_txt)
+
+    outFile_f.close()
+    print ' Wrote file: ',outFile
