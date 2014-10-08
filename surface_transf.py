@@ -255,22 +255,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     # init arrays
     tmp    = npy.ones([N_t, N_j*N_i], dtype='float32')*valmask 
     denflx  = tmp.copy() # Total density flux
-    denflx  = maskVal(denflx , valmask)
     denflxh = tmp.copy() # heat flux contrib
-    denflxh = maskVal(denflxh, valmask)
     denflxw = tmp.copy() # E-P contrib
-    denflxw = maskVal(denflxw, valmask)
     #
     atmp    = npy.ones([N_t, N_s+1], dtype='float32')*valmask 
     transf  = atmp.copy() # Total tranformation
-    transf  = maskVal(transf , valmask)
     transfh = atmp.copy() # Heat flux tranformation
-    transfh = maskVal(transfh, valmask)
     transfw = atmp.copy() # Water flux tranformation
-    transfw = maskVal(transfw, valmask)
     areabin = atmp.copy() # surface of bin
-    areabin = maskVal(areabin, valmask)
-    denflx  = maskVal(denflx , valmask)
     t_heat  = npy.ones((N_t))*valmask # integral heat flux
     t_wafl  = npy.ones((N_t))*valmask # integral E-P
     #
