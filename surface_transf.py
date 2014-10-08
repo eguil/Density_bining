@@ -253,25 +253,22 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     maskin = mv.masked_values(tos.data[0], valmask).mask 
     nomask = npy.equal(maskin,0)
     # init arrays
-    tmp    = npy.ones([N_t, N_j*N_i], dtype='float32')*valmask 
+    tmp    = npy.ma.ones([N_t, N_j*N_i], dtype='float32')*valmask 
     denflx  = tmp.copy() # Total density flux
     denflxh = tmp.copy() # heat flux contrib
     denflxw = tmp.copy() # E-P contrib
     #
-    atmp    = npy.ones([N_t, N_s+1], dtype='float32')*valmask 
+    atmp    = npy.ma.ones([N_t, N_s+1], dtype='float32')*valmask 
     transf  = atmp.copy() # Total tranformation
     transfh = atmp.copy() # Heat flux tranformation
     transfw = atmp.copy() # Water flux tranformation
     areabin = atmp.copy() # surface of bin
-    t_heat  = npy.ones((N_t))*valmask # integral heat flux
-    t_wafl  = npy.ones((N_t))*valmask # integral E-P
-#    transfh._FillValue = valmask
-#    transfw._FillValue = valmask
-#    transf._FillValue  = valmask
-#    transfh = maskVal(transfh, valmask)
-#    transfw = maskVal(transfw, valmask)
-#    transf  = maskVal(transf , valmask)
-#    areabin = maskVal(areabin, valmask)
+    t_heat  = npy.ma.ones((N_t))*valmask # integral heat flux
+    t_wafl  = npy.ma.ones((N_t))*valmask # integral E-P
+    transfh = maskVal(transfh, valmask)
+    transfw = maskVal(transfw, valmask)
+    transf  = maskVal(transf , valmask)
+    areabin = maskVal(areabin, valmask)
     #
     # target horizonal grid for interp 
     fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
@@ -348,6 +345,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denflxo.mask  = maskt
     denflxho.mask = maskt
     denflxwo.mask = maskt
+    denflxo       = maskVal(denflxo , valmask)
+    denflxho      = maskVal(denflxho, valmask)
+    denflxwo      = maskVal(denflxwo, valmask)
 
     maskin       = mv.masked_values(transf, valmask).mask
     transfh._FillValue = valmask
@@ -372,9 +372,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     # Output files as netCDF
     # Def variables 
-    denFlx  = cdm.createVariable(denflx , axes = [time, ingrid], id = 'denflux')
-    denFlxh = cdm.createVariable(denflxh, axes = [time, ingrid], id = 'hdenflx')
-    denFlxw = cdm.createVariable(denflxw, axes = [time, ingrid], id = 'wdenflx')
+    denFlx  = cdm.createVariable(denflxo , axes = [time, ingrid], id = 'denflux')
+    denFlxh = cdm.createVariable(denflxho, axes = [time, ingrid], id = 'hdenflx')
+    denFlxw = cdm.createVariable(denflxwo, axes = [time, ingrid], id = 'wdenflx')
     denFlx.long_name   = 'Total density flux'
     denFlx.units       = 'kg/m2/s'
     denFlxh.long_name  = 'Heat density flux'
