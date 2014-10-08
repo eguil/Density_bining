@@ -243,8 +243,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     emp  = npy.reshape(emp, (N_t, N_i*N_j))
     qnet = npy.reshape(qnet, (N_t, N_i*N_j))
     areain = npy.reshape(areain, (N_i*N_j))
-    print 'tos', tos.data[0,1000:1100]
-    print 'sos', sos.data[0,1000:1100]
+    #print 'tos', tos.data[0,1000:1100]
+    #print 'sos', sos.data[0,1000:1100]
     # Test variable units
     [sos,sosFixed] = fixVarUnits(sos,'sos',True)#,'logfile.txt')
     if sosFixed:
