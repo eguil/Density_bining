@@ -322,9 +322,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     tmp = npy.ma.ones((N_t))*valmask
     intHeatFlx  = tmp.copy() # integral heat flux
-    infWatFlx   = tmp.copy() # integral E-P
+    intWatFlx   = tmp.copy() # integral E-P
     intHeatFlxa = tmp.copy() # integral heat flux Atl
-    infWatFlxa  = tmp.copy() # integral E-P Atl
+    intWatFlxa  = tmp.copy() # integral E-P Atl
     #
     # Compute area of target grid and zonal sums
     areai = computeArea(loni[:], lati[:])
@@ -334,13 +334,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     regridObj = CdmsRegrid(ingrid, outgrid, denflxh.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
     # init integration intervals
     dt   = 1./float(N_t) 
+    tostw = regridObj(tos)
 
     # Bin on density grid
     for t in range(N_t):
-        tost = regridObj(tos[t,:])
-        sost = regridObj(sos[t,:])
-        heft = regridObj(qnet[t,:])
-        empt = regridObj(emp[t,:])
+        tost = regridObj(tos [t,:,:])
+        sost = regridObj(sos [t,:,:])
+        heft = regridObj(qnet[t,:,:])
+        empt = regridObj(emp [t,:,:])
         tost.mask  = maski
         sost.mask  = maski
         heft.mask  = maski
@@ -349,56 +350,62 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         rhon       = eosNeutral(tost.data, sost.data)-1000.
         rhon.mask  = maski
         rhon       = maskVal(rhon, valmask)
+        print rhon
          # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
         #  convwf : kg/m2/s=mm/s -> m/s
         convwf = 1.e-3
-        denflxh[t,:] = (-alpha(tost.data,sost.data)/cpsw(tost.data,sost.data,P))*heft.data
-        denflxw[t,:] = (rhon+1000.)*betar(tost.data,sost.data)*sost.data*empt.data*convwf
-        denflx [t,:] = denflxh[t,:] + denflxw[t,:]
-        denflx [t,:].mask  = maski
-        denflxh[t,:].mask  = maski
-        denflxw[t,:].mask  = maski
-        denflx  = maskVal(denflx , valmask)
-        denflxh = maskVal(denflxh, valmask)
-        denflxw = maskVal(denflxw, valmask)
+        denflxh[t,...] = (-alpha(tost.data,sost.data)/cpsw(tost.data,sost.data,P))*heft.data
+        denflxw[t,...] = (rhon.data+1000.)*betar(tost.data,sost.data)*sost.data*empt.data*convwf
+        denflx [t,...] = denflxh[t,...] + denflxw[t,...]
+        denflx [t,...].mask  = maski
+        denflxh[t,...].mask  = maski
+        denflxw[t,...].mask  = maski
+        denflx [t,...] = maskVal(denflx [t,...], valmask)
+        denflxh[t,...] = maskVal(denflxh[t,...], valmask)
+        denflxw[t,...] = maskVal(denflxw[t,...], valmask)
+        dflxh = denflxh.data[t,:,:]
+        dflxw = denflxw.data[t,:,:]
         #
         # Transformation (integral of density flux on density outcrops)
         for ks in range(N_s-1):
             # find indices of points in density bin
             # Global
-            idxbin = npy.argwhere( (rhon.data >= sigrid[ks]) & (rhon.data < sigrid[ks+1]) ).transpose
-            print, idxbin
-            transfh[t,ks] = cdu.averager(denflxh[t,idxbin[0],idxbin[1]] * areai[idxbin[0],idxbin[1]], axis=0, action='sum')/del_s[ks]
-            transfw[t,ks] = cdu.averager(denflxw[t,idxbin[0],idxbin[1]] * areai[idxbin[0],idxbin[1]], axis=0, action='sum')/del_s[ks]
+            idxbin = npy.argwhere( (rhon.data >= sigrid[ks]) & (rhon.data < sigrid[ks+1]) ).transpose()
+            idj = idxbin[0] ; idi = idxbin[1]
+            transfh[t,ks] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+            transfw[t,ks] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
             areabin[t,ks] = cdu.averager(areai[idxbin[0],idxbin[1]], axis=0, action='sum')
             # Basin
-            idxbina = npy.argwhere( (rhon*maskAtl >= sigrid[ks]) & (rhon*maskAtl < sigrid[ks+1]) ).transpose
-            transfha[t,ks] = cdu.averager(denflxh[t,idxbina[0],idxbina[1]] * areai[idxbina[0],idxbina[1]], axis=0, action='sum')/del_s[ks]
-            transfwa[t,ks] = cdu.averager(denflxw[t,idxbina[0],idxbina[1]] * areai[idxbina[0],idxbina[1]], axis=0, action='sum')/del_s[ks]
-            areabina[t,ks] = cdu.averager(areai[idxbina[0],idxbina[1]], axis=0, action='sum')
+            idxbina = npy.argwhere( (rhon.data*maskAtl >= sigrid[ks]) & (rhon.data*maskAtl < sigrid[ks+1]) ).transpose()
+            idj = idxbina[0] ; idi = idxbina[1]
+            transfha[t,ks] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+            transfwa[t,ks] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+            areabina[t,ks] = cdu.averager(areai[idj,idi], axis=0, action='sum')
             
         # last bin
-        idxbin = npy.argwhere( (rhon >= sigrid[N_s-1])).transpose
-        transfh[t,N_s] = cdu.averager(denflxh[t,idxbin[0],idxbin[1]] * areai[idxbin[0],idxbin[1]], axis=0, action='sum')/del_s[ks]
-        transfw[t,N_s] = cdu.averager(denflxw[t,idxbin[0],idxbin[1]] * areai[idxbin[0],idxbin[1]], axis=0, action='sum')/del_s[ks]
-        areabin[t,N_s] = cdu.averager(areai[idxbin[0],idxbin[1]], axis=0, action='sum')
+        idxbin = npy.argwhere( (rhon.data >= sigrid[N_s-1])).transpose()
+        idj = idxbin[0] ; idi = idxbin[1]
+        transfh[t,N_s] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+        transfw[t,N_s] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+        areabin[t,N_s] = cdu.averager(areai[idj,idi], axis=0, action='sum')
         #
-        idxbina = npy.argwhere( (rhon*maskAtl >= sigrid[N_s-1])).transpose
-        transfha[t,N_s] = cdu.averager(denflxh[t,idxbina[0],idxbina[1]] * areai[idxbina[0],idxbina[1]], axis=0, action='sum')/del_s[ks]
-        transfwa[t,N_s] = cdu.averager(denflxw[t,idxbina[0],idxbina[1]] * areai[idxbina[0],idxbina[1]], axis=0, action='sum')/del_s[ks]
-        areabina[t,N_s] = cdu.averager(areai[idxbina[0],idxbina[1]], axis=0, action='sum')
+        idxbina = npy.argwhere( (rhon.data*maskAtl >= sigrid[N_s-1])).transpose()
+        idj = idxbina[0] ; idi = idxbina[1]
+        transfha[t,N_s] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+        transfwa[t,N_s] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
+        areabina[t,N_s] = cdu.averager(areai[idj,idi], axis=0, action='sum')
         # Total transformation
         transf[t,:] = transfh[t,:] + transfw[t,:]        
         transfa[t,:] = transfha[t,:] + transfwa[t,:]        
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
-        intHeatFlx [t] = cdu.averager(denflxh [t,:]*areai, action='sum')*dt*convt
-        intHeatFlxa[t] = cdu.averager(denflxha[t,:]*areai, action='sum')*dt*convt
+        intHeatFlx [t] = cdu.averager(npy.reshape(dflxh*areai*maski  , (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxa[t] = cdu.averager(npy.reshape(dflxh*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
-        intWatFlx [t]  = cdu.averager(denflxw [t,:]*areai, action='sum')*dt*convw
-        intWatFlxa[t]  = cdu.averager(denflxwa[t,:]*areai, action='sum')*dt*convw
+        intWatFlx [t]  = cdu.averager(npy.reshape(dflxw*areai*maski  , (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxa[t]  = cdu.averager(npy.reshape(dflxw*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convw
       
     # Wash mask over variables for transformation
     maskt         = mv.masked_values(tos, valmask).mask
@@ -431,6 +438,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     # Output files as netCDF
     # Density flux (3D: time, lon, lat)
     convw = 1.e6
+    rhon  = cdm.createVariable(rhon  , axes = [time, lati, loni], id = 'sst')
     denFlx  = cdm.createVariable(denflx*convw  , axes = [time, lati, loni], id = 'denflux')
     denFlxh = cdm.createVariable(denflxh*convw , axes = [time, lati, loni], id = 'hdenflx')
     denFlxw = cdm.createVariable(denflxw*convw , axes = [time, lati, loni], id = 'wdenflx')
@@ -464,9 +472,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     # Integral heat and emp fux (1D: time)
     intQFlx   = cdm.createVariable(intHeatFlx, axes = [time], id = 'intQflx')
-    intWFlx   = cdm.createVariable(intWtFlx  , axes = [time], id = 'intWflx')
+    intWFlx   = cdm.createVariable(intWatFlx  , axes = [time], id = 'intWflx')
     intQFlxa  = cdm.createVariable(intHeatFlxa, axes = [time], id = 'intQflxAtl')
-    intWFlxa  = cdm.createVariable(intWtFlxa  , axes = [time], id = 'intWflxAtl')
+    intWFlxa  = cdm.createVariable(intWatFlxa  , axes = [time], id = 'intWflxAtl')
     intQFlx.long_name   = 'Integral Surface Heat Flux'
     intQFlx.units       = 'PW'
     intWFlx.long_name   = 'Integral Surface E minus P'
@@ -476,6 +484,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     intWFlxa.long_name   = 'Atl. Integral Surface E minus P'
     intWFlxa.units       = 'Sv'
 
+    outFile_f.write(rhon)
     outFile_f.write(denFlx)
     outFile_f.write(denFlxh)
     outFile_f.write(denFlxw)
