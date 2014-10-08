@@ -401,10 +401,23 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denFlxw.long_name  = 'Water density flux'
     denFlxw.units      = '1.e-6 kg/m2/s'
 
+    convw = 1.e-6
+    totTransf  = cdm.createVariable(transf*convw , axes = [time, s_saxis], id = 'transftot')
+    hefTransf  = cdm.createVariable(transfh*convw, axes = [time, s_saxis], id = 'transfhef')
+    wfoTransf  = cdm.createVariable(transfw*convw, axes = [time, s_saxis], id = 'transfwfo')
+    totTransf.long_name   = 'Total transformation'
+    totTransf.units       = 'Sv'
+    hefTransf.long_name   = 'Heat flux transformation'
+    hefTransf.units       = 'Sv'
+    wfoTransf.long_name   = 'Water flux transformation'
+    wfoTransf.units       = 'Sv'
 
     outFile_f.write(denFlx)
     outFile_f.write(denFlxh)
     outFile_f.write(denFlxw)
+    outFile_f.write(totTransf)
+    outFile_f.write(hefTransf)
+    outFile_f.write(wfoTransf)
 
     for i in range(0,len(file_dic)):
         dm = file_dic[i]
