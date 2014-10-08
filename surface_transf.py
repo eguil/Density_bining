@@ -265,6 +265,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     areabin = atmp.copy() # surface of bin
     t_heat  = npy.ones((N_t))*valmask # integral heat flux
     t_wafl  = npy.ones((N_t))*valmask # integral E-P
+    transfh._FillValue = valmask
+    transfw._FillValue = valmask
+    transf._FillValue  = valmask
     transfh = maskVal(transfh, valmask)
     transfw = maskVal(transfw, valmask)
     transf  = maskVal(transf , valmask)
@@ -340,8 +343,12 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denflxo  = npy.reshape(denflx , (N_t, N_j, N_i))
     denflxho = npy.reshape(denflxh, (N_t, N_j, N_i))
     denflxwo = npy.reshape(denflxw, (N_t, N_j, N_i))
-    
     # Wash mask over variables for transformation
+    maskt         = mv.masked_values(tos, valmask).mask
+    denflxo.mask  = maskt
+    denflxho.mask = maskt
+    denflxwo.mask = maskt
+
     maskin       = mv.masked_values(transf, valmask).mask
     transfh.mask = maskin
     transfw.mask = maskin
