@@ -145,8 +145,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     if debug:
         print ' Debug - File names:'
-        print '    ', file_tos
-        print '    ', file_sos
+        print '    ', fileTos
+        print '    ', fileSos
         debugp = True
     else:
         debugp = False
