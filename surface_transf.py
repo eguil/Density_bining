@@ -56,7 +56,7 @@ import seawater as sw
 # -----
 #
 
-def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,timeint='all'):
+def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, timeint='all'):
     '''
     The surfTransf() function takes files and variable arguments and creates
     density bined surface transformation fields which are written to a specified outfile
@@ -233,8 +233,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denflx  = tmp.copy() # Total density flux
     denflxh = tmp.copy() # heat flux contrib
     denflxw = tmp.copy() # E-P contrib
+    rhon    = tmp.copy() # surface density
     tmpi    = npy.ma.ones([Nji, Nii], dtype='float32')*valmask 
-    rhon    = tmpi.copy()
     tost    = tmpi.copy()
     sost    = tmpi.copy() 
     heft    = tmpi.copy()
@@ -401,7 +401,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         intWatFlxp[t]  = cdu.averager(npy.reshape(dflxw*areai*maskPac, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxi[t]  = cdu.averager(npy.reshape(dflxw*areai*maskInd, (Nji*Nii)), action='sum')*dt*convw
       
-    # Wash mask over variables for transformation
+    # Wash mask over variables
     maskt         = mv.masked_values(tos, valmask).mask
     denflx.mask  = maskt
     denflxh.mask = maskt
