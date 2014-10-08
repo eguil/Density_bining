@@ -366,9 +366,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         for ks in range(N_s-1):
             # find indices of points in density bin
             # Global
-            print rhon.shape, rhon[90,:]
             idxbin = npy.argwhere( (rhon >= sigrid[ks]) & (rhon < sigrid[ks+1]) ).transpose
-            print denflxh.shape, areai.shape, len(idxbin)
+            print len(idxbin)
             transfh[t,ks] = cdu.averager(denflxh[t,idxbin[0],idxbin[1]] * areai[idxbin[0],idxbin[1]], axis=0, action='sum')/del_s[ks]
             transfw[t,ks] = cdu.averager(denflxw[t,idxbin[0],idxbin[1]] * areai[idxbin[0],idxbin[1]], axis=0, action='sum')/del_s[ks]
             areabin[t,ks] = cdu.averager(areai[idxbin[0],idxbin[1]], axis=0, action='sum')
