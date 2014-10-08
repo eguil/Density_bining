@@ -184,15 +184,16 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         print' Read hfds, wfo'
     qnet = fhef('hfds', time = slice(tmin,tmax))
     emp  = fwfo('wfo' , time = slice(tmin,tmax))
+    tos_h = ftos['tos']
     #
     # Read masking value
     valmask = tos._FillValue
     #
     # Read time and grid
     time = tos.getTime()
-    lon  = tos.getLongitude()
-    lat  = tos.getLatitude()
-    ingrid = tos.getGrid()
+    lon  = tos_h.getLongitude()
+    lat  = tos_h.getLatitude()
+    ingrid = tos_h.getGrid()
     #
     # Read cell area
     ff = cdm.open(fileFx)
@@ -378,16 +379,16 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     # Output files as netCDF
     # Def variables 
-    print denflxo.shape, time.shape, ingrid.shape
-    denFlx  = cdm.createVariable(denflxo , axes = [time, ingrid], id = 'denflux')
-    denFlxh = cdm.createVariable(denflxho, axes = [time, ingrid], id = 'hdenflx')
-    denFlxw = cdm.createVariable(denflxwo, axes = [time, ingrid], id = 'wdenflx')
+    convw = 1.e6
+    denFlx  = cdm.createVariable(denflxo*convw , axes = [time, ingrid], id = 'denflux')
+    denFlxh = cdm.createVariable(denflxho*convw , axes = [time, ingrid], id = 'hdenflx')
+    denFlxw = cdm.createVariable(denflxwo*convw , axes = [time, ingrid], id = 'wdenflx')
     denFlx.long_name   = 'Total density flux'
-    denFlx.units       = 'kg/m2/s'
+    denFlx.units       = '1.e-6 kg/m2/s'
     denFlxh.long_name  = 'Heat density flux'
-    denFlxh.units      = 'kg/m2/s'
+    denFlxh.units      = '1.e-6 kg/m2/s'
     denFlxw.long_name  = 'Water density flux'
-    denFlxw.units      = 'kg/m2/s'
+    denFlxw.units      = '1.e-6 kg/m2/s'
 
 
     outFile_f.write(denFlx)
@@ -397,7 +398,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     for i in range(0,len(file_dic)):
         dm = file_dic[i]
         setattr(outFile_f,dm[0],dm[1])
-        post_txt = 'Density flux vi surfTransf using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
+        post_txt = 'Density flux via surfTransf using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
         setattr(outFile_f, 'Post_processing_history', post_txt)
 
     outFile_f.close()
