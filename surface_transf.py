@@ -295,6 +295,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     lati    = maskg.getLatitude()
     Nii     = int(loni.shape[0])
     Nji     = int(lati.shape[0])
+    tmp    = npy.ma.ones([N_t, Nji, Nii], dtype='float32')*valmask 
+    denflxi  = tmp.copy() # Total density flux
+    denflxhi = tmp.copy() # heat flux contrib
+    denflxwi = tmp.copy() # E-P contrib
     #
     # Compute area of target grid and zonal sums
     areai = computeArea(loni[:], lati[:])
@@ -370,6 +374,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         denflxi [t,:].mask  = maski
         denflxhi[t,:].mask  = maski
         denflxwi[t,:].mask  = maski
+    denflxi       = maskVal(denflxi , valmask)
+    denflxhi      = maskVal(denflxhi, valmask)
+    denflxwi      = maskVal(denflxwi, valmask)
        
     #+ create a basins variables (loop on n masks)
     # CPU use
