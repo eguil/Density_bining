@@ -253,10 +253,24 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     maskin = mv.masked_values(tos.data[0], valmask).mask 
     nomask = npy.equal(maskin,0)
     # init arrays
-    areabin = npy.ones((N_t,N_s+1))*valmask # surface of bin
-    denflx  = npy.ones((N_t,N_s+1))*valmask # Total density flux
-    denflxh = npy.ones((N_t,N_s+1))*valmask # heat flux contrib
-    denflxw = npy.ones((N_t,N_s+1))*valmask # E-P contrib
+    tmp    = npy.ones([N_t, N_j*N_i], dtype='float32')*valmask 
+    denflx  = tmp.copy() # Total density flux
+    denflx  = maskVal(denflx , valmask)
+    denflxh = tmp.copy() # heat flux contrib
+    denflxh = maskVal(denflxh, valmask)
+    denflxw = tmp.copy() # E-P contrib
+    denflxw = maskVal(denflxw, valmask)
+    #
+    atmp    = npy.ones([N_t, N_s+1], dtype='float32')*valmask 
+    transf  = atmp.copy() # Total tranformation
+    transf  = maskVal(transf , valmask)
+    transfh = atmp.copy() # Heat flux tranformation
+    transfh = maskVal(transfh, valmask)
+    transfw = atmp.copy() # Water flux tranformation
+    transfw = maskVal(transfw, valmask)
+    areabin = atmp.copy() # surface of bin
+    areabin = maskVal(areabin, valmask)
+    denflx  = maskVal(denflx , valmask)
     t_heat  = npy.ones((N_t))*valmask # integral heat flux
     t_wafl  = npy.ones((N_t))*valmask # integral E-P
     #
@@ -298,39 +312,48 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         sost = sos.data[t,:]
         # Compute density
         rhon = eosNeutral(tost, sost)-1000.
-        # Compute buoyancy flux as mass fluxes in kg/m2/s (SI unts)
+        # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
         #  convwf : kg/m2/s=mm/s -> m/s
         convwf = 1.e-3
-        fheat = (-alpha(tost,sost)/cpsw(tost,sost,P))*qnet.data[t,:]
-        fwafl = (rhon+1000.)*betar(tost,sost)*sost*emp.data[t,:]*convwf
-        # bining loop
+        denflxh[t,:] = (-alpha(tost,sost)/cpsw(tost,sost,P))*qnet.data[t,:]
+        denflxw[t,:] = (rhon+1000.)*betar(tost,sost)*sost*emp.data[t,:]*convwf
+        denflx [t,:] = denflxh[t,:] + denflxw[t,:]
+        # Transformation (integral of density flux on density outcrops)
         for ks in range(N_s-1):
             # find indices of points in density bin
             idxbin = npy.argwhere( (rhon >= sigrid[ks]) & (rhon < sigrid[ks+1]) )
-            denflxh[t,ks] = cdu.averager(fheat[idxbin] * areain[idxbin], axis=0, action='sum')
-            denflxw[t,ks] = cdu.averager(fwafl[idxbin] * areain[idxbin], axis=0, action='sum')
+            transfh[t,ks] = cdu.averager(denflxh[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
+            transfw[t,ks] = cdu.averager(denflxw[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
             areabin[t,ks] = cdu.averager(areain[idxbin], axis=0, action='sum')
         # last bin
         idxbin = npy.argwhere( (rhon >= sigrid[N_s-1]))
-        denflxh[t,N_s] = cdu.averager(fheat[idxbin] * areain[idxbin], axis=0, action='sum')
-        denflxw[t,N_s] = cdu.averager(fwafl[idxbin] * areain[idxbin], axis=0, action='sum')
+        transfh[t,N_s] = cdu.averager(denflxh[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
+        transfw[t,N_s] = cdu.averager(denflxw[idxbin] * areain[idxbin], axis=0, action='sum')/del_s[ks]
         areabin[t,N_s] = cdu.averager(areain[idxbin], axis=0, action='sum')
-        # Total density flux
-        denflx[t,:] = denflxh[t,:] + denflxw[t,:]
-        # Transformation
-        for ks in range(N_s-1):
-            transfh[t,ks] = denflxh[t,ks]/del_s[ks]
-            transfw[t,ks] = denflxw[t,ks]/del_s[ks]
-        transf[t,:] = transfh[t,:] + transfw[t,:] 
+        # Total transformation
+        transf[t,:] = transfh[t,:] + transfw[t,:]        
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
-        t_heat[t] = cdu.averager(fheat*areain, action='sum')*dt*convt
+        t_heat[t] = cdu.averager(denflxh*areain, action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
-        t_wafl[t] = cdu.averager(fwafl*areain, action='sum')*dt*convw
+        t_wafl[t] = cdu.averager(denflxw*areain, action='sum')*dt*convw
       
-        
+    # Reshape i*j back to i,j for output of density flux
+    denflxo  = npy.reshape(denflx , (N_t, N_j, N_i))
+    denflxho = npy.reshape(denflxh, (N_t, N_j, N_i))
+    denflxwo = npy.reshape(denflxw, (N_t, N_j, N_i))
+    
+    # Wash mask over variables for transformation
+    maskin       = mv.masked_values(transf, valmask).mask
+    transfh.mask = maskin
+    transfw.mask = maskin
+    transf.mask  = maskin
+    transfh      = maskVal(transfh, valmask)
+    transfw      = maskVal(transfw, valmask)
+    transf       = maskVal(transf , valmask)
+       
     #+ create a basins variables (loop on n masks)
     # CPU use
     print
@@ -340,26 +363,26 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     if debugp:
         print ' t_heat',t_heat
         print ' t_wafl',t_wafl
+    #
+    # Output files as netCDF
+    # Def variables 
+    denFlx  = cdm.createVariable(denflx , axes = [time, ingrid], id = 'denflux')
+    denFlxh = cdm.createVariable(denflxh, axes = [time, ingrid], id = 'hdenflx')
+    denFlxw = cdm.createVariable(denflxw, axes = [time, ingrid], id = 'wdenflx')
+    denFlx.long_name   = 'Total density flux'
+    denFlx.units       = 'kg/m2/s'
+    denFlxh.long_name  = 'Heat density flux'
+    denFlxh.units      = 'kg/m2/s'
+    denFlxw.long_name  = 'Water density flux'
+    denFlxw.units      = 'kg/m2/s'
 
-#
-# <------------------------------------------------>
-#       Test driver for surface transformation
-# <------------------------------------------------>
-#
-#
-# IPSL-CM5A-LR
-#
-file_fx = '/work/cmip5/fx/fx/areacello/cmip5.MPI-ESM-LR.historical.r0i0p0.fx.ocn.fx.areacello.ver-v20111006.latestX.xml'
-file_tos = '/work/cmip5/historical/ocn/mo/tos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.tos.ver-1.latestX.xml'
-file_sos = '/work/cmip5/historical/ocn/mo/sos/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.sos.ver-1.latestX.xml'
-file_hef = '/work/cmip5/historical/ocn/mo/hfds/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.hfds.ver-1.latestX.xml'
-file_wfo = '/work/cmip5/historical/ocn/mo/wfo/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.wfo.ver-1.latestX.xml'
-outfileSurfDen = 'test/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.surfden.ver-ver-1.latest.nc'
 
-#
-# -----------------------------------------
-#  Compute density flux and transformation
-# -----------------------------------------
-#
-surfTransf(file_fx, file_tos, file_sos, file_hef, file_wfo, outfileSurfDen, debug=2,timeint='1,1')
+    outFile_f.write(denFlx)
+    outFile_f.write(denFlxh)
+    outFile_f.write(denFlxw)
 
+    for i in range(0,len(file_dic)):
+        dm = file_dic[i]
+        setattr(outFile_f,dm[0],dm[1])
+        post_txt = 'Density flux vi surfTransf using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
+        setattr(outFile_f, 'Post_processing_history', post_txt)
