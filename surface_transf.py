@@ -378,6 +378,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     # Output files as netCDF
     # Def variables 
+    print denflxo.shape, time.shape, ingrid.shape
     denFlx  = cdm.createVariable(denflxo , axes = [time, ingrid], id = 'denflux')
     denFlxh = cdm.createVariable(denflxho, axes = [time, ingrid], id = 'hdenflx')
     denFlxw = cdm.createVariable(denflxwo, axes = [time, ingrid], id = 'wdenflx')
