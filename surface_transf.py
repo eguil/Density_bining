@@ -362,6 +362,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     transfh      = maskVal(transfh, valmask)
     transfw      = maskVal(transfw, valmask)
     transf       = maskVal(transf , valmask)
+    # Regrid
+    for t in range(N_t):
+        denflxi [t,:]       = regridObj(denflxo  [t,:])
+        denflxhi[t,:]       = regridObj(denflxho [t,:])
+        denflxwi[t,:]       = regridObj(denflxwo [t,:])
+        denflxi [t,:].mask  = maski
+        denflxhi[t,:].mask  = maski
+        denflxwi[t,:].mask  = maski
        
     #+ create a basins variables (loop on n masks)
     # CPU use
@@ -376,9 +384,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     # Output files as netCDF
     # Def variables 
     convw = 1.e6
-    denFlx  = cdm.createVariable(denflxo*convw , axes = [time, ingrid], id = 'denflux')
-    denFlxh = cdm.createVariable(denflxho*convw , axes = [time, ingrid], id = 'hdenflx')
-    denFlxw = cdm.createVariable(denflxwo*convw , axes = [time, ingrid], id = 'wdenflx')
+    denFlx  = cdm.createVariable(denflxi*convw  , axes = [time, lati, loni], id = 'denflux')
+    denFlxh = cdm.createVariable(denflxhi*convw , axes = [time, lati, loni], id = 'hdenflx')
+    denFlxw = cdm.createVariable(denflxwi*convw , axes = [time, lati, loni], id = 'wdenflx')
     denFlx.long_name   = 'Total density flux'
     denFlx.units       = '1.e-6 kg/m2/s'
     denFlxh.long_name  = 'Heat density flux'
