@@ -338,22 +338,22 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     # Bin on density grid
     for t in range(N_t):
         tost = regridObj(tos[t,:])
-        sost = regridObj(sos.data[t,:])
-        heft = regridObj(qnet.data[t,:])
-        empt = regridObj(emp.data[t,:])
+        sost = regridObj(sos[t,:])
+        heft = regridObj(qnet[t,:])
+        empt = regridObj(emp[t,:])
         tost.mask  = maski
         sost.mask  = maski
         heft.mask  = maski
         empt.mask  = maski
         # Compute density
-        rhon       = eosNeutral(tost, sost)-1000.
+        rhon       = eosNeutral(tost.data, sost.data)-1000.
         rhon.mask  = maski
         rhon       = maskVal(rhon, valmask)
          # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
         #  convwf : kg/m2/s=mm/s -> m/s
         convwf = 1.e-3
-        denflxh[t,:] = (-alpha(tost,sost)/cpsw(tost,sost,P))*heft
-        denflxw[t,:] = (rhon+1000.)*betar(tost,sost)*sost*empt*convwf
+        denflxh[t,:] = (-alpha(tost.data,sost.data)/cpsw(tost.data,sost.data,P))*heft.data
+        denflxw[t,:] = (rhon+1000.)*betar(tost.data,sost.data)*sost.data*empt.data*convwf
         denflx [t,:] = denflxh[t,:] + denflxw[t,:]
         denflx [t,:].mask  = maski
         denflxh[t,:].mask  = maski
