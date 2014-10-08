@@ -1,21 +1,32 @@
-#!/usr/local/uvcdat/latest/bin/cdat
-#
-#
-# -------------------------------------------------------------------------------------------------
-# Procedure to compute water mass transformation from surface buoyancy fluxes in density space
-#
-#  Input fields:
-#    - sst, sss, E-P, Qnet (3D, time,j,i)
-#    - density grid sigrid, and delta_s (1D)
-#    - target grid, including ocean basins
-#  Output fields (on target grid):
-#    - density flux (total, heat, fresh water) (2D rho,time, per basin or specific region)
-#    - transformation (2D rho, time, per basin or specific region)
-#
-# Following Walin (1982) and Speer and Tziperman (1992)
-# -------------------------------------------------------------------------------------------------
-#   E. Guilyardi Sept 2014
-#
+#!/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct  8 09:11:11 CEST 2014
+
+Eric Guilyardi 8 October 2014
+
+This script computes water mass transformation from surface buoyancy fluxes in density space
+
+  Input fields:
+    - sst, sss, E-P, Qnet (3D, time,j,i)
+    - density grid sigrid, and delta_s (1D)
+    - target grid, including ocean basins
+  Output fields (on target grid):
+    - density flux (total, heat, fresh water) (2D rho,time, per basin or specific region)
+    - transformation (2D rho, time, per basin or specific region)
+
+ Following Walin (1982) and Speer and Tziperman (1992)computes density bins and indexes T,S values from the vertical z
+ Uses McDougall and Jackett 2005 EOS (IDL routine provided by G. Madec)
+---------------------------------------------------------------------------------
+
+EG 8 Oct 2014     - Started file
+                    - TODO: 
+                     - add ekman pumping bining (cf wcurl in densit)
+                     - modify alpha and betar functions to more physical
+test
+
+@author: eguil
+"""
 
 import cdms2 as cdm
 import MV2 as mv
@@ -86,7 +97,36 @@ def cpsw (t, s, p):
     cp = CP0 + CP1 + CP2
     return cp    
 
-def surface_transf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,timeint='all'):
+def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,timeint='all'):
+    '''
+    The surfTransf() function takes files and variable arguments and creates
+    density bined surface transformation fields which are written to a specified outfile
+    Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+    Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
+    
+    Created on Wed Oct  8 09:15:59 CEST 2014
+
+
+    Inputs:
+    ------
+    - fileTos(time,lat,lon)     - 3D SST array
+    - fileSos(time,lat,lon)     - 3D SSS array
+    - fileHef(time,lat,lon)     - 3D net surface heat flux array
+    - fileWfo(time,lat,lon)     - 3D fresh water flux array
+    - fileFx(lat,lon)           - 2D array containing the cell area values
+    - outFile(str)              - output file with full path specified.
+    - debug <optional>          - boolean value
+    - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
+
+    Usage:
+    ------
+    >>> from binDensity import surfTransf
+    >>> surfTransf(file_fx, file_tos, file_sos, file_hef, file_wfo, ./output.nc, debug=True,timeint='all')
+
+    Notes:
+    -----
+    - EG 8 Oct 2014   - Initial function write
+    '''
     # Keep track of time (CPU and elapsed)
     cpu0 = timc.clock()
     #
@@ -278,7 +318,10 @@ def surface_transf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=Tr
         # Total density flux
         denflx[t,:] = denflxh[t,:] + denflxw[t,:]
         # Transformation
-        #transfh[t,:] = ...
+        for ks in range(N_s-1):
+            transfh[t,ks] = denflxh[t,ks]/del_s[ks]
+            transfw[t,ks] = denflxw[t,ks]/del_s[ks]
+        transf[t,:] = transfh[t,:] + transfw[t,:] 
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
@@ -318,5 +361,5 @@ outfileSurfDen = 'test/cmip5.MPI-ESM-LR.historical.r1i1p1.mo.ocn.Omon.surfden.ve
 #  Compute density flux and transformation
 # -----------------------------------------
 #
-surface_transf(file_fx, file_tos, file_sos, file_hef, file_wfo, outfileSurfDen, debug=2,timeint='1,1')
+surfTransf(file_fx, file_tos, file_sos, file_hef, file_wfo, outfileSurfDen, debug=2,timeint='1,1')
 
