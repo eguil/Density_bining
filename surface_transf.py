@@ -219,7 +219,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     #
     s_axis = cdm.createAxis(s_sax, id = 'rhon')
     s_axis.long_name = 'Neutral density'
-    s_axis.units = ''
+    s_axis.units = 'kg m-3 (anomaly, minus 1000)'
     s_axis.designateLevel()
     #
     # Monthly transformation
@@ -379,9 +379,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denflxwi      = maskVal(denflxwi, valmask)
        
     #+ create a basins variables (loop on n masks)
-    # CPU use
-    print
-    print ' CPU use', timc.clock() - cpu0
 
     print ' -> Calculated  denflx, denflxh, denflxw, t_heat, t_wafl'
     if debugp:
@@ -402,9 +399,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     denFlxw.units      = '1.e-6 kg/m2/s'
 
     convw = 1.e-6
-    totTransf  = cdm.createVariable(transf*convw , axes = [time, s_saxis], id = 'transftot')
-    hefTransf  = cdm.createVariable(transfh*convw, axes = [time, s_saxis], id = 'transfhef')
-    wfoTransf  = cdm.createVariable(transfw*convw, axes = [time, s_saxis], id = 'transfwfo')
+    totTransf  = cdm.createVariable(transf*convw , axes = [time, s_axis], id = 'transftot')
+    hefTransf  = cdm.createVariable(transfh*convw, axes = [time, s_axis], id = 'transfhef')
+    wfoTransf  = cdm.createVariable(transfw*convw, axes = [time, s_axis], id = 'transfwfo')
     totTransf.long_name   = 'Total transformation'
     totTransf.units       = 'Sv'
     hefTransf.long_name   = 'Heat flux transformation'
@@ -431,3 +428,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
     fwfo.close()
     outFile_f.close()
     print ' Wrote file: ',outFile
+
+
+
+
+    # CPU use
+    print
+    print ' CPU use', timc.clock() - cpu0
