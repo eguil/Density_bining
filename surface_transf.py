@@ -327,10 +327,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
-        t_heat[t] = cdu.averager(denflxh*areain, action='sum')*dt*convt
+        t_heat[t] = cdu.averager(denflxh[t,:]*areain, action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
-        t_wafl[t] = cdu.averager(denflxw*areain, action='sum')*dt*convw
+        t_wafl[t] = cdu.averager(denflxw[t,:]*areain, action='sum')*dt*convw
       
     # Reshape i*j back to i,j for output of density flux
     denflxo  = npy.reshape(denflx , (N_t, N_j, N_i))
