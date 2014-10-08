@@ -17,13 +17,13 @@ This script computes water mass transformation from surface buoyancy fluxes in d
 
  Following Walin (1982) and Speer and Tziperman (1992)computes density bins and indexes T,S values from the vertical z
  Uses McDougall and Jackett 2005 EOS (IDL routine provided by G. Madec)
+ Uses python seawater package (https://github.com/ocefpaf/python-seawater)
 ---------------------------------------------------------------------------------
 
 EG 8 Oct 2014     - Started file
                     - TODO: 
                      - add basin calculations (North South as well ?)
                      - add ekman pumping bining (cf wcurl in densit)
-                     - modify alpha and betar functions to be more physical
 test
 
 @author: eguil
@@ -50,53 +50,11 @@ import ESMP
 from cdms2 import CdmsRegrid
 from durolib import fixVarUnits
 from string import replace
+import seawater as sw
 #
 # inits
 # -----
 #
-def alpha (t, s):
-    # compute alpha=-1/rho (d rho / d T)
-    dt = 0.05
-    siga = eosNeutral(t, s)
-    sigb = eosNeutral(t+0.05, s)
-    alpha = -0.001*(sigb-siga)/dt/(1.+1.e-3*siga)
-    return alpha
-def betar (t, s):
-    # compute beta= 1/rho (d rho / d S)
-    ds = 0.01
-    siga = eosNeutral(t, s)-1000.
-    sigb = eosNeutral(t, s+ds)-1000.    
-    beta = 0.001*(sigb-siga)/ds/(1.+1.e-3*siga)
-    return beta
-def cpsw (t, s, p):
-    # Specific heat of sea water (J/KG C)
-    CP1 = 0.
-    CP2 = 0.
-    S = s
-    T = t
-    P = p
-    SR = npy.ma.sqrt(S)
-    # SPECIFIC HEAT CP0 FOR P=0 (MILLERO ET AL. 1973)
-    A = (-1.38E-3*T+0.10727)*T-7.644
-    B = (5.35E-5*T-4.08E-3)*T+0.177
-    C = (((2.093236E-5*T-2.654387E-3)*T+0.1412855)*T-3.720283)*T+4217.4
-    CP0 = (B*SR + A) * S + C
-    # CP1 PRESSURE AND TEMPERATURE TERMS FOR S = 0
-    A = (((1.7168E-8*T+2.0357E-6)*T-3.13885E-4)*T+1.45747E-2)*T-0.49592
-    B = (((2.2956E-11*T-4.0027E-9)*T+2.87533E-7)*T-1.08645E-5)*T+2.4931E-4
-    C = ((6.136E-13*T-6.5637E-11)*T+2.6380E-9)*T-5.422E-8
-    CP1 = ((C*P+B)*P+A)*P
-    # CP2 PRESSURE AND TEMPERATURE TERMS FOR S > 0
-    A = (((-2.9179E-10*T+2.5941E-8)*T+9.802E-7)*T-1.28315E-4)*T+4.9247E-3
-    B = (3.122E-8*T-1.517E-6)*T-1.2331E-4
-    A = (A+B*SR)*S
-    B = ((1.8448E-11*T-2.3905E-9)*T+1.17054E-7)*T-2.9558E-6
-    B = (B+9.971E-8*SR)*S
-    C = (3.513E-13*T-1.7682E-11)*T+5.540E-10
-    C = (C-1.4300E-12*T*SR)*S
-    CP2 = ((C*P+B)*P+A)*P
-    cp = CP0 + CP1 + CP2
-    return cp    
 
 def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,timeint='all'):
     '''
@@ -354,8 +312,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True,t
          # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
         #  convwf : kg/m2/s=mm/s -> m/s
         convwf = 1.e-3
-        denflxh[t,...] = (-alpha(tost.data,sost.data)/cpsw(tost.data,sost.data,P))*heft.data
-        denflxw[t,...] = (rhon.data+1000.)*betar(tost.data,sost.data)*sost.data*empt.data*convwf
+        pres = tost.data*0.
+        denflxh[t,...] = (-sw.alpha(sost.data,tost.data,pres)/sw.cp(sost.data,tost.data,pres))*heft.data
+        denflxw[t,...] = (rhon.data+1000.)*sw.beta(sost.data,tost.data,pres)*sost.data*empt.data*convwf
         denflx [t,...] = denflxh[t,...] + denflxw[t,...]
         denflx [t,...].mask  = maski
         denflxh[t,...].mask  = maski
