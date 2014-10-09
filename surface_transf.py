@@ -22,7 +22,7 @@ This script computes water mass transformation from surface buoyancy fluxes in d
 
 EG 8 Oct 2014     - Started file
                     - TODO: 
-                     - add basin calculations (North South as well ?)
+                     - North vs. South calculation
                      - add ekman pumping bining (cf wcurl in densit)
 test
 
@@ -76,6 +76,11 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     - debug <optional>          - boolean value
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
 
+    Outputs:
+    --------
+    - netCDF file with monthly surface rhon, density fluxes, transformation (global and per basin)
+    - use cdo yearmean to compute annual mean
+
     Usage:
     ------
     >>> from binDensity import surfTransf
@@ -83,7 +88,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
 
     Notes:
     -----
-    - EG 8 Oct 2014   - Initial function write
+    - EG 8 Oct 2014   - Initial function write and tests ok
+
     '''
     # Keep track of time (CPU and elapsed)
     cpu0 = timc.clock()
@@ -402,7 +408,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         intWatFlxi[t]  = cdu.averager(npy.reshape(dflxw*areai*maskInd, (Nji*Nii)), action='sum')*dt*convw
       
     # Wash mask over variables
-    maskt         = mv.masked_values(tos, valmask).mask
+    maskt        = mv.masked_values(rhon, valmask).mask
     denflx.mask  = maskt
     denflxh.mask = maskt
     denflxw.mask = maskt
@@ -448,10 +454,12 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     # Output files as netCDF
     # Density flux (3D: time, lon, lat)
     convw = 1.e6
-    rhon  = cdm.createVariable(rhon  , axes = [time, lati, loni], id = 'sst')
+    rhon    = cdm.createVariable(rhon          , axes = [time, lati, loni], id = 'densurf')
     denFlx  = cdm.createVariable(denflx*convw  , axes = [time, lati, loni], id = 'denflux')
     denFlxh = cdm.createVariable(denflxh*convw , axes = [time, lati, loni], id = 'hdenflx')
     denFlxw = cdm.createVariable(denflxw*convw , axes = [time, lati, loni], id = 'wdenflx')
+    denFlx.long_name   = 'Surface density'
+    denFlx.units       = 'kg.m-3 (anomaly, minus 1000)'
     denFlx.long_name   = 'Total density flux'
     denFlx.units       = '1.e-6 kg/m2/s'
     denFlxh.long_name  = 'Heat density flux'
