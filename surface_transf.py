@@ -23,8 +23,9 @@ This script computes water mass transformation from surface buoyancy fluxes in d
 EG 8 Oct 2014     - Started file
                     - TODO: 
                      - North vs. South calculation
+                     - formation computation
                      - add ekman pumping bining (cf wcurl in densit)
-test
+
 
 @author: eguil
 """
@@ -316,6 +317,27 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         sost = maskVal(sost, valmask)
         heft = maskVal(heft, valmask)
         empt = maskVal(empt, valmask)
+        # define basin heat and water fluxes
+        hefta = heft*1.
+        heftp = heft*1.
+        hefti = heft*1.
+        hefta.mask  = maskAtl
+        heftp.mask  = maskPac
+        hefti.mask  = maskInd
+        hefta = maskVal(hefta, valmask)
+        heftp = maskVal(heftp, valmask)
+        hefti = maskVal(hefti, valmask)
+        #
+        empta = empt*1.
+        emptp = empt*1.
+        empti = empt*1.
+        empta.mask  = maskAtl
+        emptp.mask  = maskPac
+        empti.mask  = maskInd
+        empta = maskVal(empta, valmask)
+        emptp = maskVal(emptp, valmask)
+        empti = maskVal(empti, valmask)
+        #
         # Compute density
         rhon[t,...] = eosNeutral(tost.data, sost.data) - 1000.
         rhonl = rhon.data[t,...]
@@ -392,20 +414,22 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         transf[t,:] = transfh[t,:] + transfw[t,:]        
         transfa[t,:] = transfha[t,:] + transfwa[t,:]        
         transfp[t,:] = transfhp[t,:] + transfwp[t,:]        
-        transfi[t,:] = transfhi[t,:] + transfwi[t,:]        
+        transfi[t,:] = transfhi[t,:] + transfwi[t,:] 
+        # Formation = divergence of transformation in density space
+        
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
-        intHeatFlx [t] = cdu.averager(npy.reshape(dflxh*areai*maski  , (Nji*Nii)), action='sum')*dt*convt
-        intHeatFlxa[t] = cdu.averager(npy.reshape(dflxh*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convt
-        intHeatFlxp[t] = cdu.averager(npy.reshape(dflxh*areai*maskPac, (Nji*Nii)), action='sum')*dt*convt
-        intHeatFlxi[t] = cdu.averager(npy.reshape(dflxh*areai*maskInd, (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlx [t] = cdu.averager(npy.reshape(heft*areai , (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxa[t] = cdu.averager(npy.reshape(hefta*areai, (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxp[t] = cdu.averager(npy.reshape(heftp*areai, (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxi[t] = cdu.averager(npy.reshape(hefti*areai, (Nji*Nii)), action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
-        intWatFlx [t]  = cdu.averager(npy.reshape(dflxw*areai*maski  , (Nji*Nii)), action='sum')*dt*convw
-        intWatFlxa[t]  = cdu.averager(npy.reshape(dflxw*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convw
-        intWatFlxp[t]  = cdu.averager(npy.reshape(dflxw*areai*maskPac, (Nji*Nii)), action='sum')*dt*convw
-        intWatFlxi[t]  = cdu.averager(npy.reshape(dflxw*areai*maskInd, (Nji*Nii)), action='sum')*dt*convw
+        intWatFlx [t]  = cdu.averager(npy.reshape(empt*areai , (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxa[t]  = cdu.averager(npy.reshape(empta*areai, (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai, (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai, (Nji*Nii)), action='sum')*dt*convw
       
     # Wash mask over variables
     maskt        = mv.masked_values(rhon, valmask).mask
