@@ -416,7 +416,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         transfp[t,:] = transfhp[t,:] + transfwp[t,:]        
         transfi[t,:] = transfhi[t,:] + transfwi[t,:] 
         # Formation = divergence of transformation in density space
-        
+        # done in postpro:  form [t,ks] = -(transf [t,ks+1] - transf [t,ks])
+        #
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
