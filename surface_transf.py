@@ -22,8 +22,8 @@ This script computes water mass transformation from surface buoyancy fluxes in d
 
 EG 8 Oct 2014     - Started file
                     - TODO: 
+                     - Bug in integral fluxes calculations
                      - North vs. South calculation
-                     - formation computation
                      - add ekman pumping bining (cf wcurl in densit)
 
 
@@ -431,6 +431,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         intWatFlxa[t]  = cdu.averager(npy.reshape(empta*areai, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai, (Nji*Nii)), action='sum')*dt*convw
+
+#        if debugp:
+#            print '    integral Q flux ',t,intHeatFlx [t], intHeatFlxa[t], intHeatFlxp[t], intHeatFlxi[t]
+#            print '    integral W flux ',t,intWatFlx [t], intWatFlxa[t], intWatFlxp[t], intWatFlxi[t]
       
     # Wash mask over variables
     maskt        = mv.masked_values(rhon, valmask).mask
