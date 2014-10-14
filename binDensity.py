@@ -913,7 +913,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsigmaii = cdm.createVariable(ptopsigmaii, axes = [timeyr, lati, loni], id = 'ptopsigmaii')
                 ptoptempii  = cdm.createVariable(ptoptempii,  axes = [timeyr, lati, loni], id = 'ptoptempii')
                 ptopsaltii  = cdm.createVariable(ptopsaltii,  axes = [timeyr, lati, loni], id = 'ptopsaltii')
-                # Compute zonal mean (1D)
+                # Compute zonal mean of bowl variables (1D)
                 ptopdiz     = cdu.averager(ptopdepthi,  axis = 2)
                 ptopdiza    = cdu.averager(ptopdepthia, axis = 2)
                 ptopdizp    = cdu.averager(ptopdepthip, axis = 2)
@@ -934,14 +934,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp.mask = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
                 persvp = cdm.createVariable(persvp.mask, axes = [s_axis, lati, loni], id = 'toto')
-                # volume (integral of depth * area)
+                  # volume (integral of depth * area)
                 volpersxy     = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
-                volpersist[t] = cdu.averager(npy.reshape(volpersxy.data*areai*maski,(Niji*Nii)), action = 'sum')
-                # Temp and salinity (average)
+                volpersist[t] = cdu.averager(npy.reshape(volpersxy.data*areai*maski,(Nji*Nii)), action = 'sum')
+                  # Temp and salinity (average)
                 tempersxy     = cdu.averager(persvp*x1Bini[t,...], axis=0)
-                tempersist[t] = cdu.averager(npy.reshape(tempersxy.data*areai*maski,(Niji*Nii)))
+                tempersist[t] = cdu.averager(npy.reshape(tempersxy.data*areai*maski,(Nji*Nii)))
                 salpersxy     = cdu.averager(persvp*x2Bini[t,...], axis=0)
-                salpersist[t] = cdu.averager(npy.reshape(salpersxy.data*areai*maski,(Niji*Nii)))
+                salpersist[t] = cdu.averager(npy.reshape(salpersxy.data*areai*maski,(Nji*Nii)))
             #
             # end of loop on t <==
             #
