@@ -455,7 +455,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Volume/thetao/so of persistent ocean
     
     volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
-
+    tempersist,salpersist = [npy.ma.ones(npy.shape(volpersist)) for _ in range(2)]
     #
     # -----------------------------------------
     #  Density bining loop (on time chunks tc)
@@ -934,8 +934,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp.mask = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
                 persvp = cdm.createVariable(persvp.mask, axes = [s_axis, lati, loni], id = 'toto')
-                volpersxy  = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
-                volpersist[t] = cdu.averager(volpersxy*areai, axis='xy', action = 'sum')
+                # volume (integral of depth * area)
+                volpersxy     = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
+                volpersist[t] = cdu.averager(volpersxy*areai, action = 'sum')
+                # Temp and salinity (average)
+                tempersxy     = cdu.averager(persvp*x1Bini[t,...], axis=0)
+                tempersist[t] = cdu.averager(tempersxy*areai)
+                salpersxy     = cdu.averager(persvp*x2Bini[t,...], axis=0)
+                salpersist[t] = cdu.averager(salpersxy*areai)
             #
             # end of loop on t <==
             #
@@ -976,7 +982,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptopt  = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'ptoptemp2')
             ptops  = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalt2')
             # Write volume/temp/salinity of persistent ocean 1D (time)
-            volper = cdm.createVariable(volpersist  , axes = [timeyr], id = 'volpers')
+            volper = cdm.createVariable(volpersist*1.e-12  , axes = [timeyr], id = 'volpers')
+            temper = cdm.createVariable(tempersist         , axes = [timeyr], id = 'tempers')
+            salper = cdm.createVariable(salpersist         , axes = [timeyr], id = 'salpers')
             if tc == 0:
                 # Global attributes
                 dbpz.long_name      = 'zonal persistence of isopycnal bins'
@@ -1032,6 +1040,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
+                temper.long_name    = 'Temperature of persistent ocean'
+                temper.units        = 'degrees_C'
+                salper.long_name    = 'Salinity of persistent ocean'
+                salper.units        = so_h.units 
+
             # Write & append
             outFile_f.write(depthbini, extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
             outFile_f.write(thickbini, extend = 1, index = (trmin-tmin)/12) 
@@ -1062,6 +1075,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(volper , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(temper , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(salper , extend = 1, index = (trmin-tmin)/12)
             #
             tozp = timc.clock()
             #
