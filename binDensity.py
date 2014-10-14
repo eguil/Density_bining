@@ -931,9 +931,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsizp    = cdu.averager(ptopsaltip,  axis = 2)
                 ptopsizi    = cdu.averager(ptopsaltii,  axis = 2)
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
-                persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
+                persvp = persisti[t,:,:,:]*1. ; persvp[...] = 1.
                 persvp.mask = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
-                persvp = cdm.createVariable(persvp.mask, axes = [s_axis, lati, loni], id = 'toto')
+                persvp = maskVal(persvp, valmask)
+                persvp = cdm.createVariable(persvp, axes = [s_axis, lati, loni], id = 'toto')
                   # volume (integral of depth * area)
                 volpersxy      = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
                 volpersist [t] = cdu.averager(npy.reshape(volpersxy.mask*areai*maski  ,(Nji*Nii)), action = 'sum')
