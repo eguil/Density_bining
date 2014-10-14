@@ -936,12 +936,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp = cdm.createVariable(persvp.mask, axes = [s_axis, lati, loni], id = 'toto')
                 # volume (integral of depth * area)
                 volpersxy     = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
-                volpersist[t] = cdu.averager(volpersxy.data*areai, action = 'sum')
+                volpersist[t] = cdu.averager(npy.reshape(volpersxy.data*areai*maski,(Niji*Nii)), action = 'sum')
                 # Temp and salinity (average)
                 tempersxy     = cdu.averager(persvp*x1Bini[t,...], axis=0)
-                tempersist[t] = cdu.averager(tempersxy.data*areai)
+                tempersist[t] = cdu.averager(npy.reshape(tempersxy.data*areai*maski,(Niji*Nii)))
                 salpersxy     = cdu.averager(persvp*x2Bini[t,...], axis=0)
-                salpersist[t] = cdu.averager(salpersxy.data*areai)
+                salpersist[t] = cdu.averager(npy.reshape(salpersxy.data*areai*maski,(Niji*Nii)))
             #
             # end of loop on t <==
             #
