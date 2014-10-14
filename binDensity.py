@@ -734,7 +734,21 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             thickBinii  = maskVal(thickBinii, valmask)
             x1Binii     = maskVal(x1Binii, valmask)
             x2Binii     = maskVal(x2Binii, valmask)
-    
+
+            depthbini  = cdm.createVariable(depthBini,  axes = [timeyr, s_axis, lati, loni], id = 'isondepthg')
+            thickbini  = cdm.createVariable(thickBini,  axes = [timeyr, s_axis, lati, loni], id = 'isonthickg')
+            x1bini     = cdm.createVariable(x1Bini   ,  axes = [timeyr, s_axis, lati, loni], id = 'thetaog')
+            x2bini     = cdm.createVariable(x2Bini   ,  axes = [timeyr, s_axis, lati, loni], id = 'sog')
+            if tc == 0:
+                depthbini.long_name  = 'Depth of isopycnal'
+                depthbini.units      = 'm'
+                thickbini.long_name  = 'Thickness of isopycnal'
+                thickbini.units      = 'm'
+                x1bini.long_name     = thetao_h.long_name
+                x1bini.units         = 'C'
+                x2bini.long_name     = so_h.long_name
+                x2bini.units         = so_h.units
+     
             tozi = timc.clock()
 
             # Compute zonal mean
@@ -1006,7 +1020,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbpszi.units        = so_h.units  
     
             # Write & append
-            outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
+            outFile_f.write(depthbini, extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
+            outFile_f.write(thickbini, extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(x1bini   , extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(x2bini   , extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable depth,lat,lon are written together
             outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
