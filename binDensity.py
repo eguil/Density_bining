@@ -452,7 +452,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Basin
     ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptopdepthip,ptopsigmaip,\
     ptoptempip,ptopsaltip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii = [npy.ma.ones(npy.shape(persistm)) for _ in range(12)]
+    # Volume/thetao/so of persistent ocean
+    
+    volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
 
+    #
     # -----------------------------------------
     #  Density bining loop (on time chunks tc)
     # -----------------------------------------
@@ -613,7 +617,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thick_bino      = maskVal(thick_bino, valmask)
         #
         del (maskb, maskt)
-        if debugp and (tc == 0):
+        if debugp and (tc < 0):
             # test write
             i = itest
             j = jtest
@@ -926,6 +930,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsiza    = cdu.averager(ptopsaltia,  axis = 2)
                 ptopsizp    = cdu.averager(ptopsaltip,  axis = 2)
                 ptopsizi    = cdu.averager(ptopsaltii,  axis = 2)
+                # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
+                persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
+                persvp.mask = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
+                persvp = cdm.createVariable(persvp.mask, axes = [s_axis, lati, loni], id = 'toto')
+                volpersxy  = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
+                volpersist[t] = cdu.averager(volpersxy*areai, axis='xy', action = 'sum')
             #
             # end of loop on t <==
             #
@@ -935,7 +945,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             persistm                = mv.masked_where(persistm > valmask/10, persistm)
             persistm.mask           = maski
             
-            # [TO DO: compute volume/temp/salinity of persistent ocean (global, per basin) (1D)]
             # Write zonal mean persistence 3D (time, rhon, lat)
             dbpz   = cdm.createVariable(persistiz , axes = [timeyr, s_axis, lati], id = 'isonpers')
             dbpza  = cdm.createVariable(persistiza, axes = [timeyr, s_axis, lati], id = 'isonpersa')
@@ -966,6 +975,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptopd  = cdm.createVariable(ptopdepthi, axes = [timeyr, lati, loni], id = 'ptopdepth2')
             ptopt  = cdm.createVariable(ptoptempi , axes = [timeyr, lati, loni], id = 'ptoptemp2')
             ptops  = cdm.createVariable(ptopsalti , axes = [timeyr, lati, loni], id = 'ptopsalt2')
+            # Write volume/temp/salinity of persistent ocean 1D (time)
+            volper = cdm.createVariable(volpersist  , axes = [timeyr], id = 'volpers')
             if tc == 0:
                 # Global attributes
                 dbpz.long_name      = 'zonal persistence of isopycnal bins'
@@ -1019,6 +1030,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbpszi.long_name    = 'Ind. zonal Salinity of shallowest persistent ocean on ison'
                 dbpszi.units        = so_h.units  
     
+                volper.long_name    = 'Volume of persistent ocean'
+                volper.units        = '1.e12 m^3'
             # Write & append
             outFile_f.write(depthbini, extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
             outFile_f.write(thickbini, extend = 1, index = (trmin-tmin)/12) 
@@ -1048,6 +1061,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbprzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(volper , extend = 1, index = (trmin-tmin)/12)
             #
             tozp = timc.clock()
             #
@@ -1083,7 +1097,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tbz.long_name   = 'Global zonal thickness of isopycnal'
                 tbz.units       = 'm'
                 vbz.long_name   = 'Volume of isopycnal'
-                vbz.units       = '10.e12 m^3'
+                vbz.units       = '1.e12 m^3'
                 x1bz.long_name  = thetao_h.long_name
                 x1bz.units      = 'degrees_C'
                 x2bz.long_name  = so_h.long_name
@@ -1094,7 +1108,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tbza.long_name  = 'Atl. zonal thickness of isopycnal'
                 tbza.units      = 'm'
                 vbza.long_name  = 'Atl. volume of isopycnal'
-                vbza.units      = '10.e12 m^3'
+                vbza.units      = '1.e12 m^3'
                 x1bza.long_name = thetao_h.long_name
                 x1bza.units     = 'degrees_C'
                 x2bza.long_name = so_h.long_name
@@ -1105,7 +1119,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tbzp.long_name  = 'Pac. zonal thickness of isopycnal'
                 tbzp.units      = 'm'
                 vbzp.long_name  = 'Pac. volume of isopycnal'
-                vbzp.units      = '10.e12 m^3'
+                vbzp.units      = '1.e12 m^3'
                 x1bzp.long_name = thetao_h.long_name
                 x1bzp.units     = 'degrees_C'
                 x2bzp.long_name = so_h.long_name
@@ -1116,7 +1130,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tbzi.long_name  = 'Ind. zonal thickness of isopycnal'
                 tbzi.units      = 'm'
                 vbzi.long_name  = 'Ind. volume of isopycnal'
-                vbzi.units      = '10.e12 m^3'
+                vbzi.units      = '1.e12 m^3'
                 x1bzi.long_name = thetao_h.long_name
                 x1bzi.units     = 'degrees_C'
                 x2bzi.long_name = so_h.long_name
