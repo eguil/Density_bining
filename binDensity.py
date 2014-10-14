@@ -943,7 +943,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 volpersisti[t] = cdu.averager(npy.reshape(volpersxy*areai*maskInd,(Nji*Nii)), action = 'sum')
                   # Temp and salinity (average)
                 tempersxy      = cdu.averager(persvp*x1Bini[t,...], axis=0)
-                tempersist [t] = cdu.averager(npy.reshape(tempersxy*areai*maski  ,(Nji*Nii)))/
+                tempersist [t] = cdu.averager(npy.reshape(tempersxy*areai*maski  ,(Nji*Nii)))
                 tempersista[t] = cdu.averager(npy.reshape(tempersxy*areai*maskAtl,(Nji*Nii)))
                 tempersistp[t] = cdu.averager(npy.reshape(tempersxy*areai*maskPac,(Nji*Nii)))
                 tempersisti[t] = cdu.averager(npy.reshape(tempersxy*areai*maskInd,(Nji*Nii)))
