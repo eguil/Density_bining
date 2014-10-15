@@ -293,9 +293,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Annual mean zonal mean of persistence on WOA grid - IPSL 60MB 150yrs
 
     if debug:
-        print 'Debug - File names:'
-        print 'thetao:',fileT
-        print 'so    :',fileS
         debug = True
     else:
         debug = False
