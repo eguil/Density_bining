@@ -432,6 +432,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
     areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
     areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
+    areait  = cdu.averager(npy.reshape(areai*maski  ,(Nji*Nii)), action='sum')
+    areaita = cdu.averager(npy.reshape(areai*maskAtl,(Nji*Nii)), action='sum')
+    areaitp = cdu.averager(npy.reshape(areai*maskPac,(Nji*Nii)), action='sum')
+    areaiti = cdu.averager(npy.reshape(areai*maskInd,(Nji*Nii)), action='sum')
 
     if debugp:
         print ' area ',areazt[90],areazta[90]+areaztp[90]+areaztp[90]
@@ -952,10 +956,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 volpersistp[t] = cdu.averager(npy.reshape(volpersxyp*areai,(Nji*Nii)), action = 'sum')
                 volpersisti[t] = cdu.averager(npy.reshape(volpersxyi*areai,(Nji*Nii)), action = 'sum')
                   # Temp and salinity (average)
-                areait  = cdu.averager(npy.reshape(areai*maski  ,(Nji*Nii)), action='sum')
-                areaita = cdu.averager(npy.reshape(areai*maskAtl,(Nji*Nii)), action='sum')
-                areaitp = cdu.averager(npy.reshape(areai*maskPac,(Nji*Nii)), action='sum')
-                areaiti = cdu.averagernpy.reshape((areai*maskInd,(Nji*Nii)), action='sum')
                 print areait,areaita,areaitp,areaiti
                 tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
                 tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy , valmask)
