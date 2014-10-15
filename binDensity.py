@@ -412,8 +412,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
     loni    = maskg.getLongitude()
     lati    = maskg.getLatitude()
-    Nii     = int(loni.shape[0])
-    Nji     = int(lati.shape[0])
+    Nii     = len(loni)
+    Nji     = len(lati)
     # Compute area of target grid and zonal sums
     areai = computeArea(loni[:], lati[:])
     gridFile_f.close()
