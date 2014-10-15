@@ -954,9 +954,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 volpersisti[t] = cdu.averager(npy.reshape(volpersxyi*areai,(Nji*Nii)), action = 'sum')
                   # Temp and salinity (average)
                 areait  = cdu.averager(areai*maski  , action='sum')
-                areaita = cdu.averager(areai*maskAtl, action='sum'))
-                areaitp = cdu.averager(areai*maskPac, action='sum'))
-                areaiti = cdu.averager(areai*maskInd, action='sum'))
+                areaita = cdu.averager(areai*maskAtl, action='sum')
+                areaitp = cdu.averager(areai*maskPac, action='sum')
+                areaiti = cdu.averager(areai*maskInd, action='sum')
                 print areait,areaita,areaitp,areaiti
                 tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
                 tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy, valmask)
@@ -978,8 +978,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 salpersxyp.mask = maskPac; salpersxyp = maskVal(salpersxyp, valmask)
                 salpersxyi      = salpersxy*1.
                 salpersxyi.mask = maskInd; salpersxyi = maskVal(salpersxyi, valmask)
-                salpersist [t] = cdu.averager(npy.reshape(salpersxy*areai ,(Nji*Nii)), action='sum'))/areait
-                salpersista[t] = cdu.averager(npy.reshape(salpersxya*areai,(Nji*Nii)), action='sum'))/areaita
+                salpersist [t] = cdu.averager(npy.reshape(salpersxy*areai ,(Nji*Nii)), action='sum')/areait
+                salpersista[t] = cdu.averager(npy.reshape(salpersxya*areai,(Nji*Nii)), action='sum')/areaita
                 salpersistp[t] = cdu.averager(npy.reshape(salpersxyp*areai,(Nji*Nii)), action='sum')/areaitp
                 salpersisti[t] = cdu.averager(npy.reshape(salpersxyi*areai,(Nji*Nii)), action='sum')/areaiti
                 del(volpersxy,volpersxya,volpersxyp,volpersxyi,tempersxy,tempersxya,tempersxyp,tempersxyi,salpersxy,salpersxya,salpersxyp,salpersxyi)
