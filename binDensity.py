@@ -940,7 +940,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                   # volume (integral of depth * area)
                 volpersxy      = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
-                volpersxy.mask = maski    ; volpersxy  = maskVal(volpersxy, valmask)
+                volpersxy.mask = maski    ; volpersxy  = maskVal(volpersxy , valmask)
                 volpersxya = volpersxy*1.
                 volpersxya.mask = maskAtl ; volpersxya = maskVal(volpersxya, valmask)
                 volpersxyp = volpersxy*1.
@@ -952,13 +952,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 volpersistp[t] = cdu.averager(npy.reshape(volpersxyp*areai,(Nji*Nii)), action = 'sum')
                 volpersisti[t] = cdu.averager(npy.reshape(volpersxyi*areai,(Nji*Nii)), action = 'sum')
                   # Temp and salinity (average)
-                areait  = cdu.averager(areai*maski  , action='sum')
-                areaita = cdu.averager(areai*maskAtl, action='sum')
-                areaitp = cdu.averager(areai*maskPac, action='sum')
-                areaiti = cdu.averager(areai*maskInd, action='sum')
+                areait  = cdu.averager(npy.reshape(areai*maski  ,(Nji*Nii)), action='sum')
+                areaita = cdu.averager(npy.reshape(areai*maskAtl,(Nji*Nii)), action='sum')
+                areaitp = cdu.averager(npy.reshape(areai*maskPac,(Nji*Nii)), action='sum')
+                areaiti = cdu.averagernpy.reshape((areai*maskInd,(Nji*Nii)), action='sum')
                 print areait,areaita,areaitp,areaiti
                 tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
-                tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy, valmask)
+                tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy , valmask)
                 tempersxya      = tempersxy*1.
                 tempersxya.mask = maskAtl; tempersxya = maskVal(tempersxya, valmask)
                 tempersxyp      = tempersxy*1.
@@ -970,7 +970,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tempersistp[t] = cdu.averager(npy.reshape(tempersxyp*areai,(Nji*Nii)), action='sum')/areaitp
                 tempersisti[t] = cdu.averager(npy.reshape(tempersxyi*areai,(Nji*Nii)), action='sum')/areaiti
                 salpersxy       = cdu.averager(persvp*x2Bini[t,...], axis=0)
-                salpersxy.mask  = maski  ; salpersxy  = maskVal(salpersxy, valmask)
+                salpersxy.mask  = maski  ; salpersxy  = maskVal(salpersxy , valmask)
                 salpersxya      = salpersxy*1.
                 salpersxya.mask = maskAtl; salpersxya = maskVal(salpersxya, valmask)
                 salpersxyp      = salpersxy*1.
