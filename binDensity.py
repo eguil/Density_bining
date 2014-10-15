@@ -934,9 +934,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
                 #persvp = mv.masked_where(persisti[t,:,:,:] < 99., persvp)
+                persvp = cdm.createVariable(persvp, axes = [s_axis, lati, loni], id = 'toto')
                 persvp._FillValue = valmask
                 persvp = maskVal(persvp, valmask)
-                persvp = cdm.createVariable(persvp, axes = [s_axis, lati, loni], id = 'toto')
                   # volume (integral of depth * area)
                 volpersxy      = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
                 volpersist [t] = cdu.averager(npy.reshape(volpersxy*areai*maski  ,(Nji*Nii)), action = 'sum')
