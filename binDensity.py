@@ -947,15 +947,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 volpersxyp.mask = maskPac ; volpersxyp = maskVal(volpersxyp, valmask)
                 volpersxyi = volpersxy*1.
                 volpersxyi.mask = maskInd ; volpersxyi = maskVal(volpersxyi, valmask)
-                volpersist [t] = cdu.averager(npy.reshape(volpersxy *areai,(Nji*Nii)), action = 'sum')
+                volpersist [t] = cdu.averager(volpersxy * areai, action = 'sum')
+                #volpersist [t] = cdu.averager(npy.reshape(volpersxy *areai,(Nji*Nii)), action = 'sum')
                 volpersista[t] = cdu.averager(npy.reshape(volpersxya*areai,(Nji*Nii)), action = 'sum')
                 volpersistp[t] = cdu.averager(npy.reshape(volpersxyp*areai,(Nji*Nii)), action = 'sum')
                 volpersisti[t] = cdu.averager(npy.reshape(volpersxyi*areai,(Nji*Nii)), action = 'sum')
                   # Temp and salinity (average)
-                areait  = cdu.averager(areai*maski)
-                areaita = cdu.averager(areai*maskAtl)
-                areaitp = cdu.averager(areai*maskPac)
-                areaiti = cdu.averager(areai*maskInd)
+                areait  = cdu.averager(areai*maski  , action='sum')
+                areaita = cdu.averager(areai*maskAtl, action='sum'))
+                areaitp = cdu.averager(areai*maskPac, action='sum'))
+                areaiti = cdu.averager(areai*maskInd, action='sum'))
                 print areait,areaita,areaitp,areaiti
                 tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
                 tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy, valmask)
@@ -965,10 +966,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tempersxyp.mask = maskPac; tempersxyp = maskVal(tempersxyp, valmask)
                 tempersxyi      = tempersxy*1.
                 tempersxyi.mask = maskInd; tempersxyi = maskVal(tempersxyi, valmask)
-                tempersist [t] = cdu.averager(npy.reshape(tempersxy *areai,(Nji*Nii)))/areait
-                tempersista[t] = cdu.averager(npy.reshape(tempersxya*areai,(Nji*Nii)))/areaita
-                tempersistp[t] = cdu.averager(npy.reshape(tempersxyp*areai,(Nji*Nii)))/areaitp
-                tempersisti[t] = cdu.averager(npy.reshape(tempersxyi*areai,(Nji*Nii)))/areaiti
+                tempersist [t] = cdu.averager(npy.reshape(tempersxy *areai,(Nji*Nii)), action='sum')/areait
+                tempersista[t] = cdu.averager(npy.reshape(tempersxya*areai,(Nji*Nii)), action='sum')/areaita
+                tempersistp[t] = cdu.averager(npy.reshape(tempersxyp*areai,(Nji*Nii)), action='sum')/areaitp
+                tempersisti[t] = cdu.averager(npy.reshape(tempersxyi*areai,(Nji*Nii)), action='sum')/areaiti
                 salpersxy       = cdu.averager(persvp*x2Bini[t,...], axis=0)
                 salpersxy.mask  = maski  ; salpersxy  = maskVal(salpersxy, valmask)
                 salpersxya      = salpersxy*1.
@@ -977,10 +978,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 salpersxyp.mask = maskPac; salpersxyp = maskVal(salpersxyp, valmask)
                 salpersxyi      = salpersxy*1.
                 salpersxyi.mask = maskInd; salpersxyi = maskVal(salpersxyi, valmask)
-                salpersist [t] = cdu.averager(npy.reshape(salpersxy*areai ,(Nji*Nii)))/areait
-                salpersista[t] = cdu.averager(npy.reshape(salpersxya*areai,(Nji*Nii)))/areaita
-                salpersistp[t] = cdu.averager(npy.reshape(salpersxyp*areai,(Nji*Nii)))/areaitp
-                salpersisti[t] = cdu.averager(npy.reshape(salpersxyi*areai,(Nji*Nii)))/areaiti
+                salpersist [t] = cdu.averager(npy.reshape(salpersxy*areai ,(Nji*Nii)), action='sum'))/areait
+                salpersista[t] = cdu.averager(npy.reshape(salpersxya*areai,(Nji*Nii)), action='sum'))/areaita
+                salpersistp[t] = cdu.averager(npy.reshape(salpersxyp*areai,(Nji*Nii)), action='sum')/areaitp
+                salpersisti[t] = cdu.averager(npy.reshape(salpersxyi*areai,(Nji*Nii)), action='sum')/areaiti
                 del(volpersxy,volpersxya,volpersxyp,volpersxyi,tempersxy,tempersxya,tempersxyp,tempersxyi,salpersxy,salpersxya,salpersxyp,salpersxyi)
                 print volpersist [t], tempersist [t], salpersist [t]
             #
