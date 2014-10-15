@@ -316,13 +316,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     bounds  = ft('lev_bnds')
     ingrid  = thetao_h.getGrid()
     # Define dimensions
-    lonN    = int(lon.shape[1])
-    latN    = int(lon.shape[0])
-    depthN  = int(depth.shape[0])    
+    lonN    = so_h.shape[3]
+    latN    = so_h.shape[2]
+    depthN  = so_h.shape[1]
     # Read masking value
     valmask = so._FillValue
     
-    # Need to add test to ensure thetao and so are equivalent sized (times equal)
+    # Test to ensure thetao and so are equivalent sized (times equal)
+    if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] or so_h.shape[1] != thetao_h.shape[1]:
+        print '** Input variables have different dimensions, exiting..'
+        return
     
     # Dates to read
     if timeint == 'all':
