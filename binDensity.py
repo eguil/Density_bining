@@ -309,6 +309,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     thetao_h    = ft['thetao'] ; # Create variable handle
     so          = fs('so', time = slice(0,1))
     so_h        = fs['so'] ; # Create variable handle
+    # Read time and grid
+    lon     = thetao_h.getLongitude()
+    lat     = thetao_h.getLatitude()
+    depth   = thetao_h.getLevel()
+    bounds  = ft('lev_bnds')
+    ingrid  = thetao_h.getGrid()
+    # Define dimensions
+    lonN    = int(lon.shape[1])
+    latN    = int(lon.shape[0])
+    depthN  = int(depth.shape[0])    
+    # Read masking value
+    valmask = so._FillValue
     
     # Need to add test to ensure thetao and so are equivalent sized (times equal)
     
@@ -319,26 +331,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     else:
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
-    
-    # Read file attributes to carry on to output files - replace with so_h, open handle doesn't need this saved
-    list_file   = ft.attributes.keys()
-    file_dic    = {}
-    for i in range(0,len(list_file)):
-        file_dic[i]=list_file[i],ft.attributes[list_file[i] ]
-    
-    # Read masking value
-    valmask = so._FillValue
-    
-    # Read time and grid
-    lon     = thetao_h.getLongitude()
-    lat     = thetao_h.getLatitude()
-    depth   = thetao_h.getLevel()
-    bounds  = ft('lev_bnds')
-    ingrid  = thetao_h.getGrid()
-    # Define dimensions
-    lonN    = int(lon.shape[1])
-    latN    = int(lon.shape[0])
-    depthN  = int(depth.shape[0])
     
     # Read cell area
     ff      = cdm.open(fileFx)
@@ -640,10 +632,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x2Bin.units         = so_h.units
                 outFileMon_f.write(area.astype('float32')) ; # Added area so isonvol can be computed
                 # write global attributes (inherited from thetao file)
-                for i in range(0,len(file_dic)):
-                    dm = file_dic[i]
-                    setattr(outFileMon_f,dm[0],dm[1])
-                    post_txt = 'Density bining via densit_bin.py using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
+                for count,att in enumerate(ft.attributes.keys()):
+                    setattr(outFileMon_f,att,ft.attributes.get(att))
+                    setattr(outFile_f,att,ft.attributes.get(att))
+                    post_txt = 'Density bining via binDensit.py using delta_sigma = '+str(del_s1)+' and '+str(del_s2)
                     setattr(outFileMon_f , 'Post_processing_history', post_txt)
                     setattr(outFile_f, 'Post_processing_history', post_txt)
         
