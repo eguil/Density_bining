@@ -320,7 +320,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     valmask = so._FillValue
     
     # Test to ensure thetao and so are equivalent sized (times equal)
-    if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] or so_h.shape[1] != thetao_h.shape[1]:
+    if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
+        or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
         print '** Input variables have different dimensions, exiting..'
         return
     
