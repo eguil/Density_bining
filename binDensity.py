@@ -425,20 +425,24 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     lati    = maskg.getLatitude()
     Nii     = int(loni.shape[0])
     Nji     = int(lati.shape[0])
-    # Compute area of target grid and zonal sums
+    # Compute area of target grid and zonal and global sums
     areai = computeArea(loni[:], lati[:])
     gridFile_f.close()
-    areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
-    areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
-    areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
-    areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
-    areait  = cdu.averager(npy.reshape(areai*maski  ,(Nji*Nii)), action='sum')
-    areaita = cdu.averager(npy.reshape(areai*maskAtl,(Nji*Nii)), action='sum')
-    areaitp = cdu.averager(npy.reshape(areai*maskPac,(Nji*Nii)), action='sum')
-    areaiti = cdu.averager(npy.reshape(areai*maskInd,(Nji*Nii)), action='sum')
-
-    if debugp:
-        print ' area ',areazt[90],areazta[90]+areaztp[90]+areaztp[90]
+    areai.mask = maski
+    areaia = areai*1.
+    areaia.mask = maskAtl
+    areaip = areai*1.
+    areaip.mask = maskPac
+    areaii = areai*1.
+    areaii.mask = maskInd
+    areazt  = cdu.averager(areai , axis=1, action='sum')
+    areazta = cdu.averager(areaia, axis=1, action='sum')
+    areaztp = cdu.averager(areaip, axis=1, action='sum')
+    areazti = cdu.averager(areaii, axis=1, action='sum')
+    areait  = cdu.averager(npy.reshape(areai ,(Nji*Nii)), action='sum')
+    areaita = cdu.averager(npy.reshape(areaia,(Nji*Nii)), action='sum')
+    areaitp = cdu.averager(npy.reshape(areaip,(Nji*Nii)), action='sum')
+    areaiti = cdu.averager(npy.reshape(areaii,(Nji*Nii)), action='sum')
     
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
@@ -943,46 +947,47 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp = cdm.createVariable(persvp, axes = [s_axis, lati, loni], id = 'toto')
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                   # volume (integral of depth * area)
+                voltot         = cdu.averager(thickBini[t,...], axis=0, action = 'sum')
+                voltot         = cdu.averager(npy.reshape(voltot*areai ,(Nji*Nii)), action = 'sum')
                 volpersxy      = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
                 volpersxy.mask = maski    ; volpersxy  = maskVal(volpersxy , valmask)
-                volpersxya = volpersxy*1.
-                volpersxya.mask = maskAtl ; volpersxya = maskVal(volpersxya, valmask)
-                volpersxyp = volpersxy*1.
-                volpersxyp.mask = maskPac ; volpersxyp = maskVal(volpersxyp, valmask)
-                volpersxyi = volpersxy*1.
-                volpersxyi.mask = maskInd ; volpersxyi = maskVal(volpersxyi, valmask)
-                volpersist [t] = cdu.averager(npy.reshape(volpersxy *areai,(Nji*Nii)), action = 'sum')
-                volpersista[t] = cdu.averager(npy.reshape(volpersxya*areai,(Nji*Nii)), action = 'sum')
-                volpersistp[t] = cdu.averager(npy.reshape(volpersxyp*areai,(Nji*Nii)), action = 'sum')
-                volpersisti[t] = cdu.averager(npy.reshape(volpersxyi*areai,(Nji*Nii)), action = 'sum')
+                #volpersxya = volpersxy*1.
+                #volpersxya.mask = maskAtl ; volpersxya = maskVal(volpersxya, valmask)
+                #volpersxyp = volpersxy*1.
+                #volpersxyp.mask = maskPac ; volpersxyp = maskVal(volpersxyp, valmask)
+                #volpersxyi = volpersxy*1.
+                #volpersxyi.mask = maskInd ; volpersxyi = maskVal(volpersxyi, valmask)
+                volpersist [t] = cdu.averager(npy.reshape(volpersxy*areai ,(Nji*Nii)), action = 'sum')
+                volpersista[t] = cdu.averager(npy.reshape(volpersxy*areaia,(Nji*Nii)), action = 'sum')
+                volpersistp[t] = cdu.averager(npy.reshape(volpersxy*areaip,(Nji*Nii)), action = 'sum')
+                volpersisti[t] = cdu.averager(npy.reshape(volpersxy*areaii,(Nji*Nii)), action = 'sum')
                   # Temp and salinity (average)
-                print areait,areaita,areaitp,areaiti
                 tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
                 tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy , valmask)
-                tempersxya      = tempersxy*1.
-                tempersxya.mask = maskAtl; tempersxya = maskVal(tempersxya, valmask)
-                tempersxyp      = tempersxy*1.
-                tempersxyp.mask = maskPac; tempersxyp = maskVal(tempersxyp, valmask)
-                tempersxyi      = tempersxy*1.
-                tempersxyi.mask = maskInd; tempersxyi = maskVal(tempersxyi, valmask)
-                tempersist [t] = cdu.averager(npy.reshape(tempersxy *areai,(Nji*Nii)), action='sum')/areait
-                tempersista[t] = cdu.averager(npy.reshape(tempersxya*areai,(Nji*Nii)), action='sum')/areaita
-                tempersistp[t] = cdu.averager(npy.reshape(tempersxyp*areai,(Nji*Nii)), action='sum')/areaitp
-                tempersisti[t] = cdu.averager(npy.reshape(tempersxyi*areai,(Nji*Nii)), action='sum')/areaiti
+                #tempersxya      = tempersxy*1.
+                #tempersxya.mask = maskAtl; tempersxya = maskVal(tempersxya, valmask)
+                #tempersxyp      = tempersxy*1.
+                #tempersxyp.mask = maskPac; tempersxyp = maskVal(tempersxyp, valmask)
+                #tempersxyi      = tempersxy*1.
+                #tempersxyi.mask = maskInd; tempersxyi = maskVal(tempersxyi, valmask)
+                tempersist [t] = cdu.averager(npy.reshape(tempersxy*areai ,(Nji*Nii)), action='sum')/areait
+                tempersista[t] = cdu.averager(npy.reshape(tempersxy*areaia,(Nji*Nii)), action='sum')/areaita
+                tempersistp[t] = cdu.averager(npy.reshape(tempersxy*areaip,(Nji*Nii)), action='sum')/areaitp
+                tempersisti[t] = cdu.averager(npy.reshape(tempersxy*areaii,(Nji*Nii)), action='sum')/areaiti
                 salpersxy       = cdu.averager(persvp*x2Bini[t,...], axis=0)
                 salpersxy.mask  = maski  ; salpersxy  = maskVal(salpersxy , valmask)
-                salpersxya      = salpersxy*1.
-                salpersxya.mask = maskAtl; salpersxya = maskVal(salpersxya, valmask)
-                salpersxyp      = salpersxy*1.
-                salpersxyp.mask = maskPac; salpersxyp = maskVal(salpersxyp, valmask)
-                salpersxyi      = salpersxy*1.
-                salpersxyi.mask = maskInd; salpersxyi = maskVal(salpersxyi, valmask)
+                #salpersxya      = salpersxy*1.
+                #salpersxya.mask = maskAtl; salpersxya = maskVal(salpersxya, valmask)
+                #salpersxyp      = salpersxy*1.
+                #salpersxyp.mask = maskPac; salpersxyp = maskVal(salpersxyp, valmask)
+                #salpersxyi      = salpersxy*1.
+                #salpersxyi.mask = maskInd; salpersxyi = maskVal(salpersxyi, valmask)
                 salpersist [t] = cdu.averager(npy.reshape(salpersxy*areai ,(Nji*Nii)), action='sum')/areait
-                salpersista[t] = cdu.averager(npy.reshape(salpersxya*areai,(Nji*Nii)), action='sum')/areaita
-                salpersistp[t] = cdu.averager(npy.reshape(salpersxyp*areai,(Nji*Nii)), action='sum')/areaitp
-                salpersisti[t] = cdu.averager(npy.reshape(salpersxyi*areai,(Nji*Nii)), action='sum')/areaiti
-                del(volpersxy,volpersxya,volpersxyp,volpersxyi,tempersxy,tempersxya,tempersxyp,tempersxyi,salpersxy,salpersxya,salpersxyp,salpersxyi)
-                print volpersist [t], tempersist [t], salpersist [t]
+                salpersista[t] = cdu.averager(npy.reshape(salpersxy*areaia,(Nji*Nii)), action='sum')/areaita
+                salpersistp[t] = cdu.averager(npy.reshape(salpersxy*areaip,(Nji*Nii)), action='sum')/areaitp
+                salpersisti[t] = cdu.averager(npy.reshape(salpersxy*areaii,(Nji*Nii)), action='sum')/areaiti
+                del(volpersxy,tempersxy,salpersxy)
+                print volpersist [t], volpersist[t]/voltot*100.,tempersist [t], salpersist [t]
             #
             # end of loop on t <==
             #
