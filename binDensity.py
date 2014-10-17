@@ -22,6 +22,7 @@ PJD 14 Sep 2014     - Started file
 PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for final code version
 PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
 EG  23 Sep 2014     - Clean up and more comments
+PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to outfiles
                     - TODO:
 test
 
@@ -32,7 +33,7 @@ import ESMP,gc,os,resource,timeit ; #argparse,sys
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu
-from durolib import fixVarUnits
+from durolib import fixVarUnits,getGitInfo,globalAttWrite
 import MV2 as mv
 import numpy as npy
 from string import replace
@@ -255,8 +256,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - PJD 23 Sep 2014   - Added so/thetao variable handles so variable attributes can be copied without a heavy memory overhead
     - EG  29 Sep 2014   - remove NaN in array inits
     - PJD  2 Oct 2014   - Updated to write vars at float32 precision
+    - PJD 16 Oct 2014   - Updated to deal with non lat/lon grids
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
+            - Collapse all basin results into single variable, rather than 3 variables for each basin property
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -1164,8 +1167,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ft.close()
     fs.close()
     if mthout:
+        # Global attributes
+        globalAttWrite(outFileMon_f,options=None) ; # Use function to write standard global atts
+        # Write makeSteric version
+        eosNeutralPath = str(eosNeutral.__code__).split(' ')[6]
+        eosNeutralPath = replace(replace(eosNeutralPath,'"',''),',','') ; # Clean scraped path
+        outFileMon_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])        
         outFileMon_f.close()
         print ' Wrote file: ',outFileMon
+    # Global attributes
+    globalAttWrite(outFile_f,options=None) ; # Use function to write standard global atts
+    # Write makeSteric version
+    outFile_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])
     outFile_f.close()
     if tcdel >= 12:
         print ' Wrote file: ',outFile
