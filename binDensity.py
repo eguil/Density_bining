@@ -1166,19 +1166,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
     ft.close()
     fs.close()
+    # Global attributes
+    globalAttWrite(outFile_f,options=None) ; # Use function to write standard global atts
+    # Write binDensity version
+    eosNeutralPath = str(eosNeutral.__code__).split(' ')[6]
+    eosNeutralPath = replace(replace(eosNeutralPath,'"',''),',','') ; # Clean scraped path
+    outFile_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])
+    outFile_f.close()
     if mthout:
         # Global attributes
         globalAttWrite(outFileMon_f,options=None) ; # Use function to write standard global atts
-        # Write makeSteric version
-        eosNeutralPath = str(eosNeutral.__code__).split(' ')[6]
-        eosNeutralPath = replace(replace(eosNeutralPath,'"',''),',','') ; # Clean scraped path
+        # Write binDensity version
         outFileMon_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])        
         outFileMon_f.close()
         print ' Wrote file: ',outFileMon
-    # Global attributes
-    globalAttWrite(outFile_f,options=None) ; # Use function to write standard global atts
-    # Write makeSteric version
-    outFile_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])
-    outFile_f.close()
     if tcdel >= 12:
         print ' Wrote file: ',outFile
