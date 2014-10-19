@@ -986,8 +986,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 salpersista[t] = cdu.averager(npy.reshape(salpersxy*areaia,(Nji*Nii)), action='sum')/areaita
                 salpersistp[t] = cdu.averager(npy.reshape(salpersxy*areaip,(Nji*Nii)), action='sum')/areaitp
                 salpersisti[t] = cdu.averager(npy.reshape(salpersxy*areaii,(Nji*Nii)), action='sum')/areaiti
-                del(volpersxy,tempersxy,salpersxy)
                 print volpersist.data[t], volpersist.data[t]/voltot*100.,tempersist.data[t], salpersist.data[t]
+                del(volpersxy,tempersxy,salpersxy)
             #
             # end of loop on t <==
             #
