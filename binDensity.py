@@ -502,19 +502,25 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x2_content  = so.data[t] 
             vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask 
             # find non-masked points
-            nomask      = npy.equal(vmask_3D[0],0)
+            nomask      = npy.equal(vmask_3D[0],0) ; # ???
             # init arrays for this time chunk
-            z_s         = npy.ones((N_s+1, lonN*latN))*valmask
-            c1_s        = npy.ones((N_s+1, lonN*latN))*valmask
-            c2_s        = npy.ones((N_s+1, lonN*latN))*valmask
-            t_s         = npy.ones((N_s+1, lonN*latN))*valmask
-            szmin       = npy.ones((lonN*latN))*valmask
-            szmax       = npy.ones((lonN*latN))*valmask
-            i_min       = npy.ones((lonN*latN))*0
-            i_max       = npy.ones((lonN*latN))*0
-            delta_rho   = npy.ones((lonN*latN))*valmask
+            z_s,c1_s,c2_s,t_s = [npy.ones(npy.shape((N_s+1, lonN*latN)))*valmask for _ in range(4)]
+            #z_s         = npy.ones((N_s+1, lonN*latN))*valmask
+            #c1_s        = npy.ones((N_s+1, lonN*latN))*valmask
+            #c2_s        = npy.ones((N_s+1, lonN*latN))*valmask
+            #t_s         = npy.ones((N_s+1, lonN*latN))*valmask
+            szmin,szmax,delta_rho = [npy.ones(lonN*latN)*valmask for _ in range(3)]
+            #szmin       = npy.ones((lonN*latN))*valmask
+            #szmax       = npy.ones((lonN*latN))*valmask
+            #delta_rho   = npy.ones((lonN*latN))*valmask
+            i_min,i_max = [npy.ones(lonN*latN)*0 for _ in range(2)]
+            #i_min       = npy.ones((lonN*latN))*0
+            #i_max       = npy.ones((lonN*latN))*0
             # find bottom level at each lat/lon point
-            i_bottom            = vmask_3D.argmax(axis=0)-1
+            i_bottom            = vmask_3D.argmax(axis=0)-1 ; # ???
+            print z_zw
+            print i_bottom
+            print nomask
             z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
             c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
             c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom tempi_profilerature/salinity
