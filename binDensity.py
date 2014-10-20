@@ -316,8 +316,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     try:
         bounds  = ft('lev_bnds')
     except:
-        bounds  = depth.getBounds()
-        print bounds
+        bounds  = depth.getBounds() ; # Work around for BNU-ESM
     ingrid  = thetao_h.getGrid()
     # Get grid objects
     axesList = thetao_h.getAxisList()
@@ -346,6 +345,35 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ff      = cdm.open(fileFx)
     area    = ff('areacello')
     ff.close()
+
+    # Target horizonal grid for interp 
+    gridFile    = '140807_WOD13_masks.nc'
+    gridFile_f  = cdm.open(gridFile)
+    maskg       = gridFile_f('basinmask3')
+    outgrid     = maskg.getGrid()
+    maski       = maskg.mask ; # Global mask
+    # Regional masks
+    maskAtl = maski*1 ; maskAtl[...] = True
+    idxa = npy.argwhere(maskg == 1).transpose()
+    maskAtl[idxa[0],idxa[1]] = False
+    maskPac = maski*1 ; maskPac[...] = True
+    idxp = npy.argwhere(maskg == 2).transpose()
+    maskPac[idxp[0],idxp[1]] = False
+    maskInd = maski*1 ; maskInd[...] = True
+    idxi = npy.argwhere(maskg == 3).transpose()
+    maskInd[idxi[0],idxi[1]] = False
+    
+    loni    = maskg.getLongitude()
+    lati    = maskg.getLatitude()
+    Nii     = len(loni)
+    Nji     = len(lati)
+    # Compute area of target grid and zonal sums
+    areai = computeArea(loni[:], lati[:])
+    gridFile_f.close()
+    areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
+    areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
+    areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
+    areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
     
     # Define sigma grid with zoom on higher densities
     rho_min = 19
@@ -409,35 +437,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     x1_bin      = maskVal(x1_bin, valmask)
     x2_bin      = tmp.copy() ; del(tmp) ; gc.collect()
     x2_bin      = maskVal(x2_bin, valmask)
-    
-    # Target horizonal grid for interp 
-    gridFile    = '140807_WOD13_masks.nc'
-    gridFile_f  = cdm.open(gridFile)
-    maskg       = gridFile_f('basinmask3')
-    outgrid     = maskg.getGrid()
-    maski       = maskg.mask ; # Global mask
-    # Regional masks
-    maskAtl = maski*1 ; maskAtl[...] = True
-    idxa = npy.argwhere(maskg == 1).transpose()
-    maskAtl[idxa[0],idxa[1]] = False
-    maskPac = maski*1 ; maskPac[...] = True
-    idxp = npy.argwhere(maskg == 2).transpose()
-    maskPac[idxp[0],idxp[1]] = False
-    maskInd = maski*1 ; maskInd[...] = True
-    idxi = npy.argwhere(maskg == 3).transpose()
-    maskInd[idxi[0],idxi[1]] = False
-    
-    loni    = maskg.getLongitude()
-    lati    = maskg.getLatitude()
-    Nii     = len(loni)
-    Nji     = len(lati)
-    # Compute area of target grid and zonal sums
-    areai = computeArea(loni[:], lati[:])
-    gridFile_f.close()
-    areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
-    areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
-    areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
-    areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
     
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
