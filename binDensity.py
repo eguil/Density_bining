@@ -313,7 +313,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     lon     = thetao_h.getLongitude()
     lat     = thetao_h.getLatitude()
     depth   = thetao_h.getLevel()
-    bounds  = ft('lev_bnds')
+    try:
+        bounds  = ft('lev_bnds')
+    except:
+        bounds  = depth.getBounds()
+        print bounds
     ingrid  = thetao_h.getGrid()
     # Get grid objects
     axesList = thetao_h.getAxisList()
@@ -391,7 +395,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # inits
     # depth profiles:
     z_zt = depth[:]
-    z_zw = bounds.data[:,0]
+    z_zw = bounds[:,0]
+    #z_zw = bounds.data[:,0]
     max_depth_ocean = 6000. # maximum depth of ocean
 
     # output arrays for each chunk
