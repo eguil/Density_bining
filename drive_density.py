@@ -199,7 +199,7 @@ del(tmp,count,x) ; gc.collect()
 # Process model list
 # 150 IPSL-CM5A-LR - 150:151
 # BNU-ESM - 5
-for x,model in enumerate(list_soAndthetaoAndfx[12:]):
+for x,model in enumerate(list_soAndthetaoAndfx[54:]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))

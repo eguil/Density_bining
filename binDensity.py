@@ -314,10 +314,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     lon     = thetao_h.getLongitude()
     lat     = thetao_h.getLatitude()
     depth   = thetao_h.getLevel()
-    try:
-        bounds  = ft('lev_bnds')
-    except:
-        bounds  = depth.getBounds() ; # Work around for BNU-ESM
+    #try:
+    #    bounds  = ft('lev_bnds')
+    #except Exception,err:
+    #    print 'Exception: ',err
+    #    bounds  = depth.getBounds() ; # Work around for BNU-ESM
     ingrid  = thetao_h.getGrid()
     # Get grid objects
     axesList = thetao_h.getAxisList()
@@ -326,7 +327,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     latN    = so_h.shape[2]
     depthN  = so_h.shape[1]
     # Read masking value
-    valmask = so._FillValue
+    try:
+        valmask = so._FillValue
+    except Exception,err:
+        print 'Exception: ',err
+        valmask = so.missing_value
     
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
@@ -424,7 +429,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # inits
     # depth profiles:
     z_zt = depth[:]
-    z_zw = bounds[:,0]
+    #z_zw = bounds[:,0]
     #z_zw = bounds.data[:,0]
     max_depth_ocean = 6000. # maximum depth of ocean
 
@@ -446,7 +451,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Global arrays on target grid init
     depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
     thickBini,x1Bini,x2Bini = [npy.ma.ones(npy.shape(depthBini)) for _ in range(3)]
-    # Basin
+    # Basin zonal
     depthBinia,thickBinia,x1Binia,x2Binia,depthBinip,thickBinip,\
     x1Binip,x2Binip,depthBinii,thickBinii,x1Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(12)]
     # Persistence arrays on original grid
@@ -455,7 +460,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Persistence arrays on target grid
     persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
     ptopdepthi,ptopsigmai,ptoptempi,ptopsalti = [npy.ma.ones(npy.shape(persistm)) for _ in range(4)]
-    # Basin
+    # Basin zonal
     ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptopdepthip,ptopsigmaip,\
     ptoptempip,ptopsaltip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii = [npy.ma.ones(npy.shape(persistm)) for _ in range(12)]
 
