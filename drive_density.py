@@ -8,6 +8,7 @@ Paul J. Durack 14th September 2014
 This script generates input lists of cmip5 ocean fields and drives densityBin
 
 PJD 14 Sep 2014     - Started file
+PJD 21 Oct 2014     - Added test to make sure all inputs are passed to densityBin
                     - TODO:
 
 @author: durack1
@@ -47,6 +48,18 @@ else:
     print "** Invalid arguments - no *.nc files will be written **"
    
 #%%
+'''
+## TEST ##
+modelSuite = 'cmip5'
+experiment = 'historical'
+#experiment = 'rcp85'
+outPath     = '/export/durack1/git/Density_bining/test'
+#outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+#modelSuite = 'cmip3'
+#experiment = '20c3m'
+#experiment = 'sresa2'
+'''
+
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 logPath = '/export/durack1/git/Density_bining/'
@@ -55,18 +68,6 @@ writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
 print "".join(['** Processing files from ',modelSuite,' for ',experiment,' **'])
 writeToLog(logfile,"".join(['** Processing files from ',modelSuite,' for ',experiment,' **']))
-
-'''
-## TEST ##
-modelSuite = 'cmip5'
-experiment = 'historical'
-#experiment = 'rcp85'
-outPath     = '/export/durack1/git/Density_bining/test'
-#outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
-modelSuite = 'cmip3'
-experiment = '20c3m'
-experiment = 'sresa2'
-'''
 
 #%%
 # Set generic paths
@@ -179,21 +180,37 @@ for count,pairs in enumerate(list_soAndthetao):
             continue
 del(i,fx,list_fx_files,list_soAndthetao,count,count2,pairs,model,model_fx) ; gc.collect()
 
+# Remove blank entries - First remove duplicate None*5 fields then remove final
+tmp = []
+for count,x in enumerate(list_soAndthetaoAndfx):
+    try:
+        x.index(None)
+        print 'None:',x
+        continue
+    except Exception,err:
+        #print 'Exception thrown: ',err
+        if 'None is not in list' in err:
+            #print 'append',x
+            tmp.append(x)
+list_soAndthetaoAndfx = tmp
+del(tmp,count,x) ; gc.collect()
+
 #%%
 # Process model list
 # 150 IPSL-CM5A-LR - 150:151
 # BNU-ESM - 5
-for x,model in enumerate(list_soAndthetaoAndfx):
+for x,model in enumerate(list_soAndthetaoAndfx[12:]):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
-    print 'outPath:   ','/'.join(outfileDensity.split('/')[0:-1])    
+    print 'FileCount: ',x    
+    print 'outPath:   ','/'.join(outfileDensity.split('/')[0:-1])
     print 'outfile:   ',outfileDensity.split('/')[-1]
     print 'so:        ',model[1].split('/')[-1]
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
-    densityBin(model[3],model[1],model[5],outfileDensity,debug=False,timeint='1,24')
+    #densityBin(model[3],model[1],model[5],outfileDensity,debug=False,timeint='1,24')
 
 #%%
 '''
