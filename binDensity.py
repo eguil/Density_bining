@@ -486,8 +486,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         
         # reorganise i,j dims in single dimension data (speeds up loops)
         thetao  = npy.reshape(thetao, (tcdel, depthN, lonN*latN))
-        so      = npy.reshape(so  , (tcdel, depthN, lonN*latN))
-        rhon    = npy.reshape(rhon, (tcdel, depthN, lonN*latN))
+        so      = npy.reshape(so    , (tcdel, depthN, lonN*latN))
+        rhon    = npy.reshape(rhon  , (tcdel, depthN, lonN*latN))
         
         # init output arrays for bined fields
         depth_bin[...] = valmask
@@ -498,30 +498,26 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-            x1_content  = thetao.data[t] 
-            x2_content  = so.data[t] 
-            vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask 
+            x1_content  = thetao.data[t]
+            #print 'x1_content',x1_content.shape
+            x2_content  = so.data[t]
+            #print 'x2_content',x2_content.shape
+            vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
+            #vmask_3D    = mv.masked_values(thetao[t], valmask).mask
             # find non-masked points
-            nomask      = npy.equal(vmask_3D[0],0) ; # ???
+            #print 'vmask_3D',vmask_3D.shape
+            nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+            #print 'nomask',nomask.shape
             # init arrays for this time chunk
-            z_s,c1_s,c2_s,t_s = [npy.ones(npy.shape((N_s+1, lonN*latN)))*valmask for _ in range(4)]
-            #z_s         = npy.ones((N_s+1, lonN*latN))*valmask
-            #c1_s        = npy.ones((N_s+1, lonN*latN))*valmask
-            #c2_s        = npy.ones((N_s+1, lonN*latN))*valmask
-            #t_s         = npy.ones((N_s+1, lonN*latN))*valmask
+            z_s,c1_s,c2_s,t_s = [npy.ones((N_s+1, lonN*latN))*valmask for _ in range(4)]
             szmin,szmax,delta_rho = [npy.ones(lonN*latN)*valmask for _ in range(3)]
-            #szmin       = npy.ones((lonN*latN))*valmask
-            #szmax       = npy.ones((lonN*latN))*valmask
-            #delta_rho   = npy.ones((lonN*latN))*valmask
             i_min,i_max = [npy.ones(lonN*latN)*0 for _ in range(2)]
-            #i_min       = npy.ones((lonN*latN))*0
-            #i_max       = npy.ones((lonN*latN))*0
             # find bottom level at each lat/lon point
-            i_bottom            = vmask_3D.argmax(axis=0)-1 ; # ???
-            print z_zw
-            print i_bottom
-            print nomask
-            z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+            i_bottom            = vmask_3D.argmax(axis=0)-1 ; # All -1
+            #print 'z_zw',z_zw.shape,z_zw
+            #print 'i_bottom',i_bottom.shape,i_bottom
+            #print 'nomask',nomask.shape,nomask
+            #z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
             c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
             c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom tempi_profilerature/salinity
             # init arrays as a function of depth = f(z)
