@@ -208,7 +208,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
 
     Notes:
     -----
-    - PJD 14 Sep 2014 - 
+    - PJD 14 Sep 2014 - Rewrote as function
     - EG  23 Sep 2014 - documentation 
     '''
     s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
@@ -257,6 +257,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - EG  29 Sep 2014   - remove NaN in array inits
     - PJD  2 Oct 2014   - Updated to write vars at float32 precision
     - PJD 16 Oct 2014   - Updated to deal with non lat/lon grids
+    - PJD 21 Oct 2014   - Appears to be running over full CMIP5 archive
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
             - Collapse all basin results into single variable, rather than 3 variables for each basin property
