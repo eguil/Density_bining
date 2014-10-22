@@ -505,14 +505,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content  = thetao.data[t]
-            print 'x1_content',x1_content.shape
+            #print 'x1_content',x1_content.shape
             x2_content  = so.data[t]
-            print 'x2_content',x2_content.shape
-            print 'valmask',valmask
+            #print 'x2_content',x2_content.shape
+            #print 'valmask',valmask
             #vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
             vmask_3D    = mv.masked_values(x1_content,valmask)
             # find non-masked points
-            print 'vmask_3D',vmask_3D.shape
+            #print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             #print 'nomask',nomask.shape
             # init arrays for this time chunk
@@ -795,11 +795,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask 
                 inim = t*12
                 finm = t*12 + 12
-                idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
+                #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
+                idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
-                maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
+                #maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
+                maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.)
                 maskp = npy.reshape(maskp, (N_s+1, latN*lonN))
                 p_top = maskp.argmax(axis=0) 
                 del(maskp) ; gc.collect()

@@ -185,7 +185,7 @@ tmp = []
 for count,x in enumerate(list_soAndthetaoAndfx):
     try:
         x.index(None)
-        print 'None:',x
+        print format(count,'03d'),'No fx match for:',x[1].split('/')[-1]
         continue
     except Exception,err:
         #print 'Exception thrown: ',err
