@@ -398,9 +398,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     rhoAxis.units_long      = 'kg m-3 (anomaly, minus 1000)'                                                                                                                      
     rhoAxis.axis            = 'Z'
     rhoAxis.designateLevel()
-    rhoAxesList             = axesList ; # Create new axis list to edit
-    rhoAxesList[1]          = rhoAxis ; # replace depth axis
     del(s_sax) ; gc.collect()
+    # Define basin output axis
+    basinAxis               = cdm.createAxis([1,2,3],bounds=None,id='basin')
+    basinAxis.long_name     = 'ocean basin index'
+    basinAxis.standard_name = 'basin'
+    basinAxis.units         = 'basin index'
+    basinAxis.units_long    = '1: Atlantic; 2: Pacific; 3: Indian'
+    basinAxis.axis          = 'B'
+    # Create rho axis list
+    rhoAxesList             = [axesList[0],rhoAxis,axesList[2],axesList[3]] ; # time, rho, lat, lon
+    # Create basin-zonal axes lists
+    basinAxesList           = [axesList[0],basinAxis,axesList[2]] ; # time, basin, lat
+    basinRhoAxesList        = [axesList[0],basinAxis,rhoAxis,axesList[2]] ; # time, basin, rho, lat
     
     # ---------------------
     #  Init density bining
