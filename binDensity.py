@@ -505,13 +505,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content  = thetao.data[t]
-            #print 'x1_content',x1_content.shape
+            print 'x1_content',x1_content.shape
             x2_content  = so.data[t]
-            #print 'x2_content',x2_content.shape
-            vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
-            #vmask_3D    = mv.masked_values(thetao[t], valmask).mask
+            print 'x2_content',x2_content.shape
+            print 'valmask',valmask
+            #vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
+            vmask_3D    = mv.masked_values(x1_content,valmask)
             # find non-masked points
-            #print 'vmask_3D',vmask_3D.shape
+            print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             #print 'nomask',nomask.shape
             # init arrays for this time chunk
