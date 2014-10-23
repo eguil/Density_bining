@@ -460,10 +460,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ESMP.ESMP_Initialize()
     regridObj = CdmsRegrid(ingrid,outgrid,depth_bin.dtype,missing=valmask,regridMethod='linear',regridTool='esmf')
     
-    # Global arrays on target grid init
+    # Global arrays on target grid
     depthBini = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
     thickBini,x1Bini,x2Bini = [npy.ma.ones(npy.shape(depthBini)) for _ in range(3)]
-    # Basin zonal
+    # Basin zonal on target grid
     depthBinia,thickBinia,x1Binia,x2Binia,depthBinip,thickBinip,\
     x1Binip,x2Binip,depthBinii,thickBinii,x1Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(12)]
     # Persistence arrays on original grid
@@ -472,7 +472,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Persistence arrays on target grid
     persistm   = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
     ptopdepthi,ptopsigmai,ptoptempi,ptopsalti = [npy.ma.ones(npy.shape(persistm)) for _ in range(4)]
-    # Basin zonal
+    # Basin zonal on target grid
     ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptopdepthip,ptopsigmaip,\
     ptoptempip,ptopsaltip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii = [npy.ma.ones(npy.shape(persistm)) for _ in range(12)]
 
