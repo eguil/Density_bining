@@ -201,7 +201,7 @@ del(tmp,count,x) ; gc.collect()
 # BNU-ESM - 5
 # EC-EARTH.historical.r10i1p1 - 55
 # MIROC4h.historical.r1i1p1 - 160
-for x,model in enumerate(list_soAndthetaoAndfx[160:]):
+for x,model in enumerate(list_soAndthetaoAndfx):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
