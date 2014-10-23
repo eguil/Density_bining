@@ -261,6 +261,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
             - Collapse all basin results into single variable, rather than 3 variables for each basin property
+              consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and 
+              http://helene.llnl.gov/cf/documents/cf-conventions/1.7-draft1/cf-conventions.html#geographic-regions
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -381,7 +383,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
     areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
     
-    # Define sigma grid with zoom on higher densities
+    # Define rho grid with zoom on higher densities
     rho_min = 19
     rho_int = 26
     rho_max = 28.5
@@ -400,11 +402,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     rhoAxis.designateLevel()
     del(s_sax) ; gc.collect()
     # Define basin output axis
-    basinAxis               = cdm.createAxis([1,2,3],bounds=None,id='basin')
+    basinAxis               = cdm.createAxis([0,1,2,3],bounds=None,id='basin')
     basinAxis.long_name     = 'ocean basin index'
     basinAxis.standard_name = 'basin'
     basinAxis.units         = 'basin index'
-    basinAxis.units_long    = '1: Atlantic; 2: Pacific; 3: Indian'
+    basinAxis.units_long    = '0: global_ocean 1: atlantic_ocean; 2: pacific_ocean; 3: indian_ocean'
     basinAxis.axis          = 'B'
     # Create rho axis list
     rhoAxesList             = [axesList[0],rhoAxis,axesList[2],axesList[3]] ; # time, rho, lat, lon
