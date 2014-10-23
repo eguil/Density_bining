@@ -257,12 +257,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - EG  29 Sep 2014   - remove NaN in array inits
     - PJD  2 Oct 2014   - Updated to write vars at float32 precision
     - PJD 16 Oct 2014   - Updated to deal with non lat/lon grids
-    - PJD 21 Oct 2014   - Appears to be running over full CMIP5 archive
+    - PJD 23 Oct 2014   - Runs over full CMIP5 archive
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
             - Collapse all basin results into single variable, rather than 3 variables for each basin property
               consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and 
               http://helene.llnl.gov/cf/documents/cf-conventions/1.7-draft1/cf-conventions.html#geographic-regions
+            - Rewrite all computation in pure numpy, only writes should be cdms2
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -425,12 +426,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
     grdsize = lonN * latN * depthN
+    print 'grdsize:',grdsize
 
     # define number of months in each chunk
     if grdsize <= 1.e6:
-        tcdel = min(120, tmax)
-    elif grdsize <= 1.e7:
-        tcdel = min(24, tmax)
+        tcdel = min(120,tmax)
+    elif grdsize > 5.e7:
+        tcdel = min(12,tmax) ; # MIROC4h 24 months ~60Gb/50%
+    elif grdsize > 2.5e7:
+        tcdel = min(24,tmax)
+    else:
+        tcdel = min(48,tmax)
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
