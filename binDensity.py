@@ -578,7 +578,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c1m = c1_z*1. ; c1m[...] = valmask
             c2m = c2_z*1. ; c2m[...] = valmask
             
-            print '2'
+            #print '2' # Step through months
 
             for k in range(depthN):
                 k_ind = i_min*1.; k_ind[:] = valmask
@@ -832,13 +832,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 # TODO: can we remove the loop ?
                 
-                print '9a'                
-                
+                print '9a' # Warning: converting a masked element to nan               
                 for i in range(latN*lonN): 
                     ptopdepth[i]    = depth_bin[t,p_top[i],i]
                     ptoptemp[i]     = x1_bin[t,p_top[i],i]
                     ptopsalt[i]     = x2_bin[t,p_top[i],i]
-                
                 print '9a1'                
                 
                 ptopsigma = ptopdepth*0. + rhoAxis[p_top] # to keep mask of ptopdepth
@@ -1123,6 +1121,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpz.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
+            del(persim,ptopd,ptopt,ptops,dbpz) ; gc.collect()
             '''
             outFile_f.write(dbpza.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpzp.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
@@ -1132,6 +1131,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbprz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbptz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpsz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            del(dbpdz,dbprz,dbptz,dbpsz) ; gc.collect()
             '''
             outFile_f.write(dbpdza.astype('float32') , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbprza.astype('float32') , extend = 1, index = (trmin-tmin)/12)
@@ -1269,6 +1269,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(vbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            del(dbz,tbz,vbz,x1bz,x2bz) ; gc.collect()
             '''
             # Atl
             outFile_f.write(dbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
@@ -1296,6 +1297,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.write(thickBin.astype('float32'), extend = 1, index = trmin-tmin)
             outFileMon_f.write(x1Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             outFileMon_f.write(x2Bin.astype('float32'),    extend = 1, index = trmin-tmin)
+            del(depthBin,thickBin,x1Bin,x2Bin) ; gc.collect()
         
         tozf = timc.clock()
         print '   CPU of density bining      =', ticz-tuc
