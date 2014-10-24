@@ -212,7 +212,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
-    densityBin(model[3],model[1],model[5],outfileDensity,debug=False,timeint='1,12')
+    densityBin(model[3],model[1],model[5],outfileDensity,debug=False,timeint='1,24')
 
 #%%
 '''
