@@ -633,10 +633,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
 
         # Reshape i*j back to i,j
-        depth_bino = npy.reshape(depth_bin, (tcdel, N_s+1, latN, lonN))
-        thick_bino = npy.reshape(thick_bin, (tcdel, N_s+1, latN, lonN))
-        x1_bino    = npy.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
-        x2_bino    = npy.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
+        depth_bino = npy.ma.reshape(depth_bin, (tcdel, N_s+1, latN, lonN))
+        thick_bino = npy.ma.reshape(thick_bin, (tcdel, N_s+1, latN, lonN))
+        x1_bino    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
+        x2_bino    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
         # Wash mask (from temp) over variables
         maskb           = mv.masked_values(x1_bino, valmask).mask
         depth_bino.mask = maskb
@@ -840,10 +840,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print '9a1'                
                 
                 ptopsigma = ptopdepth*0. + rhoAxis[p_top] # to keep mask of ptopdepth
-                ptopdepth = npy.reshape(ptopdepth, (latN, lonN))
-                ptopsigma = npy.reshape(ptopsigma, (latN, lonN))
-                ptoptemp  = npy.reshape(ptoptemp , (latN, lonN))
-                ptopsalt  = npy.reshape(ptopsalt , (latN, lonN))
+                ptopdepth = npy.ma.reshape(ptopdepth, (latN, lonN))
+                ptopsigma = npy.ma.reshape(ptopsigma, (latN, lonN))
+                ptoptemp  = npy.ma.reshape(ptoptemp , (latN, lonN))
+                ptopsalt  = npy.ma.reshape(ptopsalt , (latN, lonN))
 
                 # Create variables to attribute right axis for zonal mean
                 ptopdepth = cdm.createVariable(ptopdepth, axes = [ingrid], id = 'ptopdepth')
@@ -933,7 +933,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsaltii  = maskVal(ptopsaltii,  valmask)
 
                 # Free memory
-                del(persbin, ptopdepth, ptopsigma, ptoptemp, ptopsalt) ; gc.collect()
+                del(persbin,ptopdepth,ptopsigma,ptoptemp,ptopsalt) ; gc.collect()
                 # Create cdms2 transient variables
                 ptopdepthi  = cdm.createVariable(ptopdepthi,  axes = [timeyr, lati, loni], id = 'ptopdepthi')
                 ptopsigmai  = cdm.createVariable(ptopsigmai,  axes = [timeyr, lati, loni], id = 'ptopsigmai')
@@ -1015,11 +1015,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 timeBasinAxesList = basinAxesList
                 timeBasinAxesList[0] = timeyr ; # Replace monthly with annual
                 timeBasinAxesList[2] = lati ; # Replace lat with regrid target
-                for a in timeBasinAxesList: print a.id 
+                #for a in timeBasinAxesList: print a.id 
                 timeBasinRhoAxesList = basinRhoAxesList
                 timeBasinRhoAxesList[0] = timeyr ; # Replace monthly with annual
                 timeBasinRhoAxesList[3] = lati ; # Replace lat with regrid target
-                for a in timeBasinRhoAxesList: print a.id
+                #for a in timeBasinRhoAxesList: print a.id
             newshape    = list(persistiz.shape) ; newshape.insert(1,1)
             persistiz   = npy.ma.reshape(persistiz,newshape)
             persistiza  = npy.ma.reshape(persistiza,newshape)
