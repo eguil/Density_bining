@@ -201,7 +201,13 @@ del(tmp,count,x) ; gc.collect()
 # BNU-ESM - 5
 # EC-EARTH.historical.r10i1p1 - 55
 # MIROC4h.historical.r1i1p1 - 160
-for x,model in enumerate(list_soAndthetaoAndfx):
+modelInd = [0,5,55,150,160] ; # Test suite to capture all errors
+list_sht = []
+for count,x in enumerate(list_soAndthetaoAndfx):
+    if count in modelInd:
+        list_sht.append(x)
+for x,model in enumerate(list_sht):
+#for x,model in enumerate(list_soAndthetaoAndfx):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
@@ -212,7 +218,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
-    densityBin(model[3],model[1],model[5],outfileDensity,debug=False,timeint='1,24')
+    #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
 
 #%%
 '''
