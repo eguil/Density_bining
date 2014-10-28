@@ -1112,7 +1112,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptopsizi    = npy.ma.reshape(ptopsizi,newshape)
             dbpsz       = npy.ma.concatenate((ptopsiz,ptopsiza,ptopsizp,ptopsizi),axis=1)
             del(ptopsiz,ptopsiza,ptopsizp,ptopsizi) ; gc.collect()
-            dbpsz       = cdm.createVariable(dbpsz,axes=timeBasinAxesList,id='ptopso'
+            dbpsz       = cdm.createVariable(dbpsz,axes=timeBasinAxesList,id='ptopso')
             newshape    = list(volpersist.shape) ; newshape.insert(1,1)
             volpersist  = npy.ma.reshape(volpersist*1.e-12 ,newshape)
             volpersista = npy.ma.reshape(volpersista*1.e-12,newshape)
