@@ -42,7 +42,7 @@ if (args.experiment in ['20c3m','historical','historicalNat','rcp26','rcp45','rc
 else:
     print "** Invalid arguments - no *.nc files will be written **"
 if not (os.path.exists(args.outPath)):
-    outPath     = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+    outPath     = os.path.join('/work/guilyardi/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 else:
     outPath     = args.outPath
     print "** Invalid arguments - no *.nc files will be written **"
@@ -53,7 +53,7 @@ else:
 modelSuite = 'cmip5'
 experiment = 'historical'
 #experiment = 'rcp85'
-outPath     = '/export/durack1/git/Density_bining/test'
+outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 #outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 #modelSuite = 'cmip3'
 #experiment = '20c3m'
@@ -62,7 +62,7 @@ outPath     = '/export/durack1/git/Density_bining/test'
 
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-logPath = '/export/durack1/git/Density_bining/'
+logPath = '/work/guilyardi/git/Density_bining/'
 logfile = os.path.join(logPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
 writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
@@ -218,7 +218,7 @@ for x,model in enumerate(list_sht):
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
-    #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
+    densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
 
 #%%
 '''
