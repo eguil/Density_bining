@@ -821,10 +821,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x1Binii     = maskVal(x1Binii, valmask)
             x2Binii     = maskVal(x2Binii, valmask)
 
-            depthbini  = cdm.createVariable(depthBini,  axes = [timeyr, s_sax, lati, loni], id = 'isondepthg')
-            thickbini  = cdm.createVariable(thickBini,  axes = [timeyr, s_sax, lati, loni], id = 'isonthickg')
-            x1bini     = cdm.createVariable(x1Bini   ,  axes = [timeyr, s_sax, lati, loni], id = 'thetaog')
-            x2bini     = cdm.createVariable(x2Bini   ,  axes = [timeyr, s_sax, lati, loni], id = 'sog')
+            depthbini  = cdm.createVariable(depthBini,  axes = [timeyr, rhoAxis, lati, loni], id = 'isondepthg')
+            thickbini  = cdm.createVariable(thickBini,  axes = [timeyr, rhoAxis, lati, loni], id = 'isonthickg')
+            x1bini     = cdm.createVariable(x1Bini   ,  axes = [timeyr, rhoAxis, lati, loni], id = 'thetaog')
+            x2bini     = cdm.createVariable(x2Bini   ,  axes = [timeyr, rhoAxis, lati, loni], id = 'sog')
             if tc == 0:
                 depthbini.long_name  = 'Depth of isopycnal'
                 depthbini.units      = 'm'
@@ -1032,7 +1032,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
-                persvp = cdm.createVariable(persvp, axes = [s_sax, lati, loni], id = 'toto')
+                persvp = cdm.createVariable(persvp, axes = [rhoAxis, lati, loni], id = 'toto')
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                   # volume (integral of depth * area)
                 voltot         = cdu.averager(thickBini[t,...], axis=0, action = 'sum')
