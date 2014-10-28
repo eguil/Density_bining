@@ -4,3 +4,4 @@
 *.nc
 /test
 *oceanonly.log
+/_obsolete

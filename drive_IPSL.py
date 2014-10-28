@@ -9,6 +9,7 @@ This script drives densityBin with a single model input
 
 PJD 17 Sep 2014     - Started file
 PJD 18 Sep 2014     - Updated output directory
+PJD  1 Oct 2014     - Updated using timeint
                     - TODO:
 
 @author: durack1
