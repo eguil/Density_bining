@@ -329,8 +329,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #z_zw = bounds[:,0]
     z_zw = bounds.data[:,0]
     max_depth_ocean = 6000. # maximum depth of ocean
-    print 'z_zt= ', z_zt
-    print 'z_zw= ', z_zw
     # Horizontal grid        
     ingrid  = thetao_h.getGrid()
     # Get grid objects
@@ -565,6 +563,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.mean', x2_content.mean()   
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
+                print ' rhon', rhon[0,:,i]
             
             #vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
             vmask_3D    = mv.masked_values(x1_content,valmask)
@@ -577,7 +576,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
             # find bottom level at each lat/lon point
-            i_bottom                = vmask_3D.mask.argmax(axis=0)-1 ; # All -1
+            i_bottom                = vmask_3D.argmax(axis=0)-1 ; # All -1
+            if debug and t <= 0:
+                i = ijtest
+                print ' vmask_3D', vmask_3D[0,:,i]
+                print ' nomask', nomask[0,:,i]
+                print ' i_bottom', i_bottom[i]
             #print 'z_zw',z_zw.shape,z_zwthickness
             #print 'i_bottom',i_bottom.shape,i_bottom
             #print 'nomask',nomask.shape,nomask
