@@ -501,7 +501,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptopdepthip,ptopsigmaip,\
     ptoptempip,ptopsaltip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii = [npy.ma.ones(npy.shape(persistm)) for _ in range(12)]
     # Volume/thetao/so of persistent ocean
-        volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
+    volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
     volpersista,volpersistp,volpersisti,tempersist,tempersista,tempersistp,tempersisti,salpersist,salpersista,salpersistp,salpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(11)]
     #
     # -----------------------------------------
