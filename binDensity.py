@@ -310,14 +310,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Open files to read
     ft      = cdm.open(fileT)
     fs      = cdm.open(fileS)
-    timeax  = ft.getAxis('time')
-    # Define temperature and salinity arrays
     thetao_h    = ft['thetao'] ; # Create variable handle
     so_h        = fs['so'] ; # Create variable handle
     # Read time and grid
-    lon     = thetao_h.getLongitude()
-    lat     = thetao_h.getLatitude()
+    timeax  = thetao_h.getTime()
     depth   = thetao_h.getLevel()
+    lat     = thetao_h.getLatitude()
+    lon     = thetao_h.getLongitude()
     try:
         bounds  = ft('lev_bnds')
         z_zw = bounds.data[:,0]
@@ -341,7 +340,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         valmask = so_h._FillValue
     except Exception,err:
         print 'Exception: ',err
-        valmask = so_h.missing_value
+        valmask = so_h.missing_value ; # Work around for EC-EARTH
     
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
@@ -619,6 +618,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             t_s [inds[0],inds[1]] = valmask
             t_s [idzmc1[0],idzmc1[1]] = valmask  
             if debug and t == 0:
+                # None of these variables are masked
                 i = ijtest
                 print ' density target array s_s[i]'
                 print s_s[:,i]
