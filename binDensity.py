@@ -259,8 +259,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - PJD 16 Oct 2014   - Updated to deal with non lat/lon grids
     - PJD 23 Oct 2014   - Runs over full CMIP5 archive
     - EG  28 Oct 2014   - Merge with current EG version: added integral volume/thetao/so of persistent ocean
-    - TODO: - collapse integral properties of persistent ocean on basin axis
-            - Deal with NaN values with mask variables:
+    - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
             - Collapse all basin results into single variable, rather than 3 variables for each basin property
               consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and 
@@ -327,9 +326,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         bounds  = depth.getBounds() ; # Work around for BNU-ESM
     # depth profiles:
     z_zt = depth[:]
-    z_zw = bounds[:,0]
+    #z_zw = bounds[:,0]
     z_zw = bounds.data[:,0]
-    max_depth_ocean = 6000. # maximum depth of ocean        
+    max_depth_ocean = 6000. # maximum depth of ocean
+    print 'z_zt= ', z_zt
+    print 'z_zw= ', z_zw
     # Horizontal grid        
     ingrid  = thetao_h.getGrid()
     # Get grid objects
@@ -546,12 +547,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content  = thetao.data[t]
-            print thetao.shape
+            #print thetao.shape
             #x1_content  = npy.ma.array(thetao.data[t])
             #print 'x1_content',x1_content.shape
             x2_content  = so.data[t]
             #x2_content  = so[t]
-            print so.shape
+            #print so.shape
             #x2_content  = npy.ma.array(so.data[t])            
             #print 'x2_content',x2_content.shape
             #print 'valmask',valmask
@@ -609,10 +610,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ;  szm[...] = valmask ; szm = s_z*1. # why is this back to 1 ? Should not work this way...
-            zzm = s_z*1. ;  zzm[...] = valmask ; zzm = s_z*1.
-            c1m = c1_z*1. ; c1m[...] = valmask ; c1m = c1_z*1.
-            c2m = c2_z*1. ; c2m[...] = valmask ; c2m = c2_z*1.
+            szm = s_z*1. ;  szm[...] = valmask ; #szm = s_z*1. # why is this back to 1 ? Should not work this way...
+            zzm = s_z*1. ;  zzm[...] = valmask ; #zzm = s_z*1.
+            c1m = c1_z*1. ; c1m[...] = valmask ; #c1m = c1_z*1.
+            c2m = c2_z*1. ; c2m[...] = valmask ; #c2m = c2_z*1.
             
             #print '2' # Step through months
 
@@ -652,11 +653,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             t_s [idzmc1[0],idzmc1[1]] = valmask  
             if debug and t == 0:
                 i = ijtest
-                print ' s_s[i]', s_s[:,i]
-                print ' szm[i]', szm[:,i]
-                print ' zzm[i]', zzm[:,i]
-                print ' z_s[i]', z_s[:,i]
-                print ' t_s[i]', t_s[:,i]
+                print ' density target array s_s[i]'
+                print s_s[:,i]
+                print ' density profile on Z grid szm[i]'
+                print szm[:,i] 
+                print ' depth profile on Z grid zzm[i]'
+                print zzm[:,i]
+                print ' depth profile on rhon target grid z_s[i]'
+                print z_s[:,i]
+                print ' thickness profile on rhon grid t_s[i]'
+                print t_s[:,i]
+                print ' bined temperature profile on rhon grid c1_s[i]'
+                print c1_s[:,i]
              # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
@@ -810,10 +818,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x1Binii     = maskVal(x1Binii, valmask)
             x2Binii     = maskVal(x2Binii, valmask)
 
-            depthbini  = cdm.createVariable(depthBini,  axes = [timeyr, s_axis, lati, loni], id = 'isondepthg')
-            thickbini  = cdm.createVariable(thickBini,  axes = [timeyr, s_axis, lati, loni], id = 'isonthickg')
-            x1bini     = cdm.createVariable(x1Bini   ,  axes = [timeyr, s_axis, lati, loni], id = 'thetaog')
-            x2bini     = cdm.createVariable(x2Bini   ,  axes = [timeyr, s_axis, lati, loni], id = 'sog')
+            depthbini  = cdm.createVariable(depthBini,  axes = [timeyr, s_sax, lati, loni], id = 'isondepthg')
+            thickbini  = cdm.createVariable(thickBini,  axes = [timeyr, s_sax, lati, loni], id = 'isonthickg')
+            x1bini     = cdm.createVariable(x1Bini   ,  axes = [timeyr, s_sax, lati, loni], id = 'thetaog')
+            x2bini     = cdm.createVariable(x2Bini   ,  axes = [timeyr, s_sax, lati, loni], id = 'sog')
             if tc == 0:
                 depthbini.long_name  = 'Depth of isopycnal'
                 depthbini.units      = 'm'
@@ -1021,7 +1029,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
-                persvp = cdm.createVariable(persvp, axes = [s_axis, lati, loni], id = 'toto')
+                persvp = cdm.createVariable(persvp, axes = [s_sax, lati, loni], id = 'toto')
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                   # volume (integral of depth * area)
                 voltot         = cdu.averager(thickBini[t,...], axis=0, action = 'sum')
