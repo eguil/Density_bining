@@ -681,7 +681,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         maskt          = mv.masked_values(thick_bin, valmask).mask
         thick_bin.mask = maskt
         depth_bin      = maskVal(depth_bin, valmask)
-        thick_bin      = maskVal(depth_bin, valmask)
+        thick_bin      = maskVal(thick_bin, valmask)
         x1_bin         = maskVal(x1_bin, valmask)
         x2_bin         = maskVal(x2_bin, valmask)
         # Reshape i*j back to i,j
