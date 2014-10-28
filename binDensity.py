@@ -563,12 +563,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.mean', x2_content.mean()   
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
-                print ' rhon', rhon[0,:,i]
+                #print ' rhon', rhon[0,:,i]
             
-            #vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
-            vmask_3D    = mv.masked_values(x1_content,valmask).mask
+            vmask_3D    = mv.masked_values(x1_content,valmask).mask ; # Returns boolean
             # find non-masked points
-            print 'vmask_3D',vmask_3D.shape
+            #print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             #print 'nomask',nomask.shape
             # init arrays for this time chunk
@@ -577,11 +576,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
             # find bottom level at each lat/lon point
             i_bottom                = vmask_3D.argmax(axis=0)-1 ; # All -1
-            if debug and t <= 0:
-                i = ijtest
-                print ' vmask_3D', vmask_3D[:,i]
-                print ' nomask', nomask[i]
-                print ' i_bottom', i_bottom[i]
+            #if debug and t <= 0:
+            #    i = ijtest
+            #    print ' vmask_3D', vmask_3D[:,i]
+            #    print ' nomask', nomask[i]
+            #    print ' i_bottom', i_bottom[i]
             #print 'z_zw',z_zw.shape,z_zwthickness
             #print 'i_bottom',i_bottom.shape,i_bottom
             #print 'nomask',nomask.shape,nomask
