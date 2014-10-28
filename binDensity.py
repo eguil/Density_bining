@@ -566,7 +566,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' rhon', rhon[0,:,i]
             
             #vmask_3D    = mv.masked_values(thetao.data[t], valmask).mask
-            vmask_3D    = mv.masked_values(x1_content,valmask)
+            vmask_3D    = mv.masked_values(x1_content,valmask).mask
             # find non-masked points
             print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
@@ -580,7 +580,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             if debug and t <= 0:
                 i = ijtest
                 print ' vmask_3D', vmask_3D[:,i]
-                print ' nomask', nomask[:,i]
+                print ' nomask', nomask[i]
                 print ' i_bottom', i_bottom[i]
             #print 'z_zw',z_zw.shape,z_zwthickness
             #print 'i_bottom',i_bottom.shape,i_bottom
