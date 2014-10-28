@@ -28,3 +28,4 @@ print 'thetao:    ',modelThetao
 print 'areacello: ',modelAreacello
 # Call densityBin
 densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,debug=True,timeint='1,24')
+
