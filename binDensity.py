@@ -578,7 +578,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
             # find bottom level at each lat/lon point
             i_bottom                = vmask_3D.argmax(axis=0)-1 ; # All -1
-            #print 'z_zw',z_zw.shape,z_zw
+            #print 'z_zw',z_zw.shape,z_zwthickness
             #print 'i_bottom',i_bottom.shape,i_bottom
             #print 'nomask',nomask.shape,nomask
             z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
@@ -661,10 +661,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print zzm[:,i]
                 print ' depth profile on rhon target grid z_s[i]'
                 print z_s[:,i]
-                print ' thickness profile on rhon grid t_s[i]'
-                print t_s[:,i]
-                print ' bined temperature profile on rhon grid c1_s[i]'
-                print c1_s[:,i]
+                #print ' thickness profile on rhon grid t_s[i]'
+                #print t_s[:,i]
+                #print ' bined temperature profile on rhon grid c1_s[i]'
+                #print c1_s[:,i]
              # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
@@ -1533,6 +1533,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print ' Wrote file: ',outFile
     
     # Cleanup variables
-    del(timeBasinAxesList,timeBasinRhoAxesList) ; gc.collect()
+        del(timeBasinAxesList,timeBasinRhoAxesList) ; gc.collect()
     #for a in locals().iterkeys():
         #print a
