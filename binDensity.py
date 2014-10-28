@@ -534,6 +534,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             
             if debug and t == 0:
                 i = ijtest
+                # None of these variables are masked
                 print ' x1_content.mean', x1_content.mean()
                 print ' x1_content.min', x1_content.min()
                 print ' x1_content.max', x1_content.max()
@@ -637,7 +638,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             thick_bin[t,:,:] = t_s
             x1_bin[t,:,:]    = c1_s
             x2_bin[t,:,:]    = c2_s
-            # mask final arrays
         # end of loop on t <===      
         # Free memory 
         del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
@@ -673,15 +673,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
         if debug and (tc == 0):
             # test write
-            i = itest
-            j = jtest
             #print 'ind = ',ind
-            print 'test point',i,j, area[j,i]
-            print 'lon,lat',lon[j,i],lat[j,i]
-            print 'depth_bin', depth_bino[0,:,j,i]
-            print 'thick_bin', thick_bino[0,:,j,i]
-            print 'x1_bin', x1_bino[0,:,j,i]
-            print 'x2_bin', x2_bino[0,:,j,i]
+            print 'test point',jtest,itest,area[jtest,itest]
+            print 'lon,lat',lon[jtest,itest],lat[jtest,itest]
+            print 'depth_bin',depth_bino[0,:,jtest,itest]
+            print 'thick_bin',thick_bino[0,:,jtest,itest]
+            print 'x1_bin',x1_bino[0,:,jtest,itest]
+            print 'x2_bin',x2_bino[0,:,jtest,itest]
 
         # Def variables 
         depthBin = cdm.createVariable(depth_bino, axes = rhoAxesList, id = 'isondepth')
