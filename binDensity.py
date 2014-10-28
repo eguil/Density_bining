@@ -1044,12 +1044,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 voltot         = cdu.averager(npy.ma.reshape(voltot*areai ,(Nji*Nii)), action = 'sum')
                 volpersxy      = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
                 volpersxy.mask = maski    ; volpersxy  = maskVal(volpersxy , valmask)
-                #volpersxya = volpersxy*1.
-                #volpersxya.mask = maskAtl ; volpersxya = maskVal(volpersxya, valmask)
-                #volpersxyp = volpersxy*1.
-                #volpersxyp.mask = maskPac ; volpersxyp = maskVal(volpersxyp, valmask)
-                #volpersxyi = volpersxy*1.
-                #volpersxyi.mask = maskInd ; volpersxyi = maskVal(volpersxyi, valmask)
                 volpersist [t] = cdu.averager(npy.ma.reshape(volpersxy*areai ,(Nji*Nii)), action = 'sum')
                 volpersista[t] = cdu.averager(npy.ma.reshape(volpersxy*areaia,(Nji*Nii)), action = 'sum')
                 volpersistp[t] = cdu.averager(npy.ma.reshape(volpersxy*areaip,(Nji*Nii)), action = 'sum')
@@ -1057,24 +1051,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                   # Temp and salinity (average)
                 tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
                 tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy , valmask)
-                #tempersxya      = tempersxy*1.
-                #tempersxya.mask = maskAtl; tempersxya = maskVal(tempersxya, valmask)
-                #tempersxyp      = tempersxy*1.
-                #tempersxyp.mask = maskPac; tempersxyp = maskVal(tempersxyp, valmask)
-                #tempersxyi      = tempersxy*1.
-                #tempersxyi.mask = maskInd; tempersxyi = maskVal(tempersxyi, valmask)
                 tempersist [t] = cdu.averager(npy.ma.reshape(tempersxy*areai ,(Nji*Nii)), action='sum')/areait
                 tempersista[t] = cdu.averager(npy.ma.reshape(tempersxy*areaia,(Nji*Nii)), action='sum')/areaita
                 tempersistp[t] = cdu.averager(npy.ma.reshape(tempersxy*areaip,(Nji*Nii)), action='sum')/areaitp
                 tempersisti[t] = cdu.averager(npy.ma.reshape(tempersxy*areaii,(Nji*Nii)), action='sum')/areaiti
                 salpersxy       = cdu.averager(persvp*x2Bini[t,...], axis=0)
                 salpersxy.mask  = maski  ; salpersxy  = maskVal(salpersxy , valmask)
-                #salpersxya      = salpersxy*1.
-                #salpersxya.mask = maskAtl; salpersxya = maskVal(salpersxya, valmask)
-                #salpersxyp      = salpersxy*1.
-                #salpersxyp.mask = maskPac; salpersxyp = maskVal(salpersxyp, valmask)
-                #salpersxyi      = salpersxy*1.
-                #salpersxyi.mask = maskInd; salpersxyi = maskVal(salpersxyi, valmask)
                 salpersist [t] = cdu.averager(npy.ma.reshape(salpersxy*areai ,(Nji*Nii)), action='sum')/areait
                 salpersista[t] = cdu.averager(npy.ma.reshape(salpersxy*areaia,(Nji*Nii)), action='sum')/areaita
                 salpersistp[t] = cdu.averager(npy.ma.reshape(salpersxy*areaip,(Nji*Nii)), action='sum')/areaitp
@@ -1087,37 +1069,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Compute % of persistent ocean on the vertical
             persistm                = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))
             persistm._FillValue     = valmask
-            persistm                = mv.masked_where(persistm > valmask/10, persistm); # IS THIS CRITERION ARBITRARY?
+            persistm                = mv.masked_where(persistm > valmask/10, persistm)
             persistm.mask           = maski
             
-            # [TO DO: compute volume/temp/salinity of persistent ocean (global, per basin) (1D)]
-            '''
-            # Write zonal mean persistence 3D (time, rhon, lat)
-            dbpz   = cdm.createVariable(persistiz , axes = [timeyr, rhoAxis, lati], id = 'isonpers')
-            dbpza  = cdm.createVariable(persistiza, axes = [timeyr, rhoAxis, lati], id = 'isonpersa')
-            dbpzp  = cdm.createVariable(persistizp, axes = [timeyr, rhoAxis, lati], id = 'isonpersp')
-            dbpzi  = cdm.createVariable(persistizi, axes = [timeyr, rhoAxis, lati], id = 'isonpersi')
-            # Write zonal depth of bowl 2D (time, lat)
-            dbpdz  = cdm.createVariable(ptopdiz   , axes = [timeyr, lati], id = 'ptopdepth')
-            dbpdza = cdm.createVariable(ptopdiza  , axes = [timeyr, lati], id = 'ptopdeptha')
-            dbpdzp = cdm.createVariable(ptopdizp  , axes = [timeyr, lati], id = 'ptopdepthp')
-            dbpdzi = cdm.createVariable(ptopdizi  , axes = [timeyr, lati], id = 'ptopdepthi')
-            # Write zonal density of bowl 2D (time, lat)
-            dbprz  = cdm.createVariable(ptopriz   , axes = [timeyr, lati], id = 'ptopsigma')
-            dbprza = cdm.createVariable(ptopriza  , axes = [timeyr, lati], id = 'ptopsigmaa')
-            dbprzp = cdm.createVariable(ptoprizp  , axes = [timeyr, lati], id = 'ptopsigmap')
-            dbprzi = cdm.createVariable(ptoprizi  , axes = [timeyr, lati], id = 'ptopsigmai')
-            # Write zonal temperature of bowl 2D (time, lat)
-            dbptz  = cdm.createVariable(ptoptiz   , axes = [timeyr, lati], id = 'ptopthetao')
-            dbptza = cdm.createVariable(ptoptiza  , axes = [timeyr, lati], id = 'ptopthetaoa')
-            dbptzp = cdm.createVariable(ptoptizp  , axes = [timeyr, lati], id = 'ptopthetaop')
-            dbptzi = cdm.createVariable(ptoptizi  , axes = [timeyr, lati], id = 'ptopthetaoi')
-            # Write zonal salinity bowl 2D (time, lat)
-            dbpsz  = cdm.createVariable(ptopsiz   , axes = [timeyr, lati], id = 'ptopso')
-            dbpsza = cdm.createVariable(ptopsiza  , axes = [timeyr, lati], id = 'ptopsoa')
-            dbpszp = cdm.createVariable(ptopsizp  , axes = [timeyr, lati], id = 'ptopsop')
-            dbpszi = cdm.createVariable(ptopsizi  , axes = [timeyr, lati], id = 'ptopsoi')
-            '''
             # Write % of persistent ocean, depth/temp/salinity of bowl 3D (time, lat, lon)
             persim = cdm.createVariable(persistm  , axes = [timeyr,lati,loni], id = 'persistmxy')
             ptopd  = cdm.createVariable(ptopdepthi, axes = [timeyr,lati,loni], id = 'ptopdepthxy')
@@ -1125,20 +1079,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptops  = cdm.createVariable(ptopsalti , axes = [timeyr,lati,loni], id = 'ptopsoxy')
 
             # Write volume/temp/salinity of persistent ocean 1D (time)
-            '''
-            volper  = cdm.createVariable(volpersist *1.e-12, axes = [timeyr], id = 'volpers')
-            temper  = cdm.createVariable(tempersist        , axes = [timeyr], id = 'tempers')
-            salper  = cdm.createVariable(salpersist        , axes = [timeyr], id = 'salpers')
-                        volpera = cdm.createVariable(volpersista*1.e-12, axes = [timeyr], id = 'volpersa')
-            volperp = cdm.createVariable(volpersistp*1.e-12, axes = [timeyr], id = 'volpersp')
-            volperi = cdm.createVariable(volpersisti*1.e-12, axes = [timeyr], id = 'volpersi')
-            tempera = cdm.createVariable(tempersista       , axes = [timeyr], id = 'tempersa')
-            temperp = cdm.createVariable(tempersistp       , axes = [timeyr], id = 'tempersp')
-            temperi = cdm.createVariable(tempersisti       , axes = [timeyr], id = 'tempersi')
-            salpera = cdm.createVariable(salpersista       , axes = [timeyr], id = 'salpersa')
-            salperp = cdm.createVariable(salpersistp       , axes = [timeyr], id = 'salpersp')
-            salperi = cdm.createVariable(salpersisti       , axes = [timeyr], id = 'salpersi')
-            '''
             # Collapse onto basin axis
             if 'timeBasinAxesList' not in locals():
                 timeBasinList = basinTimeList
@@ -1216,14 +1156,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 # Global attributes
                 dbpz.long_name      = 'Zonal persistence of isopycnal bins'
                 dbpz.units          = '% of time'
-                '''
-                dbpza.long_name     = 'Atl. zonal persistence of isopycnal bins'
-                dbpza.units         = '% of time'
-                dbpzp.long_name     = 'Pac. zonal persistence of isopycnal bins'
-                dbpzp.units         = '% of time'
-                dbpzi.long_name     = 'Ind. zonal persistence of isopycnal bins'
-                dbpzi.units         = '% of time'
-                '''
                 #
                 persim.long_name    = 'Fraction of persistence on isopycnal bins'
                 persim.units        = '% of column'
@@ -1242,59 +1174,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbptz.units         = 'degrees_C'   
                 dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
                 dbpsz.units         = so_h.units
-                '''
-                dbpdza.long_name    = 'Atl. zonal depth of shallowest persistent ocean on ison'
-                dbpdza.units        = 'm'
-                dbprza.long_name    = 'Atl. Zonal rhon of shallowest persistent ocean on ison'
-                dbprza.units        = 'sigma_n'
-                dbptza.long_name    = 'Atl. zonal Temp. of shallowest persistent ocean on ison'
-                dbptza.units        = 'degrees_C'   
-                dbpsza.long_name    = 'Atl. Zonal Salinity of shallowest persistent ocean on ison'
-                dbpsza.units        = so_h.units  
-                dbpdzp.long_name    = 'Pac. zonal depth of shallowest persistent ocean on ison'
-                dbpdzp.units        = 'm'
-                dbprzp.long_name    = 'Pac. Zonal rhon of shallowest persistent ocean on ison'
-                dbprzp.units        = 'sigma_n'
-                dbptzp.long_name    = 'Pac. zonal Temp. of shallowest persistent ocean on ison'
-                dbptzp.units        = 'degrees_C'   
-                dbpszp.long_name    = 'Pac. zonal Salinity of shallowest persistent ocean on ison'
-                dbpszp.units        = so_h.units  
-                dbpdzi.long_name    = 'Ind. zonal depth of shallowest persistent ocean on ison'
-                dbpdzi.units        = 'm'
-                dbprzi.long_name    = 'Ind. Zonal rhon of shallowest persistent ocean on ison'
-                dbprzi.units        = 'sigma_n'
-                dbptzi.long_name    = 'Ind. zonal Temp. of shallowest persistent ocean on ison'
-                dbptzi.units        = 'degrees_C'   
-                dbpszi.long_name    = 'Ind. zonal Salinity of shallowest persistent ocean on ison'
-                dbpszi.units        = so_h.units
-                '''
-                # TODO: collapse basin dimension as above
+                # 
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
                 temper.long_name    = 'Temperature of persistent ocean'
                 temper.units        = 'degrees_C'
                 salper.long_name    = 'Salinity of persistent ocean'
                 salper.units        = so_h.units 
-                '''
-                volpera.long_name   = 'Atl. Volume of persistent ocean'
-                volpera.units       = '1.e12 m^3'
-                volperp.long_name   = 'Pac. Volume of persistent ocean'
-                volperp.units       = '1.e12 m^3'
-                volperi.long_name   = 'Ind. Volume of persistent ocean'
-                volperi.units       = '1.e12 m^3'
-                tempera.long_name   = 'Atl. Temperature of persistent ocean'
-                tempera.units       = 'degrees_C'
-                temperp.long_name   = 'Pac. Temperature of persistent ocean'
-                temperp.units       = 'degrees_C'
-                temperi.long_name   = 'Ind. Temperature of persistent ocean'
-                temperi.units       = 'degrees_C'
-                salpera.long_name   = 'Atl. Salinity of persistent ocean'
-                salpera.units       = so_h.units 
-                salperp.long_name   = 'Pac. Salinity of persistent ocean'
-                salperp.units       = so_h.units 
-                salperi.long_name   = 'Ind. Salinity of persistent ocean'
-                salperi.units       = so_h.units 
-                '''
             # Write & append
             outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
             outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) 
@@ -1312,66 +1198,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbpsz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             del(dbpdz,dbprz,dbptz,dbpsz) ; gc.collect()
 
-            '''
-            outFile_f.write(persim , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable depth,lat,lon are written together
-            outFile_f.write(ptopd  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(ptopt  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(ptops  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpz   , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpza  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpzp  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpzi  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpsz  , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpsza , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptzp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpszp , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpdzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbprzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbptzi , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
-            '''
             outFile_f.write(volper.astype('float32') , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(temper.astype('float32') , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(salper.astype('float32') , extend = 1, index = (trmin-tmin)/12)
             #
             tozp = timc.clock()
             #
-            # Init zonal mean output variables
-            '''
-            # Global
-            dbz     = cdm.createVariable(depthBinz,       axes = [timeyr, rhoAxis, lati], id = 'isondepth')
-            tbz     = cdm.createVariable(thickBinz,       axes = [timeyr, rhoAxis, lati], id = 'isonthick')
-            vbz     = cdm.createVariable(volBinz*1.e-12,  axes = [timeyr, rhoAxis, lati], id = 'isonvol')
-            x1bz    = cdm.createVariable(x1Binz,          axes = [timeyr, rhoAxis, lati], id = 'isonthetao')
-            x2bz    = cdm.createVariable(x2Binz,          axes = [timeyr, rhoAxis, lati], id = 'isonso')
-            # Atl
-            dbza    = cdm.createVariable(depthBinza,      axes = [timeyr, rhoAxis, lati], id = 'isondeptha')
-            tbza    = cdm.createVariable(thickBinza,      axes = [timeyr, rhoAxis, lati], id = 'isonthicka')
-            vbza    = cdm.createVariable(volBinza*1.e-12, axes = [timeyr, rhoAxis, lati], id = 'isonvola')
-            x1bza   = cdm.createVariable(x1Binza,         axes = [timeyr, rhoAxis, lati], id = 'isonthetaoa')
-            x2bza   = cdm.createVariable(x2Binza,         axes = [timeyr, rhoAxis, lati], id = 'isonsoa')
-            # Pac
-            dbzp    = cdm.createVariable(depthBinzp,      axes = [timeyr, rhoAxis, lati], id = 'isondepthp')
-            tbzp    = cdm.createVariable(thickBinzp,      axes = [timeyr, rhoAxis, lati], id = 'isonthickp')
-            vbzp    = cdm.createVariable(volBinzp*1.e-12, axes = [timeyr, rhoAxis, lati], id = 'isonvolp')
-            x1bzp   = cdm.createVariable(x1Binzp,         axes = [timeyr, rhoAxis, lati], id = 'isonthetaop')
-            x2bzp   = cdm.createVariable(x2Binzp,         axes = [timeyr, rhoAxis, lati], id = 'isonsop')
-            # Ind
-            dbzi    = cdm.createVariable(depthBinzi,      axes = [timeyr, rhoAxis, lati], id = 'isondepthi')
-            tbzi    = cdm.createVariable(thickBinzi,      axes = [timeyr, rhoAxis, lati], id = 'isonthicki')
-            vbzi    = cdm.createVariable(volBinzi*1.e-12, axes = [timeyr, rhoAxis, lati], id = 'isonvoli')
-            x1bzi   = cdm.createVariable(x1Binzi,         axes = [timeyr, rhoAxis, lati], id = 'isonthetaoi')
-            x2bzi   = cdm.createVariable(x2Binzi,         axes = [timeyr, rhoAxis, lati], id = 'isonsoi')
-            '''
-            
+            # Init zonal mean output variables            
             # Collapse onto basin axis
             newshape    = list(depthBinz.shape) ; newshape.insert(1,1)
             depthBinz   = npy.ma.reshape(depthBinz,newshape)
@@ -1422,41 +1255,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x1bz.units      = 'degrees_C'
                 x2bz.long_name  = so_h.long_name
                 x2bz.units      = so_h.units
-                '''
-                # Atl
-                dbza.long_name  = 'Atl. zonal depth of isopycnal'
-                dbza.units      = dbz.units
-                tbza.long_name  = 'Atl. zonal thickness of isopycnal'
-                tbza.units      = 'm'
-                vbza.long_name  = 'Atl. volume of isopycnal'
-                vbza.units      = '1.e12 m^3'
-                x1bza.long_name = thetao_h.long_name
-                x1bza.units     = 'degrees_C'
-                x2bza.long_name = so_h.long_name
-                x2bza.units     = so_h.units
-                # Pac
-                dbzp.long_name  = 'Pac. zonal depth of isopycnal'
-                dbzp.units      = dbz.units
-                tbzp.long_name  = 'Pac. zonal thickness of isopycnal'
-                tbzp.units      = 'm'
-                vbzp.long_name  = 'Pac. volume of isopycnal'
-                vbzp.units      = '1.e12 m^3'
-                x1bzp.long_name = thetao_h.long_name
-                x1bzp.units     = 'degrees_C'
-                x2bzp.long_name = so_h.long_name
-                x2bzp.units     = so_h.units
-                # Ind
-                dbzi.long_name  = 'Ind. zonal depth of isopycnal'
-                dbzi.units      = dbz.units
-                tbzi.long_name  = 'Ind. zonal thickness of isopycnal'
-                tbzi.units      = 'm'
-                vbzi.long_name  = 'Ind. volume of isopycnal'
-                vbzi.units      = '1.e12 m^3'
-                x1bzi.long_name = thetao_h.long_name
-                x1bzi.units     = 'degrees_C'
-                x2bzi.long_name = so_h.long_name
-                x2bzi.units     = so_h.units
-                '''
                 # Cleanup
             # Write & append
             outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
@@ -1465,26 +1263,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(x1bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             del(dbz,tbz,vbz,x1bz,x2bz) ; gc.collect()
-            '''
-            # Atl
-            outFile_f.write(dbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbza.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bza.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bza.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            # Pac
-            outFile_f.write(dbzp.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbzp.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbzp.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bzp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bzp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            # Ind
-            outFile_f.write(dbzi.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tbzi.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(vbzi.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x1bzi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x2bzi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            '''
     
         # Write/append to file
         if mthout:
