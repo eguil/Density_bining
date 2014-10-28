@@ -613,7 +613,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ;  szm[...] = valmask ; #szm = s_z*1. # why is this back to 1 ? Should not work this way...
+            szm = s_z*1. ;  szm[...] = valmask ; #szm = s_z*1. # why is this set to 1 ? Cannot not work this way...
             zzm = s_z*1. ;  zzm[...] = valmask ; #zzm = s_z*1.
             c1m = c1_z*1. ; c1m[...] = valmask ; #c1m = c1_z*1.
             c2m = c2_z*1. ; c2m[...] = valmask ; #c2m = c2_z*1.
@@ -1334,17 +1334,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbpszi , extend = 1, index = (trmin-tmin)/12)
             '''
             outFile_f.write(volper.astype('float32') , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(volpera.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(volperp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(volperi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(temper.astype('float32') , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(tempera.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(temperp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(temperi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(salper.astype('float32') , extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(salpera.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(salperp.astype('float32'), extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(salperi.astype('float32'), extend = 1, index = (trmin-tmin)/12)
             #
             tozp = timc.clock()
             #
