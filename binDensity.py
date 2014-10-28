@@ -384,13 +384,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     lati    = maskg.getLatitude()
     Nii     = len(loni)
     Nji     = len(lati)
-    # Compute area of target grid and zonal sums
-    areai = computeArea(loni[:], lati[:])
-    gridFile_f.close()
-    areazt  = cdu.averager(areai*maski  , axis=1, action='sum')
-    areazta = cdu.averager(areai*maskAtl, axis=1, action='sum')
-    areaztp = cdu.averager(areai*maskPac, axis=1, action='sum')
-    areazti = cdu.averager(areai*maskInd, axis=1, action='sum')
     # Compute area of target grid and zonal and global sums
     areai = computeArea(loni[:], lati[:])
     gridFile_f.close()
@@ -613,10 +606,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt 
-            szm = s_z*1. ;  szm[...] = valmask ; #szm = s_z*1. # why is this set to 1 ? Cannot not work this way...
-            zzm = s_z*1. ;  zzm[...] = valmask ; #zzm = s_z*1.
-            c1m = c1_z*1. ; c1m[...] = valmask ; #c1m = c1_z*1.
-            c2m = c2_z*1. ; c2m[...] = valmask ; #c2m = c2_z*1.
+            szm,zzm,c1m,z2m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(4)]
+            #szm = s_z*1.  ; szm[...] = valmask 
+            #zzm = s_z*1.  ; zzm[...] = valmask 
+            #c1m = c1_z*1. ; c1m[...] = valmask 
+            #c2m = c2_z*1. ; c2m[...] = valmask 
             
             #print '2' # Step through months
 
