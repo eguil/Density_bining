@@ -893,7 +893,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask 
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 # TODO: can we remove the loop ?
-                
                 print '9a' # Warning: converting a masked element to nan               
                 for i in range(latN*lonN): 
                     ptopdepth[i]    = depth_bin[t,p_top[i],i]
