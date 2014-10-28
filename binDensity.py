@@ -577,7 +577,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
             # find bottom level at each lat/lon point
-            i_bottom                = vmask_3D.argmax(axis=0)-1 ; # All -1
+            i_bottom                = vmask_3D.mask.argmax(axis=0)-1 ; # All -1
             #print 'z_zw',z_zw.shape,z_zwthickness
             #print 'i_bottom',i_bottom.shape,i_bottom
             #print 'nomask',nomask.shape,nomask
