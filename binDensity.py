@@ -351,7 +351,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if 'EC-EARTH' == modeln:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
-    print '  valmask = ',valmask
+    print 'valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
@@ -543,7 +543,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thetao  = npy.ma.reshape(thetao,(tcdel, depthN, lonN*latN))
         so      = npy.ma.reshape(so    ,(tcdel, depthN, lonN*latN))
         rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
-        
+        if debug and t <= 0:
+            print ' thetao :',thetao[0,:,ijtest]
+            print ' so     :',so    [0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
