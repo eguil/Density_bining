@@ -337,10 +337,20 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     depthN  = so_h.shape[1]
     # Read masking value
     try:
-        valmask = so_h._FillValue
+        #valmask = so_h._FillValue
+        valmask = so_h.missing_value
+        if valmask == None:
+            print 'EC-EARTH missing_value fix'
+            valmask = 1.e20            
     except Exception,err:
         print 'Exception: ',err
-        valmask = so_h.missing_value ; # Work around for EC-EARTH
+        if 'EC-EARTH' == modeln:
+            print 'EC-EARTH missing_value fix'
+            valmask = 1.e20
+        #for x,att in enumerate(so_h.attributes.keys()):
+        #    print x,att,so_h.attributes.get(att)
+        #return
+        #valmask = so_h.missing_value ; # Work around for EC-EARTH
     
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
@@ -456,6 +466,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     print ' ==> size of time chunk, number of time chunks (memory optimization) :', tcdel, tcmax
 
     # output arrays for each chunk
+    print latN,lonN
+    print valmask
     tmp         = npy.ma.ones([tcdel, N_s+1, latN*lonN], dtype='float32')*valmask
     depth_bin   = tmp.copy()
     depth_bin   = maskVal(depth_bin, valmask)
@@ -499,6 +511,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+        # Check for missing_value/mask
+        if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
+            print 'trigger mask fix - EC-EARTH'
+            thetao = mv.masked_equal(thetao,0.) ; # Convert all 0. values to masked
+            thetao.filled(1.e20) ; # Convert all masked values to 1.e20
+            so = mv.masked_equal(so,0.)
+            so.filled(1.e20)
         time    = thetao.getTime()
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
@@ -520,10 +539,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         
         # Reset output arrays to missing for binned fields
-        depth_bin[...] = valmask
-        thick_bin[...] = valmask
-        x1_bin[...]    = valmask
-        x2_bin[...]    = valmask
+        depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
+        #depth_bin[...] = valmask
+        #thick_bin[...] = valmask
+        #x1_bin[...]    = valmask
+        #x2_bin[...]    = valmask
         
         print '1'
         # Loop on time within chunk tc
@@ -542,7 +562,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
 
-            vmask_3D    = mv.masked_values(x1_content,valmask).mask ; # Returns boolean
+            vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns boolean
+            print 'vmask_3D.shape:',vmask_3D.shape
+            print 'vmask_3D[0].shape:',vmask_3D[0].shape
             # find non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             # init arrays for this time chunk
@@ -675,7 +697,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # test write
             #print 'ind = ',ind
             print 'test point',jtest,itest,area[jtest,itest]
-            print 'lon,lat',lon[jtest,itest],lat[jtest,itest]
+            if len(lon.shape) > 1:
+                print 'lon,lat',lon[jtest,itest],lat[jtest,itest]
+            else:
+                print 'lon,lat',lon[itest],lat[jtest]                
             print 'depth_bin',depth_bino[0,:,jtest,itest]
             print 'thick_bin',thick_bino[0,:,jtest,itest]
             print 'x1_bin',x1_bino[0,:,jtest,itest]

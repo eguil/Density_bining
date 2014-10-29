@@ -202,7 +202,7 @@ del(tmp,count,x) ; gc.collect()
 # EC-EARTH.historical.r10i1p1 - 55
 # MIROC4h.historical.r1i1p1 - 160
 modelInd = [0,5,55,150,160] ; # Test suite to capture all errors
-modelInd = [5,55,150,160] ; # Test suite to capture all errors
+modelInd = [55,150,160] ; # Test suite to capture all errors
 list_sht = []
 for count,x in enumerate(list_soAndthetaoAndfx):
     if count in modelInd:
