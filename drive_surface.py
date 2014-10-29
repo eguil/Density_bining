@@ -51,8 +51,9 @@ else:
 ## TEST ##
 modelSuite = 'cmip5'
 experiment = 'historical'
+outPath     = '/export/durack1/git/Density_bining/test'
 #experiment = 'rcp85'
-outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
+#outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 #outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 #modelSuite = 'cmip3'
 #experiment = '20c3m'
@@ -109,7 +110,7 @@ list_fx_files.sort()
 # Create comparable model+ver for pairing
 list_thetao = [] ; list_thetao_noVer = []
 for infile in list_thetao_files:
-    tmp = replace(replace(replace(infile.split('/')[-1],'.thetao',''),''.join([modelSuite,'.']),''),'.latestX.xml','')
+    tmp = replace(replace(replace(infile.split('/')[-1],'.tos',''),''.join([modelSuite,'.']),''),'.latestX.xml','')
     list_thetao += [tmp];
     tmp = '.'.join(tmp.split('.')[0:-1]) ; # truncate version info
     list_thetao_noVer += [tmp]
@@ -117,14 +118,14 @@ del(infile,tmp)
 
 list_so = []
 for infile in list_so_files:
-    tmp = replace(replace(replace(infile.split('/')[-1],'.so',''),''.join([modelSuite,'.']),''),'.latestX.xml','')
+    tmp = replace(replace(replace(infile.split('/')[-1],'.sos',''),''.join([modelSuite,'.']),''),'.latestX.xml','')
     list_so += [tmp]
 del(infile,tmp)
 
 #%%
 # Match hfds with wfo
-
-
+list_inFiles = [[None] * 11 for i in range(len(list_hfds_files))]
+del(i) ; gc.collect()
 
 
 

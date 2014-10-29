@@ -552,7 +552,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'thetao.shape:',thetao.shape
             x1_content  = thetao.data[t] ; # This explicitly removes the variable mask
             print 'x1_content.shape:',x1_content.shape
-            x1_content  = thetao[t,...]
+            print 't:',t
+            x1_content  = thetao[t]
             print 'x1_content.shape:',x1_content.shape
             x2_content  = so.data[t]
             print 'x2_content.shape:',x2_content.shape
