@@ -549,7 +549,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-            x1_content  = thetao.data[t]
+            x1_content  = thetao.data[t] ; # This explicitly removes the variable mask
             x2_content  = so.data[t]
             
             if debug and t == 0:
@@ -562,8 +562,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
 
-            vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns boolean
+            vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns boolean without adding .mask
             print 'vmask_3D.shape:',vmask_3D.shape
+            print 'type(vmask_3D):',type(vmask_3D)
             print 'vmask_3D[0].shape:',vmask_3D[0].shape
             # find non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
@@ -1024,26 +1025,29 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsizi    = cdu.averager(ptopsaltii,  axis = 2)
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
-                persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
+                persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.)#.mask ; # Returns boolean without adding .mask
+                print 'persvp.shape:',persvp.shape
+                print 'type(persvp):',type(persvp)
                 persvp = cdm.createVariable(persvp, axes = [rhoAxis, lati, loni], id = 'toto')
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                 # volume (integral of depth * area)
-                voltot         = cdu.averager(thickBini[t,...], axis=0, action = 'sum')
+                print 'thickBini.shape:',thickBini.shape
+                voltot         = cdu.averager(thickBini[t,...](squeeze=1), axis=0, action = 'sum')
                 voltot         = cdu.averager(npy.ma.reshape(voltot*areai ,(Nji*Nii)), action = 'sum')
-                volpersxy      = cdu.averager(persvp*thickBini[t,...], axis=0, action = 'sum')
+                volpersxy      = cdu.averager(persvp*thickBini[t,...](squeeze=1), axis=0, action = 'sum')
                 volpersxy.mask = maski    ; volpersxy  = maskVal(volpersxy , valmask)
                 volpersist [t] = cdu.averager(npy.ma.reshape(volpersxy*areai ,(Nji*Nii)), action = 'sum')
                 volpersista[t] = cdu.averager(npy.ma.reshape(volpersxy*areaia,(Nji*Nii)), action = 'sum')
                 volpersistp[t] = cdu.averager(npy.ma.reshape(volpersxy*areaip,(Nji*Nii)), action = 'sum')
                 volpersisti[t] = cdu.averager(npy.ma.reshape(volpersxy*areaii,(Nji*Nii)), action = 'sum')
                 # Temp and salinity (average)
-                tempersxy       = cdu.averager(persvp*x1Bini[t,...], axis=0)
+                tempersxy       = cdu.averager(persvp*x1Bini[t,...](squeeze=1), axis=0)
                 tempersxy.mask  = maski  ; tempersxy  = maskVal(tempersxy , valmask)
                 tempersist [t] = cdu.averager(npy.ma.reshape(tempersxy*areai ,(Nji*Nii)), action='sum')/areait
                 tempersista[t] = cdu.averager(npy.ma.reshape(tempersxy*areaia,(Nji*Nii)), action='sum')/areaita
                 tempersistp[t] = cdu.averager(npy.ma.reshape(tempersxy*areaip,(Nji*Nii)), action='sum')/areaitp
                 tempersisti[t] = cdu.averager(npy.ma.reshape(tempersxy*areaii,(Nji*Nii)), action='sum')/areaiti
-                salpersxy       = cdu.averager(persvp*x2Bini[t,...], axis=0)
+                salpersxy       = cdu.averager(persvp*x2Bini[t,...](squeeze=1), axis=0)
                 salpersxy.mask  = maski  ; salpersxy  = maskVal(salpersxy , valmask)
                 salpersist [t] = cdu.averager(npy.ma.reshape(salpersxy*areai ,(Nji*Nii)), action='sum')/areait
                 salpersista[t] = cdu.averager(npy.ma.reshape(salpersxy*areaia,(Nji*Nii)), action='sum')/areaita
