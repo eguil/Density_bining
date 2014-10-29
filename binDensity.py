@@ -515,7 +515,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
-                # Check for missing_value/mask
+        # Check for missing_value/mask
         if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
             print 'trigger mask fix - EC-EARTH'
             thetao = mv.masked_equal(thetao,0.) ; # Convert all 0. values to masked
@@ -570,7 +570,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.max', x2_content.max()
                 #print ' rhon', rhon[0,:,i]
             
-            vmask_3D    = mv.masked_values(x1_content,valmask).mask ; # Returns boolean
+            vmask_3D    = mv.masked_values(thetao.data[t],valmask).mask ; # Returns boolean
             # find non-masked points
             print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
