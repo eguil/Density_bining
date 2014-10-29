@@ -562,9 +562,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
 
-            vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns boolean without adding .mask
+            vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns float32 without adding .mask
             print 'vmask_3D.shape:',vmask_3D.shape
-            print 'type(vmask_3D):',type(vmask_3D)
+            print 'vmask_3D.dtype:',vmask_3D.dtype
             print 'vmask_3D[0].shape:',vmask_3D[0].shape
             # find non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
@@ -1027,12 +1027,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.)#.mask ; # Returns boolean without adding .mask
                 print 'persvp.shape:',persvp.shape
-                print 'type(persvp):',type(persvp)
+                print 'persvp.dtype:',persvp.dtype
                 persvp = cdm.createVariable(persvp, axes = [rhoAxis, lati, loni], id = 'toto')
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                 # volume (integral of depth * area)
                 print 'thickBini.shape:',thickBini.shape
                 voltot         = cdu.averager(thickBini[t,...](squeeze=1), axis=0, action = 'sum')
+                print 'areai.shape:',areai.shape
+                print 'voltot.shape:',voltot.shape
+                '''
                 voltot         = cdu.averager(npy.ma.reshape(voltot*areai ,(Nji*Nii)), action = 'sum')
                 volpersxy      = cdu.averager(persvp*thickBini[t,...](squeeze=1), axis=0, action = 'sum')
                 volpersxy.mask = maski    ; volpersxy  = maskVal(volpersxy , valmask)
@@ -1056,6 +1059,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 if debug and t == 0:
                     print volpersist.data[t],volpersist.data[t]/voltot.data*100.,tempersist.data[t],salpersist.data[t]
                 del(volpersxy,tempersxy,salpersxy)
+                '''
             # end of loop on t <==
 
             # Compute % of persistent ocean on the vertical
@@ -1117,6 +1121,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbpsz       = npy.ma.concatenate((ptopsiz,ptopsiza,ptopsizp,ptopsizi),axis=1)
             del(ptopsiz,ptopsiza,ptopsizp,ptopsizi) ; gc.collect()
             dbpsz       = cdm.createVariable(dbpsz,axes=timeBasinAxesList,id='ptopso')
+            '''
             newshape    = list(volpersist.shape) ; newshape.insert(1,1)
             volpersist  = npy.ma.reshape(volpersist*1.e-12 ,newshape)
             volpersista = npy.ma.reshape(volpersista*1.e-12,newshape)
@@ -1139,6 +1144,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             salper      = npy.ma.concatenate((salpersist,salpersista,salpersistp,salpersisti),axis=1)
             del(salpersist,salpersista,salpersistp,salpersisti) ; gc.collect()
             salper      = cdm.createVariable(salper,axes=timeBasinList,id='salpers')
+            '''
             
             if tc == 0:
                 # Global attributes
@@ -1160,12 +1166,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbptz.units         = 'degrees_C'   
                 dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
                 dbpsz.units         = so_h.units
+                '''
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
                 temper.long_name    = 'Temperature of persistent ocean'
                 temper.units        = 'degrees_C'
                 salper.long_name    = 'Salinity of persistent ocean'
                 salper.units        = so_h.units 
+                '''
             # Write & append
             outFile_f.write(depthbini.astype('float32'),extend=1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
             outFile_f.write(thickbini.astype('float32'),extend=1, index = (trmin-tmin)/12) 
@@ -1182,10 +1190,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(dbptz.astype('float32')    ,extend=1, index = (trmin-tmin)/12)
             outFile_f.write(dbpsz.astype('float32')    ,extend=1, index = (trmin-tmin)/12)
             del(dbpdz,dbprz,dbptz,dbpsz) ; gc.collect()
+            '''
             outFile_f.write(volper.astype('float32')   ,extend=1, index = (trmin-tmin)/12)
             outFile_f.write(temper.astype('float32')   ,extend=1, index = (trmin-tmin)/12)
             outFile_f.write(salper.astype('float32')   ,extend=1, index = (trmin-tmin)/12)
             del(volper,temper,salper) ; gc.collect()
+            '''
 
             tozp = timc.clock()
 
