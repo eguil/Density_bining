@@ -534,9 +534,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         rhon = eosNeutral(thetao,so)-1000.
         
         # reorganise i,j dims in single dimension data (speeds up loops)
-        thetao  = npy.ma.reshape(thetao,(tcdel, depthN, lonN*latN))
-        so      = npy.ma.reshape(so    ,(tcdel, depthN, lonN*latN))
-        rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
+        #thetao  = npy.ma.reshape(thetao,(tcdel, depthN, lonN*latN))
+        thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
+        #so      = npy.ma.reshape(so    ,(tcdel, depthN, lonN*latN))
+        so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
+        #rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
+        rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
@@ -557,12 +560,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'x1_content.shape:',x1_content.shape
             x2_content  = so.data[t]
             print 'x2_content.shape:',x2_content.shape
-            x2_content  = so[t,...]
+            x2_content  = so[t]
             print 'x2_content.shape:',x2_content.shape
             
             if debug and t == 0:
                 i = ijtest
-                # None of these variables are masked
+                # None of these variables are masked - due to npy.ma -> mv change above they are
                 print ' x1_content.mean', x1_content.mean()
                 print ' x1_content.min', x1_content.min()
                 print ' x1_content.max', x1_content.max()
@@ -570,14 +573,21 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
 
-            vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns float32 without adding .mask
+            vmask_3D    = mv.masked_values(x1_content,valmask).mask ; # Returns float32 without adding .mask
             print 'vmask_3D.shape:',vmask_3D.shape
             print 'vmask_3D.dtype:',vmask_3D.dtype
             print 'vmask_3D.min():',vmask_3D.min()
             print 'vmask_3D.max():',vmask_3D.max()
             print 'vmask_3D[0].shape:',vmask_3D[0].shape
             # find non-masked points
-            nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+            #nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+            #nomask      = npy.equal(vmask_3D[0],False) ; # Returns boolean
+            #nomask      = vmask_3D[0] == False ; # Return index
+            nomask      = npy.where(vmask_3D[0]==False) ; # Return index
+            print 'nomask.dtype:',nomask.dtype
+            print 'nomask.min():',nomask.min()
+            print 'nomask.max():',nomask.max()
+            print 'nomask.shape:',nomask.shape
             # init arrays for this time chunk
             z_s,c1_s,c2_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(4)]
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
@@ -588,7 +598,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
             c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom tempi_profilerature/salinity
             # init arrays as a function of depth = f(z)
-            s_z     = rhon.data[t]
+            #s_z     = rhon.data[t]
+            s_z     = rhon[t]
             c1_z    = x1_content
             c2_z    = x2_content
             # Extract a strictly increasing sub-profile
