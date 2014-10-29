@@ -345,7 +345,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     except Exception,err:
         print 'Exception: ',err
         valmask = so_h.missing_value
-    
+    print '  valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
@@ -688,15 +688,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x1_bino    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
         x2_bino    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
         # Wash mask (from temp) over variables
-        maskb           = mv.masked_values(x1_bino, valmask).mask
-        depth_bino.mask = maskb
-        x1_bino.mask    = maskb
-        x2_bino.mask    = maskb
+        maskbo          = mv.masked_values(x1_bino, valmask).mask
+        depth_bino.mask = maskbo
+        x1_bino.mask    = maskbo
+        x2_bino.mask    = maskbo
         depth_bino      = maskVal(depth_bino, valmask)
         x1_bino         = maskVal(x1_bino,    valmask)
         x2_bino         = maskVal(x2_bino,    valmask)
-        maskt           = mv.masked_values(thick_bino, valmask).mask
-        thick_bino.mask = maskt
+        maskto          = mv.masked_values(thick_bino, valmask).mask
+        thick_bino.mask = maskto
         thick_bino      = maskVal(thick_bino, valmask)
         del(maskb, maskt)
 
@@ -704,7 +704,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # test write
             i = itest
             j = jtest
-            #print 'ind = ',ind
             print 'test point',i,j, area[j,i]
             try:
                 print 'lon,lat',lon[j,i],lat[j,i]
