@@ -522,6 +522,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             thetao.filled(valmask) ; # Convert all masked values to valmask
             so = mv.masked_equal(so,0.)
             so.filled(valmask)
+            thetao = maskVal(thetao,valmask)
+            so     = maskVal(so    ,valmask)
         time    = thetao.getTime()
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
