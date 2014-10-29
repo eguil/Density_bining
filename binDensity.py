@@ -559,7 +559,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'x1_content',x1_content.shape
             x2_content  = so.data[t]
             #x2_content  = so[t]
-            #print so.shape
+            #print so.shape 
             #x2_content  = npy.ma.array(so.data[t])            
             #print 'x2_content',x2_content.shape
             #print 'valmask',valmask
