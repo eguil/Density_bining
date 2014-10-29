@@ -519,9 +519,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
             print 'trigger mask fix - EC-EARTH'
             thetao = mv.masked_equal(thetao,0.) ; # Convert all 0. values to masked
-            thetao.filled(1.e20) ; # Convert all masked values to 1.e20
+            thetao.filled(valmask) ; # Convert all masked values to valmask
             so = mv.masked_equal(so,0.)
-            so.filled(1.e20)
+            so.filled(valmask)
         time    = thetao.getTime()
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
@@ -543,10 +543,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         
         # Reset output arrays to missing for binned fields
-        depth_bin[...] = valmask
-        thick_bin[...] = valmask
-        x1_bin[...]    = valmask
-        x2_bin[...]    = valmask
+        depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
         print '1'
         # Loop on time within chunk tc
@@ -555,7 +552,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x1_content  = thetao.data[t]
             #print thetao.shape
             #x1_content  = npy.ma.array(thetao.data[t])
-            #print 'x1_content',x1_content.shape
+            print 'x1_content',x1_content.shape
             x2_content  = so.data[t]
             #x2_content  = so[t]
             #print so.shape
@@ -575,7 +572,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             
             vmask_3D    = mv.masked_values(x1_content,valmask).mask ; # Returns boolean
             # find non-masked points
-            #print 'vmask_3D',vmask_3D.shape
+            print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             #print 'nomask',nomask.shape
             # init arrays for this time chunk
@@ -583,7 +580,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
             # find bottom level at each lat/lon point
-            i_bottom                = vmask_3D.argmax(axis=0)-1 ; # All -1
+            i_bottom                = vmask_3D.argmax(axis=0)-1
             #if debug and t <= 0:
             #    i = ijtest
             #    print ' vmask_3D', vmask_3D[:,i]
