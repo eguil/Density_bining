@@ -345,7 +345,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     except Exception,err:
         print 'Exception: ',err
         valmask = so_h.missing_value
-    if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
+    if 'missing_value' not in thetao_h.attributes.keys() and modeln == 'EC-EARTH':
         valmask = 1.e20
     print '  valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
