@@ -565,6 +565,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             vmask_3D    = mv.masked_values(x1_content,valmask)#.mask ; # Returns float32 without adding .mask
             print 'vmask_3D.shape:',vmask_3D.shape
             print 'vmask_3D.dtype:',vmask_3D.dtype
+            print 'vmask_3D.min():',vmask_3D.min()
+            print 'vmask_3D.max():',vmask_3D.max()
             print 'vmask_3D[0].shape:',vmask_3D[0].shape
             # find non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
