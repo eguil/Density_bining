@@ -321,13 +321,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     depth   = thetao_h.getLevel()
     try:
         bounds  = ft('lev_bnds')
+        z_zw = bounds.data[:,0]
     except Exception,err:
         print 'Exception: ',err
         bounds  = depth.getBounds() ; # Work around for BNU-ESM
+        z_zw = bounds[:,0]
     # depth profiles:
     z_zt = depth[:]
     #z_zw = bounds[:,0]
-    z_zw = bounds.data[:,0]
+    #z_zw = bounds.data[:,0]
     max_depth_ocean = 6000. # maximum depth of ocean
     # Horizontal grid        
     ingrid  = thetao_h.getGrid()
