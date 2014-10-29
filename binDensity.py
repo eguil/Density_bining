@@ -706,7 +706,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             j = jtest
             #print 'ind = ',ind
             print 'test point',i,j, area[j,i]
-            print 'lon,lat',lon[j,i],lat[j,i]
+            try:
+                print 'lon,lat',lon[j,i],lat[j,i]
+            except Exception,err:
+                print 'Exception: ',err
+                print 'lon,lat',lon[i],lat[j]
             print 'depth_bin', depth_bino[0,:,j,i]
             print 'thick_bin', thick_bino[0,:,j,i]
             print 'x1_bin', x1_bino[0,:,j,i]
