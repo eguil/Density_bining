@@ -509,6 +509,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+                # Check for missing_value/mask
+        if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
+            print 'trigger mask fix - EC-EARTH'
+            thetao = mv.masked_equal(thetao,0.) ; # Convert all 0. values to masked
+            thetao.filled(1.e20) ; # Convert all masked values to 1.e20
+            so = mv.masked_equal(so,0.)
+            so.filled(1.e20)
         time    = thetao.getTime()
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
