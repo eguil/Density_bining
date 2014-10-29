@@ -341,12 +341,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     depthN  = so_h.shape[1]
     # Read masking value
     try:
-        valmask = so_h._FillValue
+        #valmask = so_h._FillValue
+        valmask = so_h.missing_value
+        if valmask == None:
+            print 'EC-EARTH missing_value fix'
+            valmask = 1.e20            
     except Exception,err:
         print 'Exception: ',err
-        valmask = so_h.missing_value
-    if 'missing_value' not in thetao_h.attributes.keys() and modeln == 'EC-EARTH':
-        valmask = 1.e20
+        if 'EC-EARTH' == modeln:
+            print 'EC-EARTH missing_value fix'
+            valmask = 1.e20
     print '  valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
