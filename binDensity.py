@@ -1035,6 +1035,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsiza    = cdu.averager(ptopsaltia,  axis = 2)
                 ptopsizp    = cdu.averager(ptopsaltip,  axis = 2)
                 ptopsizi    = cdu.averager(ptopsaltii,  axis = 2)
+
+                print "ptoptiz",ptoptiz
+                print "ptoptiza",ptoptiza
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.).mask
@@ -1100,6 +1103,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbpz        = npy.ma.concatenate((persistiz,persistiza,persistizp,persistizi),axis=1)
             del(persistiz,persistiza,persistizp,persistizi) ; gc.collect()
             dbpz        = cdm.createVariable(dbpz,axes=timeBasinRhoAxesList,id='isonpers')
+
             newshape    = list(ptopdiz.shape) ; newshape.insert(1,1)
             ptopdiz     = npy.ma.reshape(ptopdiz,newshape)
             ptopdiza    = npy.ma.reshape(ptopdiza,newshape)
@@ -1108,6 +1112,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbpdz       = npy.ma.concatenate((ptopdiz,ptopdiza,ptopdizp,ptopdizi),axis=1)
             del(ptopdiz,ptopdiza,ptopdizp,ptopdizi) ; gc.collect()
             dbpdz       = cdm.createVariable(dbpdz,axes=timeBasinAxesList,id='ptopdepth')
+
+            newshape    = list(ptopriz.shape) ; newshape.insert(1,1)
             ptopriz     = npy.ma.reshape(ptopriz,newshape)
             ptopriza    = npy.ma.reshape(ptopriza,newshape)
             ptoprizp    = npy.ma.reshape(ptoprizp,newshape)
@@ -1115,13 +1121,20 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbprz       = npy.ma.concatenate((ptopriz,ptopriza,ptoprizp,ptoprizi),axis=1)
             del(ptopriz,ptopriza,ptoprizp,ptoprizi) ; gc.collect()
             dbprz       = cdm.createVariable(dbprz,axes=timeBasinAxesList,id='ptopsigma')
+
+            newshape    = list(ptoptiz.shape) ; newshape.insert(1,1)
             ptoptiz     = npy.ma.reshape(ptoptiz,newshape)
             ptoptiza    = npy.ma.reshape(ptoptiza,newshape)
             ptoptizp    = npy.ma.reshape(ptoptizp,newshape)
             ptoptizi    = npy.ma.reshape(ptoptizi,newshape)
+
+            print "ptoptiz",ptoptiz
+            print "ptoptiza",ptoptiza
             dbptz       = npy.ma.concatenate((ptoptiz,ptoptiza,ptoptizp,ptoptizi),axis=1)
             del(ptoptiz,ptoptiza,ptoptizp,ptoptizi) ; gc.collect()
             dbptz       = cdm.createVariable(dbptz,axes=timeBasinAxesList,id='ptopthetao')
+
+            newshape    = list(ptopsiz.shape) ; newshape.insert(1,1)
             ptopsiz     = npy.ma.reshape(ptopsiz,newshape)
             ptopsiza    = npy.ma.reshape(ptopsiza,newshape)
             ptopsizp    = npy.ma.reshape(ptopsizp,newshape)
