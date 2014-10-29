@@ -549,8 +549,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
+            print 'thetao.shape:',thetao.shape
             x1_content  = thetao.data[t] ; # This explicitly removes the variable mask
+            print 'x1_content.shape:',x1_content.shape
+            x1_content  = thetao[t,...]
+            print 'x1_content.shape:',x1_content.shape
             x2_content  = so.data[t]
+            print 'x2_content.shape:',x2_content.shape
+            x2_content  = so[t,...]
+            print 'x2_content.shape:',x2_content.shape
             
             if debug and t == 0:
                 i = ijtest
