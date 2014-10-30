@@ -521,11 +521,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print 'valmask',valmask
         if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
             print 'trigger mask fix - EC-EARTH'
-            thetao = mv.masked_equal(thetao,0.) ; # Convert all 0. values to masked
-            maskt  = mv.masked_values(thetao, 0.).mask
-            thetao.mask = maskt
+            maskvalt = thetao.data[0,0,0,0]
+            print maskvalt
+            thetao = mv.masked_equal(thetao,maskvalt) ; # Convert all 0. values to masked
             thetao.filled(valmask) ; # Convert all masked values to valmask
-            so = mv.masked_equal(so,0.)
+            so = mv.masked_equal(so,maskvalt)
             so.filled(valmask)
             testval = 0. ; # to define masked value as above did not replace thetato.data by valmask
         # Define rho output axis
@@ -538,6 +538,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         [thetao,thetaoFixed] = fixVarUnits(thetao,'thetao',True)#,'logfile.txt')
         if thetaoFixed:
             print '     thetao: units corrected'        
+        if debug:
+            print ' thetao :',thetao.data[0,:,jtest,itest]
+            print ' so     :',so.data    [0,:,jtest,itest]
         
         # Compute neutral density 
         rhon = eosNeutral(thetao,so)-1000.
