@@ -518,9 +518,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
+        print 'valmask',valmask
         if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
             print 'trigger mask fix - EC-EARTH'
             thetao = mv.masked_equal(thetao,0.) ; # Convert all 0. values to masked
+            maskt  = mv.masked_values(thetao, 0.).mask
+            thetao.mask = maskt
             thetao.filled(valmask) ; # Convert all masked values to valmask
             so = mv.masked_equal(so,0.)
             so.filled(valmask)
@@ -540,9 +543,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         rhon = eosNeutral(thetao,so)-1000.
 
         # reorganise i,j dims in single dimension data (speeds up loops)
-        thetao  = npy.reshape(thetao,(tcdel, depthN, lonN*latN))
-        so      = npy.reshape(so    ,(tcdel, depthN, lonN*latN))
-        rhon    = npy.reshape(rhon  ,(tcdel, depthN, lonN*latN))
+        thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
+        so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
+        rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         print thetao.shape
         if debug:
             print ' thetao :',thetao.data[0,:,ijtest]
