@@ -201,7 +201,9 @@ del(tmp,count,x) ; gc.collect()
 # BNU-ESM - 5
 # EC-EARTH.historical.r10i1p1 - 55
 # MIROC4h.historical.r1i1p1 - 160
-modelInd = [0,5,55,150,160] ; # Test suite to capture all errors
+#modelInd = [0,5,55,150,160] ; # Test suite to capture all errors
+modelInd = [0,5,150,160] ; # Test suite to capture all errors
+modelInd = [55] ; # Test suite to capture all errors
 list_sht = []
 for count,x in enumerate(list_soAndthetaoAndfx):
     if count in modelInd:
@@ -218,7 +220,7 @@ for x,model in enumerate(list_sht):
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
-    densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
+    densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,1')
 
 #%%
 '''

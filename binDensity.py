@@ -515,6 +515,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+        time    = thetao.getTime()
+        testval = valmask
         # Check for missing_value/mask
         if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
             print 'trigger mask fix - EC-EARTH'
@@ -522,9 +524,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             thetao.filled(valmask) ; # Convert all masked values to valmask
             so = mv.masked_equal(so,0.)
             so.filled(valmask)
-            thetao = maskVal(thetao,valmask)
-            so     = maskVal(so    ,valmask)
-        time    = thetao.getTime()
+            testval = 0. ; # to define masked value as above did not replace thetato.data by valmask
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
         
@@ -538,14 +538,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         
         # Compute neutral density 
         rhon = eosNeutral(thetao,so)-1000.
-        
+
         # reorganise i,j dims in single dimension data (speeds up loops)
-        thetao  = npy.ma.reshape(thetao,(tcdel, depthN, lonN*latN))
-        so      = npy.ma.reshape(so    ,(tcdel, depthN, lonN*latN))
-        rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
-        if debug and t <= 0:
-            print ' thetao :',thetao[0,:,ijtest]
-            print ' so     :',so    [0,:,ijtest]
+        thetao  = npy.reshape(thetao,(tcdel, depthN, lonN*latN))
+        so      = npy.reshape(so    ,(tcdel, depthN, lonN*latN))
+        rhon    = npy.reshape(rhon  ,(tcdel, depthN, lonN*latN))
+        print thetao.shape
+        if debug:
+            print ' thetao :',thetao.data[0,:,ijtest]
+            print ' so     :',so.data    [0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
@@ -573,8 +574,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.min', x2_content.min()
                 print ' x2_content.max', x2_content.max()
                 #print ' rhon', rhon[0,:,i]
-            
-            vmask_3D    = mv.masked_values(thetao.data[t],valmask).mask ; # Returns boolean
+            vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             # find non-masked points
             print 'vmask_3D',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
