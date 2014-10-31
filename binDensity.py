@@ -519,15 +519,26 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         testval = valmask
         # Check for missing_value/mask
         print 'valmask',valmask
-        if 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH':
-            print 'trigger mask fix - EC-EARTH'
-            maskvalt = thetao.data[0,0,0,0]
-            print maskvalt
-            thetao = mv.masked_equal(thetao,maskvalt) ; # Convert all 0. values to masked
-            thetao.filled(valmask) ; # Convert all masked values to valmask
-            so = mv.masked_equal(so,maskvalt)
-            so.filled(valmask)
-            testval = 0. ; # to define masked value as above did not replace thetato.data by valmask
+        if ( 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH' ) \
+           or (modeln == 'MIROC4h' ):
+            print 'trigger mask fix - EC-EARTH/MIROC4h'
+            #maskvalt = so.data[0,0,0,0]
+            #maskvalt = 0.0000000000000000000000000000001
+            #print 'maskvalt:',maskvalt
+            #thetao = mv.masked_equal(thetao,maskvalt) ; # Convert all 0. values to masked
+            #thetao.filled(valmask) ; # Convert all masked values to valmask
+            #so = mv.masked_equal(so,maskvalt)
+            #so.filled(valmask)
+            #testval = 0. ; # to define masked value as above did not replace thetato.data by valmask
+            # Use so to mask
+            #so = mv.masked_less_equal(so,maskvalt)
+            #if 0. < maskvalt:
+            #    print 'test = True'
+            so = mv.masked_equal(so,0.)
+            print so.count()
+            so.data[:] = so.filled(valmask)
+            thetao.mask = so.mask
+            thetao.data[:] = thetao.filled(valmask)
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
         
@@ -538,9 +549,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         [thetao,thetaoFixed] = fixVarUnits(thetao,'thetao',True)#,'logfile.txt')
         if thetaoFixed:
             print '     thetao: units corrected'        
-        if debug:
-            print ' thetao :',thetao.data[0,:,jtest,itest]
-            print ' so     :',so.data    [0,:,jtest,itest]
+        #if debug:
+        #    print ' thetao :',thetao.data[0,:,jtest,itest]
+        #    print ' so     :',so.data    [0,:,jtest,itest]
         
         # Compute neutral density 
         rhon = eosNeutral(thetao,so)-1000.
@@ -549,10 +560,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
         so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
         rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
-        print thetao.shape
+        print 'thetao.shape:',thetao.shape
         if debug:
             print ' thetao :',thetao.data[0,:,ijtest]
+            print ' thetao :',thetao[0,:,ijtest]
             print ' so     :',so.data    [0,:,ijtest]
+            print ' so     :',so[0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
@@ -581,9 +594,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' x2_content.max', x2_content.max()
                 #print ' rhon', rhon[0,:,i]
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
+            #vmask_3D    = so[t].mask ; # Returns boolean
             # find non-masked points
-            print 'vmask_3D',vmask_3D.shape
+            print 'vmask_3D:',vmask_3D.shape
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+            #nomask      = vmask_3D ; # Returns boolean
             #print 'nomask',nomask.shape
             # init arrays for this time chunk
             z_s,c1_s,c2_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(4)]
