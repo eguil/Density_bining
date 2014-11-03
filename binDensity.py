@@ -347,7 +347,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if 'EC-EARTH' == modeln:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
-    print 'valmask = ',valmask
+    #print 'valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
