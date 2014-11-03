@@ -310,6 +310,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Open files to read
     ft      = cdm.open(fileT)
     fs      = cdm.open(fileS)
+    # Define temperature and salinity arrays
     thetao_h    = ft['thetao'] ; # Create variable handle
     so_h        = fs['so'] ; # Create variable handle
     # Read time and grid
@@ -317,6 +318,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     depth   = thetao_h.getLevel()
     lat     = thetao_h.getLatitude()
     lon     = thetao_h.getLongitude()
+
     try:
         bounds  = ft('lev_bnds')
         z_zw = bounds.data[:,0]
@@ -326,6 +328,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         z_zw = bounds[:,0]
     # depth profiles:
     z_zt = depth[:]
+
     max_depth_ocean = 6000. # maximum depth of ocean
     # Horizontal grid        
     ingrid  = thetao_h.getGrid()
@@ -347,11 +350,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if 'EC-EARTH' == modeln:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
-        #for x,att in enumerate(so_h.attributes.keys()):
-        #    print x,att,so_h.attributes.get(att)
-        #return
-        #valmask = so_h.missing_value ; # Work around for EC-EARTH
-    
+    print 'valmask = ',valmask
+
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
@@ -442,7 +442,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
     # test point  
     itest = 80 
-    jtest = 60
+    jtest = 100
     ijtest = jtest*lonN + itest
     
     # Define time read interval (as function of 3D array size)
@@ -519,6 +519,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             so = mv.masked_equal(so,0.)
             so.filled(1.e20)
         time    = thetao.getTime()
+        testval = valmask
+        # Check for missing_value/mask
+        print 'valmask',valmask
+        if ( 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH' ) \
+           or (modeln == 'MIROC4h' ):
+            print 'trigger mask fix - EC-EARTH/MIROC4h'
+            so = mv.masked_equal(so,0.)
+            print so.count()
+            so.data[:] = so.filled(valmask)
+            thetao.mask = so.mask
+            thetao.data[:] = thetao.filled(valmask)
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
         
@@ -532,21 +543,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         
         # Compute neutral density 
         rhon = eosNeutral(thetao,so)-1000.
-        
+
         # reorganise i,j dims in single dimension data (speeds up loops)
-        #thetao  = npy.ma.reshape(thetao,(tcdel, depthN, lonN*latN))
         thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
-        #so      = npy.ma.reshape(so    ,(tcdel, depthN, lonN*latN))
         so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
-        #rhon    = npy.ma.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
-        
+        print 'thetao.shape:',thetao.shape
+        if debug and tc < 0 :
+            print ' thetao :',thetao.data[0,:,ijtest]
+            print ' thetao :',thetao[0,:,ijtest]
+            print ' so     :',so.data    [0,:,ijtest]
+            print ' so     :',so[0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
-        #depth_bin[...] = valmask
-        #thick_bin[...] = valmask
-        #x1_bin[...]    = valmask
-        #x2_bin[...]    = valmask
         
         print '1'
         # Loop on time within chunk tc
@@ -565,6 +574,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             
             if debug and t == 0:
                 i = ijtest
+                '''
                 # None of these variables are masked - due to npy.ma -> mv change above they are
                 print ' x1_content.mean', x1_content.mean()
                 print ' x1_content.min', x1_content.min()
@@ -588,6 +598,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'nomask.min():',nomask.min()
             print 'nomask.max():',nomask.max()
             print 'nomask.shape:',nomask.shape
+            '''
+                print ' tc = ',tc
+                print ' x1_content.mean/min/max', x1_content.mean(), x1_content.min(), x1_content.max()
+                print ' x2_content.mean/min/max', x2_content.mean(), x2_content.min(), x2_content.max()
+            # Find indexes of masked points
+            vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
+            # find non-masked points
+            nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+
             # init arrays for this time chunk
             z_s,c1_s,c2_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(4)]
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
@@ -625,8 +644,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt
             szm,zzm,c1m,c2m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(4)]
-           
-            #print '2' # Step through months
 
             for k in range(depthN):
                 k_ind = i_min*1.; k_ind[:] = valmask
@@ -673,10 +690,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print zzm[:,i]
                 print ' depth profile on rhon target grid z_s[i]'
                 print z_s[:,i]
-                print ' thickness profile on rhon grid t_s[i]'
-                print t_s[:,i]
-                print ' bined temperature profile on rhon grid c1_s[i]'
-                print c1_s[:,i]
+                print 'tc = ',tc
+                #print ' thickness profile on rhon grid t_s[i]'
+                #print t_s[:,i]
+                #print ' bined temperature profile on rhon grid c1_s[i]'
+                #print c1_s[:,i]
+
             # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
@@ -703,15 +722,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x1_bino    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
         x2_bino    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
         # Wash mask (from temp) over variables
-        maskb           = mv.masked_values(x1_bino, valmask).mask
-        depth_bino.mask = maskb
-        x1_bino.mask    = maskb
-        x2_bino.mask    = maskb
+        maskbo          = mv.masked_values(x1_bino, valmask).mask
+        depth_bino.mask = maskbo
+        x1_bino.mask    = maskbo
+        x2_bino.mask    = maskbo
         depth_bino      = maskVal(depth_bino, valmask)
         x1_bino         = maskVal(x1_bino,    valmask)
         x2_bino         = maskVal(x2_bino,    valmask)
-        maskt           = mv.masked_values(thick_bino, valmask).mask
-        thick_bino.mask = maskt
+        maskto          = mv.masked_values(thick_bino, valmask).mask
+        thick_bino.mask = maskto
         thick_bino      = maskVal(thick_bino, valmask)
         del(maskb, maskt)
 
@@ -728,6 +747,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'x1_bin',x1_bino[0,:,jtest,itest]
             print 'x2_bin',x2_bino[0,:,jtest,itest]
 
+        #
+        # Output files as netCDF
         # Def variables 
         depthBin = cdm.createVariable(depth_bino, axes = rhoAxesList, id = 'isondepth')
         thickBin = cdm.createVariable(thick_bino, axes = rhoAxesList, id = 'isonthick')
@@ -744,13 +765,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x2Bin.long_name     = so_h.long_name
                 x2Bin.units         = so_h.units
                 outFileMon_f.write(area.astype('float32')) ; # Added area so isonvol can be computed
-                # write global attributes (inherited from thetao file)
-                for count,att in enumerate(ft.attributes.keys()):
-                    setattr(outFileMon_f,att,ft.attributes.get(att))
-                    setattr(outFile_f,att,ft.attributes.get(att))
-                    post_txt = ''.join(['Density bining via binDensit.py using delta_sigma = ',str(del_s1),' and ',str(del_s2)])
-                    setattr(outFileMon_f,'Post_processing_history',post_txt)
-                    setattr(outFile_f,'Post_processing_history',post_txt)
 
         # -------------------------------------------------------------
         #  Compute annual mean, persistence, make zonal mean and write
@@ -896,13 +910,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask 
                 inim = t*12
                 finm = t*12 + 12
-                #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
-                idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
+                idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask).mask 
+                #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
-                #maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
-                maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.)
+                maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
+                #maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.)
                 maskp = npy.ma.reshape(maskp, (N_s+1, latN*lonN))
                 p_top = maskp.argmax(axis=0) 
                 del(maskp) ; gc.collect()
@@ -916,6 +930,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     ptoptemp[i]     = x1_bin[t,p_top[i],i]
                     ptopsalt[i]     = x2_bin[t,p_top[i],i]
                 #print '9a1'                
+
                 ptopsigma = ptopdepth*0. + rhoAxis[p_top] # to keep mask of ptopdepth
                 ptopdepth = npy.ma.reshape(ptopdepth, (latN, lonN))
                 ptopsigma = npy.ma.reshape(ptopsigma, (latN, lonN))
@@ -1044,6 +1059,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopsiza    = cdu.averager(ptopsaltia,  axis = 2)
                 ptopsizp    = cdu.averager(ptopsaltip,  axis = 2)
                 ptopsizi    = cdu.averager(ptopsaltii,  axis = 2)
+
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
                 persvp = persisti[t,:,:,:]*1. ; persvp[...] = valmask
                 persvp = mv.masked_values(persisti[t,:,:,:] >= 99., 1.)#.mask ; # Returns boolean without adding .mask
@@ -1105,6 +1121,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 timeBasinRhoAxesList        = basinRhoAxesList
                 timeBasinRhoAxesList[0]     = timeyr ; # Replace monthly with annual
                 timeBasinRhoAxesList[3]     = lati ; # Replace lat with regrid target
+
             newshape    = list(persistiz.shape) ; newshape.insert(1,1)
             persistiz   = npy.ma.reshape(persistiz,newshape)
             persistiza  = npy.ma.reshape(persistiza,newshape)
@@ -1113,6 +1130,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbpz        = npy.ma.concatenate((persistiz,persistiza,persistizp,persistizi),axis=1)
             del(persistiz,persistiza,persistizp,persistizi) ; gc.collect()
             dbpz        = cdm.createVariable(dbpz,axes=timeBasinRhoAxesList,id='isonpers')
+
             newshape    = list(ptopdiz.shape) ; newshape.insert(1,1)
             ptopdiz     = npy.ma.reshape(ptopdiz,newshape)
             ptopdiza    = npy.ma.reshape(ptopdiza,newshape)
@@ -1121,6 +1139,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbpdz       = npy.ma.concatenate((ptopdiz,ptopdiza,ptopdizp,ptopdizi),axis=1)
             del(ptopdiz,ptopdiza,ptopdizp,ptopdizi) ; gc.collect()
             dbpdz       = cdm.createVariable(dbpdz,axes=timeBasinAxesList,id='ptopdepth')
+
+            newshape    = list(ptopriz.shape) ; newshape.insert(1,1)
             ptopriz     = npy.ma.reshape(ptopriz,newshape)
             ptopriza    = npy.ma.reshape(ptopriza,newshape)
             ptoprizp    = npy.ma.reshape(ptoprizp,newshape)
@@ -1128,13 +1148,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbprz       = npy.ma.concatenate((ptopriz,ptopriza,ptoprizp,ptoprizi),axis=1)
             del(ptopriz,ptopriza,ptoprizp,ptoprizi) ; gc.collect()
             dbprz       = cdm.createVariable(dbprz,axes=timeBasinAxesList,id='ptopsigma')
+
+            newshape    = list(ptoptiz.shape) ; newshape.insert(1,1)
             ptoptiz     = npy.ma.reshape(ptoptiz,newshape)
             ptoptiza    = npy.ma.reshape(ptoptiza,newshape)
             ptoptizp    = npy.ma.reshape(ptoptizp,newshape)
             ptoptizi    = npy.ma.reshape(ptoptizi,newshape)
+
             dbptz       = npy.ma.concatenate((ptoptiz,ptoptiza,ptoptizp,ptoptizi),axis=1)
             del(ptoptiz,ptoptiza,ptoptizp,ptoptizi) ; gc.collect()
             dbptz       = cdm.createVariable(dbptz,axes=timeBasinAxesList,id='ptopthetao')
+
+            newshape    = list(ptopsiz.shape) ; newshape.insert(1,1)
             ptopsiz     = npy.ma.reshape(ptopsiz,newshape)
             ptopsiza    = npy.ma.reshape(ptopsiza,newshape)
             ptopsizp    = npy.ma.reshape(ptopsizp,newshape)
