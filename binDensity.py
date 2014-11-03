@@ -347,7 +347,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if 'EC-EARTH' == modeln:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
-    print 'valmask = ',valmask
+    #print 'valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
@@ -637,7 +637,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
             t_s [idzmc1[0],idzmc1[1]] = valmask  
-            if debug and t == 0:
+            if debug and t < 0:
                 i = ijtest
                 print ' density target array s_s[i]'
                 print s_s[:,i]
@@ -692,7 +692,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thick_bino      = maskVal(thick_bino, valmask)
         del(maskb, maskt)
 
-        if debug and (tc == 0):
+        if debug and (tc < 0):
             # test write
             i = itest
             j = jtest
@@ -1127,21 +1127,21 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volpersistp = npy.ma.reshape(volpersistp*1.e-12,newshape)
             volpersisti = npy.ma.reshape(volpersisti*1.e-12,newshape)
             volper      = npy.ma.concatenate((volpersist,volpersista,volpersistp,volpersisti),axis=1)
-            del(volpersist,volpersista,volpersistp,volpersisti) ; gc.collect()
+            #del(volpersist,volpersista,volpersistp,volpersisti) ; gc.collect()
             volper      = cdm.createVariable(volper,axes=timeBasinList,id='volpers')
             tempersist  = npy.ma.reshape(tempersist ,newshape)
             tempersista = npy.ma.reshape(tempersista,newshape)
             tempersistp = npy.ma.reshape(tempersistp,newshape)
             tempersisti = npy.ma.reshape(tempersisti,newshape)
             temper      = npy.ma.concatenate((tempersist,tempersista,tempersistp,tempersisti),axis=1)
-            del(tempersist,tempersista,tempersistp,tempersisti) ; gc.collect()
+            #del(tempersist,tempersista,tempersistp,tempersisti) ; gc.collect()
             temper      = cdm.createVariable(temper,axes=timeBasinList,id='tempers')
             salpersist  = npy.ma.reshape(salpersist ,newshape)
             salpersista = npy.ma.reshape(salpersista,newshape)
             salpersistp = npy.ma.reshape(salpersistp,newshape)
             salpersisti = npy.ma.reshape(salpersisti,newshape)
             salper      = npy.ma.concatenate((salpersist,salpersista,salpersistp,salpersisti),axis=1)
-            del(salpersist,salpersista,salpersistp,salpersisti) ; gc.collect()
+            #del(salpersist,salpersista,salpersistp,salpersisti) ; gc.collect()
             salper      = cdm.createVariable(salper,axes=timeBasinList,id='salpers')
             
             if tc == 0:
