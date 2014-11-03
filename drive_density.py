@@ -63,7 +63,8 @@ outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 #logPath = '/work/guilyardi/git/Density_bining/'
-logPath = '/export/durack1/git/Density_bining/'
+#logPath = '/export/durack1/git/Density_bining/'
+logPath = outPath
 logfile = os.path.join(logPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
 writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
