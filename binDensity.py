@@ -549,6 +549,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
         #print '1'
+        tucz0     = timc.clock()
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
@@ -1172,10 +1173,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 salper.long_name    = 'Salinity of persistent ocean'
                 salper.units        = so_h.units 
             # Write & append
-            #outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
-            #outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) 
-            #outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
-            #outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
+            outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
             outFile_f.write(persim.astype('float32') , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
             outFile_f.write(ptopd.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
@@ -1264,7 +1265,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.sync()
         outFile_f.sync()
         tozf = timc.clock()
-        print '   CPU of density bining      =', ticz-tuc
+        print '   CPU of chunk inits         =', tuz0-tuc
+        print '   CPU of density bining      =', ticz-tucz0
         if tcdel >= 12:
             print '   CPU of annual mean compute =', toz-ticz
             print '   CPU of interpolation       =', tozi-toz
