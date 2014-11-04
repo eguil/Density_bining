@@ -1171,10 +1171,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 salper.long_name    = 'Salinity of persistent ocean'
                 salper.units        = so_h.units 
             # Write & append
-            outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
-            outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) 
-            outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
-            outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
+            #outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
+            #outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) 
+            #outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
+            #outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
             outFile_f.write(persim.astype('float32') , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
             outFile_f.write(ptopd.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
