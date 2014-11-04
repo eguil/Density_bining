@@ -1263,7 +1263,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.write(x2Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             del(depthBin,thickBin,x1Bin,x2Bin) ; gc.collect()
             outFileMon_f.sync()
-        #outFile_f.sync()
+        outFile_f.sync()
         tozf = timc.clock()
         print '   CPU of chunk inits         =', tucz0-tuc
         print '   CPU of density bining      =', ticz-tucz0
