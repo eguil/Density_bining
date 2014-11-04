@@ -456,6 +456,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         tcdel = min(24,tmax)
     else:
         tcdel = min(48,tmax)
+    tcdel = min(12,tmax)
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
@@ -1260,7 +1261,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.write(x1Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             outFileMon_f.write(x2Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             del(depthBin,thickBin,x1Bin,x2Bin) ; gc.collect()
-        
+            outFileMon_f.flush()
+        outFile_f.flush()
+        os.fsync()
         tozf = timc.clock()
         print '   CPU of density bining      =', ticz-tuc
         if tcdel >= 12:
@@ -1269,7 +1272,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '   CPU of zonal mean          =', toziz-tozi
             print '   CPU of persistence compute =', tozp-toziz
         print '   CPU of chunk               =', tozf-tuc
-        print ' tc = ', tc
         print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
     
     # end loop on tc <===
