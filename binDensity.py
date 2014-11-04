@@ -512,7 +512,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
-        print 'valmask',valmask
         if ( 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH' ) \
            or (modeln == 'MIROC4h' ):
             print 'trigger mask fix - EC-EARTH/MIROC4h'
@@ -539,7 +538,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
         so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
         rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
-        print 'thetao.shape:',thetao.shape
+        #print 'thetao.shape:',thetao.shape
         if debug and tc < 0 :
             print ' thetao :',thetao.data[0,:,ijtest]
             print ' thetao :',thetao[0,:,ijtest]
@@ -555,11 +554,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x1_content  = thetao.data[t]
             x2_content  = so.data[t]
             
-            if debug and t <= 0:
-                i = ijtest
-                print ' tc = ',tc
-                print ' x1_content.mean/min/max', x1_content.mean(), x1_content.min(), x1_content.max()
-                print ' x2_content.mean/min/max', x2_content.mean(), x2_content.min(), x2_content.max()
+            #if debug and t <= 0:
+            #    i = ijtest
+            #    print ' tc = ',tc
+            #    print ' x1_content.mean/min/max', x1_content.mean(), x1_content.min(), x1_content.max()
+            #    print ' x2_content.mean/min/max', x2_content.mean(), x2_content.min(), x2_content.max()
             # Find indexes of masked points
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             # find non-masked points
