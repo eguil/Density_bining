@@ -526,11 +526,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         
         # Test variable units
         [so,soFixed] = fixVarUnits(so,'so',True)#,'logfile.txt')
-        if soFixed:
-            print '     so:     units corrected'
+        #if soFixed:
+        #    print '     so:     units corrected'
         [thetao,thetaoFixed] = fixVarUnits(thetao,'thetao',True)#,'logfile.txt')
-        if thetaoFixed:
-            print '     thetao: units corrected'        
+        #if thetaoFixed:
+        #    print '     thetao: units corrected'        
         
         # Compute neutral density 
         rhon = eosNeutral(thetao,so)-1000.
@@ -1263,7 +1263,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             del(depthBin,thickBin,x1Bin,x2Bin) ; gc.collect()
             outFileMon_f.sync()
         outFile_f.sync()
-        os.fsync()
         tozf = timc.clock()
         print '   CPU of density bining      =', ticz-tuc
         if tcdel >= 12:
