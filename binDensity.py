@@ -1265,7 +1265,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.sync()
         outFile_f.sync()
         tozf = timc.clock()
-        print '   CPU of chunk inits         =', tuz0-tuc
+        print '   CPU of chunk inits         =', tucz0-tuc
         print '   CPU of density bining      =', ticz-tucz0
         if tcdel >= 12:
             print '   CPU of annual mean compute =', toz-ticz
@@ -1273,7 +1273,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '   CPU of zonal mean          =', toziz-tozi
             print '   CPU of persistence compute =', tozp-toziz
         print '   CPU of chunk               =', tozf-tuc
-        print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
+        print '   Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
     
     # end loop on tc <===
     print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
