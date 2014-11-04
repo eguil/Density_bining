@@ -1269,6 +1269,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '   CPU of zonal mean          =', toziz-tozi
             print '   CPU of persistence compute =', tozp-toziz
         print '   CPU of chunk               =', tozf-tuc
+        print ' tc = ', tc
+        print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
     
     # end loop on tc <===
     print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
