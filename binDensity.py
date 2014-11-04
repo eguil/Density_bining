@@ -450,9 +450,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     print 'grdsize:',grdsize
 
     # define number of months in each chunk
-    if grdsize <= 1.e6:
-        tcdel = min(120,tmax)
-    elif grdsize > 5.e7:
+    if grdsize > 5.e7:
         tcdel = min(12,tmax) ; # MIROC4h 24 months ~60Gb/50%
     elif grdsize > 2.5e7:
         tcdel = min(24,tmax)
@@ -514,7 +512,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
-        print 'valmask',valmask
         if ( 'missing_value' not in thetao.attributes.keys() and modeln == 'EC-EARTH' ) \
            or (modeln == 'MIROC4h' ):
             print 'trigger mask fix - EC-EARTH/MIROC4h'
@@ -541,7 +538,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
         so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
         rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
-        print 'thetao.shape:',thetao.shape
+        #print 'thetao.shape:',thetao.shape
         if debug and tc < 0 :
             print ' thetao :',thetao.data[0,:,ijtest]
             print ' thetao :',thetao[0,:,ijtest]
@@ -550,18 +547,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
-        print '1'
+        #print '1'
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content  = thetao.data[t]
             x2_content  = so.data[t]
             
-            if debug and t <= 0:
-                i = ijtest
-                print ' tc = ',tc
-                print ' x1_content.mean/min/max', x1_content.mean(), x1_content.min(), x1_content.max()
-                print ' x2_content.mean/min/max', x2_content.mean(), x2_content.min(), x2_content.max()
+            #if debug and t <= 0:
+            #    i = ijtest
+            #    print ' tc = ',tc
+            #    print ' x1_content.mean/min/max', x1_content.mean(), x1_content.min(), x1_content.max()
+            #    print ' x2_content.mean/min/max', x2_content.mean(), x2_content.min(), x2_content.max()
             # Find indexes of masked points
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             # find non-masked points
@@ -1122,26 +1119,26 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             dbpsz       = cdm.createVariable(dbpsz,axes=timeBasinAxesList,id='ptopso')
 
             newshape    = list(volpersist.shape) ; newshape.insert(1,1)
-            volpersist  = npy.ma.reshape(volpersist*1.e-12 ,newshape)
-            volpersista = npy.ma.reshape(volpersista*1.e-12,newshape)
-            volpersistp = npy.ma.reshape(volpersistp*1.e-12,newshape)
-            volpersisti = npy.ma.reshape(volpersisti*1.e-12,newshape)
-            volper      = npy.ma.concatenate((volpersist,volpersista,volpersistp,volpersisti),axis=1)
-            #del(volpersist,volpersista,volpersistp,volpersisti) ; gc.collect()
+            volperw     = npy.ma.reshape(volpersist*1.e-12 ,newshape)
+            volperwa    = npy.ma.reshape(volpersista*1.e-12,newshape)
+            volperwp    = npy.ma.reshape(volpersistp*1.e-12,newshape)
+            volperwi    = npy.ma.reshape(volpersisti*1.e-12,newshape)
+            volper      = npy.ma.concatenate((volperw,volperwa,volperwp,volperwi),axis=1)
+            del(volperw,volperwa,volperwp,volperwi) ; gc.collect()
             volper      = cdm.createVariable(volper,axes=timeBasinList,id='volpers')
-            tempersist  = npy.ma.reshape(tempersist ,newshape)
-            tempersista = npy.ma.reshape(tempersista,newshape)
-            tempersistp = npy.ma.reshape(tempersistp,newshape)
-            tempersisti = npy.ma.reshape(tempersisti,newshape)
-            temper      = npy.ma.concatenate((tempersist,tempersista,tempersistp,tempersisti),axis=1)
-            #del(tempersist,tempersista,tempersistp,tempersisti) ; gc.collect()
+            temperw  = npy.ma.reshape(tempersist ,newshape)
+            temperwa = npy.ma.reshape(tempersista,newshape)
+            temperwp = npy.ma.reshape(tempersistp,newshape)
+            temperwi = npy.ma.reshape(tempersisti,newshape)
+            temper      = npy.ma.concatenate((temperw,temperwa,temperwp,temperwi),axis=1)
+            del(temperw,temperwa,temperwp,temperwi) ; gc.collect()
             temper      = cdm.createVariable(temper,axes=timeBasinList,id='tempers')
-            salpersist  = npy.ma.reshape(salpersist ,newshape)
-            salpersista = npy.ma.reshape(salpersista,newshape)
-            salpersistp = npy.ma.reshape(salpersistp,newshape)
-            salpersisti = npy.ma.reshape(salpersisti,newshape)
-            salper      = npy.ma.concatenate((salpersist,salpersista,salpersistp,salpersisti),axis=1)
-            #del(salpersist,salpersista,salpersistp,salpersisti) ; gc.collect()
+            salperw  = npy.ma.reshape(salpersist ,newshape)
+            salperwa = npy.ma.reshape(salpersista,newshape)
+            salperwp = npy.ma.reshape(salpersistp,newshape)
+            salperwi = npy.ma.reshape(salpersisti,newshape)
+            salper      = npy.ma.concatenate((salperw,salperwa,salperwp,salperwi),axis=1)
+            del(salperw,salperwa,salperwp,salperwi) ; gc.collect()
             salper      = cdm.createVariable(salper,axes=timeBasinList,id='salpers')
             
             if tc == 0:
