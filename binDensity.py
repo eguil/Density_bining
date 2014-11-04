@@ -450,9 +450,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     print 'grdsize:',grdsize
 
     # define number of months in each chunk
-    if grdsize <= 1.e6:
-        tcdel = min(120,tmax)
-    elif grdsize > 5.e7:
+    if grdsize > 5.e7:
         tcdel = min(12,tmax) ; # MIROC4h 24 months ~60Gb/50%
     elif grdsize > 2.5e7:
         tcdel = min(24,tmax)
@@ -550,7 +548,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
-        print '1'
+        #print '1'
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
@@ -1129,17 +1127,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volper      = npy.ma.concatenate((volperw,volperwa,volperwp,volperwi),axis=1)
             del(volperw,volperwa,volperwp,volperwi) ; gc.collect()
             volper      = cdm.createVariable(volper,axes=timeBasinList,id='volpers')
-            temperw  = npy.ma.reshape(temperw ,newshape)
-            temperwa = npy.ma.reshape(temperwa,newshape)
-            temperwp = npy.ma.reshape(temperwp,newshape)
-            temperwi = npy.ma.reshape(temperwi,newshape)
+            temperw  = npy.ma.reshape(tempersist ,newshape)
+            temperwa = npy.ma.reshape(tempersista,newshape)
+            temperwp = npy.ma.reshape(tempersistp,newshape)
+            temperwi = npy.ma.reshape(tempersisti,newshape)
             temper      = npy.ma.concatenate((temperw,temperwa,temperwp,temperwi),axis=1)
             del(temperw,temperwa,temperwp,temperwi) ; gc.collect()
             temper      = cdm.createVariable(temper,axes=timeBasinList,id='tempers')
-            salperw  = npy.ma.reshape(salperw ,newshape)
-            salperwa = npy.ma.reshape(salperwa,newshape)
-            salperwp = npy.ma.reshape(salperwp,newshape)
-            salperwi = npy.ma.reshape(salperwi,newshape)
+            salperw  = npy.ma.reshape(salpersist ,newshape)
+            salperwa = npy.ma.reshape(salpersista,newshape)
+            salperwp = npy.ma.reshape(salpersistp,newshape)
+            salperwi = npy.ma.reshape(salpersisti,newshape)
             salper      = npy.ma.concatenate((salperw,salperwa,salperwp,salperwi),axis=1)
             del(salperw,salperwa,salperwp,salperwi) ; gc.collect()
             salper      = cdm.createVariable(salper,axes=timeBasinList,id='salpers')
