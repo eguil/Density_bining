@@ -720,7 +720,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thick_bino      = maskVal(thick_bino, valmask)
         del(maskb, maskt)
 
-        if debug and (tc < 0):
+        if debug and (tc == 0):
             # test write
             i = itest
             j = jtest
