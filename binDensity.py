@@ -689,6 +689,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '    average cpu3 = ',cpu3/float(tcdel)
             print '    average cpu4 = ',cpu4/float(tcdel)
             print '    average cpu5 = ',cpu5/float(tcdel)
+        ticz0 = timc.clock()
         # Free memory 
         del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
         # Wash mask (from temp) over variables
@@ -1295,7 +1296,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         outFile_f.sync()
         tozf = timc.clock()
         print '   CPU of chunk inits         =', tucz0-tuc
-        print '   CPU of density bining      =', ticz-tucz0
+        print '   CPU of density bining      =', ticz0-tucz0
+        print '   CPU of masking and var def =', ticz-ticz0
         if tcdel >= 12:
             print '   CPU of annual mean compute =', toz-ticz
             print '   CPU of interpolation       =', tozi-toz
