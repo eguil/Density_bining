@@ -557,6 +557,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             cpu2 = 0.
             cpu3 = 0.
             cpu4 = 0.
+            cpu40 = 0.
             cpu5 = 0.
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
@@ -631,6 +632,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
+            tcpu40 = timc.clock()
             inds = npy.argwhere(s_s < szmin).transpose()
             z_s [inds[0],inds[1]] = 0.
             c1_s[inds[0],inds[1]] = valmask
@@ -676,7 +678,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 cpu1 = cpu1 + tcpu1 - tcpu0
                 cpu2 = cpu2 + tcpu2 - tcpu1
                 cpu3 = cpu3 + tcpu3 - tcpu2
-                cpu4 = cpu4 + tcpu4 - tcpu3
+                cpu4 = cpu4 + tcpu40 - tcpu3
+                cpu40 = cpu40 + tcpu4 - tcpu40
                 cpu5 = cpu5 + tcpu5 - tcpu4
         #
         # end of loop on t <===      
@@ -688,6 +691,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '    average cpu2 = ',cpu2/float(tcdel)
             print '    average cpu3 = ',cpu3/float(tcdel)
             print '    average cpu4 = ',cpu4/float(tcdel)
+            print '    average cpu40 = ',cpu4/float(tcdel)
             print '    average cpu5 = ',cpu5/float(tcdel)
         ticz0 = timc.clock()
         # Free memory 
