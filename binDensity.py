@@ -509,7 +509,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # read tcdel month by tcdel month to optimise memory
         trmin   = tmin + tc*tcdel ; # define as function of tc and tcdel
         trmax   = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
-        print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
+        print ' --> time chunk (bounds) = ',tc+1, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
         time    = thetao.getTime()
@@ -720,7 +720,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         thick_bino      = maskVal(thick_bino, valmask)
         del(maskb, maskt)
 
-        if debug and (tc == 0):
+        if debug and (tc < 0):
             # test write
             i = itest
             j = jtest
