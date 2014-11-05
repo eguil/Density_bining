@@ -628,7 +628,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline           
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
@@ -691,7 +691,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '    average cpu2 = ',cpu2/float(tcdel)
             print '    average cpu3 = ',cpu3/float(tcdel)
             print '    average cpu4 = ',cpu4/float(tcdel)
-            print '    average cpu40 = ',cpu4/float(tcdel)
+            print '    average cpu40 = ',cpu40/float(tcdel)
             print '    average cpu5 = ',cpu5/float(tcdel)
         ticz0 = timc.clock()
         # Free memory 
