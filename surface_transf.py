@@ -20,7 +20,8 @@ This script computes water mass transformation from surface buoyancy fluxes in d
  Uses python seawater package (https://github.com/ocefpaf/python-seawater)
 ---------------------------------------------------------------------------------
 
-EG 8 Oct 2014     - Started file
+EG   8 Oct 2014     - Started file
+PJD 22 Nov 2014     - Updated to comment out unused statements and imports
                     - TODO: 
                      - Bug in integral fluxes calculations
                      - North vs. South calculation
@@ -32,26 +33,23 @@ EG 8 Oct 2014     - Started file
 
 import cdms2 as cdm
 import MV2 as mv
-import os, sys
-import argparse
-import string
+import os
 import numpy as npy
-import numpy.ma as ma
 import cdutil as cdu
-from genutil import statistics
 #import support_density as sd
 from binDensity import maskVal
 from binDensity import eosNeutral
 from binDensity import rhonGrid
 from binDensity import computeArea
 import time as timc
-import timeit
-import resource
 import ESMP
 from cdms2 import CdmsRegrid
 from durolib import fixVarUnits
-from string import replace
 import seawater as sw
+
+#import argparse,string,sys,timeit,resource
+#from string import replace
+
 #
 # inits
 # -----
@@ -157,14 +155,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     # Read time and grid
     time = tos.getTime()
     lon  = tos_h.getLongitude()
-    lat  = tos_h.getLatitude()
+    #lat  = tos_h.getLatitude()
     ingrid = tos_h.getGrid()
     #
     # Read cell area
-    ff = cdm.open(fileFx)
-    area = ff('areacello')
-    ff.close()
-    areain = area.data
+    #ff = cdm.open(fileFx)
+    #area = ff('areacello')
+    #ff.close()
+    #areain = area.data
     #
     # Define dimensions
     N_i = int(lon.shape[1])
@@ -207,10 +205,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     if tosFixed:
         print '     tos: units corrected'        
     # Physical inits
-    P = 0          # surface pressure
+    #P = 0          # surface pressure
     # find non-masked points
-    maskin = mv.masked_values(tos.data[0], valmask).mask 
-    nomask = npy.equal(maskin,0)
+    #maskin = mv.masked_values(tos.data[0], valmask).mask 
+    #nomask = npy.equal(maskin,0)
     #
     # target horizonal grid for interp 
     fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
@@ -229,7 +227,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     maskInd = maski*1 ; maskInd[...] = True
     idxi = npy.argwhere(maskg == 3).transpose()
     maskInd[idxi[0],idxi[1]] = False
-    masks = [maski, maskAtl, maskPac, maskInd]
+    #masks = [maski, maskAtl, maskPac, maskInd]
     loni    = maskg.getLongitude()
     lati    = maskg.getLatitude()
     Nii     = int(loni.shape[0])
@@ -445,7 +443,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     denflxh      = maskVal(denflxh, valmask)
     denflxw      = maskVal(denflxw, valmask)
 
-    maskin       = mv.masked_values(transf, valmask).mask
+    #maskin       = mv.masked_values(transf, valmask).mask
     transfh._FillValue = valmask
     transfw._FillValue = valmask
     transf._FillValue  = valmask
@@ -453,7 +451,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     transfw      = maskVal(transfw, valmask)
     transf       = maskVal(transf , valmask)
     #
-    maskin       = mv.masked_values(transfa, valmask).mask
+    #maskin       = mv.masked_values(transfa, valmask).mask
     transfha._FillValue = valmask
     transfwa._FillValue = valmask
     transfa._FillValue  = valmask
@@ -461,7 +459,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     transfwa      = maskVal(transfwa, valmask)
     transfa       = maskVal(transfa , valmask)
     #
-    maskin       = mv.masked_values(transfp, valmask).mask
+    #maskin       = mv.masked_values(transfp, valmask).mask
     transfhp._FillValue = valmask
     transfwp._FillValue = valmask
     transfp._FillValue  = valmask
@@ -469,7 +467,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     transfwp      = maskVal(transfwp, valmask)
     transfp       = maskVal(transfp , valmask)
     #
-    maskin       = mv.masked_values(transfi, valmask).mask
+    #maskin       = mv.masked_values(transfi, valmask).mask
     transfhi._FillValue = valmask
     transfwi._FillValue = valmask
     transfi._FillValue  = valmask
