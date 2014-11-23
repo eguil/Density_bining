@@ -87,7 +87,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
 
     Notes:
     -----
-    - EG 8 Oct 2014   - Initial function write and tests ok
+    - EG   8 Oct 2014   - Initial function write and tests ok
+    - PJD 22 Nov 2014   - Code cleanup
 
     '''
     # Keep track of time (CPU and elapsed)
