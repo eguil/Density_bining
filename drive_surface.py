@@ -47,7 +47,7 @@ if not (os.path.exists(args.outPath)):
     outPath     = os.path.join('/work/guilyardi/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
 else:
     outPath     = args.outPath
-    print "** *.nc files will be written to",args.outPath," **"
+    print "** *.nc files will be written to",args.outPath,"**"
    
 #%%
 '''
@@ -176,7 +176,7 @@ for x,model in enumerate(list_hfds):
         index = list_fx_model.index(modelTest)
         list_inFiles[x][4] = list_fx_files[index]
     except:
-        print format(x,'03d'),''.join(['No fx match for hfds: ',model])
+        print format(x,'03d'),''.join(['No fx  match for hfds: ',model])
     # Create output fileName
     list_inFiles[x][5] = replace(replace(list_inFiles[x][0].split('/')[-1],'.hfds.','.surfTrans.'),'.latestX.xml','.nc')
 del(x,model,modelNoVer,index,modelTest) ; gc.collect()
