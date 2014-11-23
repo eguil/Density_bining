@@ -191,7 +191,6 @@ del(tmp,x) ; gc.collect()
 
 #%%
 # Process model list
-'''
 # Use for debugging
 modelInd = [0] ; # Test suite to capture all errors
 list_sht = []
@@ -199,8 +198,7 @@ for count,x in enumerate(list_inFiles):
     if count in modelInd:
         list_sht.append(x)
 for x,model in enumerate(list_sht):
-'''
-for x,model in enumerate(list_inFiles):
+#for x,model in enumerate(list_inFiles):
     # Get steric outfile name
     outfileTransf = os.path.join(outPath,model[5])
     writeToLog(logfile,''.join(['Processing:   ',outfileTransf.split('/')[-1]]))
@@ -214,4 +212,4 @@ for x,model in enumerate(list_inFiles):
     print 'areacello: ',model[4].split('/')[-1]
     # Call surfTransf
     #surfTransf(fileFx,fileTos,fileSos,fileHef,fileWfo,outFile,debug=True,timeint='all'):
-    #surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='1,24')
+    surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='1,24')
