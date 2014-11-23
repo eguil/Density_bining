@@ -212,7 +212,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     #
     # target horizonal grid for interp 
     #fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
-    fileg = '/export/durack1/Density_bining/WOD13_masks.nc'
+    fileg = '/export/durack1/git/Density_bining/WOD13_masks.nc'
     gt = cdm.open(fileg)
     maskg = gt('basinmask3')
     outgrid = maskg.getGrid()
