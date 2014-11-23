@@ -163,13 +163,13 @@ for x,model in enumerate(list_hfds):
         index = list_so_noVer.index(modelNoVer)
         list_inFiles[x][2] = list_so_files[index]
     except:
-        print format(x,'03d'),''.join(['No so match for hfds: ',model])
+        print format(x,'03d'),''.join(['No sos match for hfds: ',model])
     # Pair hfds with thetao
     try:
         index = list_thetao_noVer.index(modelNoVer)
         list_inFiles[x][3] = list_thetao_files[index]
     except:
-        print format(x,'03d'),''.join(['No thetao match for hfds: ',model])
+        print format(x,'03d'),''.join(['No tos match for hfds: ',model])
     # Pair hfds with areacello
     modelTest = modelNoVer.split('.')[0]
     try:
