@@ -171,14 +171,15 @@ for x,model in enumerate(list_hfds):
     except:
         print format(x,'03d'),''.join(['No thetao match for hfds: ',model])
     # Pair hfds with areacello
-    model = modelNoVer.split('.')[0]
+    modelTest = modelNoVer.split('.')[0]
     try:
-        index = list_fx_model.index(model)
+        index = list_fx_model.index(modelTest)
         list_inFiles[x][4] = list_fx_files[index]
     except:
         print format(x,'03d'),''.join(['No fx match for hfds: ',model])
     # Create output fileName
     list_inFiles[x][5] = replace(replace(list_inFiles[x][0].split('/')[-1],'.hfds.','.surfTrans.'),'.latestX.xml','.nc')
+del(x,model,modelNoVer,index,modelTest) ; gc.collect()
 
 #%%
 # Remove blank entries
