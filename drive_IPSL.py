@@ -27,6 +27,6 @@ print 'so:        ',modelSo
 print 'thetao:    ',modelThetao
 print 'areacello: ',modelAreacello
 # Call densityBin
-densityBin(modelThetao,modelSo,modelAreacello,outfileDensity)
-#densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,12')
-#densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,1')
+#densityBin(modelThetao,modelSo,modelAreacello,outfileDensity)
+#densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,24')
+densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,12')

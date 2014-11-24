@@ -62,8 +62,8 @@ outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-#logPath = '/work/guilyardi/git/Density_bining/'
-logPath = '/export/durack1/git/Density_bining/'
+logPath = '/work/guilyardi/git/Density_bining/'
+#logPath = '/export/durack1/git/Density_bining/'
 logfile = os.path.join(logPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
 writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
@@ -203,8 +203,8 @@ del(tmp,count,x) ; gc.collect()
 # EC-EARTH.historical.r10i1p1 - 55
 # MIROC4h.historical.r1i1p1 - 160
 #modelInd = [0,5,55,150,160] ; # Test suite to capture all errors
-modelInd = [0,5,55,150,160] ; # Test suite to capture all errors
-#modelInd = [160] ; # Test suite to capture all errors
+modelInd = [0,5,55,150] ; # Test suite to capture all errors
+modelInd = [0] ; # Test suite to capture all errors
 list_sht = []
 for count,x in enumerate(list_soAndthetaoAndfx):
     if count in modelInd:
@@ -221,7 +221,8 @@ for x,model in enumerate(list_sht):
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
-    densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,1')
+    #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
+    densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='all')
 
 #%%
 '''
