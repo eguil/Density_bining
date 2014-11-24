@@ -150,9 +150,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     emp  = fwfo('wfo' , time = slice(tmin,tmax))
     tos_h = ftos['tos']
     #
-    # Read masking value
-    valmask = tos._FillValue
-    #
     # Read time and grid
     time = tos.getTime()
     lon  = tos_h.getLongitude()
@@ -197,7 +194,34 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     N_t = int(tos.shape[0])
     print ' ==> dimensions N_t, N_j, N_i:', N_t, N_j, N_i
     # Read masking value
-    valmask = tos._FillValue
+    try:
+        valmask = tos.missing_value
+        if valmask == None:
+            print 'EC-EARTH missing_value fix'
+            valmask = 1.e20            
+            sos = mv.masked_equal(sos,0.)
+            print sos.count()
+            sos.data[:] = sos.filled(valmask)
+            tos.mask = sos.mask
+            tos.data[:] = tos.filled(valmask)
+            qnet.mask = sos.mask
+            qnet.data[:] = qnet.filled(valmask)
+            emp.mask = sos.mask
+            emp.data[:] = emp.filled(valmask)
+    except Exception,err:
+        print 'Exception: ',err
+        if 'EC-EARTH' == modeln:
+            print 'EC-EARTH missing_value fix'
+            valmask = 1.e20
+            sos = mv.masked_equal(sos,0.)
+            print sos.count()
+            sos.data[:] = sos.filled(valmask)
+            tos.mask = sos.mask
+            tos.data[:] = tos.filled(valmask)
+            qnet.mask = sos.mask
+            qnet.data[:] = qnet.filled(valmask)
+            emp.mask = sos.mask
+            emp.data[:] = emp.filled(valmask)
     # Test variable units
     [sos,sosFixed] = fixVarUnits(sos,'sos',True)#,'logfile.txt')
     if sosFixed:
