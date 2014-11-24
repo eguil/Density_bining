@@ -198,6 +198,7 @@ del(tmp,count,x) ; gc.collect()
 
 #%%
 # Process model list
+'''
 # 150 IPSL-CM5A-LR - 150:151
 # BNU-ESM - 5
 # EC-EARTH.historical.r10i1p1 - 55
@@ -210,7 +211,12 @@ for count,x in enumerate(list_soAndthetaoAndfx):
     if count in modelInd:
         list_sht.append(x)
 for x,model in enumerate(list_sht):
-#for x,model in enumerate(list_soAndthetaoAndfx):
+'''
+for x,model in enumerate(list_soAndthetaoAndfx):
+    # Check for MIROC4h and exclude
+    if 'MIROC4h' in model:
+        print 'Skipping MIROC4h..'
+        continue
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
