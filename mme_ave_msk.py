@@ -70,13 +70,10 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
     else:
         debug = False
     # File dim and grid inits
-    ft      = cdm.open(indir+'/'+listFiles[0])
-    isond   = ft['isondepth'] ; # Create variable handle
-    #lat     = isond.getLatitude()
-    #levs    = isond.getLevel()
-    #timeax  = ft.getAxis('time')
+    fi      = cdm.open(indir+'/'+listFiles[0])
+    isond   = fi('isondepth') ; # Create variable handle
     # Get grid objects
-    #axesList = isond.getAxisList()
+    axesList = isond.getAxisList()
     # Declare and open files for writing
     if os.path.isfile(outFile):
         os.remove(outFile)
@@ -100,7 +97,6 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
         print i, file
         ft      = cdm.open(indir+'/'+file)
         timeax  = ft.getAxis('time')
-        basinax  = ft.getAxis('basin')
         if i == 0:
             tmax0 = timeax.shape[0]
         tmax = timeax.shape[0]
@@ -114,18 +110,14 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
         isont = ft('isonthetao')
         isonh = ft('isonthick')
         isonv = ft('isonvol')
-        # Get grid objects
-        axesList = isond.getAxisList()
-        timeyr   = cdm.createAxis(isond.getAxis(0))
-        timeyr.units    = timeax.units
-        ft.close()
 
         # accumulate
 
-        isondc = isonp
+        isondc = isondc + isond
 
         print isondc.shape
 
+        ft.close()
         count = count + 1
         # <--- end file loop 
 
@@ -133,19 +125,16 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
     # Average
     print 'count = ',count 
 
-    #isondc = isondc/float(count)
+    isondc = isondc/float(count)
     #isondc = mv.masked_where(isondc > 10000.,isondc)
     #isondc.data = isondc.filled(valmask)
     #isondc.mask = isond.mask
     isondc = maskVal(isondc, valmask)
-    # create annual time axis
-    timeyr.id       = 'time'
-    timeyr.designateTime()
 
     #print timeax,axesList[1],axesList[2],axesList[3]
 
     # Write
-    isondcw = cdm.createVariable(isond, axes = [timeyr,axesList[1],axesList[2],axesList[3]], id = 'isondepth')
+    isondcw = cdm.createVariable(isondc, axes = axesList, id = 'isondepth')
     isondcw.long_name = isond.long_name
     isondcw.units     = isond.units
 
@@ -154,12 +143,13 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
     outFile_f.write(isond.astype('float32'))
 
     outFile_f.close()
+    fi.close()
 
 
 
 listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc','cmip5.ACCESS1-3.historical.r2i1p1.an.ocn.Omon.density.ver-v2_zon2D.nc','cmip5.ACCESS1-3.historical.r3i1p1.an.ocn.Omon.density.ver-v3_zon2D.nc']
 listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc']
-indir = '/work/guilyardi/Prod_density_nov14/Phase_1'
+indir = 'Prod_density_nov14/z_individual'
 outf  = 'testMME.nc'
 
 mmeAveMsk(listf,indir,outf)
