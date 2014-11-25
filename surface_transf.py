@@ -163,8 +163,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     #areain = area.data
     #
     # Define dimensions
-    N_i = int(lon.shape[1])
-    N_j = int(lon.shape[0])
+    N_i = int(tos.shape[1])
+    N_j = int(tos.shape[0])
     #
     # Define sigma grid 
     rho_min = 19

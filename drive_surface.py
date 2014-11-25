@@ -196,12 +196,15 @@ del(tmp,x) ; gc.collect()
 # Use for debugging
 
 modelInd = [0] ; # Test suite to capture all errors
+# rerun CSIRO-Mk3 count > 18
 list_sht = []
 for count,x in enumerate(list_inFiles):
-    if count > 27:
-        list_sht.append(x)
+    if count >= 18:
+        if count <= 27:
+            list_sht.append(x)
 for x,model in enumerate(list_sht):
 
+#for x,model in enumerate(list_inFiles):
 #for x,model in enumerate(list_inFiles):
     # Get steric outfile name
     outfileTransf = os.path.join(outPath,model[5])
@@ -218,3 +221,4 @@ for x,model in enumerate(list_sht):
     #surfTransf(fileFx,fileTos,fileSos,fileHef,fileWfo,outFile,debug=True,timeint='all')
     #surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='1,24')
     surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='all')
+
