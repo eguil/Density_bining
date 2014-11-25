@@ -57,7 +57,7 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
     '''
 
     # CDMS initialisation - netCDF compression
-    comp = 1 ; # 0 for no compression
+    comp = 0 ; # 0 for no compression
     cdm.setNetcdfShuffleFlag(comp)
     cdm.setNetcdfDeflateFlag(comp)
     cdm.setNetcdfDeflateLevelFlag(comp)
@@ -71,25 +71,25 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
         debug = False
     # File dim and grid inits
     fi      = cdm.open(indir+'/'+listFiles[0])
-    isond   = fi('isondepth') ; # Create variable handle
+    isond0  = fi('isondepth') ; # Create variable handle
     # Get grid objects
-    axesList = isond.getAxisList()
+    axesList = isond0.getAxisList()
     # Declare and open files for writing
     if os.path.isfile(outFile):
         os.remove(outFile)
     outFile_f = cdm.open(outFile,'w')
 
-    latN    = isond.shape[3]
-    levN    = isond.shape[2]
-    basN    = isond.shape[1]
-    timN    = isond.shape[0]
+    latN    = isond0.shape[3]
+    levN    = isond0.shape[2]
+    basN    = isond0.shape[1]
+    timN    = isond0.shape[0]
 
-    valmask = isond.missing_value
+    valmask = isond0.missing_value
     print valmask
 
     # Array inits
     isondc  = npy.ma.ones([timN,basN,levN,latN], dtype='float32')*0.
-    isonpc,isonsc,isontc,isonhc,isonvc = [npy.ma.ones(npy.shape(isondc)) for _ in range(5)]
+    isonpc,isonsc,isontc,isonhc,isonvc,percent = [npy.ma.ones(npy.shape(isondc)) for _ in range(6)]
 
     count = 0
     # loop over files
@@ -113,10 +113,14 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
 
         # accumulate
 
-        isondc = isondc + isond
-
-        print isondc.shape
-
+        isondc  = isondc + isond
+        maskvar = mv.masked_values(isond.data,valmask).mask
+        #nomask  = mv.masked_where(maskvar,isond/isond)
+        nomask  = npy.equal(maskvar,0)
+        if i == 0:
+            percent = npy.float32(nomask)
+        else:
+            percent = percent + npy.float32(nomask)
         ft.close()
         count = count + 1
         # <--- end file loop 
@@ -126,21 +130,31 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
     print 'count = ',count 
 
     isondc = isondc/float(count)
-    #isondc = mv.masked_where(isondc > 10000.,isondc)
+    isondc = mv.masked_where(isondc > 10000.,isondc)
     #isondc.data = isondc.filled(valmask)
-    #isondc.mask = isond.mask
     isondc = maskVal(isondc, valmask)
 
-    #print timeax,axesList[1],axesList[2],axesList[3]
+    percent = percent/float(count)
+    print percent.dtype
+
+    #print axesList
+    time       = cdm.createAxis(range(timN))
+    time.id    = 'time'
+    time.units = 'years since 1851'
+    time.designateTime()
 
     # Write
-    isondcw = cdm.createVariable(isondc, axes = axesList, id = 'isondepth')
+    isondcw = cdm.createVariable(isondc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isondepth')
     isondcw.long_name = isond.long_name
     isondcw.units     = isond.units
+    percenta  = cdm.createVariable(percent, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonpercent')
+    percenta.long_name = 'percentage of MME bin'
+    percenta.units     = '%'
 
-    print isondcw.shape
+    print percenta.dtype
 
-    outFile_f.write(isond.astype('float32'))
+    outFile_f.write(isondcw.astype('float32'))
+    outFile_f.write(percenta.astype('float32'))
 
     outFile_f.close()
     fi.close()
@@ -148,7 +162,8 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
 
 
 listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc','cmip5.ACCESS1-3.historical.r2i1p1.an.ocn.Omon.density.ver-v2_zon2D.nc','cmip5.ACCESS1-3.historical.r3i1p1.an.ocn.Omon.density.ver-v3_zon2D.nc']
-listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc']
+#listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc']
+#listf = ['cmip5.GFDL-CM2p1.historical.r4i1p1.an.ocn.Omon.density.ver-v20110601_zon2D.nc']
 indir = 'Prod_density_nov14/z_individual'
 outf  = 'testMME.nc'
 
