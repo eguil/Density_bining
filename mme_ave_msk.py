@@ -56,6 +56,7 @@ def mmeAveMsk(listFiles, years, indDir, outDir, outFile, debug=True):
     Notes:
     -----
     - EG 25 Nov 2014   - Initial function write
+    - EG 27 Nov 2014   - Rewrite with loop on variables
     '''
 
     # CDMS initialisation - netCDF compression
@@ -83,118 +84,87 @@ def mmeAveMsk(listFiles, years, indDir, outDir, outFile, debug=True):
         os.remove(outDir+'/'+outFile)
     outFile_f = cdm.open(outDir+'/'+outFile,'w')
 
-    latN    = isond0.shape[3]
-    levN    = isond0.shape[2]
-    basN    = isond0.shape[1]
-    timN    = isond0.shape[0]
+    latN = isond0.shape[3]
+    levN = isond0.shape[2]
+    basN = isond0.shape[1]
+    timN = isond0.shape[0]
+    runN = len(listFiles)  
+
+    print 'Number of runs:',runN
 
     valmask = isond0.missing_value
 
-    # Array inits
-    isondc  = npy.ma.ones([timN,basN,levN,latN], dtype='float32')*0.
-    isonpc,isonsc,isontc,isonhc,isonvc,percent = [npy.ma.ones(npy.shape(isondc)) for _ in range(6)]
+    # loop on variables
 
-    count = 0
-    # loop over files
-    for i,file in enumerate(listFiles):
-        print i, file
-        ft      = cdm.open(indir+'/'+file)
-        timeax  = ft.getAxis('time')
-        if i == 0:
-            tmax0 = timeax.shape[0]
-        tmax = timeax.shape[0]
-        if tmax != tmax0:
-            print "wrong time axis: exiting..."
-            return
-        # read arrays
-        isond = ft('isondepth',time = slice(t1,t2))
-        isonp = ft('isonpers',time = slice(t1,t2))
-        isons = ft('isonso',time = slice(t1,t2))
-        isont = ft('isonthetao',time = slice(t1,t2))
-        isonh = ft('isonthick',time = slice(t1,t2))
-        isonv = ft('isonvol',time = slice(t1,t2))
-        # compute percentage of non-masked points accros MME
-        maskvar = mv.masked_values(isond.data,valmask).mask
-        nomask  = npy.equal(maskvar,0)
-        if i == 0:
-            percent = npy.float32(nomask)
-        else:
-            percent = percent + npy.float32(nomask)
+    varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
+    varFill = [0.,0.,valmask,valmask,0.,0.]
+    #varList = ['isonvol']
 
-        # accumulate
-        isondc  = isondc + isond#.filled(0.)
-        isonpc  = isonpc + isonp#.filled(0.)
-        isonsc  = isonsc + isons#.filled(0.)
-        isontc  = isontc + isont#.filled(0.)
-        isonhc  = isonhc + isonh#.filled(0.)
-        isonvc  = isonvc + isonv#.filled(0.)
-
-        ft.close()
-        count = count + 1
-        # <--- end file loop 
-
-
-    # Average & mask
-
-    isondc = isondc/float(count)
-    isonpc = isonpc/float(count)
-    isonsc = isonsc/float(count)
-    isontc = isontc/float(count)
-    isonhc = isonhc/float(count)
-    isonvc = isonvc/float(count)
-    isondc = mv.masked_where(isondc >10000,isondc)
-    isonpc.mask = isondc.mask
-    isonsc.mask = isondc.mask
-    isontc.mask = isondc.mask
-    isonhc.mask = isondc.mask
-    isonvc.mask = isondc.mask
-
-    isondc = maskVal(isondc, valmask)
-    isonpc = maskVal(isonpc, valmask)
-    isonsc = maskVal(isonsc, valmask)
-    isontc = maskVal(isontc, valmask)
-    isonhc = maskVal(isonhc, valmask)
-    isonvc = maskVal(isonvc, valmask)
-
-    percent = percent/float(count)*100.
-
-    #print axesList
+    # init percent array
+    percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
+    # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
     time.units = 'years since 1851'
     time.designateTime()
 
-    # Write
-    isondcw = cdm.createVariable(isondc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isondepth')
-    isondcw.long_name = isond.long_name
-    isondcw.units     = isond.units
-    isonpcw = cdm.createVariable(isonpc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonpers')
-    isonpcw.long_name = isonp.long_name
-    isonpcw.units     = isonp.units
-    isonscw = cdm.createVariable(isonsc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonso')
-    isonscw.long_name = isons.long_name
-    isonscw.units     = isons.units
-    isontcw = cdm.createVariable(isontc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonthetao')
-    isontcw.long_name = isont.long_name
-    isontcw.units     = isont.units
-    isonhcw = cdm.createVariable(isonhc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonthick')
-    isonhcw.long_name = isonh.long_name
-    isonhcw.units     = isonh.units
-    isonvcw = cdm.createVariable(isonvc, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonvol')
-    isonvcw.long_name = isonv.long_name
-    isonvcw.units     = isonv.units
+    for iv,var in enumerate(varList):
 
-    percenta  = cdm.createVariable(percent, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonpercent')
-    percenta.long_name = 'percentage of MME bin'
-    percenta.units     = '%'
+        # Array inits
+        isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
+        print ' Variable ',iv, var
+        # loop over files to fill up array
+        for i,file in enumerate(listFiles):
+            print i, file
+            ft      = cdm.open(indir+'/'+file)
+            timeax  = ft.getAxis('time')
+            if i == 0:
+                tmax0 = timeax.shape[0]
+                tmax = timeax.shape[0]
+            if tmax != tmax0:
+                print "wrong time axis: exiting..."
+                return
+            # read array
+            isonRead = ft(var,time = slice(t1,t2))
+            if varFill[iv] != valmask:
+                isonvar[i,...] = isonRead.filled(varFill[iv])
+            else:
+                isonvar[i,...] = isonRead
+            ft.close()
 
-    outFile_f.write(isondcw.astype('float32'))
-    outFile_f.write(isonpcw.astype('float32'))
-    outFile_f.write(isonscw.astype('float32'))
-    outFile_f.write(isontcw.astype('float32'))
-    outFile_f.write(isonhcw.astype('float32'))
-    outFile_f.write(isonvcw.astype('float32'))
-    outFile_f.write(percenta.astype('float32'))
+            # compute percentage of non-masked points accros MME
+            if iv == 0:
+                maskvar = mv.masked_values(isonRead.data,valmask).mask
+                percent[i,...] = npy.float32(npy.equal(maskvar,0))
+
+        # <-- end of loop on files
+        # Compute percentage of bin presence
+        # Only keep points where percent > 50%
+        if iv == 0:
+            percenta = (cdu.averager(percent,axis=0))*100.
+            percenta = mv.masked_less(percenta, 50)
+            percentw = cdm.createVariable(percenta, axes = [time,axesList[1],axesList[2],axesList[3]], id = 'isonpercent')
+            percentw._FillValue = valmask
+            percentw.long_name = 'percentage of MME bin'
+            percentw.units     = '%'
+            outFile_f.write(percentw.astype('float32'))
+
+        # average
+        isonVarAve = cdu.averager(isonvar, axis=0)
+        isonVarAve = cdm.createVariable(isonVarAve , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
+        # mask
+        if varFill[iv] == valmask:
+            isonVarAve = maskVal(isonVarAve, valmask)
+
+        isonVarAve.mask = percentw.mask
+
+        # Write
+        isonave = cdm.createVariable(isonVarAve, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id)
+        isonave.long_name = isonRead.long_name
+        isonave.units     = isonRead.units
+
+        outFile_f.write(isonave.astype('float32'))
+    # <--- end of loop on variables 
 
     outFile_f.close()
     fi.close()
@@ -381,11 +351,12 @@ mme = True
 
 exper  = 'historical'
 models = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
-#models = ['ACCESS1-0','ACCESS1-3']
-#models = ['MIROC-ESM-CHEM','MIROC-ESM']
 years = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[0,146],[0,146],[10,156],[10,156],[10,156],[10,156],[10,156]]
+#models = ['ACCESS1-3']#,'ACCESS1-3']
+#models = ['EC-EARTH']
+#years = [[10,156]]
 indir  = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/z_individual'
-outdir = '/Users/ericg/Projets/Density_bining/Prod_density_nov14'
+outdir = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/test_mme'
 listens = []
 listens1 = []
 for i,mod in enumerate(models):
@@ -417,3 +388,5 @@ if mme:
     if oneD:
         outFile1 = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
         mmeAveMsk1D(listens1,[0,146],indir,outdir,outFile1)
+
+modelsurf = ['ACCESS1-0','ACCESS1-3','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','EC-EARTH','FGOALS-s2','GFDL-ESM2G','GISS-E2-R-CC','GISS-E2-R','MIROC5','MIROC-ESM-CHEM','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MPI-ESM-P','NorESM1-ME','NorESM1-M']
