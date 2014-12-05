@@ -62,6 +62,9 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     - EG 25 Nov 2014   - Initial function write
     - EG 27 Nov 2014   - Rewrite with loop on variables
     - EG 06 Dec 2014   - Added agreement on difference between period 1 and period 2
+
+    - TO DO :
+                 - Read bowl for 2D to remove points above bowl in additional variable
     '''
 
     # CDMS initialisation - netCDF compression
@@ -142,7 +145,6 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
                 isonvar[i,...] = isonRead.filled(varFill[iv])
             else:
                 isonvar[i,...] = isonRead
-            ft.close()
             # compute percentage of non-masked points accros MME
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
@@ -156,6 +158,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
                 vardiff[i,...].mask = isonvar[i,-1,...].mask
                 
 
+            ft.close()
         # <-- end of loop on files
         # Compute percentage of bin presence
         # Only keep points where percent > 50%
@@ -357,8 +360,8 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
 #oneD = True
 twoD = True
 oneD = False
-mme  = False
-mm = True 
+mm  = False
+mme = True 
 
 exper  = 'historical'
 models = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
