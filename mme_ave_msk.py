@@ -138,9 +138,6 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
                 return
             # read array
             isonRead = ft(var,time = slice(t1,t2))
-            if mme:
-                varst = var+'Agree'
-                isonReadst = ft(varst,time = slice(t1,t2))
             if varFill[iv] != valmask:
                 isonvar[i,...] = isonRead.filled(varFill[iv])
             else:
@@ -152,7 +149,8 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
                 percent[i,...] = npy.float32(npy.equal(maskvar,0))
             # Compute difference between period 1 and period 2, use mask of last month
             if mme:
-                vardiff[i,...] = isonReadst
+                varst = var+'Agree'
+                vardiff[i,...] = ft(varst,time = slice(t1,t2))
             else:
                 vardiff[i,...] = cdu.averager(isonvar[i,per2i:per2f,...],axis=0) - cdu.averager(isonvar[i,per1i:per1f,...],axis=0)
                 vardiff[i,...].mask = isonvar[i,-1,...].mask
@@ -177,8 +175,9 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
             vardiffsg = npy.copysign(varones,vardiff)
             # average signs
             vardiffsgSum = cdu.averager(vardiffsg, axis=0)
-            vardiffsgSum._FillValue = valmask
+            vardiffsgSum = mv.masked_greater(vardiffsgSum, 10000.)
             vardiffsgSum.mask = percentw.mask
+            vardiffsgSum._FillValue = valmask
 
         # average
         isonVarAve = cdu.averager(isonvar, axis=0)
