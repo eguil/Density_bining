@@ -53,7 +53,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     - inDir(str)             - input directory where files are stored
     - outDir(str)            - output directory
     - outFile(str)           - output file
-    - timeInt(4xindices)     - indices of period 1 and period 2 (e.g. [1,5,140,146])
+    - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
     - debug <optional>       - boolean value
 
@@ -61,10 +61,11 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     -----
     - EG 25 Nov 2014   - Initial function write
     - EG 27 Nov 2014   - Rewrite with loop on variables
-    - EG 06 Dec 2014   - Added agreement on difference between period 1 and period 2
+    - EG 06 Dec 2014   - Added agreement on difference with init period - save as <var>Agree
+    - EG 07 Dec 2014   - Read bowl to remove points above bowl - aave as <var>Bowl
 
     - TO DO :
-                 - Read bowl for 2D to remove points above bowl in additional variable
+                 - 
     '''
 
     # CDMS initialisation - netCDF compression
@@ -83,16 +84,14 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     # File dim and grid inits
     t1 = years[0]
     t2 = years[1]
-    # Periods 1 and 2 bounds
-    per1i = timeInt[0]
-    per1f = timeInt[1]
-    per2i = timeInt[2]
-    per2f = timeInt[3]
-
+    # Bound of period average to remove
+    peri1 = timeInt[0]
+    peri2 = timeInt[1]
     fi      = cdm.open(indir+'/'+listFiles[0])
     isond0  = fi('isondepth',time = slice(t1,t2)) ; # Create variable handle
     # Get grid objects
     axesList = isond0.getAxisList()
+    sigmaGrd = isond0.getLevel()
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
         os.remove(outDir+'/'+outFile)
@@ -112,8 +111,10 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     varFill = [0.,0.,valmask,valmask,0.,0.]
     #varList = ['isonvol']
 
-    # init percent array
+    # init arrays
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
+    minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
+    varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
@@ -125,14 +126,15 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
 
         # Array inits
         isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
-        vardiff  = npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask
-        varones  = npy.ma.ones([runN,basN,levN,latN], dtype='float32')*1.
+        vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
+        varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         print ' Variable ',iv, var
         # loop over files to fill up array
         for i,file in enumerate(listFiles):
             print i, file
             ft      = cdm.open(indir+'/'+file)
             timeax  = ft.getAxis('time')
+            f1d     = cdm.open(replace(indir+'/'+file,'2D','1D'))
             if i == 0:
                 tmax0 = timeax.shape[0]
                 tmax = timeax.shape[0]
@@ -149,17 +151,27 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
                 percent[i,...] = npy.float32(npy.equal(maskvar,0))
-            # Compute difference between period 1 and period 2, use mask of last month
             if mme:
+                # if mme then just average Bowl and Agree fields
                 varst = var+'Agree'
                 vardiff[i,...] = ft(varst,time = slice(t1,t2))
+                varb = var+'Bowl'
+                varbowl2D[i,...] = ft(varb,time = slice(t1,t2))
             else:
-                vardiff[i,...] = cdu.averager(isonvar[i,per2i:per2f,...],axis=0) - cdu.averager(isonvar[i,per1i:per1f,...],axis=0)
-                vardiff[i,...].mask = isonvar[i,-1,...].mask
-                
+                # Compute difference with average of first initN years, use mask of last month
+                varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
+                for t in range(timN):
+                    vardiff[i,t,...] = isonvar[i,t,...] - varinit
+                vardiff[i,...].mask = isonvar[i,...].mask
+                # Read bowl and truncate 2D field above bowl+delta_rho
+                if iv == 0:
+                    bowlRead = f1d('ptopsigma',time = slice(t1,t2))
+                    varbowl[i,...] = bowlRead
 
             ft.close()
+            f1d.close()
         # <-- end of loop on files
+
         # Compute percentage of bin presence
         # Only keep points where percent > 50%
         if iv == 0:
@@ -174,6 +186,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
         # Sign of difference
         if mme:
             vardiffsgSum = cdu.averager(vardiff, axis=0)
+            vardiffsgSum.mask = percentw.mask
         else:
             vardiffsg = npy.copysign(varones,vardiff)
             # average signs
@@ -182,7 +195,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
             vardiffsgSum.mask = percentw.mask
             vardiffsgSum._FillValue = valmask
 
-        # average
+        # average accross members
         isonVarAve = cdu.averager(isonvar, axis=0)
         isonVarAve = cdm.createVariable(isonVarAve , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
         # mask
@@ -191,16 +204,39 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
 
         isonVarAve.mask = percentw.mask
 
+        # Only keep points with rhon >  bowl-delta_rho
+        if mme:
+            isonVarBowl = cdu.averager(varbowl2D, axis=0)
+        else:
+            isonVarBowl = isonVarAve*1.
+            if iv == 0:
+                delta_rho = 0.
+                siglimit = cdu.averager(varbowl, axis=0) 
+                siglimit = cdu.averager(siglimit, axis=0) - delta_rho
+            for il in range(latN):
+                for ib in range(basN):
+                    if siglimit[ib,il] < valmask/1000.:
+                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
+                        isonVarBowl[:,ib,0:index[0],il].mask = True
+                        vardiffsgSum[:,ib,0:index[0],il].mask = True
+                    else:
+                        vardiffsgSum[:,ib,:,il].mask = True
+            isonVarBowl = maskVal(isonVarBowl, valmask)
+            
         # Write
         isonave = cdm.createVariable(isonVarAve, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id)
         isonave.long_name = isonRead.long_name
         isonave.units     = isonRead.units
-        isonavediff = cdm.createVariable(vardiffsgSum, axes = [axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Agree')
+        isonavediff = cdm.createVariable(vardiffsgSum, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Agree')
         isonavediff.long_name = isonRead.long_name
         isonavediff.units     = isonRead.units
+        isonavebowl = cdm.createVariable(isonVarBowl, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Bowl')
+        isonavebowl.long_name = isonRead.long_name
+        isonavebowl.units     = isonRead.units
 
         outFile_f.write(    isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
+        outFile_f.write(isonavebowl.astype('float32'))
     # <--- end of loop on variables 
 
     outFile_f.close()
@@ -360,8 +396,8 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
 #oneD = True
 twoD = True
 oneD = False
-mm  = False
-mme = True 
+mme  = False
+mm = True 
 
 exper  = 'historical'
 models = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
@@ -372,12 +408,9 @@ years = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156]
 
 # Years for difference
 iniyear = 1861
-per1i = (1950-iniyear)+1
-per1f = (1950-iniyear)+2
-per2i = (2000-iniyear)+1
-per2f = (2000-iniyear)+2
-timeInt=[per1i,per1f,per2i,per2f]
-print timeInt
+peri1 = (1861-iniyear)+1
+peri2 = (1950-iniyear)+2
+timeInt=[peri1,peri2]
 indir  = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/z_individual'
 outdir = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/test_mme'
 listens = []
