@@ -62,7 +62,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     - EG 25 Nov 2014   - Initial function write
     - EG 27 Nov 2014   - Rewrite with loop on variables
     - EG 06 Dec 2014   - Added agreement on difference with init period - save as <var>Agree
-    - EG 07 Dec 2014   - Read bowl to remove points above bowl - aave as <var>Bowl
+    - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
 
     - TO DO :
                  - 
@@ -186,6 +186,8 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
         # Sign of difference
         if mme:
             vardiffsgSum = cdu.averager(vardiff, axis=0)
+            vardiffsgSum = cdm.createVariable(vardiffsgSum , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
+            vardiffsgSum = maskVal(vardiffsgSum, valmask)
             vardiffsgSum.mask = percentw.mask
         else:
             vardiffsg = npy.copysign(varones,vardiff)
@@ -205,12 +207,28 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
         isonVarAve.mask = percentw.mask
 
         # Only keep points with rhon >  bowl-delta_rho
+        delta_rho = 0.
         if mme:
             isonVarBowl = cdu.averager(varbowl2D, axis=0)
+            isonVarBowl = cdm.createVariable(isonVarBowl , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
+            if iv == 0:
+                f1d = cdm.open(replace(outDir+'/'+outFile,'2D','1D'))
+                bowlRead = f1d('ptopsigma',time = slice(t1,t2))
+                f1d.close()
+                siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
+            for il in range(latN):
+                for ib in range(basN):
+                    if siglimit[ib,il] < valmask/1000.:
+                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
+                        isonVarBowl[:,ib,0:index[0],il].mask = True
+                        vardiffsgSum[:,ib,0:index[0],il].mask = True
+                    else:
+                        vardiffsgSum[:,ib,:,il].mask = True
+            isonVarBowl = maskVal(isonVarBowl, valmask)
+                
         else:
             isonVarBowl = isonVarAve*1.
             if iv == 0:
-                delta_rho = 0.
                 siglimit = cdu.averager(varbowl, axis=0) 
                 siglimit = cdu.averager(siglimit, axis=0) - delta_rho
             for il in range(latN):
@@ -396,8 +414,8 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
 #oneD = True
 twoD = True
 oneD = False
-mme  = False
-mm = True 
+mm  = False
+mme = True 
 
 exper  = 'historical'
 models = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
