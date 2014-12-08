@@ -109,7 +109,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
 
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
     varFill = [0.,0.,valmask,valmask,0.,0.]
-    #varList = ['isonvol']
+    #varList = ['isondepth']
 
     # init arrays
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
@@ -211,6 +211,8 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
         if mme:
             isonVarBowl = cdu.averager(varbowl2D, axis=0)
             isonVarBowl = cdm.createVariable(isonVarBowl , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
+            isonVarBowl = maskVal(isonVarBowl, valmask)
+            isonVarBowl.mask = percentw.mask
             if iv == 0:
                 f1d = cdm.open(replace(outDir+'/'+outFile,'2D','1D'))
                 bowlRead = f1d('ptopsigma',time = slice(t1,t2))
@@ -218,13 +220,15 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
                 siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
             for il in range(latN):
                 for ib in range(basN):
+                    #if ib == 2:
+                    #    print il, siglimit[ib,il]
                     if siglimit[ib,il] < valmask/1000.:
                         index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
                         isonVarBowl[:,ib,0:index[0],il].mask = True
                         vardiffsgSum[:,ib,0:index[0],il].mask = True
                     else:
+                        isonVarBowl[:,ib,:,il].mask = True
                         vardiffsgSum[:,ib,:,il].mask = True
-            isonVarBowl = maskVal(isonVarBowl, valmask)
                 
         else:
             isonVarBowl = isonVarAve*1.
@@ -421,7 +425,8 @@ exper  = 'historical'
 models = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
 years = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[0,146],[0,146],[10,156],[10,156],[10,156],[10,156],[10,156]]
 #models = ['ACCESS1-3']#,'ACCESS1-3']
-#models = ['EC-EARTH']
+#models = ['ACCESS1-3']#,'ACCESS1-3']
+#models = ['IPSL-CM5A-LR']
 #years = [[10,156]]
 
 # Years for difference
@@ -462,5 +467,6 @@ if mme:
     if oneD:
         outFile1 = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
         mmeAveMsk1D(listens1,[0,146],indir,outdir,outFile1,timeInt,mme)
+    print 'Wrote ',outdir+'/'+outFile
 
 modelsurf = ['ACCESS1-0','ACCESS1-3','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','EC-EARTH','FGOALS-s2','GFDL-ESM2G','GISS-E2-R-CC','GISS-E2-R','MIROC5','MIROC-ESM-CHEM','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MPI-ESM-P','NorESM1-ME','NorESM1-M']
