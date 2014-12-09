@@ -9,6 +9,7 @@ This script generates input lists of cmip5 ocean fields and drives surface_trans
 
 PJD 28 Oct 2014     - Started file
 PJD 22 Nov 2014     - Updated to grab all files
+PJD  9 Dec 2014     - Updated to include tauu and tauv
                     TODO:
                     - Need to consider cases where version numbers of input variables don't align
                     - Need to consider adding additional files using so/thetao fields rather than 2D sos/tos
@@ -66,7 +67,7 @@ outPath     = '/work/guilyardi/Shared/data_density/test'
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 logPath = '/export/durack1/git/Density_bining/'
-logPath = '/work/guilyardi/git/Density_bining/'
+#logPath = '/work/guilyardi/git/Density_bining/'
 logfile = os.path.join(logPath,"".join([timeFormat,'_drive_surface-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
 writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
@@ -79,6 +80,8 @@ soPath      = os.path.join('/work',modelSuite,experiment,'ocn/mo/sos');
 thetaoPath  = os.path.join('/work',modelSuite,experiment,'ocn/mo/tos');
 hfdsPath    = os.path.join('/work',modelSuite,experiment,'ocn/mo/hfds');
 wfoPath     = os.path.join('/work',modelSuite,experiment,'ocn/mo/wfo');
+tauuPath    = os.path.join('/work',modelSuite,experiment,'ocn/mo/tauuo');
+tauvPath    = os.path.join('/work',modelSuite,experiment,'ocn/mo/tauvo');
 fxPath      = os.path.join('/work',modelSuite,'fx/fx/areacello');
 
 # Validate paths
@@ -86,7 +89,8 @@ if not os.path.exists(outPath):
     pass
     #os.makedirs(outPath)
 if not os.path.exists(soPath) or not os.path.exists(thetaoPath) or not os.path.exists(hfdsPath) \
-   or not os.path.exists(wfoPath) or not os.path.exists(fxPath):
+   or not os.path.exists(wfoPath) or not os.path.exists(fxPath) or not os.path.exists(tauuPath) \
+   or not os.path.exists(tauvPath):
     print "** Invalid source data path - no *.nc files will be written **"
     sys.exit()
 
@@ -106,6 +110,14 @@ list_hfds_files.sort()
 list_wfo_files = glob.glob(os.path.join(wfoPath,'*.xml'))
 list_wfo_files = trimModelList(list_wfo_files) ; # only need to match model, no version info required
 list_wfo_files.sort()
+# zonal windstress
+list_tauu_files = glob.glob(os.path.join(tauuPath,'*.xml'))
+list_tauu_files = trimModelList(list_tauu_files) ; # only need to match model, no version info required
+list_tauu_files.sort()
+# meridional windstress
+list_tauv_files = glob.glob(os.path.join(tauvPath,'*.xml'))
+list_tauv_files = trimModelList(list_tauv_files) ; # only need to match model, no version info required
+list_tauv_files.sort()
 # areacello
 list_fx_files = glob.glob(os.path.join(fxPath,'*.xml'))
 list_fx_files = trimModelList(list_fx_files) ; # only need to match model, no version info required
@@ -140,6 +152,20 @@ for infile in list_wfo_files:
     tmp = '.'.join(tmp.split('.')[0:-1]) ; # truncate version info
     list_wfo_noVer += [tmp]
 del(infile,tmp)
+list_tauu = [] ; list_tauu_noVer = []
+for infile in list_tauu_files:
+    tmp = replace(replace(replace(infile.split('/')[-1],'.tauuo',''),''.join([modelSuite,'.']),''),'.latestX.xml','')
+    list_tauu += [tmp]
+    tmp = '.'.join(tmp.split('.')[0:-1]) ; # truncate version info
+    list_tauu_noVer += [tmp]
+del(infile,tmp)
+list_tauv = [] ; list_tauv_noVer = []
+for infile in list_tauv_files:
+    tmp = replace(replace(replace(infile.split('/')[-1],'.tauvo',''),''.join([modelSuite,'.']),''),'.latestX.xml','')
+    list_tauv += [tmp]
+    tmp = '.'.join(tmp.split('.')[0:-1]) ; # truncate version info
+    list_tauv_noVer += [tmp]
+del(infile,tmp)
 list_fx_model = []
 for infile in list_fx_files:
     tmp = infile.split('/')[-1].split('.')[1]
@@ -148,7 +174,7 @@ del(infile,tmp) ; gc.collect()
 
 #%%
 # Match hfds with wfo
-list_inFiles = [[None] * 6 for i in range(len(list_hfds_files))]
+list_inFiles = [[None] * 8 for i in range(len(list_hfds_files))]
 del(i) ; gc.collect()
 for x,model in enumerate(list_hfds):
     modelNoVer = list_hfds_noVer[x]
@@ -171,15 +197,27 @@ for x,model in enumerate(list_hfds):
         list_inFiles[x][3] = list_thetao_files[index]
     except:
         print format(x,'03d'),''.join(['No tos match for hfds: ',model])
+    # Pair hfds with tauu
+    try:
+        index = list_tauu_noVer.index(modelNoVer)
+        list_inFiles[x][4] = list_tauu_files[index]
+    except:
+        print format(x,'03d'),''.join(['No tauu match for hfds: ',model])
+    # Pair hfds with tauv
+    try:
+        index = list_tauv_noVer.index(modelNoVer)
+        list_inFiles[x][5] = list_tauv_files[index]
+    except:
+        print format(x,'03d'),''.join(['No tauv match for hfds: ',model])
     # Pair hfds with areacello
     modelTest = modelNoVer.split('.')[0]
     try:
         index = list_fx_model.index(modelTest)
-        list_inFiles[x][4] = list_fx_files[index]
+        list_inFiles[x][6] = list_fx_files[index]
     except:
         print format(x,'03d'),''.join(['No fx  match for hfds: ',model])
     # Create output fileName
-    list_inFiles[x][5] = replace(replace(list_inFiles[x][0].split('/')[-1],'.hfds.','.surfTrans.'),'.latestX.xml','.nc')
+    list_inFiles[x][7] = replace(replace(list_inFiles[x][0].split('/')[-1],'.hfds.','.surfTrans.'),'.latestX.xml','.nc')
 del(x,model,modelNoVer,index,modelTest) ; gc.collect()
 
 #%%
@@ -197,17 +235,17 @@ del(tmp,x) ; gc.collect()
 
 modelInd = [0] ; # Test suite to capture all errors
 # rerun CSIRO-Mk3 count > 18
+'''
 list_sht = []
 for count,x in enumerate(list_inFiles):
     if count >= 18:
         if count <= 27:
             list_sht.append(x)
 for x,model in enumerate(list_sht):
-
-#for x,model in enumerate(list_inFiles):
-#for x,model in enumerate(list_inFiles):
+'''
+for x,model in enumerate(list_inFiles):
     # Get steric outfile name
-    outfileTransf = os.path.join(outPath,model[5])
+    outfileTransf = os.path.join(outPath,model[7])
     writeToLog(logfile,''.join(['Processing:   ',outfileTransf.split('/')[-1]]))
     print 'FileCount: ',x    
     print 'outPath:   ','/'.join(outfileTransf.split('/')[0:-1])
@@ -216,9 +254,10 @@ for x,model in enumerate(list_sht):
     print 'wfo:       ',model[1].split('/')[-1]
     print 'sos:       ',model[2].split('/')[-1]
     print 'tos:       ',model[3].split('/')[-1]
-    print 'areacello: ',model[4].split('/')[-1]
+    print 'tauu:      ',model[4].split('/')[-1]
+    print 'tauv:      ',model[5].split('/')[-1]
+    print 'areacello: ',model[6].split('/')[-1]
     # Call surfTransf
     #surfTransf(fileFx,fileTos,fileSos,fileHef,fileWfo,outFile,debug=True,timeint='all')
     #surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='1,24')
-    surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='all')
-
+    #surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='all')
