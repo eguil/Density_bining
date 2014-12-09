@@ -54,7 +54,7 @@ else:
 ## TEST ##
 modelSuite = 'cmip5'
 experiment = 'historical'
-outPath     = '/export/durack1/git/Density_bining/test'
+outPath     = '/work/guilyardi/Shared/data_density/test'
 #experiment = 'rcp85'
 #outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 #outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
@@ -66,6 +66,7 @@ outPath     = '/export/durack1/git/Density_bining/test'
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 logPath = '/export/durack1/git/Density_bining/'
+logPath = '/work/guilyardi/git/Density_bining/'
 logfile = os.path.join(logPath,"".join([timeFormat,'_drive_surface-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
 writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
@@ -193,12 +194,17 @@ del(tmp,x) ; gc.collect()
 #%%
 # Process model list
 # Use for debugging
+
 modelInd = [0] ; # Test suite to capture all errors
+# rerun CSIRO-Mk3 count > 18
 list_sht = []
 for count,x in enumerate(list_inFiles):
-    if count in modelInd:
-        list_sht.append(x)
+    if count >= 18:
+        if count <= 27:
+            list_sht.append(x)
 for x,model in enumerate(list_sht):
+
+#for x,model in enumerate(list_inFiles):
 #for x,model in enumerate(list_inFiles):
     # Get steric outfile name
     outfileTransf = os.path.join(outPath,model[5])
@@ -212,5 +218,7 @@ for x,model in enumerate(list_sht):
     print 'tos:       ',model[3].split('/')[-1]
     print 'areacello: ',model[4].split('/')[-1]
     # Call surfTransf
-    #surfTransf(fileFx,fileTos,fileSos,fileHef,fileWfo,outFile,debug=True,timeint='all'):
-    surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='1,24')
+    #surfTransf(fileFx,fileTos,fileSos,fileHef,fileWfo,outFile,debug=True,timeint='all')
+    #surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='1,24')
+    surfTransf(model[4],model[3],model[2],model[0],model[1],outfileTransf,debug=True,timeint='all')
+

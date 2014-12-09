@@ -443,6 +443,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     itest = 80 
     jtest = 100
     ijtest = jtest*lonN + itest
+    # CPU analysis
+    cpuan = True
     
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
@@ -456,6 +458,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         tcdel = min(24,tmax)
     else:
         tcdel = min(48,tmax)
+    tcdel = min(12,tmax)
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
@@ -506,7 +509,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # read tcdel month by tcdel month to optimise memory
         trmin   = tmin + tc*tcdel ; # define as function of tc and tcdel
         trmax   = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
-        print ' --> time chunk (bounds) = ',tc, '/',tcmax,' (',trmin,trmax-1,')', modeln
+        print ' --> time chunk (bounds) = ',tc+1, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
         time    = thetao.getTime()
@@ -525,11 +528,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         
         # Test variable units
         [so,soFixed] = fixVarUnits(so,'so',True)#,'logfile.txt')
-        if soFixed:
-            print '     so:     units corrected'
+        #if soFixed:
+        #    print '     so:     units corrected'
         [thetao,thetaoFixed] = fixVarUnits(thetao,'thetao',True)#,'logfile.txt')
-        if thetaoFixed:
-            print '     thetao: units corrected'        
+        #if thetaoFixed:
+        #    print '     thetao: units corrected'        
         
         # Compute neutral density 
         rhon = eosNeutral(thetao,so)-1000.
@@ -548,8 +551,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         
         #print '1'
+        tucz0     = timc.clock()
+        if cpuan:
+            cpu1 = 0.
+            cpu2 = 0.
+            cpu3 = 0.
+            cpu4 = 0.
+            cpu40 = 0.
+            cpu5 = 0.
         # Loop on time within chunk tc
         for t in range(trmax-trmin): 
+            tcpu0 = timc.clock()
+            # find bottom level at each lat/lon point
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content  = thetao.data[t]
             x2_content  = so.data[t]
@@ -567,6 +580,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s,c1_s,c2_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(4)]
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
+            tcpu1 = timc.clock()
             # find bottom level at each lat/lon point
             i_bottom                = vmask_3D.argmax(axis=0)-1
             z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
@@ -594,6 +608,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 else:
                     szmin[i] = 0.
                     szmax[i] = rho_max+10.
+            tcpu2 = timc.clock()
             # Find indices between density min and density max
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
@@ -610,12 +625,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: no loop 
+            tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline           
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
+            tcpu40 = timc.clock()
             inds = npy.argwhere(s_s < szmin).transpose()
             z_s [inds[0],inds[1]] = 0.
             c1_s[inds[0],inds[1]] = valmask
@@ -628,6 +645,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c2_s[inds[0],inds[1]] = valmask
             idzmc1 = npy.argwhere(c1_s == valmask).transpose()
             z_s [idzmc1[0],idzmc1[1]] = valmask
+            tcpu4 = timc.clock()
             # Thickness of isopycnal
             t_s [0,:] = z_s [0,:] 
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
@@ -654,10 +672,28 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             thick_bin[t,:,:] = t_s
             x1_bin[t,:,:]    = c1_s
             x2_bin[t,:,:]    = c2_s
-            # mask final arrays
+            # CPU analysis
+            tcpu5 = timc.clock()
+            if cpuan:
+                cpu1 = cpu1 + tcpu1 - tcpu0
+                cpu2 = cpu2 + tcpu2 - tcpu1
+                cpu3 = cpu3 + tcpu3 - tcpu2
+                cpu4 = cpu4 + tcpu40 - tcpu3
+                cpu40 = cpu40 + tcpu4 - tcpu40
+                cpu5 = cpu5 + tcpu5 - tcpu4
         #
         # end of loop on t <===      
         #      
+        # CPU analysis
+        if cpuan:
+            print ' Bining CPU analysis tc/tcdel = ',tc,tcdel
+            print '    average cpu1 = ',cpu1/float(tcdel)
+            print '    average cpu2 = ',cpu2/float(tcdel)
+            print '    average cpu3 = ',cpu3/float(tcdel)
+            print '    average cpu4 = ',cpu4/float(tcdel)
+            print '    average cpu40 = ',cpu40/float(tcdel)
+            print '    average cpu5 = ',cpu5/float(tcdel)
+        ticz0 = timc.clock()
         # Free memory 
         del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
         # Wash mask (from temp) over variables
@@ -1260,15 +1296,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.write(x1Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             outFileMon_f.write(x2Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             del(depthBin,thickBin,x1Bin,x2Bin) ; gc.collect()
-        
+            outFileMon_f.sync()
+        outFile_f.sync()
         tozf = timc.clock()
-        print '   CPU of density bining      =', ticz-tuc
+        print '   CPU of chunk inits         =', tucz0-tuc
+        print '   CPU of density bining      =', ticz0-tucz0
+        print '   CPU of masking and var def =', ticz-ticz0
         if tcdel >= 12:
             print '   CPU of annual mean compute =', toz-ticz
             print '   CPU of interpolation       =', tozi-toz
             print '   CPU of zonal mean          =', toziz-tozi
             print '   CPU of persistence compute =', tozp-toziz
         print '   CPU of chunk               =', tozf-tuc
+        print '   Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
     
     # end loop on tc <===
     print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
