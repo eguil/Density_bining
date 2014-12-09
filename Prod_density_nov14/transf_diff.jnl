@@ -1,0 +1,132 @@
+
+!
+! plot formation
+!
+CANCEL DATA/ALL
+PPL SHASET RESET
+
+let proj  = "cmip5"
+let model = "MPI-ESM-LR"
+let model = "multimodel"
+let model1 = "multimodel"
+let exper = "historical"
+let rip   = "r1i1p1"
+let rip   = "ensm"
+let versi = "ver-1.latest"
+
+let file  = proj+"."+model+"."+exper+"."+rip+".an.ocn.Omon.surfden."+versi+".nc"
+let file  = proj+"."+model1+"."+exper+"."+rip+".an.ocn.Omon.surfTrans.nc"
+let versi = "ver-1.latestX"
+let file2  = proj+"."+model+"."+exper+"."+rip+".an.ocn.Omon.density_zon2D.nc"
+use `file2`
+use `file`
+
+! sigma/Sv axis
+let rhomin = "21"
+let rhomax = "28.5"
+let rhodel = ".5"
+let hlim  = rhomin+":"+rhomax+":"+rhodel
+let vlim  = "-3:3:.5"
+
+! years
+let y11 = 140
+let y12 = 146
+let y21 = 2
+let y22 = 31
+
+let yrs1  = "`y11`:`y12`"
+let yrs2  = "`y21`:`y22`"
+let y1m   = `(y12+y11)/2`
+let y2m   = `(y22+y21)/2`
+let yrsm  = "`y1m`:`y2m`"
+let secyr = `365*86400`
+! delta time in seconds (for Sv)
+let delta_t = `(y1m-y2m)*secyr`
+! isonvol unit in 1.e12 m3 and output in Sv:
+let convv = 1.e+12*1.e-6
+
+! legends
+let vartyp = "Formation & dV/dt (Sv)"
+let vartyp = "Formation (Sv)"
+let xlab  = `($ppl$xlen)*0.33`
+let ylab  = `($ppl$ylen)*0.05`
+let timeleg = "Diff yrs "+yrs1+"/"+yrs2
+let xleg  = `($ppl$xlen)*0.25`
+let yleg  = `($ppl$ylen)*0.8`
+
+
+PPL SHASET RESET
+
+! =========
+!   Global
+! =========
+set viewport UL
+go margins .5 .5 .9 .5
+let form  = (trsftot[K=@SHF:1,d=2]-trsftot[d=2])*-1.
+let formh = (trsfhef[K=@SHF:1,d=2]-trsfhef[d=2])*-1.
+let formw = (trsfwfo[K=@SHF:1,d=2]-trsfwfo[d=2])*-1.
+let dvdt  = (isonvol[K=1,I=@sum,L=`yrs1`@ave,d=1]-isonvol[K=1,I=@sum,L=`yrs2`@ave,d=1])*convv/delta_t
+
+plot/hlimits=`hlim`/vlimits=`vlim`/thick=2/transpose/color=black form[L=`yrs1`@ave,K=@sbx:5]-form[L=`yrs2`@ave,K=@sbx:5]
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {19,28.5},{0,0}
+plot/over/thick=1/NOLAB/transpose/color=red   formh[L=`yrs1`@ave,K=@sbx:5]-formh[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=green formw[L=`yrs1`@ave,K=@sbx:5]-formw[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=blue  dvdt
+
+label/nouser `xlab`,`ylab`,0,0,0.15 Global `vartyp`
+label/nouser `xleg`,`yleg`,0,0,0.15 `timeleg`
+
+! ===========
+!   Atlantic
+! ===========
+set viewport UR
+go margins .5 .5 .9 .5
+let form  = (trsftotatl[K=@SHF:1,d=2]-trsftotatl[d=2])*-1.
+let formh = (trsfhefatl[K=@SHF:1,d=2]-trsfhefatl[d=2])*-1.
+let formw = (trsfwfoatl[K=@SHF:1,d=2]-trsfwfoatl[d=2])*-1.
+let dvdt  = (isonvol[K=2,I=@sum,L=`yrs1`@ave,d=1]-isonvol[K=2,I=@sum,L=`yrs2`@ave,d=1])*convv/delta_t
+
+plot/hlimits=`hlim`/vlimits=`vlim`/thick=2/transpose/color=black form[L=`yrs1`@ave,K=@sbx:5]-form[L=`yrs2`@ave,K=@sbx:5]
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {19,28.5},{0,0}
+plot/over/thick=1/NOLAB/transpose/color=red   formh[L=`yrs1`@ave,K=@sbx:5]-formh[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=green formw[L=`yrs1`@ave,K=@sbx:5]-formw[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=blue  dvdt
+label/nouser `xlab`,`ylab`,0,0,0.15 Atlantic `vartyp` 
+label/nouser `xleg`,`yleg`,0,0,0.15 `timeleg`
+
+! ==========
+!   Pacific
+! ==========
+set viewport LL
+go margins .5 .5 .9 .5
+let form  = (trsftotpac[K=@SHF:1,d=2]-trsftotpac[d=2])*-1.
+let formh = (trsfhefpac[K=@SHF:1,d=2]-trsfhefpac[d=2])*-1.
+let formw = (trsfwfopac[K=@SHF:1,d=2]-trsfwfopac[d=2])*-1.
+let dvdt  = (isonvol[K=3,I=@sum,L=`yrs1`@ave,d=1]-isonvol[K=3,I=@sum,L=`yrs2`@ave,d=1])*convv/delta_t
+
+plot/hlimits=`hlim`/vlimits=`vlim`/thick=2/transpose/color=black form[L=`yrs1`@ave,K=@sbx:5]-form[L=`yrs2`@ave,K=@sbx:5]
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {19,28.5},{0,0}
+plot/over/thick=1/NOLAB/transpose/color=red   formh[L=`yrs1`@ave,K=@sbx:5]-formh[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=green formw[L=`yrs1`@ave,K=@sbx:5]-formw[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=blue  dvdt
+label/nouser `xlab`,`ylab`,0,0,0.15 Pacific `vartyp`
+label/nouser `xleg`,`yleg`,0,0,0.15 `timeleg`
+
+! =========
+!   Indian
+! =========
+set viewport LR
+go margins .5 .5 .9 .5
+let form  = (trsftotind[K=@SHF:1,d=2]-trsftotind[d=2])*-1.
+let formh = (trsfhefind[K=@SHF:1,d=2]-trsfhefind[d=2])*-1.
+let formw = (trsfwfoind[K=@SHF:1,d=2]-trsfwfoind[d=2])*-1.
+let dvdt  = (isonvol[K=4,I=@sum,L=`yrs1`@ave,d=1]-isonvol[K=4,I=@sum,L=`yrs2`@ave,d=1])*convv/delta_t
+
+plot/hlimits=`hlim`/vlimits=`vlim`/thick=2/transpose/color=black form[L=`yrs1`@ave,K=@sbx:5]-form[L=`yrs2`@ave,K=@sbx:5]
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {19,28.5},{0,0}
+plot/over/thick=1/NOLAB/transpose/color=red   formh[L=`yrs1`@ave,K=@sbx:5]-formh[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=green formw[L=`yrs1`@ave,K=@sbx:5]-formw[L=`yrs2`@ave,K=@sbx:5]
+plot/over/thick=1/NOLAB/transpose/color=blue  dvdt
+
+label/nouser `xlab`,`ylab`,0,0,0.15 Indian `vartyp`
+label/nouser `xleg`,`yleg`,0,0,0.15 `timeleg`
