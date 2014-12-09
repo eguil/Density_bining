@@ -1,0 +1,84 @@
+go init_rhon.jnl
+
+SET WINDOW/SIZE=1
+SET WINDOW/ASPECT=1.3
+
+define viewport/text=.6/x=0.,.6/y=.83,1     spa_u   ! upper
+define viewport/text=.6/x=0.,.6/y=0.66,.83  spa_l   ! lower
+define viewport/text=.6/x=0.,.6/y=.495,.66  spp_u   ! upper
+define viewport/text=.6/x=0.,.6/y=0.33,.495 spp_l   ! lower
+define viewport/text=.6/x=0.,.6/y=.165,.33  spi_u   ! upper
+define viewport/text=.6/x=0.,.6/y=0.,.165   spi_l   ! lower
+
+let no1d = 0
+
+let typep = 2
+
+let basin = "Atlantic"
+let idxb = 2
+
+if `typep eq 1` then
+   let array  = `var`Bowl
+   let field  = (array[d=1,k=`idxb`,L=`yrs1`@ave]-array[d=1,k=`idxb`,L=`yrs2`@ave])
+else
+   let array  = `var`ModStd
+   let field  = array[d=1,k=`idxb`,L=`yrs2`@ave]
+   let palet = "inverse_redscale"
+   let palet = "low_green"
+endif
+let arraya = `var`Agree
+
+let fieldm =  array[d=1,k=`idxb`,L=`yrsa`@ave]
+let fielda = arraya[d=1,k=`idxb`,L=`yrs1`@ave]
+let fldp1  = ptopsigma[d=2,L=`yrs2`@ave,k=`idxb`]
+let fldp2  = ptopsigma[d=2,L=`yrs1`@ave,k=`idxb`]
+
+go plot_z2dom field fieldm hlim vlim zlim levs palet contlev fldp1 fldp2 spa_u spa_l basin no1d fielda agreelev
+label/nouser `($ppl$xlen)*0.95`,`($ppl$ylen)*1.85`,1,0,0.15 `model`
+label/nouser `($ppl$xlen)*0.95`,`($ppl$ylen)*1.7`,1,0,0.15 `var`
+
+let basin = "Pacific"
+let idxb = 3
+
+if `typep eq 1` then
+   let array  = `var`Bowl
+   let field  = (array[d=1,k=`idxb`,L=`yrs1`@ave]-array[d=1,k=`idxb`,L=`yrs2`@ave])
+else
+   let array  = `var`ModStd
+   let field  = array[d=1,k=`idxb`,L=`yrs2`@ave]
+endif
+
+let fieldm =  array[d=1,k=`idxb`,L=`yrsa`@ave]
+let fielda = arraya[d=1,k=`idxb`,L=`yrs1`@ave]
+let fldp1  = ptopsigma[d=2,L=`yrs2`@ave,k=`idxb`]
+let fldp2  = ptopsigma[d=2,L=`yrs1`@ave,k=`idxb`]
+
+go plot_z2dom field fieldm hlim vlim zlim levs palet contlev fldp1 fldp2 spp_u spp_l basin no1d fielda agreelev
+
+let basin = "Indian"
+let idxb = 4
+
+if `typep eq 1` then
+   let array  = `var`Bowl
+   let field  = (array[d=1,k=`idxb`,L=`yrs1`@ave]-array[d=1,k=`idxb`,L=`yrs2`@ave])
+else
+   let array  = `var`ModStd
+   let field  = array[d=1,k=`idxb`,L=`yrs2`@ave]
+endif
+
+let fieldm =  array[d=1,k=`idxb`,L=`yrsa`@ave]
+let fielda = arraya[d=1,k=`idxb`,L=`yrs1`@ave]
+let fldp1  = ptopsigma[d=2,L=`yrs2`@ave,k=`idxb`]
+let fldp2  = ptopsigma[d=2,L=`yrs1`@ave,k=`idxb`]
+
+go plot_z2dom field fieldm hlim vlim zlim levs palet contlev fldp1 fldp2 spi_u spi_l basin no1d fielda agreelev
+
+ppl axset 1,1
+cancel symbol upper_axlen
+cancel symbol orig_yorg
+cancel symbol lower_right_x
+cancel symbol lower_right_y
+cancel symbol axis_gap
+cancel symbol lower_axlen
+set mode/last verify
+

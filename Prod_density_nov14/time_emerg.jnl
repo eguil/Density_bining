@@ -1,0 +1,99 @@
+go init_rhon.jnl
+
+SET WINDOW/SIZE=1
+SET WINDOW/ASPECT=1.3
+DEFINE VIEWPORT/XLIM=0.,.9/YLIM= 0,.33 V1
+DEFINE VIEWPORT/XLIM=0.,.9/YLIM=.33,.66 V2
+DEFINE VIEWPORT/XLIM=0.,.9/YLIM=.66,1 V3
+GO unlabel 1
+GO unlabel 2
+GO unlabel 3
+CANCEL MODE LOGO
+
+let array = `var`Agree
+
+set viewport V3
+go margins .5 .5 1 .5
+
+!box 1: lat=-40,-20, rhon=25.5,26.5
+
+let lats1 = "-40:-20"
+let rhon1 = "26:26.7"
+
+let field  = array[k=2,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+
+plot/vlimits=-1:1:.2/thick=2/color=blue field
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=blue {0,10000},{-.6,-.6}
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=red {0,10000},{0.6,0.6}
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {0,10000},{0,0}
+
+let lats1 = "20:40"
+let rhon1 = "26:27.2"
+let field  = array[k=2,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=green field
+
+let lats1 = "-55:-40"
+let rhon1 = "26.8:27.8"
+let field  = array[k=2,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=red field
+
+let lats1 = "5:25"
+let rhon1 = "23.5:25.5"
+let field  = array[k=2,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=purple field
+
+let lats1 = "65:90"
+let rhon1 = "26.4:28"
+let field  = array[k=2,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=black field
+
+set viewport V2
+go margins .5 .5 1 .5
+
+let lats1 = "-55:0"
+let rhon1 = "24.5:26.8"
+
+let field  = array[k=3,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+
+plot/vlimits=-1:1:.2/thick=2/color=blue field
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=blue {0,10000},{-.6,-.6}
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=red {0,10000},{0.6,0.6}
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {0,10000},{0,0}
+
+let lats1 = "-60:-45"
+let rhon1 = "27.2:27.8"
+
+let field  = array[k=3,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=red field
+
+let lats1 = "45:60"
+let rhon1 = "26.4:27"
+
+let field  = array[k=3,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=green field
+
+let lats1 = "-30:-20"
+let rhon1 = "25:26.1"
+
+let field  = array[k=3,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=1/NOLAB/color=blue field
+
+set viewport V1
+go margins .5 .5 1 .5
+
+let lats1 = "-40:-20"
+let rhon1 = "25.8:26.6"
+
+let field  = array[k=4,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+
+plot/vlimits=-1:1:.2/thick=2/color=blue field
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=blue {0,10000},{-.6,-.6}
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=red {0,10000},{0.6,0.6}
+PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {0,10000},{0,0}
+
+let lats1 = "-55:-45"
+let rhon1 = "27:27.8"
+
+let field  = array[k=4,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
+plot/over/thick=2/NOLAB/color=red field
+
