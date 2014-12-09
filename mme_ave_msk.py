@@ -4,6 +4,7 @@ import cdutil as cdu
 import MV2 as mv
 import numpy as npy
 from string import replace
+from genutil import statistics
 import time as timc
 
 def maskVal(field,valmask):
@@ -65,7 +66,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
 
     - TO DO :
-                 - 
+                 - optimization of loops
     '''
 
     # CDMS initialisation - netCDF compression
@@ -110,6 +111,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
     varFill = [0.,0.,valmask,valmask,0.,0.]
     #varList = ['isondepth']
+    #varList = ['isonthetao']
 
     # init arrays
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
@@ -158,7 +160,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
                 varb = var+'Bowl'
                 varbowl2D[i,...] = ft(varb,time = slice(t1,t2))
             else:
-                # Compute difference with average of first initN years, use mask of last month
+                # Compute difference with average of first initN years
                 varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
                 for t in range(timN):
                     vardiff[i,t,...] = isonvar[i,t,...] - varinit
@@ -208,40 +210,53 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
 
         # Only keep points with rhon >  bowl-delta_rho
         delta_rho = 0.
-        if mme:
+        if mme: # start from average of <var>Agree 
             isonVarBowl = cdu.averager(varbowl2D, axis=0)
             isonVarBowl = cdm.createVariable(isonVarBowl , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
             isonVarBowl = maskVal(isonVarBowl, valmask)
             isonVarBowl.mask = percentw.mask
+            # Compute intermodel stddev
+            isonVarStd = statistics.std(varbowl2D, axis=0)
+            isonVarStd = cdm.createVariable(isonVarStd , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
+            isonVarStd = maskVal(isonVarStd, valmask)
+            isonVarStd.mask = percentw.mask
             if iv == 0:
+                # Read mulitmodel sigma on bowl and average in time
                 f1d = cdm.open(replace(outDir+'/'+outFile,'2D','1D'))
                 bowlRead = f1d('ptopsigma',time = slice(t1,t2))
                 f1d.close()
                 siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
+            # TODO: remove loop by building global array with 1/0
             for il in range(latN):
                 for ib in range(basN):
                     #if ib == 2:
                     #    print il, siglimit[ib,il]
                     if siglimit[ib,il] < valmask/1000.:
+                        # if mme bowl density defined, mask above bowl
                         index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
-                        isonVarBowl[:,ib,0:index[0],il].mask = True
+                        isonVarBowl [:,ib,0:index[0],il].mask = True
+                        isonVarStd  [:,ib,0:index[0],il].mask = True
                         vardiffsgSum[:,ib,0:index[0],il].mask = True
                     else:
-                        isonVarBowl[:,ib,:,il].mask = True
-                        vardiffsgSum[:,ib,:,il].mask = True
-                
+                        # mask all points
+                        isonVarBowl [:,ib,:,il].mask = True
+                        isonVarStd  [:,ib,:,il].mask = True
+                        vardiffsgSum[:,ib,:,il].mask = True                
         else:
-            isonVarBowl = isonVarAve*1.
+            isonVarBowl = isonVarAve*1. # start from variable
             if iv == 0:
                 siglimit = cdu.averager(varbowl, axis=0) 
                 siglimit = cdu.averager(siglimit, axis=0) - delta_rho
+            # TODO: remove loop by building global array with 1/0
             for il in range(latN):
                 for ib in range(basN):
                     if siglimit[ib,il] < valmask/1000.:
+                        # if bowl density defined, mask above bowl
                         index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
                         isonVarBowl[:,ib,0:index[0],il].mask = True
                         vardiffsgSum[:,ib,0:index[0],il].mask = True
                     else:
+                        # mask all points
                         vardiffsgSum[:,ib,:,il].mask = True
             isonVarBowl = maskVal(isonVarBowl, valmask)
             
@@ -259,12 +274,18 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
         outFile_f.write(    isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
         outFile_f.write(isonavebowl.astype('float32'))
+        if mme:
+            isonvarstd = cdm.createVariable(isonVarStd , axes =[time,axesList[1],axesList[2],axesList[3]] , id = isonRead.id+'ModStd')
+            isonvarstd.long_name = isonRead.long_name+' intermodel std'
+            isonvarstd.units     = isonRead.units
+            outFile_f.write(isonvarstd.astype('float32'))
+           
     # <--- end of loop on variables 
 
     outFile_f.close()
     fi.close()
 
-def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
+def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=True):
     '''
     The mmeAveMsk1D() function averages rhon or scalar density bined files with differing masks
     It ouputs the MME and a percentage of non-masked bins
@@ -278,11 +299,18 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
     - inDir(str)             - input directory where files are stored
     - outDir(str)            - output directory
     - outFile(str)           - output file
+    - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
+    - mme(bool)              - multi-model mean (will read in single model ensemble stats)
     - debug <optional>       - boolean value
 
     Notes:
     -----
     - EG 25 Nov 2014   - Initial function write
+    - EG  9 Dec 2014   - Add agreement on difference with init period - save as <var>Agree
+
+    To do:
+    ------
+                 
     '''
 
     # CDMS initialisation - netCDF compression
@@ -301,6 +329,9 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
     # File dim and grid inits
     t1 = years[0]
     t2 = years[1]
+    # Bound of period average to remove
+    peri1 = timeInt[0]
+    peri2 = timeInt[1]
     fi      = cdm.open(indir+'/'+listFiles[0])
     ptopd0  = fi('ptopdepth',time=slice(t1,t2)) ; # Create variable handle
     # Get grid objects
@@ -322,7 +353,7 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
     # loop on variables
 
     varList = ['ptopdepth','ptopsigma','ptopso','ptopthetao','volpers','salpers','tempers']
-    varFill = [0.,0.,valmask,valmask,0.,0.,0.,valmask,valmask]
+    #varFill = [0.,0.,valmask,valmask,0.,0.,0.,valmask,valmask]
     varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
     varDim  = [1,1,1,1,0,0,0]
     #varList = ['ptopdepth']
@@ -346,18 +377,22 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
         # Array inits
         if varDim[iv] == 1:
             isonvar = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*valmask
+            vardiff = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*valmask
+            varones = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
             axisVar = axis1D
         else:
             isonvar = npy.ma.ones([runN,timN,basN], dtype='float32')*valmask
+            vardiff = npy.ma.ones([runN,timN,basN], dtype='float32')*valmask
+            varones = npy.ma.ones([runN,timN,basN], dtype='float32')*1.
             axisVar = axis0D
         print ' Variable ',iv, var, varDim[iv]
         print isonvar.shape
         # loop over files to fill up array
-        for i,file in enumerate(listFiles):
-            print i, file
+        for ic,file in enumerate(listFiles):
+            print ic, file
             ft      = cdm.open(indir+'/'+file)
             timeax  = ft.getAxis('time')
-            if i == 0:
+            if ic == 0:
                 tmax0 = timeax.shape[0]
                 tmax = timeax.shape[0]
             if tmax != tmax0:
@@ -365,18 +400,28 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
                 return
             # read array
             isonRead = ft(var,time = slice(t1,t2))
-            print isonRead.shape
+            #print isonRead.shape
             if varFill[iv] != valmask:
-                isonvar[i,...] = isonRead.filled(varFill[iv])
+                isonvar[ic,...] = isonRead.filled(varFill[iv])
             else:
-                isonvar[i,...] = isonRead
-            ft.close()
+                isonvar[ic,...] = isonRead
 
             # compute percentage of non-masked points accros MME
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
-                percent[i,...] = npy.float32(npy.equal(maskvar,0))
+                percent[ic,...] = npy.float32(npy.equal(maskvar,0))
+            if mme:
+                # if mme then just average Bowl and Agree fields
+                varst = var+'Agree'
+                vardiff[ic,...] = ft(varst,time = slice(t1,t2))
+            else:
+                # Compute difference with average of first initN years, use mask of last month
+                varinit = cdu.averager(isonvar[ic,peri1:peri2,...],axis=0)
+                for tr in range(timN):
+                    vardiff[ic,tr,...] = isonvar[ic,tr,...] - varinit
+                vardiff[ic,...].mask = isonvar[ic,...].mask
 
+            ft.close()
         # <-- end of loop on files
         # Compute percentage of bin presence
         # Only keep points where percent > 50%
@@ -388,8 +433,21 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
             percentw.long_name = 'percentage of MME bin'
             percentw.units     = '%'
             outFile_f.write(percentw.astype('float32'))
+        # Sign of difference
+        if mme:
+            vardiffsgSum = cdu.averager(vardiff, axis=0)
+            vardiffsgSum = cdm.createVariable(vardiffsgSum , axes = axisVar , id = 'foo')
+            vardiffsgSum = maskVal(vardiffsgSum, valmask)
+            vardiffsgSum.mask = percentw.mask
+        else:
+            vardiffsg = npy.copysign(varones,vardiff)
+            # average signs
+            vardiffsgSum = cdu.averager(vardiffsg, axis=0)
+            vardiffsgSum = mv.masked_greater(vardiffsgSum, 10000.)
+            vardiffsgSum.mask = percentw.mask
+            vardiffsgSum._FillValue = valmask
 
-        # average
+        # average accross members
         isonVarAve = cdu.averager(isonvar, axis=0)
         isonVarAve = cdm.createVariable(isonVarAve , axes = axisVar , id = 'foo')
         # mask
@@ -402,8 +460,12 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
         isonave = cdm.createVariable(isonVarAve, axes = axisVar, id = isonRead.id)
         isonave.long_name = isonRead.long_name
         isonave.units     = isonRead.units
+        isonavediff = cdm.createVariable(vardiffsgSum, axes = axisVar, id = isonRead.id+'Agree')
+        isonavediff.long_name = isonRead.long_name
+        isonavediff.units     = isonRead.units
 
         outFile_f.write(isonave.astype('float32'))
+        outFile_f.write(isonavediff.astype('float32'))
     # <--- end of loop on variables 
 
     outFile_f.close()
@@ -414,16 +476,27 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, debug=True):
 
 # Model ensemble mean
 
-#twoD = False
-#oneD = True
-twoD = True
-oneD = False
+twoD = False
+oneD = True
+#twoD = True
+#oneD = False
 mm  = False
 mme = True 
 
 exper  = 'historical'
-models = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
-years = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[0,146],[0,146],[10,156],[10,156],[10,156],[10,156],[10,156]]
+models12 = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
+models3  = ['CESM1-CAM5','CESM1-FASTCHEM','CESM1-WACCM','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5-2','GFDL-CM3','GISS-E2-H-CC','MPI-ESM-LR']
+years12 = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[0,146],[0,146],[10,156],[10,156],[10,156],[10,156],[10,156]]
+years3  = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[10,156],[10,156]]
+
+models = models12
+models = models + models3
+print models
+#models = models3
+years  = years12
+years  = years + years3
+#years  = years3
+
 #models = ['ACCESS1-3']#,'ACCESS1-3']
 #models = ['ACCESS1-3']#,'ACCESS1-3']
 #models = ['IPSL-CM5A-LR']
@@ -455,8 +528,10 @@ for i,mod in enumerate(models):
     if mm:
         if twoD:
             mmeAveMsk2D(listf,years[i],indir,outdir,outFile,timeInt,mme)
+            print 'Wrote ',outdir+'/'+outFile
         if oneD:
             mmeAveMsk1D(listf1,years[i],indir,outdir,outFile1,timeInt,mme)
+            print 'Wrote ',outdir+'/'+outFile1
 
 if mme:
     # MME
@@ -464,9 +539,10 @@ if mme:
     if twoD:
         outFile = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
         mmeAveMsk2D(listens,[0,146],indir,outdir,outFile,timeInt,mme)
+        print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
         mmeAveMsk1D(listens1,[0,146],indir,outdir,outFile1,timeInt,mme)
-    print 'Wrote ',outdir+'/'+outFile
+        print 'Wrote ',outdir+'/'+outFile1
 
 modelsurf = ['ACCESS1-0','ACCESS1-3','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','EC-EARTH','FGOALS-s2','GFDL-ESM2G','GISS-E2-R-CC','GISS-E2-R','MIROC5','MIROC-ESM-CHEM','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MPI-ESM-P','NorESM1-ME','NorESM1-M']
