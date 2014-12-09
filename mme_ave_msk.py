@@ -159,7 +159,9 @@ def mmeAveMsk(listFiles, indDir, outFile, debug=True):
 
 listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc','cmip5.ACCESS1-3.historical.r2i1p1.an.ocn.Omon.density.ver-v2_zon2D.nc','cmip5.ACCESS1-3.historical.r3i1p1.an.ocn.Omon.density.ver-v3_zon2D.nc']
 listf = ['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1_zon2D.nc']
+listf =['cmip5.ACCESS1-3.historical.r1i1p1.an.ocn.Omon.density.ver-1.nc']
 indir = '/work/guilyardi/Prod_density_nov14/Phase_1'
+indir ='/work/durack1/Shared/141103_Density'
 outf  = 'testMME.nc'
 
 mmeAveMsk(listf,indir,outf)
