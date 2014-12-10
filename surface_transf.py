@@ -55,7 +55,7 @@ import seawater as sw
 # -----
 #
 
-def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, timeint='all'):
+def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, timeint='all',noInterp=False):
     '''
     The surfTransf() function takes files and variable arguments and creates
     density bined surface transformation fields which are written to a specified outfile
@@ -74,6 +74,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
+    - noInterp <optional>       - if true no interpolation to target grid 
 
     Outputs:
     --------
@@ -147,7 +148,13 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     if debugp:
         print' Read hfds, wfo'
     qnet = fhef('hfds', time = slice(tmin,tmax))
-    emp  = fwfo('wfo' , time = slice(tmin,tmax))
+    try:
+        emp  = fwfo('wfo' , time = slice(tmin,tmax))
+        empsw = 0
+    except Exception,err:
+        emp  = fwfo('wfos' , time = slice(tmin,tmax))
+        print ' Reading concentration dillution fresh water flux'
+        empsw = 1
     tos_h = ftos['tos']
     #
     # Read time and grid
@@ -236,28 +243,55 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     #nomask = npy.equal(maskin,0)
     #
     # target horizonal grid for interp 
-    #fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
-    fileg = '/export/durack1/git/Density_bining/140807_WOD13_masks.nc'
-    gt = cdm.open(fileg)
-    maskg = gt('basinmask3')
-    outgrid = maskg.getGrid()
-    # global mask
-    maski = maskg.mask
-    # regional masks
-    maskAtl = maski*1 ; maskAtl[...] = True
-    idxa = npy.argwhere(maskg == 1).transpose()
-    maskAtl[idxa[0],idxa[1]] = False
-    maskPac = maski*1 ; maskPac[...] = True
-    idxp = npy.argwhere(maskg == 2).transpose()
-    maskPac[idxp[0],idxp[1]] = False
-    maskInd = maski*1 ; maskInd[...] = True
-    idxi = npy.argwhere(maskg == 3).transpose()
-    maskInd[idxi[0],idxi[1]] = False
-    #masks = [maski, maskAtl, maskPac, maskInd]
-    loni    = maskg.getLongitude()
-    lati    = maskg.getLatitude()
-    Nii     = int(loni.shape[0])
-    Nji     = int(lati.shape[0])
+    if noInterp:
+        outgrid = ingrid
+        maski = tos.mask
+        fileg = 'Pablo_work/Convection-NORTHREGION-mask.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('NORTHREGION')
+        maskAtl = maskr.mask
+        gt.close
+        fileg = 'Pablo_work/Convection-SOUTHREGION-mask.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('SOUTHREGION')
+        maskPac = maskr.mask
+        gt.close
+        fileg = 'Pablo_work/Convection-WESTREGION-mask.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('WESTREGION')
+        maskInd = maskr.mask
+        gt.close
+        maskAtl = maski
+        maskPac = maski
+        maskInd = maski
+        loni    = tos.getLongitude()
+        lati    = tos.getLatitude()
+        Nii     = int(loni.shape[0])
+        Nji     = int(lati.shape[0])   
+    else:
+        #fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
+        fileg = '/export/durack1/git/Density_bining/140807_WOD13_masks.nc'
+        gt = cdm.open(fileg)
+        maskg = gt('basinmask3')
+        outgrid = maskg.getGrid()
+        gt.close()
+        # global mask
+        maski = maskg.mask
+        # regional masks
+        maskAtl = maski*1 ; maskAtl[...] = True
+        idxa = npy.argwhere(maskg == 1).transpose()
+        maskAtl[idxa[0],idxa[1]] = False
+        maskPac = maski*1 ; maskPac[...] = True
+        idxp = npy.argwhere(maskg == 2).transpose()
+        maskPac[idxp[0],idxp[1]] = False
+        maskInd = maski*1 ; maskInd[...] = True
+        idxi = npy.argwhere(maskg == 3).transpose()
+        maskInd[idxi[0],idxi[1]] = False
+        #masks = [maski, maskAtl, maskPac, maskInd]
+        loni    = maskg.getLongitude()
+        lati    = maskg.getLatitude()
+        Nii     = int(loni.shape[0])
+        Nji     = int(lati.shape[0])
     #
     # init arrays
     tmp     = npy.ma.ones([N_t, Nji, Nii], dtype='float32')*valmask 
@@ -320,19 +354,26 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     #
     # Compute area of target grid and zonal sums
     areai = computeArea(loni[:], lati[:])
-    gt.close()
     # Interpolation init (regrid)
-    ESMP.ESMP_Initialize()
-    regridObj = CdmsRegrid(ingrid, outgrid, denflxh.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
+    if noInterp == False:
+        ESMP.ESMP_Initialize()
+        regridObj = CdmsRegrid(ingrid, outgrid, denflxh.dtype, missing = valmask, regridMethod = 'linear', regridTool = 'esmf')
     # init integration intervals
     dt   = 1./float(N_t) 
 
     # Bin on density grid
     for t in range(N_t):
-        tost = regridObj(tos [t,:,:])
-        sost = regridObj(sos [t,:,:])
-        heft = regridObj(qnet[t,:,:])
-        empt = regridObj(emp [t,:,:])
+        if noInterp:
+            tost = tos [t,:,:]
+            sost = sos [t,:,:]
+            heft = qnet[t,:,:]
+            empt = emp [t,:,:]
+        else:
+            tost = regridObj(tos [t,:,:])
+            sost = regridObj(sos [t,:,:])
+            heft = regridObj(qnet[t,:,:])
+            empt = regridObj(emp [t,:,:])
+
         tost.mask = maski
         sost.mask = maski
         heft.mask = maski
@@ -370,7 +411,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         convwf = 1.e-3
         pres = tost.data*0.
         denflxh[t,...] = (-sw.alpha(sost.data,tost.data,pres)/sw.cp(sost.data,tost.data,pres))*heft.data
-        denflxw[t,...] = (rhonl+1000.)*sw.beta(sost.data,tost.data,pres)*sost.data*empt.data*convwf
+        if empsw == 0:
+            denflxw[t,...] = (rhonl+1000.)*sw.beta(sost.data,tost.data,pres)*sost.data*empt.data*convwf
+        else:
+            denflxw[t,...] = (rhonl+1000.)*sw.beta(sost.data,tost.data,pres)*empt.data*convwf            
         denflx [t,...] = denflxh[t,...] + denflxw[t,...]
         denflx [t,...].mask  = maski
         denflxh[t,...].mask  = maski
@@ -393,6 +437,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
             # Basin
             idxbina = npy.argwhere( (rhonl*maskAtl >= sigrid[ks]) & (rhonl*maskAtl < sigrid[ks+1]) ).transpose()
             idj = idxbina[0] ; idi = idxbina[1]
+            #print t,ks,dflxh.shape,areai.shape,idj,idi
             transfha[t,ks] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
             transfwa[t,ks] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
             areabina[t,ks] = cdu.averager(areai[idj,idi], axis=0, action='sum')
