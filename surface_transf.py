@@ -154,7 +154,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     except Exception,err:
         emp  = fwfo('wfos' , time = slice(tmin,tmax))
         print ' Reading concentration dillution fresh water flux'
-        empsw = 1
+        empsw = 0
     tos_h = ftos['tos']
     #
     # Read time and grid
@@ -174,11 +174,11 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     N_j = int(tos.shape[0])
     #
     # Define sigma grid 
-    rho_min = 19
-    rho_int = 26
-    rho_max = 28.5
-    del_s1  = 0.2
-    del_s2  = 0.1
+    rho_min = 22
+    rho_int = 25
+    rho_max = 29
+    del_s1  = 0.1
+    del_s2  = 0.05
     sigrid, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
     print
     print ' ==> model:', modeln
@@ -245,25 +245,22 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     # target horizonal grid for interp 
     if noInterp:
         outgrid = ingrid
-        maski = tos.mask
+        maski = tos[0,...].mask
         fileg = 'Pablo_work/Convection-NORTHREGION-mask.nc'
         gt = cdm.open(fileg)
         maskr = gt('NORTHREGION')
-        maskAtl = maskr.mask
+        maskAtl = maskr[0,...]
         gt.close
         fileg = 'Pablo_work/Convection-SOUTHREGION-mask.nc'
         gt = cdm.open(fileg)
         maskr = gt('SOUTHREGION')
-        maskPac = maskr.mask
+        maskPac = maskr[0,...]
         gt.close
         fileg = 'Pablo_work/Convection-WESTREGION-mask.nc'
         gt = cdm.open(fileg)
         maskr = gt('WESTREGION')
-        maskInd = maskr.mask
+        maskInd = maskr[0,...]
         gt.close
-        maskAtl = maski
-        maskPac = maski
-        maskInd = maski
         loni    = tos.getLongitude()
         lati    = tos.getLatitude()
         Nii     = int(loni.shape[0])
@@ -386,27 +383,27 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         hefta = heft*1.
         heftp = heft*1.
         hefti = heft*1.
-        hefta.mask = maskAtl
-        heftp.mask = maskPac
-        hefti.mask = maskInd
-        hefta = maskVal(hefta, valmask)
-        heftp = maskVal(heftp, valmask)
-        hefti = maskVal(hefti, valmask)
+        #hefta.mask = maskAtl
+        #heftp.mask = maskPac
+        #hefti.mask = maskInd
+        #hefta = maskVal(hefta, valmask)
+        #heftp = maskVal(heftp, valmask)
+        #hefti = maskVal(hefti, valmask)
         #
         empta = empt*1.
         emptp = empt*1.
         empti = empt*1.
-        empta.mask = maskAtl
-        emptp.mask = maskPac
-        empti.mask = maskInd
-        empta = maskVal(empta, valmask)
-        emptp = maskVal(emptp, valmask)
-        empti = maskVal(empti, valmask)
+        #empta.mask = maskAtl
+        #emptp.mask = maskPac
+        #empti.mask = maskInd
+        #empta = maskVal(empta, valmask)
+        #emptp = maskVal(emptp, valmask)
+        #empti = maskVal(empti, valmask)
         #
         # Compute density
         rhon[t,...] = eosNeutral(tost.data, sost.data) - 1000.
         rhonl = rhon.data[t,...]
-         # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
+        # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
         #  convwf : kg/m2/s = mm/s -> m/s
         convwf = 1.e-3
         pres = tost.data*0.
@@ -435,6 +432,11 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
             transfw[t,ks] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
             areabin[t,ks] = cdu.averager(areai[idxbin[0],idxbin[1]], axis=0, action='sum')
             # Basin
+            #print maskAtl.shape
+            #print maskAtl
+            #print rhonl.shape
+            #print rhonl
+
             idxbina = npy.argwhere( (rhonl*maskAtl >= sigrid[ks]) & (rhonl*maskAtl < sigrid[ks+1]) ).transpose()
             idj = idxbina[0] ; idi = idxbina[1]
             #print t,ks,dflxh.shape,areai.shape,idj,idi
@@ -490,6 +492,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         # domain integrals
         # heat flux (conv W -> PW)
         convt  = 1.e-15
+            
         intHeatFlx [t] = cdu.averager(npy.reshape(heft*areai , (Nji*Nii)), action='sum')*dt*convt
         intHeatFlxa[t] = cdu.averager(npy.reshape(hefta*areai, (Nji*Nii)), action='sum')*dt*convt
         intHeatFlxp[t] = cdu.averager(npy.reshape(heftp*areai, (Nji*Nii)), action='sum')*dt*convt
