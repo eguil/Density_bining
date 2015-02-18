@@ -484,7 +484,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
-    regridObj = CdmsRegrid(ingrid,outgrid,depth_bin.dtype,missing=valmask,regridMethod='linear',regridTool='esmf')
+    regridObj = CdmsRegrid(ingrid,outgrid,depth_bin.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
     tintrp     = timc.clock()
     
     # Preallocate masked arrays on target grid
@@ -801,10 +801,15 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         ticz = timc.clock()
         if tcdel >= 12:
             # Annual mean
-            dy  = cdu.averager(npy.ma.reshape(depthBin, (nyrtc, 12, N_s+1, latN, lonN)), axis=1)
-            ty  = cdu.averager(npy.ma.reshape(thickBin, (nyrtc, 12, N_s+1, latN, lonN)), axis=1)
-            x1y = cdu.averager(npy.ma.reshape(x1Bin,    (nyrtc, 12, N_s+1, latN, lonN)), axis=1)
-            x2y = cdu.averager(npy.ma.reshape(x2Bin,    (nyrtc, 12, N_s+1, latN, lonN)), axis=1)
+            dym  = npy.ma.reshape(depthBin, (nyrtc, 12, N_s+1, latN, lonN))
+            tym  = npy.ma.reshape(thickBin, (nyrtc, 12, N_s+1, latN, lonN))
+            x1ym = npy.ma.reshape(x1Bin,    (nyrtc, 12, N_s+1, latN, lonN))
+            x2ym = npy.ma.reshape(x2Bin,    (nyrtc, 12, N_s+1, latN, lonN))
+            dy  = cdu.averager(dym, axis=1)
+            ty  = cdu.averager(tym, axis=1)
+            x1y = cdu.averager(x1ym, axis=1)
+            x2y = cdu.averager(x2ym, axis=1)
+            del (dym,tym,x1ym,x2ym) ; gc.collect()
             # create annual time axis
             timeyr          = cdm.createAxis(dy.getAxis(0))
             timeyr.id       = 'time'

@@ -148,7 +148,7 @@ try:
     del(ind)
 except Exception,err:
     print 'Exception thrown: ',err
-list_soAndthetao = tmp
+list_soAndthetao = tmpdr
 del(tmp,x) ; gc.collect()
 
 #%%
