@@ -23,6 +23,7 @@ PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for fi
 PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
 EG  23 Sep 2014     - Clean up and more comments
 PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to outfiles
+EG  03 Feb 2015     - Code optimisation (removing loop in persistence) 
                     - TODO:
 test
 
@@ -805,10 +806,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             tym  = npy.ma.reshape(thickBin, (nyrtc, 12, N_s+1, latN, lonN))
             x1ym = npy.ma.reshape(x1Bin,    (nyrtc, 12, N_s+1, latN, lonN))
             x2ym = npy.ma.reshape(x2Bin,    (nyrtc, 12, N_s+1, latN, lonN))
-            dy  = cdu.averager(dym, axis=1)
-            ty  = cdu.averager(tym, axis=1)
-            x1y = cdu.averager(x1ym, axis=1)
-            x2y = cdu.averager(x2ym, axis=1)
+            #dy  = cdu.averager(dym, axis=1)
+            #ty  = cdu.averager(tym, axis=1)
+            #x1y = cdu.averager(x1ym, axis=1)
+            #x2y = cdu.averager(x2ym, axis=1)
+
+            # this divided the CPU by 5 for annual mean
+            dy  = npy.ma.sum(dym , axis=1)/12.
+            ty  = npy.ma.sum(tym , axis=1)/12.
+            x1y = npy.ma.sum(x1ym, axis=1)/12.
+            x2y = npy.ma.sum(x2ym, axis=1)/12.
+            
             del (dym,tym,x1ym,x2ym) ; gc.collect()
             # create annual time axis
             timeyr          = cdm.createAxis(dy.getAxis(0))
@@ -948,6 +956,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask 
                 #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
+                #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
                 maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
