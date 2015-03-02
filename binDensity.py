@@ -306,8 +306,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
     if debug:
         debug = True
+        # CPU analysis
+        cpuan = True
     else:
         debug = False
+        cpuan = False
     
     # Open files to read
     ft      = cdm.open(fileT)
@@ -399,14 +402,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     areaia = areai*1. ; areaia.mask = maskAtl 
     areaip = areai*1. ; areaip.mask = maskPac
     areaii = areai*1. ; areaii.mask = maskInd
-    areazt  = npy.sum(areai , axis=1)
-    areazta = npy.sum(areaia, axis=1)
-    areaztp = npy.sum(areaip, axis=1)
-    areazti = npy.sum(areaii, axis=1)
-    areait  = npy.sum(npy.reshape(areai ,(Nji*Nii)))
-    areaita = npy.sum(npy.reshape(areaia,(Nji*Nii)))
-    areaitp = npy.sum(npy.reshape(areaip,(Nji*Nii)))
-    areaiti = npy.sum(npy.reshape(areaii,(Nji*Nii)))
+    areazt  = npy.ma.sum(areai , axis=1)
+    areazta = npy.ma.sum(areaia, axis=1)
+    areaztp = npy.ma.sum(areaip, axis=1)
+    areazti = npy.ma.sum(areaii, axis=1)
+    areait  = npy.ma.sum(npy.reshape(areai ,(Nji*Nii)))
+    areaita = npy.ma.sum(npy.reshape(areaia,(Nji*Nii)))
+    areaitp = npy.ma.sum(npy.reshape(areaip,(Nji*Nii)))
+    areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
      
     # Define rho grid with zoom on higher densities
@@ -449,8 +452,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     itest = 80 
     jtest = 30
     ijtest = jtest*lonN + itest
-    # CPU analysis
-    cpuan = True
     
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
@@ -683,7 +684,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = valmask
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            if debug and t == 0:
+            if debug and t < 0: #t == 0:
                 i = ijtest
                 print
                 print ' density target array s_s[i]'
@@ -1118,8 +1119,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
                 tpe6 = timc.clock()
                 # Compute volume/temp/salinity of persistent ocean (global, per basin) (1D)
-                itst = 60
-                jtst = 60
                 persvp = persisti[t,:,:,:]*1. ; persvp.mask[...] = persisti.mask[t,:,:,:]
                 persvp = npy.floor(persvp/98.)
                 persvp = cdm.createVariable(persvp, axes = [rhoAxis, lati, loni], id = 'toto')
@@ -1128,26 +1127,27 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 thickrij       = thickBini.data[t,...]*(1-thickBini.mask[t,...])
                 temprij        = x1Bini.data[t,...]*(1-thickBini.mask[t,...])
                 salrij         = x2Bini.data[t,...]*(1-thickBini.mask[t,...])
-                voltotij       = npy.sum(thickrij, axis=0)
-                voltot         = npy.sum(voltotij*areai)
-                volpersxy      = npy.sum(persvp.data*thickrij, axis=0)
-                volpersist [t] = npy.sum(npy.ma.reshape(volpersxy*areai, (Nji*Nii)))
-                volpersista[t] = npy.sum(npy.ma.reshape(volpersxy*areaia,(Nji*Nii)))
-                volpersistp[t] = npy.sum(npy.ma.reshape(volpersxy*areaip,(Nji*Nii)))
-                volpersisti[t] = npy.sum(npy.ma.reshape(volpersxy*areaii,(Nji*Nii)))
+                voltotij       = npy.ma.sum(thickrij, axis=0)
+                voltot         = npy.ma.sum(voltotij*areai)
+                volpersxy      = npy.ma.sum(persvp.data*thickrij, axis=0)
+                volpersist [t] = npy.ma.sum(npy.ma.reshape(volpersxy*areai, (Nji*Nii)))
+                volpersista[t] = npy.ma.sum(npy.ma.reshape(volpersxy*areaia,(Nji*Nii)))
+                volpersistp[t] = npy.ma.sum(npy.ma.reshape(volpersxy*areaip,(Nji*Nii)))
+                volpersisti[t] = npy.ma.sum(npy.ma.reshape(volpersxy*areaii,(Nji*Nii)))
                 # Temp and salinity (average)
-                tempersxy      = npy.sum(persvp.data*temprij*thickrij, axis=0)/(volpersxy+0.0001) # add espilon to avoid diving by zero
-                tempersist [t] = npy.sum(tempersxy*areai.data)/areait
-                tempersista[t] = npy.sum(tempersxy*areai.data*maskAtl)/areaita
-                tempersistp[t] = npy.sum(tempersxy*areai.data*maskPac)/areaitp
-                tempersisti[t] = npy.sum(tempersxy*areai.data*maskInd)/areaiti
+                    # add espilon to avoid diving by zero on land points
+                tempersxy      = npy.ma.sum(persvp.data*temprij*thickrij, axis=0)/(volpersxy+0.0001) 
+                tempersist [t] = npy.ma.sum(npy.ma.reshape(tempersxy*areai, (Nji*Nii)))/areait
+                tempersista[t] = npy.ma.sum(npy.ma.reshape(tempersxy*areaia,(Nji*Nii)))/areaita
+                tempersistp[t] = npy.ma.sum(npy.ma.reshape(tempersxy*areaip,(Nji*Nii)))/areaitp
+                tempersisti[t] = npy.ma.sum(npy.ma.reshape(tempersxy*areaii,(Nji*Nii)))/areaiti
 
-                salpersxy      = npy.sum(persvp.data*salrij*thickrij, axis=0)/(volpersxy+0.0001)
+                salpersxy      = npy.ma.sum(persvp.data*salrij*thickrij, axis=0)/(volpersxy+0.0001)
+                salpersist [t] = npy.ma.sum(npy.ma.reshape(salpersxy*areai, (Nji*Nii)))/areait
+                salpersista[t] = npy.ma.sum(npy.ma.reshape(salpersxy*areaia,(Nji*Nii)))/areaita
+                salpersistp[t] = npy.ma.sum(npy.ma.reshape(salpersxy*areaip,(Nji*Nii)))/areaitp
+                salpersisti[t] = npy.ma.sum(npy.ma.reshape(salpersxy*areaii,(Nji*Nii)))/areaiti
 
-                salpersist [t] = npy.sum(salpersxy*areai.data)/areait
-                salpersista[t] = npy.sum(salpersxy*areaia.data*maskAtl)/areaita
-                salpersistp[t] = npy.sum(salpersxy*areaip.data*maskPac)/areaitp
-                salpersisti[t] = npy.sum(salpersxy*areaii.data*maskInd)/areaiti
                 if debug:
                     print ' Integral persistent values:',voltot,volpersist[t],volpersista[t] 
                     print '   %', volpersist[t]/voltot*100., volpersista[t]/volpersist[t]*100.
@@ -1156,16 +1156,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     print '   T , S atl  ',tempersista[t], salpersista[t]
                     print '   T , S pac  ',tempersistp[t], salpersistp[t]
                     print '   T , S ind  ',tempersisti[t], salpersisti[t]
-                if debug and t == 0 :
-                    print ' Testing point persistent integrals :',loni[itst],lati[jtst],maski[jtst,itst]
-                    print '     persvp profile :', persvp[:,jtst,itst]
-                    #print '     Profile of thickness:', thickrij[:,jtst,itst]
-                    print '                  total   thickness :',voltotij[jtst,itst]
-                    print '                  persist thickness :',volpersxy[jtst,itst]
-                    print '     Profile of temperature:', temprij[:,jtst,itst]
-                    print '                  average temp      :',tempersxy[jtst,itst]
-                    print '                  areai[point]      :',areai.data[jtst,itst]
-                    print ' shape volpersist',volpersist.shape
                 del(volpersxy,tempersxy,salpersxy)
                 tpe7 = timc.clock()
                 # CPU analysis
