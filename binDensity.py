@@ -685,6 +685,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c2_s[inds[0],inds[1]] = valmask
             if debug and t == 0:
                 i = ijtest
+                print
                 print ' density target array s_s[i]'
                 print s_s[:,i]
                 print ' density profile on Z grid szm[i]'
@@ -812,10 +813,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #x2y = cdu.averager(x2ym, axis=1)
 
             # this divided the CPU by 5 for annual mean
-            dy  = npy.ma.sum(dym , axis=1)/12.
-            ty  = npy.ma.sum(tym , axis=1)/12.
-            x1y = npy.ma.sum(x1ym, axis=1)/12.
-            x2y = npy.ma.sum(x2ym, axis=1)/12.
+            validPoints = dym/dym
+            validMonths = npy.ma.sum(validPoints , axis=1)
+            dy  = npy.ma.sum(dym , axis=1)/validMonths
+            ty  = npy.ma.sum(tym , axis=1)/validMonths
+            x1y = npy.ma.sum(x1ym, axis=1)/validMonths
+            x2y = npy.ma.sum(x2ym, axis=1)/validMonths
             
             del (dym,tym,x1ym,x2ym) ; gc.collect()
             # create annual time axis
