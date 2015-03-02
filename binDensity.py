@@ -472,18 +472,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     print ' ==> model:', modeln,' (grid size:', grdsize,')'
     print ' ==> time interval: ', tmin, tmax - 1
     print ' ==> size of time chunk, number of time chunks (memory optimization) :', tcdel, tcmax
-    
-    # output arrays for each chunk
-    tmp         = npy.ma.ones([tcdel, N_s+1, latN*lonN], dtype='float32')*valmask
-    depth_bin   = tmp.copy()
-    depth_bin   = maskVal(depth_bin, valmask)
-    thick_bin   = tmp.copy()
-    thick_bin   = maskVal(thick_bin, valmask)
-    x1_bin      = tmp.copy()
-    x1_bin      = maskVal(x1_bin, valmask)
-    x2_bin      = tmp.copy() ; del(tmp) ; gc.collect()
-    x2_bin      = maskVal(x2_bin, valmask)
-    
+      
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
     regridObj = CdmsRegrid(ingrid,outgrid,depth_bin.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
@@ -520,6 +509,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # -----------------------------------------
     for tc in range(tcmax):
         tuc     = timc.clock()
+        # output arrays for each chunk
+        tmp         = npy.ma.ones([tcdel, N_s+1, latN*lonN], dtype='float32')*valmask
+        depth_bin   = tmp.copy() ; depth_bin   = maskVal(depth_bin, valmask)
+        thick_bin   = tmp.copy() ; thick_bin   = maskVal(thick_bin, valmask)
+        x1_bin      = tmp.copy() ; x1_bin      = maskVal(x1_bin, valmask)
+        x2_bin      = tmp.copy() ; x2_bin      = maskVal(x2_bin, valmask)
+        del(tmp) ; gc.collect()
         # read tcdel month by tcdel month to optimise memory
         trmin   = tmin + tc*tcdel ; # define as function of tc and tcdel
         trmax   = tmin + (tc+1)*tcdel ; # define as function of tc and tcdel
