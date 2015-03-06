@@ -43,6 +43,7 @@ import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
 from Queue import Queue
+from threading import Thread
 
 
 # Turn off numpy warnings
