@@ -20,11 +20,6 @@ from durolib import trimModelList,writeToLog #fixVarUnits,
 from string import replace
 from socket import gethostname
 
-# Purge spyder variables
-if 'e' in locals():
-    del(e,pi,sctypeNA,typeNA)
-    gc.collect()
-
 #%%
 # Set conditional whether files are created or just numbers are calculated
 parser = argparse.ArgumentParser()
