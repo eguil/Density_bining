@@ -54,7 +54,7 @@ outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 #experiment = '20c3m'
 #experiment = 'sresa2'
 '''
-
+#%%
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 logPath = '/work/guilyardi/git/Density_bining/'
