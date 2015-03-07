@@ -47,7 +47,7 @@ if args.r1Prioritize:
     r1Prioritize = True
 else:
     r1Prioritize = False
-   
+
 #%%
 ## TEST ##
 modelSuite = 'cmip5'
@@ -238,7 +238,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
-    print 'FileCount: ',x    
+    print 'FileCount: ',x
     print 'outPath:   ','/'.join(outfileDensity.split('/')[0:-1])
     print 'outfile:   ',outfileDensity.split('/')[-1]
     print 'so:        ',model[1].split('/')[-1]
@@ -263,8 +263,8 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     elif z_coord.units == 'm':
         pressure = False
     elif z_coord.units == '':
-        
-        # DEAL WITH SIGMA LEVEL MODELS        
+
+        # DEAL WITH SIGMA LEVEL MODELS
         print "".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has non-recognised depth coord, skipping.. **','\n'])
         #writeToLog(logfile,"".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has non-recognised depth coord, skipping.. **','\n']))
         continue
@@ -279,7 +279,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
         print "".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has invalid data - max: ','{:08.2f}'.format(float(so.max())),' min: ','{:08.2f}'.format(float(so.min())),' skipping.. **','\n'])
         #writeToLog(logfile,"".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has invalid data - max: ','{:08.2f}'.format(float(so.max())),' min: ','{:08.2f}'.format(float(so.min())),' skipping.. **','\n']))
         continue
-    
+
     # Load thetao variables
     f_h         = cdm.open(os.path.join(thetaoPath,list_soAndthetaoAndfx[x][3]))
     thetao      = f_h('thetao',squeeze=1)
@@ -291,7 +291,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
         print "".join(['** infile: ',list_soAndthetaoAndfx[x][3],' has invalid data - max: ','{:08.2f}'.format(float(thetao.max())),' min: ','{:08.2f}'.format(float(thetao.min())),' skipping.. **','\n'])
         writeToLog(logfile,"".join(['** infile: ',list_soAndthetaoAndfx[x][3],' has invalid data - max: ','{:08.2f}'.format(float(thetao.max())),' min: ','{:08.2f}'.format(float(thetao.min())),' skipping.. **','\n']))
         continue
-    
+
     # HadGEM2-AO.historical.r1i1p1 reverse axis
     if 'HadGEM2-AO' in list_soAndthetaoAndfx[x][1]:
         print "Dealing with HadGEM2-AO inverted z-axis.."
