@@ -24,6 +24,7 @@ PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
 EG  23 Sep 2014     - Clean up and more comments
 PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to outfiles
 EG  03 Feb 2015     - Code optimisation (removing loop in persistence) 
+MG  04 Mar 2015     - Code optimisation (depth interpolation parallelizing loop) 
                     - TODO:
 test
 
@@ -41,6 +42,9 @@ from string import replace
 import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
+from Queue import Queue
+from threading import Thread
+
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
@@ -655,11 +659,31 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
             tcpu3 = timc.clock()
-            for i in range(lonN*latN):
-                if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+
+            # MG 04/03/2015
+            #  OBSOLETE - sequential execution of depth interpolation 
+            # for i in range(lonN*latN):
+            #     if nomask[i]:
+            #         z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
+            #         c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
+            #         c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+
+            # MG 04/03/2015
+            # Parallel execution of depth interpolation
+            _parallellize_interpolate_depth(lonN,
+                                            latN,
+                                            nomask,
+                                            s_s,
+                                            szm,
+                                            zzm,
+                                            z_s,
+                                            N_s,
+                                            c1m,
+                                            c2m,
+                                            c1_s,
+                                            c2_s,
+                                            valmask)
+
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
 
@@ -1427,3 +1451,86 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         del(timeBasinAxesList,timeBasinRhoAxesList) ; gc.collect()
     #for a in locals().iterkeys():
         #print a
+
+
+def _parallellize_interpolate_depth(
+    lonN,
+    latN,
+    nomask,
+    s_s,
+    szm,
+    zzm,
+    z_s,
+    N_s,
+    c1m,
+    c2m,
+    c1_s,
+    c2_s,
+    valmask
+    ):
+    """Paralellizes calculation of depth interpolatation.
+
+    """
+    # Maximum number of threads to spin off when parallelizing work.
+    MAX_THREADS = 5
+
+    # Create parallel task agents bound to a task queue.
+    task_q = Queue(maxsize=0)
+    for _ in range(MAX_THREADS):
+        task_agent = Thread(target=_do_interpolate_depth_worker,
+                            args=(task_q, ))
+        task_agent.daemon = True
+        task_agent.start()
+
+    # Set task inputs.
+    task_inputs = ((
+        i,
+        s_s,
+        szm,
+        zzm,
+        z_s,
+        N_s,
+        c1m,
+        c2m,
+        c1_s,
+        c2_s,
+        valmask
+        ) for i in xrange(lonN * latN) if nomask[i]
+    )
+
+    # Push inputs to task agents.
+    for task_input in task_inputs:
+        task_q.put(task_input)
+
+    # Block until work is complete.
+    task_q.join()
+
+
+def _do_interpolate_depth_worker(task_q):
+    """Thread queue worker managing depth interpolation.
+
+    """
+    while True:
+        try:
+            _do_interpolate_depth(task_q.get())
+        except Exception as err:
+            print("Depth interpolation exception: {}".format(err))
+        finally:
+            task_q.task_done()
+
+
+def _do_interpolate_depth(inputs):
+    """Interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z).
+
+    """
+    # Unpack inputs.
+    i, s_s, szm, zzm, z_s, N_s, c1m, c2m, c1_s, c2_s, valmask = inputs
+
+    # depth - consider spline
+    z_s[0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask)
+
+    # thetao
+    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask)
+
+    # so
+    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask)
