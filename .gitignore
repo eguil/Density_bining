@@ -3,5 +3,6 @@
 *.pyc
 *.nc
 /test
+durolib.py
 *oceanonly.log
 /_obsolete
