@@ -1487,7 +1487,6 @@ def _parallellize_interpolate_depth(
                   c2_s,
                   valmask
 
-
     # Maximum number of threads to spin off when parallelizing work.
     MAX_THREADS = 5
 
@@ -1502,9 +1501,6 @@ def _parallellize_interpolate_depth(
     # Push inputs to task agents.
     for task_input in _yield_inputs():
         task_q.put(task_input)
-        # ... pause when q is full
-        if task_q.full():
-            task_q.join()
 
     # Ensure all work is complete.
     task_q.join()
