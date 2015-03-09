@@ -9,6 +9,7 @@ This script generates input lists of cmip5 ocean fields and drives densityBin
 
 PJD 14 Sep 2014     - Started file
 PJD 21 Oct 2014     - Added test to make sure all inputs are passed to densityBin
+PJD  7 Mar 2015     - Code cleanup and added r1Prioritize to enable r1i1p1 sims prioritized first
                     - TODO:
 
 @author: durack1
@@ -20,17 +21,13 @@ from durolib import trimModelList,writeToLog #fixVarUnits,
 from string import replace
 from socket import gethostname
 
-# Purge spyder variables
-if 'e' in locals():
-    del(e,pi,sctypeNA,typeNA)
-    gc.collect()
-
 #%%
 # Set conditional whether files are created or just numbers are calculated
 parser = argparse.ArgumentParser()
 parser.add_argument('modelSuite',metavar='str',type=str,help='including \'cmip3/5\' as a command line argument will select one model suite to process')
 parser.add_argument('experiment',metavar='str',type=str,help='include \'experiment\' as a command line argument')
 parser.add_argument('outPath',metavar='str',type=str,help='include \'outPath\' as a command line argument')
+parser.add_argument('r1Prioritize',metavar='bool',default=False,type=bool,help='include \'r1Prioritize\' as a command line argument - True processes r1i1p1 sims first')
 args = parser.parse_args()
 # Test arguments
 if (args.modelSuite in ['cmip3','cmip5']):
@@ -46,24 +43,31 @@ if not (os.path.exists(args.outPath)):
 else:
     outPath     = args.outPath
     print "** Invalid arguments - no *.nc files will be written **"
-   
+if args.r1Prioritize:
+    r1Prioritize = True
+else:
+    r1Prioritize = False
+
 #%%
-'''
 ## TEST ##
 modelSuite = 'cmip5'
 experiment = 'historical'
 #experiment = 'rcp85'
-outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
-#outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+if os.getlogin() == 'durack1':
+    outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+elif os.getlogin() == 'eguil':
+    outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 #modelSuite = 'cmip3'
 #experiment = '20c3m'
 #experiment = 'sresa2'
-'''
 
+#%%
 # Create logfile
 timeFormat = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-logPath = '/work/guilyardi/git/Density_bining/'
-#logPath = '/export/durack1/git/Density_bining/'
+if os.getlogin() == 'durack1':
+    logPath = '/export/durack1/git/Density_bining/'
+elif os.getlogin() == 'eguil':
+    logPath = '/work/guilyardi/git/Density_bining/'
 logfile = os.path.join(logPath,"".join([timeFormat,'_drive_density-',modelSuite,'-',experiment,'-',gethostname().split('.')[0],'.log'])) ; # WORK MODE
 writeToLog(logfile,"".join(['TIME: ',timeFormat]))
 writeToLog(logfile,"".join(['HOSTNAME: ',gethostname()]))
@@ -148,7 +152,7 @@ try:
     del(ind)
 except Exception,err:
     print 'Exception thrown: ',err
-list_soAndthetao = tmpdr
+list_soAndthetao = tmp
 del(tmp,x) ; gc.collect()
 
 #%%
@@ -196,6 +200,20 @@ for count,x in enumerate(list_soAndthetaoAndfx):
 list_soAndthetaoAndfx = tmp
 del(tmp,count,x) ; gc.collect()
 
+#%% Reorder to prioritize r1i1p1 simulations
+if r1Prioritize:
+    # Reorder sims so that r1i1p1 are listed first
+    inds1,inds2 = [[] for _ in range(2)] ; # Preallocate outputs
+    for i,j in enumerate(list_soAndthetaoAndfx):
+        if 'r1i1p1' in j[1]:
+            inds1 += [i]
+    for i in range(0,len(list_soAndthetaoAndfx)):
+        if i not in inds1:
+            inds2 += [i]
+    inds1.extend(inds2)
+    list_soAndthetaoAndfx = [list_soAndthetaoAndfx[i] for i in inds1]
+    del(i,j,inds1,inds2,r1Prioritize)
+
 #%%
 # Process model list
 '''
@@ -220,7 +238,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     # Get steric outfile name
     outfileDensity = os.path.join(outPath,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
-    print 'FileCount: ',x    
+    print 'FileCount: ',x
     print 'outPath:   ','/'.join(outfileDensity.split('/')[0:-1])
     print 'outfile:   ',outfileDensity.split('/')[-1]
     print 'so:        ',model[1].split('/')[-1]
@@ -245,8 +263,8 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     elif z_coord.units == 'm':
         pressure = False
     elif z_coord.units == '':
-        
-        # DEAL WITH SIGMA LEVEL MODELS        
+
+        # DEAL WITH SIGMA LEVEL MODELS
         print "".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has non-recognised depth coord, skipping.. **','\n'])
         #writeToLog(logfile,"".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has non-recognised depth coord, skipping.. **','\n']))
         continue
@@ -261,7 +279,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
         print "".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has invalid data - max: ','{:08.2f}'.format(float(so.max())),' min: ','{:08.2f}'.format(float(so.min())),' skipping.. **','\n'])
         #writeToLog(logfile,"".join(['** infile: ',list_soAndthetaoAndfx[x][1],' has invalid data - max: ','{:08.2f}'.format(float(so.max())),' min: ','{:08.2f}'.format(float(so.min())),' skipping.. **','\n']))
         continue
-    
+
     # Load thetao variables
     f_h         = cdm.open(os.path.join(thetaoPath,list_soAndthetaoAndfx[x][3]))
     thetao      = f_h('thetao',squeeze=1)
@@ -273,7 +291,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
         print "".join(['** infile: ',list_soAndthetaoAndfx[x][3],' has invalid data - max: ','{:08.2f}'.format(float(thetao.max())),' min: ','{:08.2f}'.format(float(thetao.min())),' skipping.. **','\n'])
         writeToLog(logfile,"".join(['** infile: ',list_soAndthetaoAndfx[x][3],' has invalid data - max: ','{:08.2f}'.format(float(thetao.max())),' min: ','{:08.2f}'.format(float(thetao.min())),' skipping.. **','\n']))
         continue
-    
+
     # HadGEM2-AO.historical.r1i1p1 reverse axis
     if 'HadGEM2-AO' in list_soAndthetaoAndfx[x][1]:
         print "Dealing with HadGEM2-AO inverted z-axis.."
