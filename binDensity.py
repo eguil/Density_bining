@@ -1452,7 +1452,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #for a in locals().iterkeys():
         #print a
 
-
 def _parallellize_interpolate_depth(
     lonN,
     latN,
@@ -1471,6 +1470,24 @@ def _parallellize_interpolate_depth(
     """Paralellizes calculation of depth interpolatation.
 
     """
+    def _yield_inputs():
+        """Yields depth interpolation inputs.
+
+        """
+        for i in xrange(lonN * latN) if nomask[i]:
+            yield i,
+                  s_s,
+                  szm,
+                  zzm,
+                  z_s,
+                  N_s,
+                  c1m,
+                  c2m,
+                  c1_s,
+                  c2_s,
+                  valmask
+
+
     # Maximum number of threads to spin off when parallelizing work.
     MAX_THREADS = 5
 
@@ -1482,27 +1499,14 @@ def _parallellize_interpolate_depth(
         task_agent.daemon = True
         task_agent.start()
 
-    # Set task inputs.
-    task_inputs = ((
-        i,
-        s_s,
-        szm,
-        zzm,
-        z_s,
-        N_s,
-        c1m,
-        c2m,
-        c1_s,
-        c2_s,
-        valmask
-        ) for i in xrange(lonN * latN) if nomask[i]
-    )
-
     # Push inputs to task agents.
-    for task_input in task_inputs:
+    for task_input in _yield_inputs():
         task_q.put(task_input)
+        # ... pause when q is full
+        if task_q.full():
+            task_q.join()
 
-    # Block until work is complete.
+    # Ensure all work is complete.
     task_q.join()
 
 
