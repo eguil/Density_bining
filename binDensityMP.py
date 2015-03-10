@@ -42,8 +42,10 @@ from string import replace
 import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
-from Queue import Queue
-from threading import Thread
+
+import numpy as np
+import multiprocessing as mp
+from multiprocessing import sharedctypes as mp_sharedctypes
 
 
 # Turn off numpy warnings
@@ -670,19 +672,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
             # MG 04/03/2015
             # Parallel execution of depth interpolation
-            _parallellize_interpolate_depth(lonN,
-                                            latN,
-                                            nomask,
-                                            s_s,
-                                            szm,
-                                            zzm,
-                                            z_s,
-                                            N_s,
-                                            c1m,
-                                            c2m,
-                                            c1_s,
-                                            c2_s,
-                                            valmask)
+            _parallellize_depth_interpolation(lonN,
+                                              latN,
+                                              nomask,
+                                              s_s,
+                                              szm,
+                                              zzm,
+                                              z_s,
+                                              N_s,
+                                              c1m,
+                                              c2m,
+                                              c1_s,
+                                              c2_s,
+                                              valmask)
 
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
@@ -1453,7 +1455,60 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         #print a
 
 
-def _parallellize_interpolate_depth(
+def _init_depth_interpolation(
+    c1m_,
+    c2m_,
+    s_s_,
+    szm_,
+    zzm_
+    ):
+    """Depth interpolation process pool initializer.
+
+    Each array used in the depth interpolation is populated with the process's global namespace.
+
+    """
+    # Declare global variables.
+    # N.B. this makes them accessible to the interpolation function.
+    global c1m
+    global c2m
+    global s_s
+    global szm
+    global zzm
+
+    # Convert inputs (type=multiprocessing.Array) to numpy arrays.
+    c1m = np.ctypeslib.as_array(c1m_)
+    c2m = np.ctypeslib.as_array(c2m_)
+    s_s = np.ctypeslib.as_array(s_s_)
+    szm = np.ctypeslib.as_array(szm_)
+    zzm = np.ctypeslib.as_array(zzm_)
+
+
+def _exec_depth_interpolation(inputs):
+    """Interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z).
+
+    N.B. See _init_depth_interpolation for shared memory variables
+
+    """
+    # Unpack scalar inputs.
+    i, valmask = inputs
+
+    # Perform interpolation.
+    try:
+        # Interpolate depth.
+        depth = np.interp(s_s[:,i], szm[:,i], zzm[:,i], right=valmask)
+
+        # Return depth, thetao & so.
+        return [
+            i,
+            depth,
+            np.interp(depth, zzm[:,i], c1m[:,i], right=valmask), # thetao
+            np.interp(depth, zzm[:,i], c2m[:,i], right=valmask)  # so
+        ]
+    except Exception as err:
+        return [i, err]
+
+
+def _parallellize_depth_interpolation(
     lonN,
     latN,
     nomask,
@@ -1471,66 +1526,58 @@ def _parallellize_interpolate_depth(
     """Paralellizes calculation of depth interpolatation.
 
     """
-    # Maximum number of threads to spin off when parallelizing work.
-    MAX_THREADS = 5
+    def _yield_inputs():
+        """Generator yielding set of parameters to be passed to interpolation.
 
-    # Create parallel task agents bound to a task queue.
-    task_q = Queue(maxsize=0)
-    for _ in range(MAX_THREADS):
-        task_agent = Thread(target=_do_interpolate_depth_worker,
-                            args=(task_q, ))
-        task_agent.daemon = True
-        task_agent.start()
-
-    # Set task inputs.
-    task_inputs = ((
-        i,
-        s_s,
-        szm,
-        zzm,
-        z_s,
-        N_s,
-        c1m,
-        c2m,
-        c1_s,
-        c2_s,
-        valmask
-        ) for i in xrange(lonN * latN) if nomask[i]
-    )
-
-    # Push inputs to task agents.
-    for task_input in task_inputs:
-        task_q.put(task_input)
-
-    # Block until work is complete.
-    task_q.join()
+        """
+        for i in xrange(lonN * latN):
+            if nomask[i]:
+                yield i, valmask
 
 
-def _do_interpolate_depth_worker(task_q):
-    """Thread queue worker managing depth interpolation.
+    def _log_error(i, err):
+        """Helper function to write an interpolation error to stdout.
 
-    """
-    while True:
-        try:
-            _do_interpolate_depth(task_q.get())
-        except Exception as err:
-            print("Depth interpolation exception: {}".format(err))
-        finally:
-            task_q.task_done()
+        """
+        print("binDensityMP.WARNING :: depth interpolation exception: i={0} :: err={1}".format(i, err))
 
 
-def _do_interpolate_depth(inputs):
-    """Interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z).
+    # Convert arrays to be passed to forked processes to shared memory data types.
+    # ... step 1: convert numpy.ctypes compatible arrays.
+    c1m_ = np.ctypeslib.as_ctypes(c1m)
+    c2m_ = np.ctypeslib.as_ctypes(c2m)
+    s_s_ = np.ctypeslib.as_ctypes(s_s)
+    szm_ = np.ctypeslib.as_ctypes(szm)
+    zzm_ = np.ctypeslib.as_ctypes(zzm)
+    # ... step 2: convert multiprocessing.sharedctypes compatible arrays.
+    c1m_ = mp_sharedctypes.Array(c1m_._type_, c1m_, lock=False)
+    c2m_ = mp_sharedctypes.Array(c2m_._type_, c2m_, lock=False)
+    s_s_ = mp_sharedctypes.Array(s_s_._type_, s_s_, lock=False)
+    szm_ = mp_sharedctypes.Array(szm_._type_, szm_, lock=False)
+    zzm_ = mp_sharedctypes.Array(zzm_._type_, zzm_, lock=False)
 
-    """
-    # Unpack inputs.
-    i, s_s, szm, zzm, z_s, N_s, c1m, c2m, c1_s, c2_s, valmask = inputs
+    # Set number of processes to fork
+    # (try to leave a CPU free to perform system tasks).
+    MAX_PROCESSES = (mp.cpu_count() - 1) or 1
 
-    # depth - consider spline
-    z_s[0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask)
+    # Instantiate a processing pool.
+    pool = mp.Pool(processes=MAX_PROCESSES,
+                   initializer=_init_depth_interpolation,
+                   initargs=(c1m_, c2m_, s_s_, szm_, zzm_))
 
-    # thetao
-    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask)
+    # Execute interpolations (in parallel).
+    outputs = pool.imap(_exec_depth_interpolation, _yield_inputs())
 
-    # so
-    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask)
+    # Process interpolation results.
+    for output in outputs:
+        i = output[0]
+        if isinstance(output[1], Exception):
+            _log_error(i, output[1])
+        else:
+            z_s[0:N_s, i] = output[1]
+            c1_s[0:N_s, i] = output[2]
+            c2_s[0:N_s, i] = output[3]
+
+    # Close processing pool.
+    pool.close()
+    pool.join()
