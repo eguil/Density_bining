@@ -1546,7 +1546,7 @@ def _parallellize_depth_interpolation(
     # ... step 1: convert numpy.ctypes compatible arrays.
     c1m_ = np.ctypeslib.as_ctypes(c1m)
     c2m_ = np.ctypeslib.as_ctypes(c2m)
-    s_s_ = np.ctypeslib.as_ctypes(s_s)
+    s_s_ = np.ctypeslib.as_ctypes(s_s.copy())
     szm_ = np.ctypeslib.as_ctypes(szm)
     zzm_ = np.ctypeslib.as_ctypes(zzm)
     # ... step 2: convert multiprocessing.sharedctypes compatible arrays.
