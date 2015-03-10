@@ -55,7 +55,7 @@ import seawater as sw
 # -----
 #
 
-def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, timeint='all',noInterp=False):
+def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, debug=True, timeint='all',noInterp=False):
     '''
     The surfTransf() function takes files and variable arguments and creates
     density bined surface transformation fields which are written to a specified outfile
@@ -71,6 +71,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     - fileHef(time,lat,lon)     - 3D net surface heat flux array
     - fileWfo(time,lat,lon)     - 3D fresh water flux array
     - fileFx(lat,lon)           - 2D array containing the cell area values
+    - varNames[4]               - 1D array containing the names of the variables
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
@@ -122,6 +123,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
     fhef  = cdm.open(fileHef)
     fwfo  = cdm.open(fileWfo)
     timeax = ftos.getAxis('time')
+    print timeax
     #
     # Dates to read
     if timeint == 'all':
@@ -141,15 +143,22 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, outFile, debug=True, 
         file_dic[i]=list_file[i],ftos.attributes[list_file[i] ]
     #
     # Read data
+        
+    # varnames
+    tos_name = varNames[0]
+    sos_name = varNames[1]
+    hef_name = varNames[2]
+    wfo_name = varNames[3]
+
     if debugp:
-        print' Read tos, sos',tmin,tmax
-    tos = ftos('tos' , time = slice(tmin,tmax))
-    sos = fsos('sos' , time = slice(tmin,tmax))
+        print' Read ',tos_name, sos_name,tmin,tmax
+    tos = ftos(tos_name , time = slice(tmin,tmax))
+    sos = fsos(sos_name , time = slice(tmin,tmax))
     if debugp:
-        print' Read hfds, wfo'
-    qnet = fhef('hfds', time = slice(tmin,tmax))
+        print' Read ',hef_name, wfo_name
+    qnet = fhef(hef_name, time = slice(tmin,tmax))
     try:
-        emp  = fwfo('wfo' , time = slice(tmin,tmax))
+        emp  = fwfo(wfo_name , time = slice(tmin,tmax))
         empsw = 0
     except Exception,err:
         emp  = fwfo('wfos' , time = slice(tmin,tmax))
