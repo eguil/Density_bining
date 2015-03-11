@@ -45,6 +45,7 @@ from scipy.interpolate._fitpack import _bspleval
 
 import numpy as np
 import multiprocessing as mp
+import resource
 from multiprocessing import sharedctypes as mp_sharedctypes
 
 
@@ -1534,13 +1535,30 @@ def _parallellize_depth_interpolation(
             if nomask[i]:
                 yield i, valmask
 
+    def _log(msg, level='INFO'):
+        """Helper function to log to stdout.
+
+        """
+        print("binDensityMP.{0} :: depth interpolation :: {1}".format(level, msg))
+
+
+    def _log_memory(msg):
+        """Helper function to log current memory usage.
+
+        """
+        _log("memory usage :: {0} :: {1} (kb)".format(msg,
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+
 
     def _log_error(i, err):
         """Helper function to write an interpolation error to stdout.
 
         """
-        print("binDensityMP.WARNING :: depth interpolation exception: i={0} :: err={1}".format(i, err))
+        _log("exception: i={0} :: err={1}".format(i, err), "WARNING")
 
+
+    # Log initial memory usage.
+    _log_memory("initial")
 
     # Convert arrays to be passed to forked processes to shared memory data types.
     # ... step 1: convert numpy.ctypes compatible arrays.
@@ -1549,15 +1567,17 @@ def _parallellize_depth_interpolation(
     s_s_ = np.ctypeslib.as_ctypes(s_s.copy())
     szm_ = np.ctypeslib.as_ctypes(szm)
     zzm_ = np.ctypeslib.as_ctypes(zzm)
+    _log_memory("array conversions step 1 - completed")
     # ... step 2: convert multiprocessing.sharedctypes compatible arrays.
     c1m_ = mp_sharedctypes.Array(c1m_._type_, c1m_, lock=False)
     c2m_ = mp_sharedctypes.Array(c2m_._type_, c2m_, lock=False)
     s_s_ = mp_sharedctypes.Array(s_s_._type_, s_s_, lock=False)
     szm_ = mp_sharedctypes.Array(szm_._type_, szm_, lock=False)
     zzm_ = mp_sharedctypes.Array(zzm_._type_, zzm_, lock=False)
+    _log_memory("array conversions step 2 - completed")
 
     # Set number of processes to fork
-    # (try to leave a CPU free to perform system tasks).
+    # (leave a core free to perform system tasks).
     MAX_PROCESSES = (mp.cpu_count() - 1) or 1
 
     # Instantiate a processing pool.
@@ -1581,3 +1601,6 @@ def _parallellize_depth_interpolation(
     # Close processing pool.
     pool.close()
     pool.join()
+
+    # Log completed memory usage.
+    _log_memory("completed")
