@@ -52,7 +52,22 @@ from multiprocessing import sharedctypes as mp_sharedctypes
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
 
+# Set maximum number of processes to fork when running tasks in parallel.
+# N.B. leave a core free to perform system tasks.
+MAX_PROCESSES = (mp.cpu_count() - 1) or 1
+
+
+
 # Function definitions
+
+def _log(msg, level='INFO'):
+    """Helper function to log to stdout.
+
+    """
+    print("binDensityMP.{0} :: {1}".format(level, msg))
+
+
+
 
 def maskVal(field,valmask):
     '''
@@ -650,7 +665,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt 
             szm,zzm,c1m,c2m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(4)]
-            
+
             for k in range(depthN):
                 k_ind = i_min*1.; k_ind[:] = valmask
                 k_ind = npy.argwhere( (k >= i_min) & (k <= i_max))
@@ -658,35 +673,34 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
-                
+
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
             tcpu3 = timc.clock()
-
-            # MG 04/03/2015
-            #  OBSOLETE - sequential execution of depth interpolation 
-            # for i in range(lonN*latN):
-            #     if nomask[i]:
-            #         z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
-            #         c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
-            #         c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
-
-            # MG 04/03/2015
-            # Parallel execution of depth interpolation
-            _parallellize_depth_interpolation(lonN,
-                                              latN,
-                                              nomask,
-                                              s_s,
-                                              szm,
-                                              zzm,
-                                              z_s,
-                                              N_s,
-                                              c1m,
-                                              c2m,
-                                              c1_s,
-                                              c2_s,
-                                              valmask)
-
+            # Only parallelize depth interpolation when there are enough cores.
+            if MAX_PROCESSES <= 2:
+                #  Execute depth interpolation sequentially.
+                _log("depth interpolation :: EXECUTING SEQUENTIALLY")
+                for i in xrange(lonN*latN) if not nomask[i]:
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
+                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
+                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+            else:
+                #  Execute depth interpolation in parallel.
+                _log("depth interpolation :: EXECUTING IN PARALLEL")
+                _parallellize_depth_interpolation(lonN,
+                                                  latN,
+                                                  nomask,
+                                                  s_s,
+                                                  szm,
+                                                  zzm,
+                                                  z_s,
+                                                  N_s,
+                                                  c1m,
+                                                  c2m,
+                                                  c1_s,
+                                                  c2_s,
+                                                  valmask)
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
 
@@ -1535,18 +1549,11 @@ def _parallellize_depth_interpolation(
             if nomask[i]:
                 yield i, valmask
 
-    def _log(msg, level='INFO'):
-        """Helper function to log to stdout.
-
-        """
-        print("binDensityMP.{0} :: depth interpolation :: {1}".format(level, msg))
-
-
     def _log_memory(msg):
         """Helper function to log current memory usage.
 
         """
-        _log("memory usage :: {0} :: {1} (kb)".format(msg,
+        _log("depth interpolation :: memory usage :: {0} :: {1} (kb)".format(msg,
             resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
 
 
@@ -1554,7 +1561,7 @@ def _parallellize_depth_interpolation(
         """Helper function to write an interpolation error to stdout.
 
         """
-        _log("exception: i={0} :: err={1}".format(i, err), "WARNING")
+        _log("depth interpolation :: exception: i={0} :: err={1}".format(i, err), "WARNING")
 
 
     # Log initial memory usage.
@@ -1576,14 +1583,11 @@ def _parallellize_depth_interpolation(
     zzm_ = mp_sharedctypes.Array(zzm_._type_, zzm_, lock=False)
     _log_memory("array conversions step 2 - completed")
 
-    # Set number of processes to fork
-    # (leave a core free to perform system tasks).
-    MAX_PROCESSES = (mp.cpu_count() - 1) or 1
-
     # Instantiate a processing pool.
     pool = mp.Pool(processes=MAX_PROCESSES,
                    initializer=_init_depth_interpolation,
                    initargs=(c1m_, c2m_, s_s_, szm_, zzm_))
+    _log("depth interpolation :: process pool created: max-processes = {}".format(MAX_PROCESSES))
 
     # Execute interpolations (in parallel).
     outputs = pool.imap(_exec_depth_interpolation, _yield_inputs())
