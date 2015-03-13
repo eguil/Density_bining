@@ -10,6 +10,7 @@ This script generates input lists of cmip5 ocean fields and drives densityBin
 PJD 14 Sep 2014     - Started file
 PJD 21 Oct 2014     - Added test to make sure all inputs are passed to densityBin
 PJD  7 Mar 2015     - Code cleanup and added r1Prioritize to enable r1i1p1 sims prioritized first
+PJD 13 Mar 2015     - Updated outPath to be generated dynamically using a timestamp (don't overwrite existing files)
                     - TODO:
 
 @author: durack1
@@ -39,7 +40,10 @@ if (args.experiment in ['20c3m','historical','historicalNat','rcp26','rcp45','rc
 else:
     print "** Invalid arguments - no *.nc files will be written **"
 if not (os.path.exists(args.outPath)):
-    outPath     = os.path.join('/work/guilyardi/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
+    if os.getlogin() == 'durack1':
+        outPath   = os.path.join('/work/durack1/Shared','_'.join([datetime.datetime.now().strftime("%y%m%d"),'data_density']));
+    elif os.getlogin() == 'eguil':
+        outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 else:
     outPath     = args.outPath
     print "** Invalid arguments - no *.nc files will be written **"
@@ -50,13 +54,9 @@ else:
 
 #%%
 ## TEST ##
-modelSuite = 'cmip5'
-experiment = 'historical'
+#modelSuite = 'cmip5'
+#experiment = 'historical'
 #experiment = 'rcp85'
-if os.getlogin() == 'durack1':
-    outPath   = os.path.join('/work/durack1/Shared/data_density',datetime.datetime.now().strftime("%y%m%d"));
-elif os.getlogin() == 'eguil':
-    outPath     = '/work/guilyardi/git/Density_bining/test_cmip5'
 #modelSuite = 'cmip3'
 #experiment = '20c3m'
 #experiment = 'sresa2'
