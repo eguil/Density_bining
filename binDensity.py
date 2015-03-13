@@ -292,10 +292,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     outFile = replace(outFile,'.mo.','.an.')
     if os.path.isfile(outFile):
         os.remove(outFile)
+    if not os.path.exists(os.path.join(*outFile.split('/')[0:-2])):
+        os.makedirs(os.path.join(*outFile.split('/')[0:-2]))
     if not os.path.exists(os.path.join(*outFile.split('/')[0:-1])):
-        print 'try create'
         os.makedirs(os.path.join(*outFile.split('/')[0:-1]))
-        print 'created'
+        # Need to convert to shutil - tree create
     outFile_f = cdm.open(outFile,'w')
     if mthout:
         outFileMon = replace(outFile,'.an.','.mo.')
