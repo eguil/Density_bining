@@ -11,6 +11,7 @@ PJD 14 Sep 2014     - Started file
 PJD 21 Oct 2014     - Added test to make sure all inputs are passed to densityBin
 PJD  7 Mar 2015     - Code cleanup and added r1Prioritize to enable r1i1p1 sims prioritized first
 PJD 13 Mar 2015     - Updated outPath to be generated dynamically using a timestamp (don't overwrite existing files)
+PJD 13 Mar 2015     - Added experiment to outFile path - deal with concurrent runs
                     - TODO:
 
 @author: durack1
