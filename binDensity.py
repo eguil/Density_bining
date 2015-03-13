@@ -7,7 +7,7 @@ Paul J. Durack 14th September 2014
 
 This script computes density bins and indexes T,S values from the vertical z
 coordinate onto an approximate neutral density coordinate
- 
+
 Reads in netCDF T(x,y,z,t) and S(x,y,z,t) files and writes
 - T or S(x,y,sigma,t)
 - D(x,y,sigma,t) (depth of isopycnal)
@@ -23,7 +23,7 @@ PJD 16 Sep 2014     - Turned off numpy warnings - should be aware of this for fi
 PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
 EG  23 Sep 2014     - Clean up and more comments
 PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to outfiles
-EG  03 Feb 2015     - Code optimisation (removing loop in persistence) 
+EG  03 Feb 2015     - Code optimisation (removing loop in persistence)
                     - TODO:
 test
 
@@ -50,20 +50,20 @@ npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting of
 def maskVal(field,valmask):
     '''
     The maskVal() function applies a mask to an array provided
-    
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
-    
+
     Created on Sun Sep 14 21:13:30 2014
 
     Inputs:
     ------
     - field     - 1D/2D/3D array
     - vamask    - 1D scalar of mask value
-    
+
     Output:
     - field     - 1D/2D/3D masked array
-    
+
     Usage:
     ------
     >>> from binDensity import maskVal
@@ -71,7 +71,7 @@ def maskVal(field,valmask):
 
     Notes:
     -----
-    - PJD 15 Sep 2014 - 
+    - PJD 15 Sep 2014 -
     '''
     field [npy.isnan(field.data)] = valmask
     field._FillValue = valmask
@@ -84,20 +84,20 @@ def computeArea(lon,lat):
     '''
     The computeArea() function calculates grid cell area assuming values are
     cell mid-points and formula area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
-    
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
-    
+
     Created on Sun Sep 14 21:13:30 2014
 
     Inputs:
     ------
     - lon   - 1D longitude  - >0, <360
     - lat   - 1D latitude   - >-90, <90
-    
+
     Output:
     - area(lon,lat)     - 2D area array     - m^-^2
-    
+
     Usage:
     ------
     >>> from binDensity import computeArea
@@ -105,7 +105,7 @@ def computeArea(lon,lat):
 
     Notes:
     -----
-    - PJD 15 Sep 2014 - 
+    - PJD 15 Sep 2014 -
     '''
     radius = 6371000. ; # Earth radius (metres)
     radconv = npy.pi/180.
@@ -131,7 +131,7 @@ def computeArea(lon,lat):
         area[latN-1,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
     # East and west bounds
     area[:,0]     = area[:,1]
-    area[:,lonN-1] = area[:,lonN-2] 
+    area[:,lonN-1] = area[:,lonN-2]
 
     return area
 
@@ -141,23 +141,23 @@ def eosNeutral(pottemp,salt):
     The eosNeutral() function takes potential temperature and salinity arguments
     and calculates approximate neutral density (gamma_a) which is returned as a
     variable. The function uses the McDougall & Jackett (2005) equation of state
-    
+
     McDougall, T. J. and D. R. Jackett (2005) The material derivative of neutral
-    density. Journal of Marine Research, 63 (1), pp 159-185. doi: 10.1357/0022240053693734    
-    
+    density. Journal of Marine Research, 63 (1), pp 159-185. doi: 10.1357/0022240053693734
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
-    
+
     Created on Sun Sep 14 21:13:30 2014
 
     Inputs:
     ------
     - pottemp(time,lev,lat,lon)     - 4D potential temperature  - deg_C
     - salt(time,lev,lat,lon)        - 4D salinity               - PSS-78
-    
+
     Output:
     - rho(time,lev,lat,lon)         - 4D neutral density array  - kg m^-^3
-    
+
     Usage:
     ------
     >>> from binDensity import eosNeutral
@@ -166,7 +166,7 @@ def eosNeutral(pottemp,salt):
 
     Notes:
     -----
-    - PJD 14 Sep 2014 - 
+    - PJD 14 Sep 2014 -
     '''
     zt = pottemp
     zs = salt
@@ -178,16 +178,16 @@ def eosNeutral(pottemp,salt):
     zr4     = ( ( -2.2744455733317707e-9*zt*zt+6.0399864718597388e-6)*zt-5.1268124398160734e-4 )*zs
     zr5     = ( -1.3409379420216683e-9*zt*zt-3.6138532339703262e-5)*zs*zsr
     zrho    = ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 )
-    return zrho 
+    return zrho
 
 
 def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     '''
-    The rhonGrid() function computes grid for density variables 
-    
+    The rhonGrid() function computes grid for density variables
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
-    
+
     Created on Sun Sep 14 21:13:30 2014
 
     Inputs:
@@ -197,13 +197,13 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     - rho_max    - scalar - maximum density                       (2.g. 28)
     - del_s1     - scalar - delta_rho between rho_min and rho_int (e.g. 0.2)
     - del_s2     - scalar - delta_rho between rho_mintand rho_max (e.g. 0.1)
-    
+
     Output:
     - s_s        - 1D array - Density grid
     - s_sax      - 1D array - Density grid for plotting axis (adds the last interval e.g. 28-28.1)
     - del_s      - 1D array - delta_rho
     - N_s        - integer  - dimension of density grid
-    
+
     Usage:
     ------
     >>> from binDensity import rhonGrid
@@ -212,7 +212,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     Notes:
     -----
     - PJD 14 Sep 2014 - Rewrote as function
-    - EG  23 Sep 2014 - documentation 
+    - EG  23 Sep 2014 - documentation
     '''
     s_s1 = npy.arange(rho_min, rho_int, del_s1, dtype = npy.float32)
     s_s2 = npy.arange(rho_int, rho_max, del_s2, dtype = npy.float32)
@@ -231,7 +231,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     density persistence fields which are written to a specified outfile
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
-    
+
     Created on Sun Sep 14 21:13:30 2014
 
     Inputs:
@@ -265,7 +265,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
             - Collapse all basin results into single variable, rather than 3 variables for each basin property
-              consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and 
+              consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and
               http://helene.llnl.gov/cf/documents/cf-conventions/1.7-draft1/cf-conventions.html#geographic-regions
             - Rewrite all computation in pure numpy, only writes should be cdms2
             - Deal with MIROC4h, 24mo requires 128Gb - chase down memory bloat
@@ -283,7 +283,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     cdm.setAutoBounds('on')
     # Numpy initialisation
     npy.set_printoptions(precision=2)
-    
+
     # Determine file name from inputs
     modeln = fileT.split('/')[-1].split('.')[1]
 
@@ -313,7 +313,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     else:
         debug = False
         cpuan = False
-    
+
     # Open files to read
     ft      = cdm.open(fileT)
     fs      = cdm.open(fileS)
@@ -336,7 +336,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         bounds  = depth.getBounds() ; # Work around for BNU-ESM
         z_zw = bounds[:,0]
     max_depth_ocean = 6000. # maximum depth of ocean
-    # Horizontal grid        
+    # Horizontal grid
     ingrid  = thetao_h.getGrid()
     # Get grid objects
     axesList = thetao_h.getAxisList()
@@ -350,7 +350,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         valmask = so_h.missing_value
         if valmask == None:
             print 'EC-EARTH missing_value fix'
-            valmask = 1.e20            
+            valmask = 1.e20
     except Exception,err:
         print 'Exception: ',err
         if 'EC-EARTH' == modeln:
@@ -362,7 +362,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
         print '** Input variables have different dimensions, exiting..'
         return
-    
+
     # Dates to read
     if timeint == 'all':
         tmin = 0
@@ -370,13 +370,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     else:
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
-    
+
     # Read cell area
     ff      = cdm.open(fileFx)
     area    = ff('areacello')
     ff.close()
 
-    # Target horizonal grid for interp 
+    # Target horizonal grid for interp
     gridFile    = '140807_WOD13_masks.nc'
     gridFile_f  = cdm.open(gridFile)
     maskg       = gridFile_f('basinmask3')
@@ -400,8 +400,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Compute area of target grid and zonal and global sums
     areai = computeArea(loni[:], lati[:])
     gridFile_f.close()
-    areai.mask = maski 
-    areaia = areai*1. ; areaia.mask = maskAtl 
+    areai.mask = maski
+    areaia = areai*1. ; areaia.mask = maskAtl
     areaip = areai*1. ; areaip.mask = maskPac
     areaii = areai*1. ; areaii.mask = maskInd
     areazt  = npy.ma.sum(areai , axis=1)
@@ -413,7 +413,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     areaitp = npy.ma.sum(npy.reshape(areaip,(Nji*Nii)))
     areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
-     
+
     # Define rho grid with zoom on higher densities
     rho_min = 19.
     rho_int = 26.
@@ -426,9 +426,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     rhoAxis                 = cdm.createAxis(s_sax,bounds=None,id='lev')
     rhoAxis.positive        = 'down'
     rhoAxis.long_name       = 'ocean neutral density coordinate'
-    rhoAxis.standard_name   = 'lev'                                                                                                          
+    rhoAxis.standard_name   = 'lev'
     rhoAxis.units           = 'kg m-3'
-    rhoAxis.units_long      = 'kg m-3 (anomaly, minus 1000)'                                                                                                                      
+    rhoAxis.units_long      = 'kg m-3 (anomaly, minus 1000)'
     rhoAxis.axis            = 'Z'
     rhoAxis.designateLevel()
     del(s_sax) ; gc.collect()
@@ -445,16 +445,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     basinTimeList           = [axesList[0],basinAxis] ; # time, basin
     basinAxesList           = [axesList[0],basinAxis,axesList[2]] ; # time, basin, lat
     basinRhoAxesList        = [axesList[0],basinAxis,rhoAxis,axesList[2]] ; # time, basin, rho, lat
-    
+
     tinit     = timc.clock()
     # ---------------------
     #  Init density bining
     # ---------------------
-    # test point  
-    itest = 80 
+    # test point
+    itest = 80
     jtest = 30
     ijtest = jtest*lonN + itest
-    
+
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
     grdsize = lonN * latN * depthN
@@ -474,10 +474,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     print ' ==> model:', modeln,' (grid size:', grdsize,')'
     print ' ==> time interval: ', tmin, tmax - 1
     print ' ==> size of time chunk, number of time chunks (memory optimization) :', tcdel, tcmax
-    
+
     # Preallocate masked arrays on target grid
     # Global arrays on target grid
-    depthBini   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask 
+    depthBini   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
     thickBini,x1Bini,x2Bini = [npy.ma.ones(npy.ma.shape(depthBini)) for _ in range(3)]
     # Basin zonal on target grid
     depthBinia,thickBinia,x1Binia,x2Binia,depthBinip,thickBinip,\
@@ -494,7 +494,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Volume/thetao/so of persistent ocean
     volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
     volpersista,volpersistp,volpersisti,tempersist,tempersista,tempersistp,tempersisti,salpersist,salpersista,salpersistp,salpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(11)]
-      
+
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
     regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
@@ -537,17 +537,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             thetao.data[:] = thetao.filled(valmask)
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
-        
+
         # Test variable units
         [so,soFixed] = fixVarUnits(so,'so',True)#,'logfile.txt')
         #if soFixed:
         #    print '     so:     units corrected'
         [thetao,thetaoFixed] = fixVarUnits(thetao,'thetao',True)#,'logfile.txt')
         #if thetaoFixed:
-        #    print '     thetao: units corrected'        
-        
+        #    print '     thetao: units corrected'
+
         turd = timc.clock()
-        # Compute neutral density 
+        # Compute neutral density
         rhon = eosNeutral(thetao,so)-1000.
         turr = timc.clock()
 
@@ -563,7 +563,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print ' so     :',so[0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
-        
+
         #print '1'
         tucz0     = timc.clock()
         if cpuan:
@@ -574,7 +574,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             cpu40 = 0.
             cpu5 = 0.
         # Loop on time within chunk tc
-        for t in range(trmax-trmin): 
+        for t in range(trmax-trmin):
             tcpu0 = timc.clock()
             # find bottom level at each lat/lon point
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
@@ -628,7 +628,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             delta_rho[nomask]           = s_z[i_bottom[nomask],nomask] - s_z[0,nomask]
             i_min[delta_rho < del_s1]   = 0
             i_max[delta_rho < del_s1]   = i_bottom[delta_rho < del_s1]
-            
+
             # General case
             # find min/max of density for each z profile
             for i in range(lonN*latN):
@@ -643,9 +643,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Find indices between density min and density max
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
-            # same for zzm from z_zt 
+            # same for zzm from z_zt
             szm,zzm,c1m,c2m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(4)]
-            
+
             for k in range(depthN):
                 k_ind = i_min*1.; k_ind[:] = valmask
                 k_ind = npy.argwhere( (k >= i_min) & (k <= i_max))
@@ -653,7 +653,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
-                
+
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
             tcpu3 = timc.clock()
@@ -665,7 +665,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
 
-            # if level of s_s has higher density than bottom density, 
+            # if level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
@@ -674,7 +674,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c2_s[inds[0],inds[1]] = c2_s[N_s-1,inds[1]]
             tcpu4 = timc.clock()
             # Thickness of isopycnal
-            t_s [0,:] = 0. 
+            t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
             # Use thickness of isopycnal (less than zero) to create masked point for all bined arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
@@ -688,7 +688,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' density target array s_s[i]'
                 print s_s[:,i]
                 print ' density profile on Z grid szm[i]'
-                print szm[:,i] 
+                print szm[:,i]
                 print ' depth profile on Z grid zzm[i]'
                 print zzm[:,i]
                 print ' depth profile on rhon target grid z_s[i]'
@@ -713,8 +713,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 cpu40 = cpu40 + tcpu4 - tcpu40
                 cpu5 = cpu5 + tcpu5 - tcpu4
         #
-        # end of loop on t <===      
-        #      
+        # end of loop on t <===
+        #
         # CPU analysis
         if cpuan:
             print ' Bining CPU analysis tc/tcdel = ',tc,tcdel
@@ -726,9 +726,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '    average cpu5  = ',cpu5/float(tcdel)
             print '    CPU read T/S  = ',turd-tuc
             print '    CPU comp. rho = ',turr-turd
-            
+
         ticz0 = timc.clock()
-        # Free memory 
+        # Free memory
         del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
         # Wash mask (from temp) over variables
         maskb          = mv.masked_values(x1_bin, valmask).mask
@@ -777,12 +777,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
         #
         # Output files as netCDF
-        # Def variables 
+        # Def variables
         depthBin = cdm.createVariable(depth_bin, axes = rhoAxesList, id = 'isondepth')
         thickBin = cdm.createVariable(thick_bin, axes = rhoAxesList, id = 'isonthick')
         x1Bin    = cdm.createVariable(x1_bin   , axes = rhoAxesList, id = 'thetao')
         x2Bin    = cdm.createVariable(x2_bin   , axes = rhoAxesList, id = 'so')
-        # 
+        #
         del (depth_bin,thick_bin,x1_bin,x2_bin) ; gc.collect()
         if mthout:
             if tc == 0:
@@ -818,7 +818,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ty  = npy.ma.sum(tym , axis=1)/validMonths
             x1y = npy.ma.sum(x1ym, axis=1)/validMonths
             x2y = npy.ma.sum(x2ym, axis=1)/validMonths
-            
+
             del (dym,tym,x1ym,x2ym) ; gc.collect()
             # create annual time axis
             timeyr          = cdm.createAxis(dy.getAxis(0))
@@ -826,12 +826,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             timeyr.units    = time.units
             timeyr.designateTime()
             rhoAxesList[0]  = timeyr ; # replace time axis
-    
+
             dy   = cdm.createVariable(dy , axes = rhoAxesList, id = 'isondy')
             ty   = cdm.createVariable(ty , axes = rhoAxesList, id = 'isonty')
             x1y  = cdm.createVariable(x1y, axes = rhoAxesList, id = 'isonx1y')
             x2y  = cdm.createVariable(x2y, axes = rhoAxesList, id = 'isonx2y')
-            
+
             toz = timc.clock()
 
             # Interpolate onto common grid
@@ -910,7 +910,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x1bini.units         = 'C'
                 x2bini.long_name     = so_h.long_name
                 x2bini.units         = so_h.units
-     
+
             tozi = timc.clock()
 
             # Compute zonal mean
@@ -952,10 +952,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
             for t in range(nyrtc):
                 tpe0 = timc.clock()
-                idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask 
+                idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
                 inim = t*12
                 finm = t*12 + 12
-                idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask 
+                idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask
                 #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
                 #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
@@ -967,7 +967,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 p_top = maskp.argmax(axis=0)
                 #del(maskp) ; gc.collect()
                 # Define properties on bowl (= shallowest persistent ocean)
-                ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask 
+                ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 tpe1 = timc.clock()
                 # Creat array of 1 on bowl and 0 elsewhere
@@ -981,7 +981,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
                 del (depthBintmp,x1Bintmp,x2Bintmp); gc.collect()
                 tpe2 = timc.clock()
-                
+
                 ptopsigma = ptopdepth*0. + rhoAxis[p_top] # to keep mask of ptopdepth
                 ptopdepth = npy.ma.reshape(ptopdepth, (latN, lonN))
                 ptopsigma = npy.ma.reshape(ptopsigma, (latN, lonN))
@@ -999,8 +999,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persist = mv.masked_where(persist <= 1.e-6, persist)
                 persbin = cdm.createVariable(persist, axes = rhoAxesList, id = 'isonpers')
 
-                # Interpolate to target grid and create basin variables 
-                # 
+                # Interpolate to target grid and create basin variables
+                #
                 tpe3 = timc.clock()
                 for ks in range(N_s+1):
                     persisti [t,ks,:,:]         = regridObj(persbin[t,ks,:,:])
@@ -1027,7 +1027,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 persistv                    = maskVal(persistv, valmask)
                 tpe5 = timc.clock()
 
-                # Depth, temperature and salinity on bowl (i.e. at shallowest persistent ocean) (2D) 
+                # Depth, temperature and salinity on bowl (i.e. at shallowest persistent ocean) (2D)
                 ptopdepthi[t,:,:]           = regridObj(ptopdepth)
                 ptopsigmai[t,:,:]           = regridObj(ptopsigma)
                 ptoptempi[t,:,:]            = regridObj(ptoptemp)
@@ -1134,7 +1134,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 volpersisti[t] = npy.ma.sum(npy.ma.reshape(volpersxy*areaii,(Nji*Nii)))
                 # Temp and salinity (average)
                     # add espilon to avoid diving by zero on land points
-                tempersxy      = npy.ma.sum(persvp.data*temprij*thickrij, axis=0)/(volpersxy+0.0001) 
+                tempersxy      = npy.ma.sum(persvp.data*temprij*thickrij, axis=0)/(volpersxy+0.0001)
                 tempersist [t] = npy.ma.sum(npy.ma.reshape(tempersxy*areai, (Nji*Nii)))/areait
                 tempersista[t] = npy.ma.sum(npy.ma.reshape(tempersxy*areaia,(Nji*Nii)))/areaita
                 tempersistp[t] = npy.ma.sum(npy.ma.reshape(tempersxy*areaip,(Nji*Nii)))/areaitp
@@ -1147,7 +1147,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 salpersisti[t] = npy.ma.sum(npy.ma.reshape(salpersxy*areaii,(Nji*Nii)))/areaiti
 
                 if debug:
-                    print ' Integral persistent values:',voltot,volpersist[t],volpersista[t] 
+                    print ' Integral persistent values:',voltot,volpersist[t],volpersista[t]
                     print '   %', volpersist[t]/voltot*100., volpersista[t]/volpersist[t]*100.
                     print '  area global/atl/pac/ind ', areait, areaita, areaitp, areaiti
                     print '   T , S glob ',tempersist[t] , salpersist[t]
@@ -1166,7 +1166,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     print '    cpu5 = ', tpe5 - tpe4
                     print '    cpu6 = ', tpe6 - tpe5
                     print '    cpu7 = ', tpe7 - tpe6
-                    
+
             #
             # end of loop on t <==
 
@@ -1175,7 +1175,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             persistm._FillValue     = valmask
             persistm                = mv.masked_where(persistm > valmask/10, persistm)
             persistm.mask           = maski
-            
+
             # Write % of persistent ocean, depth/temp/salinity of bowl 3D (time, lat, lon)
             persim = cdm.createVariable(persistm  , axes = [timeyr,lati,loni], id = 'persistmxy')
             ptopd  = cdm.createVariable(ptopdepthi, axes = [timeyr,lati,loni], id = 'ptopdepthxy')
@@ -1261,7 +1261,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             salper      = npy.ma.concatenate((salperw,salperwa,salperwp,salperwi),axis=1)
             del(salperw,salperwa,salperwp,salperwi) ; gc.collect()
             salper      = cdm.createVariable(salper,axes=timeBasinList,id='salpers')
-            
+
             if tc == 0:
                 # Global attributes
                 dbpz.long_name      = 'Zonal persistence of isopycnal bins'
@@ -1272,7 +1272,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopd.long_name     = 'Depth of shallowest persistent ocean on ison'
                 ptopd.units         = 'm'
                 ptopt.long_name     = 'Temp. of shallowest persistent ocean on ison'
-                ptopt.units         = 'degrees_C'   
+                ptopt.units         = 'degrees_C'
                 ptops.long_name     = 'Salinity of shallowest persistent ocean on ison'
                 ptops.units         = so_h.units
                 #
@@ -1281,21 +1281,21 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbprz.long_name     = 'Zonal rhon of shallowest persistent ocean on ison'
                 dbprz.units         = 'sigma_n'
                 dbptz.long_name     = 'Zonal Temp. of shallowest persistent ocean on ison'
-                dbptz.units         = 'degrees_C'   
+                dbptz.units         = 'degrees_C'
                 dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
                 dbpsz.units         = so_h.units
-                # 
+                #
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
                 temper.long_name    = 'Temperature of persistent ocean'
                 temper.units        = 'degrees_C'
                 salper.long_name    = 'Salinity of persistent ocean'
-                salper.units        = so_h.units 
+                salper.units        = so_h.units
             # Write & append
             outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
-            outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) 
-            outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
-            outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12) 
+            outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(persim.astype('float32') , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
             outFile_f.write(ptopd.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
@@ -1314,7 +1314,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             tozp = timc.clock()
             #
-            # Init zonal mean output variables            
+            # Init zonal mean output variables
             # Collapse onto basin axis
             newshape    = list(depthBinz.shape) ; newshape.insert(1,1)
             depthBinz   = npy.ma.reshape(depthBinz,newshape)
@@ -1352,7 +1352,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x2bz        = npy.ma.concatenate((x2Binz,x2Binza,x2Binzp,x2Binzi),axis=1)
             del(x2Binz,x2Binza,x2Binzp,x2Binzi) ; gc.collect()
             x2bz        = cdm.createVariable(x2bz,axes=timeBasinRhoAxesList,id='isonso')
-            
+
             if tc == 0:
                 # Global attributes
                 dbz.long_name   = 'Zonal depth of isopycnal'
@@ -1373,7 +1373,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(x1bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             del(dbz,tbz,vbz,x1bz,x2bz) ; gc.collect()
-    
+
         # Write/append to file
         if mthout:
             outFileMon_f.write(depthBin.astype('float32'), extend = 1, index = trmin-tmin)
@@ -1394,7 +1394,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print '   CPU of persistence compute =', tozp-toziz
         print '   CPU of chunk               =', tozf-tuc
         print '   Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
-    
+
     # end loop on tc <===
     print '   CPU of inits       =', tin1-ti0
     print '     CPU inits detail =', tur-ti0, tmsk-tur, tarea-tmsk, tinit-tarea, tintrp-tinit, tin1-tintrp
@@ -1405,7 +1405,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     print ' CPU use, elapsed', timc.clock() - ti0, timeit.default_timer() - te0
     ratio = 1.e6*(timc.clock() - ti0)/float(grdsize*tmax)
     print ' Ratio to grid*nyears',ratio,'1.e-6 sec/unit(size*nyears)'
-    
+
     ft.close()
     fs.close()
     # Global attributes
@@ -1419,12 +1419,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Global attributes
         globalAttWrite(outFileMon_f,options=None) ; # Use function to write standard global atts
         # Write binDensity version
-        outFileMon_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])        
+        outFileMon_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])
         outFileMon_f.close()
         print ' Wrote file: ',outFileMon
     if tcdel >= 12:
         print ' Wrote file: ',outFile
-    
+
     # Cleanup variables
         del(timeBasinAxesList,timeBasinRhoAxesList) ; gc.collect()
     #for a in locals().iterkeys():
