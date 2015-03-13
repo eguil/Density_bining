@@ -293,7 +293,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     if os.path.isfile(outFile):
         os.remove(outFile)
     if not os.path.exists(os.path.join(*outFile.split('/')[0:-1])):
+        print 'try create'
         os.makedirs(os.path.join(*outFile.split('/')[0:-1]))
+        print 'created'
     outFile_f = cdm.open(outFile,'w')
     if mthout:
         outFileMon = replace(outFile,'.an.','.mo.')
