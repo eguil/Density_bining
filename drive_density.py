@@ -28,8 +28,8 @@ from socket import gethostname
 parser = argparse.ArgumentParser()
 parser.add_argument('modelSuite',metavar='str',type=str,help='including \'cmip3/5\' as a command line argument will select one model suite to process')
 parser.add_argument('experiment',metavar='str',type=str,help='include \'experiment\' as a command line argument')
-parser.add_argument('outPath',metavar='str',type=str,help='include \'outPath\' as a command line argument')
-parser.add_argument('r1Prioritize',metavar='bool',default=False,type=bool,help='include \'r1Prioritize\' as a command line argument - True processes r1i1p1 sims first')
+parser.add_argument('outPath',metavar='str',type=str,nargs='?',help='include \'outPath\' as a command line argument')
+parser.add_argument('r1Prioritize',metavar='bool',,nargs='?',default=False,type=bool,help='include \'r1Prioritize\' as a command line argument - True processes r1i1p1 sims first')
 args = parser.parse_args()
 # Test arguments
 if (args.modelSuite in ['cmip3','cmip5']):
