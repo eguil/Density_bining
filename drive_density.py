@@ -236,7 +236,8 @@ for x,model in enumerate(list_soAndthetaoAndfx):
         print 'Skipping MIROC4h..'
         continue
     # Get steric outfile name
-    outfileDensity = os.path.join(outPath,model[4])
+    experiment      = model[4].split('.')[2] ; # Add experiment for multiple concurrent runs
+    outfileDensity  = os.path.join(outPath,experiment,model[4])
     writeToLog(logfile,''.join(['Processing:   ',outfileDensity.split('/')[-1]]))
     print 'FileCount: ',x
     print 'outPath:   ','/'.join(outfileDensity.split('/')[0:-1])
@@ -245,6 +246,7 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     print 'thetao:    ',model[3].split('/')[-1]
     print 'areacello: ',model[5].split('/')[-1]
     # Call densityBin
+    #densityBin(fileT,fileS,fileFx,'./out.nc',debug=True,timeint='all',mthout=True)
     #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
     densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='all')
 
