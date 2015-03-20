@@ -1590,7 +1590,7 @@ def _parallellize_depth_interpolation(
     _log("depth interpolation :: process pool created: max-processes = {}".format(MAX_PROCESSES))
 
     # Execute interpolations (in parallel).
-    outputs = pool.imap(_exec_depth_interpolation, _yield_inputs())
+    outputs = pool.imap_unordered(_exec_depth_interpolation, _yield_inputs())
 
     # Process interpolation results.
     for output in outputs:
