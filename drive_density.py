@@ -210,6 +210,7 @@ list_soAndthetaoAndfx = tmp
 del(tmp,count,x) ; gc.collect()
 
 #%% Reorder to prioritize r1i1p1 simulations
+print 'hit test'
 if r1Prioritize:
     'Ordering simulations for r1i1p1 priority..'
     # Reorder sims so that r1i1p1 are listed first
