@@ -210,9 +210,6 @@ list_soAndthetaoAndfx = tmp
 del(tmp,count,x) ; gc.collect()
 
 #%% Reorder to prioritize r1i1p1 simulations
-print 'hit test'
-print r1Prioritize
-print type(r1Prioritize)
 if r1Prioritize:
     print 'Ordering simulations for r1i1p1 priority..'
     # Reorder sims so that r1i1p1 are listed first
@@ -264,7 +261,11 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     #densityBin(fileT,fileS,fileFx,'./out.nc',debug=True,timeint='all',mthout=True)
     #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
     if overWrite and os.path.exists(outfileDensity):
+        print 'skipping file..'
+        if x > 2:
+            sys.exit()
         continue ; # Skip existing file
+        
     densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='all')
 
 #%%
