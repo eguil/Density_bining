@@ -60,8 +60,6 @@ if args.overWrite:
     overWrite = True
 else:
     overWrite = False
-    
-sys.exit()
 
 #%%
 ## TEST ##
@@ -213,6 +211,7 @@ del(tmp,count,x) ; gc.collect()
 
 #%% Reorder to prioritize r1i1p1 simulations
 if r1Prioritize:
+    'Ordering simulations for r1i1p1 priority..'
     # Reorder sims so that r1i1p1 are listed first
     inds1,inds2 = [[] for _ in range(2)] ; # Preallocate outputs
     for i,j in enumerate(list_soAndthetaoAndfx):
@@ -224,6 +223,8 @@ if r1Prioritize:
     inds1.extend(inds2)
     list_soAndthetaoAndfx = [list_soAndthetaoAndfx[i] for i in inds1]
     del(i,j,inds1,inds2,r1Prioritize)
+    
+sys.exit()
 
 #%%
 # Process model list
@@ -259,6 +260,8 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     # Call densityBin
     #densityBin(fileT,fileS,fileFx,'./out.nc',debug=True,timeint='all',mthout=True)
     #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
+    if overWrite and os.path.exists(outfileDensity):
+        continue ; # Skip existing file
     densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='all')
 
 #%%
