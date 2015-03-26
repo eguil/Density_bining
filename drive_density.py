@@ -52,10 +52,8 @@ else:
     print "** Invalid arguments - no *.nc files will be written **"
 if args.r1Prioritize:
     r1Prioritize = True
-    print 'r1Prioritize - True'
 else:
     r1Prioritize = False
-    print 'r1Prioritize - False'
 if args.overWrite:
     overWrite = True
 else:
@@ -258,6 +256,10 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     # Call densityBin
     #densityBin(fileT,fileS,fileFx,'./out.nc',debug=True,timeint='all',mthout=True)
     #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
+    print overWrite
+    print type(overWrite)
+    print outfileDensity
+    print os.path.exists(outfileDensity)
     if overWrite and os.path.exists(outfileDensity):
         print 'skipping file..'
         if x > 2:
