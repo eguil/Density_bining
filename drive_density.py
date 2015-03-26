@@ -213,7 +213,7 @@ del(tmp,count,x) ; gc.collect()
 print 'hit test'
 print r1Prioritize
 print type(r1Prioritize)
-if r1Prioritize:
+if r1Prioritize is True:
     'Ordering simulations for r1i1p1 priority..'
     # Reorder sims so that r1i1p1 are listed first
     inds1,inds2 = [[] for _ in range(2)] ; # Preallocate outputs
