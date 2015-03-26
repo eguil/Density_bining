@@ -223,8 +223,6 @@ if r1Prioritize:
     inds1.extend(inds2)
     list_soAndthetaoAndfx = [list_soAndthetaoAndfx[i] for i in inds1]
     del(i,j,inds1,inds2,r1Prioritize)
-    
-sys.exit()
 
 #%%
 # Process model list
