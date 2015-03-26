@@ -12,6 +12,7 @@ PJD 21 Oct 2014     - Added test to make sure all inputs are passed to densityBi
 PJD  7 Mar 2015     - Code cleanup and added r1Prioritize to enable r1i1p1 sims prioritized first
 PJD 13 Mar 2015     - Updated outPath to be generated dynamically using a timestamp (don't overwrite existing files)
 PJD 13 Mar 2015     - Added experiment to outFile path - deal with concurrent runs
+PJD 26 Mar 2015     - Added overWrite argument
                     - TODO:
 
 @author: durack1
@@ -29,7 +30,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('modelSuite',metavar='str',type=str,help='including \'cmip3/5\' as a command line argument will select one model suite to process')
 parser.add_argument('experiment',metavar='str',type=str,help='include \'experiment\' as a command line argument')
 parser.add_argument('outPath',metavar='str',type=str,nargs='?',help='include \'outPath\' as a command line argument')
-parser.add_argument('r1Prioritize',metavar='bool',nargs='?',default=False,type=bool,help='include \'r1Prioritize\' as a command line argument - True processes r1i1p1 sims first')
+parser.add_argument('r1Prioritize',metavar='bool',type=bool,nargs='?',default=False,help='include \'r1Prioritize\' as a command line argument - True processes r1i1p1 sims first')
+parser.add_argument('overWrite',metavar='bool',type=bool,nargs='?',default=False,help='include \'overWrite\' as a command line argument - True overwrites existing files')
 args = parser.parse_args()
 # Test arguments
 if (args.modelSuite in ['cmip3','cmip5']):
@@ -52,6 +54,10 @@ if args.r1Prioritize:
     r1Prioritize = True
 else:
     r1Prioritize = False
+if args.overWrite:
+    overWrite = True
+else:
+    overWrite = False
 
 #%%
 ## TEST ##
