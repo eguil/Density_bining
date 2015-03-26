@@ -52,12 +52,16 @@ else:
     print "** Invalid arguments - no *.nc files will be written **"
 if args.r1Prioritize:
     r1Prioritize = True
+    print 'r1Prioritize - True'
 else:
     r1Prioritize = False
+    print 'r1Prioritize - False'
 if args.overWrite:
     overWrite = True
 else:
     overWrite = False
+    
+sys.exit()
 
 #%%
 ## TEST ##
