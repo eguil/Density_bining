@@ -258,9 +258,9 @@ for x,model in enumerate(list_soAndthetaoAndfx):
     #densityBin(model[3],model[1],model[5],outfileDensity,debug=True,timeint='1,24')
     print overWrite
     print type(overWrite)
-    print outfileDensity
-    print os.path.exists(outfileDensity)
-    if overWrite and os.path.exists(outfileDensity):
+    print replace(outfileDensity,'.mo.','.an.')
+    print os.path.exists(replace(outfileDensity,'.mo.','.an.'))
+    if overWrite and os.path.exists(replace(outfileDensity,'.mo.','.an.')):
         print 'skipping file..'
         if x > 2:
             sys.exit()
