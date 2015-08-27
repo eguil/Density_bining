@@ -168,9 +168,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     #
     # Read time and grid
     time = tos.getTime()
-    lon  = tos_h.getLongitude()
+    lon  = tos.getLongitude()
     #lat  = tos_h.getLatitude()
-    ingrid = tos_h.getGrid()
+    ingrid = tos.getGrid()
     #
     # Read cell area
     #ff = cdm.open(fileFx)
