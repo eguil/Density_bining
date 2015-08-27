@@ -122,7 +122,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     fsos  = cdm.open(fileSos)
     fhef  = cdm.open(fileHef)
     fwfo  = cdm.open(fileWfo)
-    timeax = ftos.getAxis('time')
+    #timeax = ftos.getAxis('time')
+    timeax = ftos.getAxis('time_counter')
     print timeax
     #
     # Dates to read
@@ -164,13 +165,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         emp  = fwfo('wfos' , time = slice(tmin,tmax))
         print ' Reading concentration dillution fresh water flux'
         empsw = 0
-    tos_h = ftos['tos']
+    tos_h = ftos['sosstsst']
+    print tos_h
     #
     # Read time and grid
     time = tos.getTime()
-    lon  = tos.getLongitude()
+    lon  = tos_h.getLongitude()
     #lat  = tos_h.getLatitude()
-    ingrid = tos.getGrid()
+    ingrid = tos_h.getGrid()
     #
     # Read cell area
     #ff = cdm.open(fileFx)
@@ -270,6 +272,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         #maskr = gt('WESTREGION')
         #maskInd = maskr[0,...]
         #gt.close
+
         # séparer en deux boites, une boite sud (pour i=1:45, j=1:30) dans maskAtl
         #et une boite nord (pour i=1:45, j=31:48). dans maskPac
         maskAtl = maski*1; maskAtl[...] = True
@@ -278,9 +281,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         maskAtl[30:47,:] = False
         maskInd = maski*1; maskInd[...] = False
  
-        loni    = tos.getLongitude()
-        lati    = tos.getLatitude()
-        Nii     = int(loni.shape[0])
+        loni    = tos_h.getLongitude()
+        lati    = tos_h.getLatitude()
+        Nii     = int(loni.shape[1])
         Nji     = int(lati.shape[0])   
     else:
         #fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
@@ -367,7 +370,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     intWatFlxi  = tmp.copy() # integral E-P Ind
     #
     # Compute area of target grid and zonal sums
-    areai = computeArea(loni[:], lati[:])
+    areai = computeArea( npy.ma.reshape(loni,N_j*N_i), npy.ma.reshape(lati, N_j*N_i) )
     # Interpolation init (regrid)
     if noInterp == False:
         ESMP.ESMP_Initialize()
@@ -418,6 +421,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         #empti = maskVal(empti, valmask)
         #
         # Compute density
+        print tost.data.shape, sost.data.shape
         rhon[t,...] = eosNeutral(tost.data, sost.data) - 1000.
         rhonl = rhon.data[t,...]
         # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
