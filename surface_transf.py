@@ -255,21 +255,29 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     if noInterp:
         outgrid = ingrid
         maski = tos[0,...].mask
-        fileg = 'Pablo_work/Convection-NORTHREGION-mask.nc'
-        gt = cdm.open(fileg)
-        maskr = gt('NORTHREGION')
-        maskAtl = maskr[0,...]
-        gt.close
-        fileg = 'Pablo_work/Convection-SOUTHREGION-mask.nc'
-        gt = cdm.open(fileg)
-        maskr = gt('SOUTHREGION')
-        maskPac = maskr[0,...]
-        gt.close
-        fileg = 'Pablo_work/Convection-WESTREGION-mask.nc'
-        gt = cdm.open(fileg)
-        maskr = gt('WESTREGION')
-        maskInd = maskr[0,...]
-        gt.close
+        #fileg = 'Pablo_work/Convection-NORTHREGION-mask.nc'
+        #gt = cdm.open(fileg)
+        #maskr = gt('NORTHREGION')
+        #maskAtl = maskr[0,...]
+        #gt.close
+        #fileg = 'Pablo_work/Convection-SOUTHREGION-mask.nc'
+        #gt = cdm.open(fileg)
+        #maskr = gt('SOUTHREGION')
+        #maskPac = maskr[0,...]
+        #gt.close
+        #fileg = 'Pablo_work/Convection-WESTREGION-mask.nc'
+        #gt = cdm.open(fileg)
+        #maskr = gt('WESTREGION')
+        #maskInd = maskr[0,...]
+        #gt.close
+        # séparer en deux boites, une boite sud (pour i=1:45, j=1:30) dans maskAtl
+        #et une boite nord (pour i=1:45, j=31:48). dans maskPac
+        maskAtl = maski*1; maskAtl[...] = True
+        maskAtl[0:29,:] = False
+        maskPac = maski*1; maskPac[...] = True
+        maskAtl[30:47,:] = False
+        maskInd = maski*1; maskInd[...] = False
+ 
         loni    = tos.getLongitude()
         lati    = tos.getLatitude()
         Nii     = int(loni.shape[0])

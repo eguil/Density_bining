@@ -22,7 +22,7 @@ let rhon1 = "26:26.7"
 
 let field  = array[k=2,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
 
-plot/vlimits=-1:1:.2/thick=2/color=blue field
+plot/vlimits=-1:1:.2/thick=2/color=blue/NOLAB field
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=blue {0,10000},{-.6,-.6}
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=red {0,10000},{0.6,0.6}
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {0,10000},{0,0}
@@ -50,12 +50,12 @@ plot/over/thick=2/NOLAB/color=black field
 set viewport V2
 go margins .5 .5 1 .5
 
-let lats1 = "-55:0"
+let lats1 = "-45:0"
 let rhon1 = "24.5:26.8"
 
 let field  = array[k=3,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
 
-plot/vlimits=-1:1:.2/thick=2/color=blue field
+plot/vlimits=-1:1:.2/thick=2/color=blue/NOLAB field
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=blue {0,10000},{-.6,-.6}
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=red {0,10000},{0.6,0.6}
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {0,10000},{0,0}
@@ -86,7 +86,7 @@ let rhon1 = "25.8:26.6"
 
 let field  = array[k=4,d=1,X=`lats1`@ave,Y=`rhon1`@ave]
 
-plot/vlimits=-1:1:.2/thick=2/color=blue field
+plot/vlimits=-1:1:.2/thick=2/color=blue/NOLAB field
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=blue {0,10000},{-.6,-.6}
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=red {0,10000},{0.6,0.6}
 PLOT/VS/OVER/LINE/NOLAB/thick=0.5/color=black {0,10000},{0,0}
