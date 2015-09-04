@@ -275,12 +275,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
 
         # séparer en deux boites, une boite sud (pour i=1:45, j=1:30) dans maskAtl
         #et une boite nord (pour i=1:45, j=31:48). dans maskPac
+        # boite sud i=[20:30] j = [20:30]
         maskAtl = maski*1; maskAtl[...] = False
         maskAtl[0:29,:] = True
         maskPac = maski*1; maskPac[...] = False
         maskAtl[30:47,:] = True
-        maskInd = maski*1; maskInd[...] = True
- 
+        maskInd = maski*1; maskInd[...] = False
+        maskInd[19:29,19:29] = True
+        
         #loni  = tos_h.getLongitude()
         #lati  = tos_h.getLatitude()
  
@@ -309,15 +311,15 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # global mask
         maski = maskg.mask
         # regional masks
-        maskAtl = maski*1 ; maskAtl[...] = True
+        maskAtl = maski*1 ; maskAtl[...] = False
         idxa = npy.argwhere(maskg == 1).transpose()
-        maskAtl[idxa[0],idxa[1]] = False
-        maskPac = maski*1 ; maskPac[...] = True
+        maskAtl[idxa[0],idxa[1]] = True
+        maskPac = maski*1 ; maskPac[...] = False
         idxp = npy.argwhere(maskg == 2).transpose()
-        maskPac[idxp[0],idxp[1]] = False
-        maskInd = maski*1 ; maskInd[...] = True
+        maskPac[idxp[0],idxp[1]] = True
+        maskInd = maski*1 ; maskInd[...] = False
         idxi = npy.argwhere(maskg == 3).transpose()
-        maskInd[idxi[0],idxi[1]] = False
+        maskInd[idxi[0],idxi[1]] = True
         #masks = [maski, maskAtl, maskPac, maskInd]
         loni    = maskg.getLongitude()
         lati    = maskg.getLatitude()
