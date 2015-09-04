@@ -275,11 +275,11 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
 
         # séparer en deux boites, une boite sud (pour i=1:45, j=1:30) dans maskAtl
         #et une boite nord (pour i=1:45, j=31:48). dans maskPac
-        maskAtl = maski*1; maskAtl[...] = True
-        maskAtl[0:29,:] = False
-        maskPac = maski*1; maskPac[...] = True
-        maskAtl[30:47,:] = False
-        maskInd = maski*1; maskInd[...] = False
+        maskAtl = maski*1; maskAtl[...] = False
+        maskAtl[0:29,:] = True
+        maskPac = maski*1; maskPac[...] = False
+        maskAtl[30:47,:] = True
+        maskInd = maski*1; maskInd[...] = True
  
         #loni  = tos_h.getLongitude()
         #lati  = tos_h.getLatitude()
