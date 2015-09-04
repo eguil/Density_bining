@@ -279,7 +279,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         maskAtl = maski*1; maskAtl[...] = False
         maskAtl[0:29,:] = True
         maskPac = maski*1; maskPac[...] = False
-        maskAtl[30:47,:] = True
+        maskPac[30:47,:] = True
         maskInd = maski*1; maskInd[...] = False
         maskInd[19:29,19:29] = True
         
