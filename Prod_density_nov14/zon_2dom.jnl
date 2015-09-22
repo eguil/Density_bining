@@ -11,8 +11,9 @@ define viewport/text=.6/x=0.,.6/y=.165,.33  spi_u   ! upper
 define viewport/text=.6/x=0.,.6/y=0.,.165   spi_l   ! lower
 
 let no1d = 0
+let spice = 1
 
-let typep = 2
+let typep = 1
 
 let basin = "Atlantic"
 let idxb = 2
@@ -26,10 +27,19 @@ else
    let palet = "inverse_redscale"
    let palet = "low_green"
 endif
-let arraya = `var`Agree
+if `spice eq 1` then
+   let array  = `var`Bowl
+   let field  = (array[d=1,k=`idxb`,L=`yrs2`@ave, j=@SHF:1]-array[d=1,k=`idxb`,L=`yrs2`@ave])
+endif
 
+! mean field
 let fieldm =  array[d=1,k=`idxb`,L=`yrsa`@ave]
+
+! model agreement
+let arraya = `var`Agree
 let fielda = arraya[d=1,k=`idxb`,L=`yrs1`@ave]
+
+
 let fldp1  = ptopsigma[d=2,L=`yrs2`@ave,k=`idxb`]
 let fldp2  = ptopsigma[d=2,L=`yrs1`@ave,k=`idxb`]
 
@@ -46,6 +56,10 @@ if `typep eq 1` then
 else
    let array  = `var`ModStd
    let field  = array[d=1,k=`idxb`,L=`yrs2`@ave]
+endif
+if `spice eq 1` then
+   let array  = `var`Bowl
+   let field  = (array[d=1,k=`idxb`,L=`yrs2`@ave, j=@SHF:1]-array[d=1,k=`idxb`,L=`yrs2`@ave])
 endif
 
 let fieldm =  array[d=1,k=`idxb`,L=`yrsa`@ave]
@@ -64,6 +78,10 @@ if `typep eq 1` then
 else
    let array  = `var`ModStd
    let field  = array[d=1,k=`idxb`,L=`yrs2`@ave]
+endif
+if `spice eq 1` then
+   let array  = `var`Bowl
+   let field  = (array[d=1,k=`idxb`,L=`yrs2`@ave, j=@SHF:1]-array[d=1,k=`idxb`,L=`yrs2`@ave])
 endif
 
 let fieldm =  array[d=1,k=`idxb`,L=`yrsa`@ave]
