@@ -25,34 +25,56 @@ indir = "/Users/ericg/Projets/Density_bining/Prod_density_april15/mme_hist/r1i1p
 file  = "cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc"
 
 salinity = {
-    'var'    : 'isonso',
+    'var'    : 'isonso',            # variable name
     'minmax' : [-.2,.2],            # for diff shading
     'clevsm' : np.arange(30,40,.2), # for mean contours
-    'legVar' : "Salinity",
+    'legVar' : "Salinity",          # Legend name
     'unit'   : "PSU",               # TODO: could be read from file
     }
 
-temp = {
-    'var'    : 'isonthetao',
-    'minmax' : [-.4,.4],
-    'clevsm' : np.arange(-2,30,1),
-    'legVar' : "Temperature",
-    'unit'   : "C" ,
-    }
+temp    = {'var'   : 'isonthetao', 'minmax' : [-.4,.4],'clevsm' : np.arange(-2,30,1),
+           'legVar': "Temperature",'unit'   : "C" ,
+           }
+depth   = {'var'   : 'isondepth',  'minmax' : [-25,25],'clevsm' : np.arange(0,2000,100),
+           'legVar': "Depth",      'unit'   : "m" ,
+           }
+volume  = {'var'   : 'isonvol',    'minmax' : [-15,15],'clevsm' : np.arange(0,200,20),
+           'legVar': "Volume",     'unit'   : "1.e12 m^3" ,
+           }
+persist = {'var'   : 'isonpers',   'minmax' : [-15,15],'clevsm' : np.arange(0,90,10),
+           'legVar': "Persistence",'unit'   : "% of time" ,
+           }
+
+"""
+! Model agreement level
+let agreelev = 0.6
+
+!let var = "ptopdepth"
+!let levs = "(-200)(-50,50,5)(200)"
+!let var = "ptopsigma"
+!let levs = "(-1)(-.3,.3,.05)(1)"
+!let levs = "(20)(24,28,.5)(30)"
+!let var = "ptopthetao"
+!let levs = "(-1.6,1.6,.2)"
+!let var = "ptopso"
+!let levs = "(-.2,.2,.01)"
+
+let perclev = "(0,100,10)LINE(0,100,10)"
+"""
 
 # Define variable
 varname = salinity
-varname = temp
+varname = depth
 
-# years for diff
+# years for difference
 y11 = 140-1
 y12 = 146-1
 y21 = 2-1
 y22 = 30-1
 
 # density domain
-domrho = [21.,26.,28.]               # min/mid/max
-
+domrho = [21.,26.,28.]   # min/mid/max
+delrho = [.5,.2]
 #
 # -------------------------------------------------------------------------------
 
