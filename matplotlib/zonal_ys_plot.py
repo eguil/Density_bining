@@ -1,18 +1,21 @@
+#!/bin/env python
+# -*- coding: utf-8 -*-
 """
 Python matplotlib 
-Make density/latitude section for Atl/Pac/Ind for number of variables
+Make density/latitude section for Atl/Pac/Ind for a number of variables
 
 (c) Eric Guilyardi Feb 2016
 
 """
-from   mpl_toolkits.basemap import Basemap, cm
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from   netCDF4 import Dataset as open_ncfile
 import numpy as np
-from mpl_toolkits.axes_grid1 import Grid
-from matplotlib.colors import LinearSegmentedColormap
-from densitlib import zon_2dom, gmtColormap
+from   netCDF4 import Dataset as open_ncfile
+import matplotlib as mpl
+from   mpl_toolkits.basemap import Basemap, cm
+from   mpl_toolkits.axes_grid1 import Grid
+import matplotlib.pyplot as plt
+from   matplotlib.colors import LinearSegmentedColormap
+
+from   densitlib import zon_2dom, gmtColormap
 
 # -------------------------------------------------------------------------------
 #                               Define work
@@ -20,7 +23,6 @@ from densitlib import zon_2dom, gmtColormap
 
 indir = "/Users/ericg/Projets/Density_bining/Prod_density_april15/mme_hist/r1i1p1"
 file  = "cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc"
-
 
 salinity = {
     'var'    : 'isonso',
@@ -38,9 +40,9 @@ temp = {
     'unit'   : "C" ,
     }
 
+# Define variable
 varname = salinity
 varname = temp
-
 
 # years for diff
 y11 = 140-1
@@ -49,7 +51,7 @@ y21 = 2-1
 y22 = 30-1
 
 # density domain
-domrho = [21.,26.,28.]
+domrho = [21.,26.,28.]               # min/mid/max
 
 #
 # -------------------------------------------------------------------------------
@@ -73,9 +75,11 @@ lev = nc.variables['lev'][:]
 lat = nc.variables['latitude'][:]
 
 #-- Build plot variables
+# difference
 vara = np.ma.average(tvara[y11:y12], axis=0)-np.ma.average(tvara[y21:y22], axis=0)
 varp = np.ma.average(tvarp[y11:y12], axis=0)-np.ma.average(tvarp[y21:y22], axis=0)
 vari = np.ma.average(tvari[y11:y12], axis=0)-np.ma.average(tvari[y21:y22], axis=0)
+# mean
 varam = np.ma.average(tvara, axis=0)
 varap = np.ma.average(tvarp, axis=0)
 varai = np.ma.average(tvari, axis=0)
@@ -92,17 +96,11 @@ cmap = plt.get_cmap('bwr') # red/white/blue difference map
 #
 # -------- Make plot ----------------
 #
-title = legVar+" Atl."
-noax = 'F'
-cnplot=zon_2dom(axes[0,0],axes[1,0],lat,lev,vara,varam,unit,minmax,clevsm,cmap,domrho,title,noax)
+cnplot=zon_2dom(axes[0,0],axes[1,0],lat,lev,vara,varam,unit,minmax,clevsm,cmap,domrho,legVar+" Atl.",'F')
 
-title = legVar+" Pac."
-noax = 'T'
-cnplot=zon_2dom(axes[0,1],axes[1,1],lat,lev,varp,varap,unit,minmax,clevsm,cmap,domrho,title,noax)
+cnplot=zon_2dom(axes[0,1],axes[1,1],lat,lev,varp,varap,unit,minmax,clevsm,cmap,domrho,legVar+" Pac.",'T')
 
-title = legVar+" Ind."
-noax = 'R'
-cnplot=zon_2dom(axes[0,2],axes[1,2],lat,lev,vari,varai,unit,minmax,clevsm,cmap,domrho,title,noax)
+cnplot=zon_2dom(axes[0,2],axes[1,2],lat,lev,vari,varai,unit,minmax,clevsm,cmap,domrho,legVar+" Ind.",'R')
 
 plt.subplots_adjust(hspace = .00001, wspace=0.05, left=0.04, right=0.86)
 
