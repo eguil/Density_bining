@@ -7,21 +7,37 @@ Feb 2016
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import BoundaryNorm
+from matplotlib.ticker import MaxNLocator
 #
 # Build zonal mean with zoom
 #
 
-def zon_2dom(ax0,ax1,lat,lev,var,varm,unit,minmax,clevsm,cmap,domrho,title,noax):
+def zon_2dom(plt,ax0,ax1,lat,lev,varBasin,varSigma,unit,minmax,clevsm,cmap,domrho,title,agreelev,noax):
+
+#-- variables
+    var   = varBasin['diffBowl']
+    varm  = varBasin['meanBowl']
+    varag = varBasin['agree']
+
+#-- title
+    title = title+' '+varBasin['name']
 #-- contour levels
     rhomin = domrho[0]
     rhomid = domrho[1]
     rhomax = domrho[2]
 
-# Window 1
-    ax0.axis([-90.,90.,rhomin,rhomid])
+#-- Latmin/max
+    latmin = -80.
+    latmax = 80.
+    deltalat = 20
+    labels = ['','60S','40S','20S','Eq','20N','40N','60N','']
+#
+# ====   Window 1  ===================================================
+#
+    ax0.axis([latmin,latmax,rhomin,rhomid])
     ax0.invert_yaxis()
-    ax0.xaxis.set_ticks(np.arange(-90, 90, 30))
-    labels = ['','60S','30S','Eq','30N','60N','']
+    ax0.xaxis.set_ticks(np.arange(latmin, latmax, deltalat))
     ax0.set_xticklabels(labels)
     if noax == 'T':
         ax0.set_yticklabels([])
@@ -29,34 +45,62 @@ def zon_2dom(ax0,ax1,lat,lev,var,varm,unit,minmax,clevsm,cmap,domrho,title,noax)
     if noax == 'R': 
         ax0.yaxis.tick_right()
         ax1.yaxis.tick_right()
-#-- draw filled contours
-    cnplot = ax0.pcolormesh(lat,lev,var,cmap=cmap, vmin=minmax[0], vmax=minmax[1])
 
-#-- draw contours
+#-- levels for diff plot
+    levels = MaxNLocator(nbins=minmax[2]).tick_values(minmax[0], minmax[1])
+
+#-- draw filled contours of period diff
+    cnplot = ax0.contourf(lat,lev,var,cmap=cmap, levels=levels)
+
+#-- draw agreement contour > agreement level (agreelev)
+    cmapbl = LinearSegmentedColormap('cmapbl',bluecol())
+    cpplot = ax0.contour(lat,lev,varag,[agreelev-.0001,agreelev+0.00001],cmap=cmapbl)
+    cpplot = ax0.contour(lat,lev,varag,[-agreelev-.0001,-agreelev+0.00001],cmap=cmapbl)
+
+#-- draw mean contours
     cmapb = LinearSegmentedColormap('cmapb',blkcol())
     cpplot = ax0.contour(lat,lev,varm,clevsm,cmap=cmapb)
     ax0.clabel(cpplot, inline=1, fontsize=10, fmt='%.1f')
 
-# Window 2
-    ax1.axis([-90.,90.,rhomid,rhomax])
+#-- draw ptopsigma for 2 periods (yr1 = ref, yr2 = end of serie)
+    lnplot1 = ax0.plot(lat,varSigma['yr1'],linestyle='--', color='black', linewidth=2)
+    lnplot2 = ax0.plot(lat,varSigma['yr2'],linestyle='-', color='black', linewidth=2)
+
+#-- Add legend for bowl position
+
+
+# 
+# ====   Window 2  ===================================================
+#
+    ax1.axis([latmin,latmax,rhomid,rhomax])
     ax1.invert_yaxis()
-    ax1.xaxis.set_ticks(np.arange(-90, 90, 30))
-    #labels = [item.get_text() for item in ax1.get_xticklabels()]
-    labels = ['','60S','30S','Eq','30N','60N','']
+    ax1.xaxis.set_ticks(np.arange(latmin, latmax, deltalat))
     ax1.set_xticklabels(labels)
 
 #-- draw filled contours
-    cnplot = ax1.pcolormesh(lat,lev,var,cmap=cmap, vmin=minmax[0], vmax=minmax[1])
+    cnplot = ax1.contourf(lat,lev,var,cmap=cmap, levels=levels)
 
-#-- draw contours
+#-- draw agreement contour > agreement level (agreelev)
+    cmapbl = LinearSegmentedColormap('cmapbl',bluecol())
+    cpplot = ax1.contour(lat,lev,varag,[agreelev-.0001,agreelev+0.00001],cmap=cmapbl)
+    cpplot = ax1.contour(lat,lev,varag,[-agreelev-.0001,-agreelev+0.00001],cmap=cmapbl)
+
+#-- draw mean contours
     cmapb = LinearSegmentedColormap('cmapb',blkcol())
     cpplot = ax1.contour(lat,lev,varm,clevsm,cmap=cmapb)
     ax1.clabel(cpplot, inline=1, fontsize=10, fmt='%.1f')
 
+#-- draw ptopsigma for 2 periods (yr1 = ref, yr2 = end of serie)
+    lnplot1b = ax1.plot(lat,varSigma['yr1'],linestyle='--', color='black', linewidth=2, label='<1950')
+    lnplot2b = ax1.plot(lat,varSigma['yr2'],linestyle='-', color='black', linewidth=2, label='2000')
+
+#-- Add legend for bowl position
+    plt.legend(loc='upper right', title='Bowl')
+
 #-- add plot title
     ax0.set_title(title)
 
-    return cnplot
+    return [cnplot,lnplot1,lnplot2]
 
 #
 # Convert GMT color palette form post-it to pylab
@@ -156,6 +200,19 @@ def blkcol():
                          (1.0,  1.0, 1.0)),
                
                'blue':  ((0.0,  0.0, 0.0),
+                         (1.0,  1.0, 1.0))}
+
+      return (cdict)
+#- def blues color bar
+def bluecol(): 
+
+      cdict = {'red':   ((0.0,  0.0, 0.0),
+                         (1.0,  0.0, 0.0)),
+               
+               'green': ((0.0,  0.0, 0.0),
+                         (1.0,  0.0, 0.0)),
+               
+               'blue':  ((0.0,  0.0, 1.0),
                          (1.0,  1.0, 1.0))}
 
 

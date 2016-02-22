@@ -104,7 +104,7 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
     timN = isond0.shape[0]
     runN = len(listFiles)  
 
-    print 'Number of runs:',runN
+    print 'Number of simulations:',runN
 
     valmask = isond0.missing_value
 
@@ -136,7 +136,8 @@ def mmeAveMsk2D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
             print i, file
             ft      = cdm.open(indir+'/'+file)
             timeax  = ft.getAxis('time')
-            f1d     = cdm.open(replace(indir+'/'+file,'2D','1D'))
+#            f1d     = cdm.open(replace(indir+'/'+file,'2D','1D'))
+            f1d     = cdm.open(indir+'/'+file)
             if i == 0:
                 tmax0 = timeax.shape[0]
                 tmax = timeax.shape[0]
@@ -476,18 +477,20 @@ def mmeAveMsk1D(listFiles, years, indDir, outDir, outFile, timeInt, mme, debug=T
 
 # Model ensemble mean
 
-twoD = False
-oneD = True
-#twoD = True
-#oneD = False
+#twoD = False
+#oneD = True
+twoD = True
+oneD = False
 mm  = False
 mme = True 
 
 exper  = 'historical'
-models12 = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','EC-EARTH','FGOALS-s2','GFDL-CM2p1','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
-models3  = ['CESM1-CAM5','CESM1-FASTCHEM','CESM1-WACCM','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5-2','GFDL-CM3','GISS-E2-H-CC','MPI-ESM-LR']
-years12 = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[0,146],[0,146],[10,156],[10,156],[10,156],[10,156],[10,156]]
-years3  = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[10,156],[10,156]]
+models12 = ['ACCESS1-0','ACCESS1-3','BNU-ESM','CCSM4','CESM1-BGC','FGOALS-s2','GFDL-CM2p1','HadCM3','HadGEM2-CC','HadGEM2-ES','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC-ESM-CHEM','MIROC-ESM']
+models3  = ['CESM1-CAM5','CESM1-FASTCHEM','CESM1-WACCM','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5-2','CNRM-CM5','CSIRO-Mk3-6-0','CanESM2','FGOALS-g2','GISS-E2-H-CC','MPI-ESM-LR','MPI-ESM-MR','MPI-ESM-P','NorESM1-M','NorESM1-ME','bcc-csm1-1-m']
+years12 = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146],[0,146],[0,146],[10,156],[10,156],[10,156],[10,156],[10,156]]
+years3  = [[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[10,156],[0,146]]
+
+# 'GFDL-CM3' [0,146]
 
 models = models12
 models = models + models3
@@ -499,23 +502,25 @@ years  = years + years3
 
 #models = ['ACCESS1-3']#,'ACCESS1-3']
 #models = ['ACCESS1-3']#,'ACCESS1-3']
-#models = ['IPSL-CM5A-LR']
-#years = [[10,156]]
+#models = ['ACCESS1-0','ACCESS1-3']
+#years = [[10,156], [10,156]]
 
-# Years for difference
+# Years interval for difference reference
 iniyear = 1861
 peri1 = (1861-iniyear)+1
 peri2 = (1950-iniyear)+2
 timeInt=[peri1,peri2]
-indir  = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/z_individual'
-outdir = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/test_mme'
+#indir  = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/z_individual'
+#outdir = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/test_mme'
+indir  = '/Users/ericg/Projets/Density_bining/Prod_density_april15/historical/r1i1p1'
+outdir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/mme_hist/r1i1p1'
 listens = []
 listens1 = []
 for i,mod in enumerate(models):
     os.chdir(indir)
     print i,mod, 'slice', years[i]
-    listf  = glob.glob('cmip5.'+mod+'.*2D*')
-    listf1 = glob.glob('cmip5.'+mod+'.*1D*')
+    listf  = glob.glob('cmip5.'+mod+'.*zon2D*')
+    listf1 = glob.glob('cmip5.'+mod+'.*zon1D*')
     start = listf[0].find(exper)+len(exper)
     end = listf[0].find('.an.')
     rip = listf[0][start:end]
@@ -523,13 +528,13 @@ for i,mod in enumerate(models):
     outFile1 = replace(outFile,'2D','1D')
     listens.append(outFile)
     listens1.append(outFile1)
-    print outFile
-    print outFile1
     if mm:
         if twoD:
+            print outFile
             mmeAveMsk2D(listf,years[i],indir,outdir,outFile,timeInt,mme)
             print 'Wrote ',outdir+'/'+outFile
         if oneD:
+            print outFile1
             mmeAveMsk1D(listf1,years[i],indir,outdir,outFile1,timeInt,mme)
             print 'Wrote ',outdir+'/'+outFile1
 
@@ -545,4 +550,4 @@ if mme:
         mmeAveMsk1D(listens1,[0,146],indir,outdir,outFile1,timeInt,mme)
         print 'Wrote ',outdir+'/'+outFile1
 
-modelsurf = ['ACCESS1-0','ACCESS1-3','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','EC-EARTH','FGOALS-s2','GFDL-ESM2G','GISS-E2-R-CC','GISS-E2-R','MIROC5','MIROC-ESM-CHEM','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MPI-ESM-P','NorESM1-ME','NorESM1-M']
+#modelsurf = ['ACCESS1-0','ACCESS1-3','CMCC-CESM','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','EC-EARTH','FGOALS-s2','GFDL-ESM2G','GISS-E2-R-CC','GISS-E2-R','MIROC5','MIROC-ESM-CHEM','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MPI-ESM-P','NorESM1-ME','NorESM1-M']

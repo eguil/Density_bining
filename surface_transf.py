@@ -202,7 +202,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     s_axis.designateLevel()
     #
     # Monthly transformation
-    #outFile = replace(outFile,'.mo.','.an.')
     if os.path.exists(outFile):
         os.remove(outFile)
     outFile_f = cdm.open(outFile,'w')
@@ -439,7 +438,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # Compute density
         rhon[t,...] = eosNeutral(tost.data, sost.data) - 1000.
         rhonl = rhon.data[t,...]
-        # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI unts)
+        # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI units)
         #  convwf : kg/m2/s = mm/s -> m/s
         convwf = 1.e-3
         pres = tost.data*0.
