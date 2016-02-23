@@ -56,7 +56,7 @@ agreelev = 0.6
 # Define variable  TODO: read as argument
 varname = salinity
 #varname = temp
-varname = depth
+#varname = depth
 #varname = volume
 #varname = persist
 

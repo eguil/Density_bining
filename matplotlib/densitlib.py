@@ -54,8 +54,9 @@ def zon_2dom(plt,ax0,ax1,lat,lev,varBasin,varSigma,unit,minmax,clevsm,cmap,domrh
 
 #-- draw agreement contour > agreement level (agreelev)
     cmapbl = LinearSegmentedColormap('cmapbl',bluecol())
-    cpplot = ax0.contour(lat,lev,varag,[agreelev-.0001,agreelev+0.00001],cmap=cmapbl)
-    cpplot = ax0.contour(lat,lev,varag,[-agreelev-.0001,-agreelev+0.00001],cmap=cmapbl)
+    chplot = ax0.contourf(lat,lev,varag,levels=[-agreelev,agreelev],hatches=['..'],colors='none')
+    cpplot = ax0.contour(lat,lev,varag,[agreelev-.0001,agreelev+0.00001],cmap=cmapbl, linewidths=2)
+    cpplot = ax0.contour(lat,lev,varag,[-agreelev-.0001,-agreelev+0.00001],cmap=cmapbl, linewidths=2)
 
 #-- draw mean contours
     cmapb = LinearSegmentedColormap('cmapb',blkcol())
@@ -65,9 +66,6 @@ def zon_2dom(plt,ax0,ax1,lat,lev,varBasin,varSigma,unit,minmax,clevsm,cmap,domrh
 #-- draw ptopsigma for 2 periods (yr1 = ref, yr2 = end of serie)
     lnplot1 = ax0.plot(lat,varSigma['yr1'],linestyle='--', color='black', linewidth=2)
     lnplot2 = ax0.plot(lat,varSigma['yr2'],linestyle='-', color='black', linewidth=2)
-
-#-- Add legend for bowl position
-
 
 # 
 # ====   Window 2  ===================================================
@@ -82,8 +80,9 @@ def zon_2dom(plt,ax0,ax1,lat,lev,varBasin,varSigma,unit,minmax,clevsm,cmap,domrh
 
 #-- draw agreement contour > agreement level (agreelev)
     cmapbl = LinearSegmentedColormap('cmapbl',bluecol())
-    cpplot = ax1.contour(lat,lev,varag,[agreelev-.0001,agreelev+0.00001],cmap=cmapbl)
-    cpplot = ax1.contour(lat,lev,varag,[-agreelev-.0001,-agreelev+0.00001],cmap=cmapbl)
+    chplot = ax1.contourf(lat,lev,varag,levels=[-agreelev,agreelev],hatches=['..'],colors='none')
+    cpplot = ax1.contour(lat,lev,varag,[agreelev-.0001,agreelev+0.00001],cmap=cmapbl,linewidths=2)
+    cpplot = ax1.contour(lat,lev,varag,[-agreelev-.0001,-agreelev+0.00001],cmap=cmapbl,linewidths=2)
 
 #-- draw mean contours
     cmapb = LinearSegmentedColormap('cmapb',blkcol())
