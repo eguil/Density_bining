@@ -3,16 +3,11 @@ from libDensity import defModels,mmeAveMsk2D,mmeAveMsk1D
 from string import replace
 import warnings
 
-def fxn():
-    warnings.warn("deprecated", DeprecationWarning)
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    fxn()
+warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------
 #
 # Perform model ensemble mean and other statistics for density binning output
-# run with pythoncd mme_ave_msk.py (cdms python on mac)
+# run with 'pythoncd -W ignore mme_ave_msk.py' (cdms python on mac)
 #
 # ----------------------------------------------------------------------------
 
@@ -40,17 +35,19 @@ outdir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/mme_hist'
 listens = []
 listens1 = []
 nmodels = len(models)
-print nmodels
+print
+print 'Number of models to consider in mme_ave_mask.py:',nmodels
+print ' -> work: oneD, twoD, mm, mme:', oneD, twoD, mm, mme
+print
 os.chdir(indir)
 for i in range(nmodels):
-    print 
     mod = models[i]['name']
     if exper == 'historical':
         nens = models[i]['props'][0]
     if exper == 'historicalNat':
         nens = models[i]['props'][1]
     years = [models[i]['props'][2],models[i]['props'][3]]
-    print i,mod, 'slice', years
+    print ' ',i,mod, 'slice', years
     if years[1] <> 0: # do not ignore model
         listf  = glob.glob('cmip5.'+mod+'.*zon2D*')
         listf1 = glob.glob('cmip5.'+mod+'.*zon1D*')
@@ -71,17 +68,17 @@ for i in range(nmodels):
                 mmeAveMsk1D(listf1,years,indir,outdir,outFile1,timeInt,mme)
                 print 'Wrote ',outdir+'/'+outFile1
                     
-        if mme:
-            # MME
-            indir  = outdir
-            if twoD:
-                outFile = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-                mmeAveMsk2D(listens,[0,146],indir,outdir,outFile,timeInt,mme)
-                print 'Wrote ',outdir+'/'+outFile
-            if oneD:
-                outFile1 = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
-                mmeAveMsk1D(listens1,[0,146],indir,outdir,outFile1,timeInt,mme)
-                print 'Wrote ',outdir+'/'+outFile1
+if mme:
+    # run 1D MME first
+    indir  = outdir
+    if twoD:
+        outFile = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+        mmeAveMsk2D(listens,[0,146],indir,outdir,outFile,timeInt,mme)
+        print 'Wrote ',outdir+'/'+outFile
+    if oneD:
+        outFile1 = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+        mmeAveMsk1D(listens1,[0,146],indir,outdir,outFile1,timeInt,mme)
+        print 'Wrote ',outdir+'/'+outFile1
 
 # ---------------------------
 

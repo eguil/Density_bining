@@ -26,7 +26,7 @@ from   densitlib import zon_2dom, defVar
 # -------------------------------------------------------------------------------
 
 indir = '/Users/ericg/Projets/Density_bining/'
-work = 'Prod_density_april15/mme_hist/r1i1p1'
+work = 'Prod_density_april15/mme_hist/'
 indir = indir+work
 file2d  = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
 file1d  = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
@@ -38,9 +38,9 @@ agreelev = 0.6
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
 varname = defVar('temp')
-varname = defVar('depth')
-varname = defVar('volume')
-varname = defVar('persist')
+#varname = defVar('depth')
+#varname = defVar('volume')
+#varname = defVar('persist')
 
 # Define plot name
 plotName = 'cmip5_mme_hist_r1i1p1_'+varname['var']
@@ -50,6 +50,7 @@ y11 = 140-1
 y12 = 146-1
 y21 = 2-1
 y22 = 30-1
+labBowl = ['<1950','2000']
 
 # density domain
 domrho = [21.,26.,28.]   # min/mid/max
@@ -113,7 +114,6 @@ varInd = {'name': 'Indian','diffBowl': vari, 'meanBowl': varim, 'agree': varai}
 vartsiga = {'yr1': ptopsigyr1a, 'yr2': ptopsigyr2a}
 vartsigp = {'yr1': ptopsigyr1p, 'yr2': ptopsigyr2p}
 vartsigi = {'yr1': ptopsigyr1i, 'yr2': ptopsigyr2i}
-labBowl = ['<1950','2000']
  
 #-- Create figure and axes instances
 fig, axes = plt.subplots(nrows=2,ncols=3,figsize=(17,5))
@@ -127,11 +127,11 @@ cmap = plt.get_cmap('bwr') # red/white/blue difference map
 #
 # -------- Make plot ----------------
 #
-cnplot=zon_2dom(plt,axes[0,0],axes[1,0],lat,lev,varAtl,vartsiga,unit,minmax,clevsm,cmap,domrho,agreelev,True,'F')
+cnplot=zon_2dom(plt,axes[0,0],axes[1,0],lat,lev,varAtl,vartsiga,unit,minmax,clevsm,cmap,domrho,agreelev,True,'F',labBowl)
 
-cnplot=zon_2dom(plt,axes[0,1],axes[1,1],lat,lev,varPac,vartsigp,unit,minmax,clevsm,cmap,domrho,agreelev,True,'T')
+cnplot=zon_2dom(plt,axes[0,1],axes[1,1],lat,lev,varPac,vartsigp,unit,minmax,clevsm,cmap,domrho,agreelev,True,'T',labBowl)
 
-cnplot=zon_2dom(plt,axes[0,2],axes[1,2],lat,lev,varInd,vartsigi,unit,minmax,clevsm,cmap,domrho,agreelev,True,'R')
+cnplot=zon_2dom(plt,axes[0,2],axes[1,2],lat,lev,varInd,vartsigi,unit,minmax,clevsm,cmap,domrho,agreelev,True,'R',labBowl)
 
 plt.subplots_adjust(hspace = .00001, wspace=0.05, left=0.04, right=0.86)
 
@@ -144,5 +144,5 @@ ttxt = fig.suptitle(legVar+' for '+work, fontsize=14, fontweight='bold')
 
 #-- Output  # TODO read as argument
 
-plt.show()
-#plt.savefig(plotName+'.pdf', bbox_inches='tight')
+#plt.show()
+plt.savefig(plotName+'.pdf', bbox_inches='tight')

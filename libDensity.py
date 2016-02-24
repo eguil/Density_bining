@@ -1,4 +1,4 @@
-import gc,os,resource,timeit,glob,re,math
+import gc,os,resource,timeit,glob,re,math,sys
 import cdms2 as cdm
 import cdutil as cdu
 import MV2 as mv
@@ -32,10 +32,8 @@ def defModels():
         {'name':'CNRM-CM5-2'    ,'props':[1,0,10,156]},
         {'name':'CNRM-CM5'      ,'props':[9,6,10,156]},
         {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,10,156]},
-        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,156]},
         {'name':'FGOALS-s2'     ,'props':[3,0,10,156]},
         {'name':'GFDL-CM2p1'    ,'props':[9,0,10,156]},
-        {'name':'GFDL-CM3'      ,'props':[4,3,10,156]},
         {'name':'GISS-E2-H-CC'  ,'props':[1,0,10,156]},
         {'name':'HadCM3'        ,'props':[9,0, 0,146]},
         {'name':'HadGEM2-CC'    ,'props':[1,0, 0,146]},
@@ -57,14 +55,16 @@ def defModels():
 # models to check
 """
     models = [
-        {'name':'bcc-csm1-1'    ,'props':[3,1, 0,146]},
-        {'name':'CESM1-WACCM'   ,'props':[7,0,10,156]},
-        {'name':'EC-EARTH'      ,'props':[6,0,0,0]},   # to check
-        {'name':'FGOALS-g2'     ,'props':[5,3,10,156]}, # 96 time steps instead of 146
-        {'name':'GFDL-ESM2G'    ,'props':[1,0,0,0]},   # to check
-        {'name':'GFDL-ESM2M'    ,'props':[1,1,0,0]},   # to check
-        {'name':'GISS-E2-H'     ,'props':[15,10,10,156]},  #r6i1p1 62 steps
-        {'name':'GISS-E2-R'     ,'props':[23,10,10,156]}, # 145 time steps
+        {'name':'bcc-csm1-1'    ,'props':[3,1, 0,146]},    # to check
+        {'name':'CESM1-WACCM'   ,'props':[7,0,10,156]},    # to check
+        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,156]},    # 145 time steps (mm ok)
+        {'name':'EC-EARTH'      ,'props':[6,0,0,0]},       # to check
+        {'name':'FGOALS-g2'     ,'props':[5,3,10,156]},    # 96 time steps instead of 146
+        {'name':'GFDL-CM3'      ,'props':[4,3,10,156]},    # 145 time steps (mm ok)
+        {'name':'GFDL-ESM2G'    ,'props':[1,0,0,0]},       # to check
+        {'name':'GFDL-ESM2M'    ,'props':[1,1,0,0]},       # to check
+        {'name':'GISS-E2-H'     ,'props':[15,10,10,156]},  # r6i1p1 62 steps
+        {'name':'GISS-E2-R'     ,'props':[23,10,10,156]},  # 145 time steps
         ]
 """
 
@@ -165,7 +165,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     timN = isond0.shape[0]
     runN = len(listFiles)  
 
-    print 'Number of members:',runN
+    print ' Number of members:',len(listFiles) 
 
     valmask = isond0.missing_value
 
@@ -196,8 +196,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
         for i,file in enumerate(listFiles):
             ft      = cdm.open(inDir+'/'+file)
             timeax  = ft.getAxis('time')
-            f1d     = cdm.open(replace(inDir+'/'+file,'2D','1D'))
-#            f1d     = cdm.open(inDir+'/'+file)
+            file1d  =  replace(inDir+'/'+file,'2D','1D')
+            if os.path.isfile(file1d):
+                f1d = cdm.open(file1d)
+            else:
+                print 'ERROR:',file1d,'missing (if mme, run 1D first)'
+                sys.exit(1)
             if i == 0:
                 tmax0 = timeax.shape[0]
                 tmax = timeax.shape[0]
@@ -283,7 +287,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
             isonVarStd.mask = percentw.mask
             if iv == 0:
                 # Read mulitmodel sigma on bowl and average in time
-                f1d = cdm.open(replace(outDir+'/'+outFile,'2D','1D'))
+                file1d  =  replace(outDir+'/'+outFile,'2D','1D')
+                if os.path.isfile(file1d):
+                    f1d = cdm.open(file1d)
+                else:
+                    print 'ERROR:',file1d,'missing (if mme, run 1D first)'
+                    sys.exit(1)
                 bowlRead = f1d('ptopsigma',time = slice(t1,t2))
                 f1d.close()
                 siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
@@ -407,7 +416,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     timN = ptopd0.shape[0]
     runN = len(listFiles)  
 
-    print 'Number of members:',runN
+    print ' Number of members:',len(listFiles)
 
     valmask = ptopd0.missing_value
 
