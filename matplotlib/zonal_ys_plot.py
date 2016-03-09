@@ -38,7 +38,7 @@ agreelev = 0.6
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
 varname = defVar('temp')
-#varname = defVar('depth')
+varname = defVar('depth')
 #varname = defVar('volume')
 #varname = defVar('persist')
 
@@ -46,10 +46,10 @@ varname = defVar('temp')
 plotName = 'cmip5_mme_hist_r1i1p1_'+varname['var']
 
 # years for difference
-y11 = 140-1
-y12 = 146-1
-y21 = 2-1
-y22 = 30-1
+y11 = 140 - 1
+y12 = 146 - 1
+y21 = 2 - 1
+y22 = 30 - 1
 labBowl = ['<1950','2000']
 
 # density domain
@@ -144,5 +144,5 @@ ttxt = fig.suptitle(legVar+' for '+work, fontsize=14, fontweight='bold')
 
 #-- Output  # TODO read as argument
 
-#plt.show()
-plt.savefig(plotName+'.pdf', bbox_inches='tight')
+plt.show()
+#plt.savefig(plotName+'.pdf', bbox_inches='tight')
