@@ -13,11 +13,11 @@ TODO: - add arguments for variable and output type
 """
 import numpy as np
 from   netCDF4 import Dataset as open_ncfile
-import matplotlib as mpl
-from   mpl_toolkits.basemap import Basemap, cm
-from   mpl_toolkits.axes_grid1 import Grid
+#import matplotlib as mpl
+#from   mpl_toolkits.basemap import Basemap, cm
+#from   mpl_toolkits.axes_grid1 import Grid
 import matplotlib.pyplot as plt
-from   matplotlib.colors import LinearSegmentedColormap
+#from   matplotlib.colors import LinearSegmentedColormap
 
 from   densitlib import zon_2dom, defVar
 

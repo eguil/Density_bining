@@ -7,7 +7,6 @@ Feb 2016
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import MaxNLocator
 
 
@@ -165,3 +164,19 @@ def bluecol():
              'blue': ((0.0, 0.0, 1.0),
                       (1.0, 1.0, 1.0))}
     return (cdict)
+
+# - average in lat/rho domain
+
+def averageDom(field, domain, lat, rho):
+
+    latidx = np.argwhere((lat >= domain[0]) & (lat <= domain[1])).transpose()
+    rhoidx = np.argwhere((rho >= domain[2]) & (rho <= domain[3])).transpose()
+    lidx1 = latidx[0][0];
+    lidx2 = latidx[0][-1]
+    ridx1 = rhoidx[0][0];
+    ridx2 = rhoidx[0][-1]
+    vara = np.ma.average(field[:, ridx1:ridx2, :], axis=1)
+    var_ave = np.ma.average(vara[:, lidx1:lidx2], axis=1)
+
+    return var_ave
+
