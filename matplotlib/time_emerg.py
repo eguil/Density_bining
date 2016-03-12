@@ -18,11 +18,10 @@ from densitlib import defVar, averageDom
 #                                Define work
 # -------------------------------------------------------------------------------
 
-indir = '/Users/ericg/Projets/Density_bining/'
+inDir = '/Users/ericg/Projets/Density_bining/'
 work = 'Prod_density_april15/mme_hist/'
-indir = indir + work
+inDir = inDir + work
 file2d = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-
 
 # Model agreement level
 agreelev = 0.6
@@ -39,20 +38,20 @@ plotName = 'cmip5_ToE_mme_hist_r1i1p1_' + varname['var']
 
 # density/latitude domains (where agreement level was noted > agreelev on ys plots)
 # Atl
-ToEA1 = {'domain': [-40., -20, 26., 26.7],  # [minlat, maxlat, minrho, maxrho]
+ToEA1 = {'domain': [-40., -30, 25.5, 26.7],  # [minlat, maxlat, minrho, maxrho]
          'name': 'Southern ST', 'color': 'blue'}
 ToEA2 = {'domain': [20., 40., 26., 27.2], 'name': 'Northern ST', 'color': 'green'}
 ToEA3 = {'domain': [-55, -40., 26.8, 27.8], 'name': 'Southern O', 'color': 'red'}
-ToEA4 = {'domain': [5, 25, 23.5, 25.5], 'name': 'Tropics N', 'color': 'purple'}
-ToEA5 = {'domain': [65, 90, 26.4, 28.], 'name': 'Arctic', 'color': 'black'}
+ToEA4 = {'domain': [5, 25, 23, 25.5], 'name': 'Tropics N', 'color': 'purple'}
+ToEA5 = {'domain': [65, 90, 26.5, 28.], 'name': 'Arctic', 'color': 'black'}
 # Pac
-ToEP1 = {'domain': [-45, 0, 24.5, 26.8], 'name': 'Southern ST', 'color': 'blue'}
-ToEP2 = {'domain': [-60, -45, 27.2, 27.8], 'name': 'Southern O', 'color': 'red'}
-ToEP3 = {'domain': [45, 60, 26.4, 27.], 'name': 'North Pac', 'color': 'green'}
-ToEP4 = {'domain': [-30, -20, 25., 26.1], 'name': 'Southern STz', 'color': 'blue'}
+ToEP1 = {'domain': [-40, 0, 24.5, 26.7], 'name': 'Southern ST', 'color': 'blue'}
+ToEP2 = {'domain': [-60, -45, 27.3, 27.7], 'name': 'Southern O', 'color': 'red'}
+ToEP3 = {'domain': [45, 60, 26., 26.8], 'name': 'North Pac', 'color': 'green'}
+ToEP4 = {'domain': [-30, -10, 25., 26.], 'name': 'Southern STz', 'color': 'blue'}
 # Ind
-ToEI1 = {'domain': [-40, -20, 25.8, 26.6], 'name': 'Southern ST', 'color': 'blue'}
-ToEI2 = {'domain': [-55, -45, 27., 27.8], 'name': 'Southern O', 'color': 'red'}
+ToEI1 = {'domain': [-40, -15, 25.6, 26.8], 'name': 'Southern ST', 'color': 'blue'}
+ToEI2 = {'domain': [-60, -40, 27.2, 27.8], 'name': 'Southern O', 'color': 'red'}
 
 # Plot domain
 iniyear = 1860
@@ -61,7 +60,7 @@ tmax0 = 150
 agreemin = -1.
 agreemax = 1.
 #
-figTitle = "Time of emergence mme_hist for agreelev = ",agreelev
+figTitle = "Time of emergence mme_hist for agreelev = ", agreelev
 #
 # -------------------------------------------------------------------------------
 
@@ -70,7 +69,7 @@ figTitle = "Time of emergence mme_hist for agreelev = ",agreelev
 var = varname['var']
 
 # -- Open netcdf files
-nc2d = open_ncfile(indir + '/' + file2d)
+nc2d = open_ncfile(inDir + '/' + file2d)
 # -- Read variables
 # Read model agreement variables
 tvaraa = nc2d.variables[var + 'Agree'][:, 1, :, :].squeeze()
@@ -152,4 +151,4 @@ plt.suptitle(figTitle, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
 #plt.show()
-plt.savefig(plotName+'.pdf', bbox_inches='tight')
+plt.savefig(plotName + '.pdf', bbox_inches='tight')

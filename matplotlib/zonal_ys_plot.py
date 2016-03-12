@@ -37,9 +37,9 @@ agreelev = 0.6
 
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
-varname = defVar('temp')
-varname = defVar('depth')
-varname = defVar('volume')
+#varname = defVar('temp')
+#varname = defVar('depth')
+#varname = defVar('volume')
 # varname = defVar('persist')
 
 # Define plot name
