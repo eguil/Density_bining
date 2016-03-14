@@ -17,10 +17,10 @@ twoD = False
 
 #oneD = True
 twoD = True
-mm  = False
-mme = True
+mme  = False
+mm = True
 
-exper  = 'historical'
+exper  = 'historicalNat'
 # define all models
 models = defModels()
 nmodels = len(models)

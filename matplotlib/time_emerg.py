@@ -34,7 +34,7 @@ varname = defVar('salinity')
 # varname = defVar('persist')
 
 # Define plot name
-plotName = 'cmip5_ToE_mme_hist_r1i1p1_' + varname['var']
+plotName = 'cmip5_ToE_mme_hist_42models_' + varname['var']
 
 # density/latitude domains (where agreement level was noted > agreelev on ys plots)
 # Atl
@@ -60,7 +60,7 @@ tmax0 = 149
 agreemin = -1.
 agreemax = 1.
 #
-figTitle = "Time of emergence mme_hist for agreelev = ", agreelev
+figTitle = "Time of emergence mme_hist (42 models) for agreelev = ", agreelev
 #
 # -------------------------------------------------------------------------------
 

@@ -43,7 +43,7 @@ varname = defVar('salinity')
 # varname = defVar('persist')
 
 # Define plot name
-plotName = 'cmip5_mme_hist_r1i1p1_' + varname['var']
+plotName = 'cmip5_mme_hist_42models_' + varname['var']
 
 # years for difference
 y11 = 140
@@ -148,4 +148,4 @@ ttxt = fig.suptitle(legVar + ' for ' + work, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
 plt.show()
-# plt.savefig(plotName+'.pdf', bbox_inches='tight')
+#plt.savefig(plotName+'.pdf', bbox_inches='tight')
