@@ -1,11 +1,11 @@
-import gc,os,resource,timeit,glob,re,math,sys
+import os,sys
 import cdms2 as cdm
 import cdutil as cdu
 import MV2 as mv
 import numpy as npy
 from string import replace
 from genutil import statistics
-import time as timc
+
 
 
 def defModels():

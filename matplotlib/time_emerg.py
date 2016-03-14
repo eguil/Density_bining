@@ -9,7 +9,6 @@ Make time emergence plots from <var>agree variable in Historicla runs
 TODO: - add arguments for variable and output type
 
 """
-import numpy as np
 from   netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 from densit_matplot_lib import defVar, averageDom
