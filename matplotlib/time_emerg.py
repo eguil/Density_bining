@@ -12,7 +12,7 @@ TODO: - add arguments for variable and output type
 import numpy as np
 from   netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
-from densitlib import defVar, averageDom
+from densit_matplot_lib import defVar, averageDom
 
 # -------------------------------------------------------------------------------
 #                                Define work
@@ -54,9 +54,9 @@ ToEI1 = {'domain': [-40, -15, 25.6, 26.8], 'name': 'Southern ST', 'color': 'blue
 ToEI2 = {'domain': [-60, -40, 27.2, 27.8], 'name': 'Southern O', 'color': 'red'}
 
 # Plot domain
-iniyear = 1860
+iniyear = 1861
 tmin0 = 0
-tmax0 = 150
+tmax0 = 149
 agreemin = -1.
 agreemax = 1.
 #

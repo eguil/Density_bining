@@ -18,7 +18,7 @@ from   mpl_toolkits.axes_grid1 import Grid
 import matplotlib.pyplot as plt
 from   matplotlib.colors import LinearSegmentedColormap
 
-from   densitlib import zon_2dom, defVar
+from   densit_matplot_lib import zon_2dom, defVar
 
 # -------------------------------------------------------------------------------
 #                               Define work

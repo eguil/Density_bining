@@ -12,42 +12,54 @@ def defModels():
 #
 # List available models and properties
 #
-#  name, props=[Nb of hist members, nb of HistNat members, idx of common interval [1860-2005]]
+#  name, props=[Nb of hist members, nb of HistNat members, idx of common interval [1861-2005]]
+#      picontrol=[length of run]
 #
 #  set last idx (2005) to 0 to ignore model
 #
     models = [
-        {'name':'ACCESS1-0'     ,'props':[2,0,10,156]},
-        {'name':'ACCESS1-3'     ,'props':[3,0,10,156]},
-        {'name':'bcc-csm1-1-m'  ,'props':[3,0, 0,146]},
-        {'name':'BNU-ESM'       ,'props':[1,0,10,156]},
-        {'name':'CanESM2'       ,'props':[5,5,10,156]},
-        {'name':'CCSM4'         ,'props':[6,4,10,156]},
-        {'name':'CESM1-BGC'     ,'props':[1,0,10,156]},
-        {'name':'CESM1-CAM5'    ,'props':[3,3,10,156]},
-        {'name':'CESM1-FASTCHEM','props':[3,0,10,156]},
-        {'name':'CMCC-CESM'     ,'props':[1,0,10,156]},
-        {'name':'CMCC-CM'       ,'props':[1,0,10,156]},
-        {'name':'CMCC-CMS'      ,'props':[1,0,10,156]},
-        {'name':'CNRM-CM5-2'    ,'props':[1,0,10,156]},
-        {'name':'CNRM-CM5'      ,'props':[9,6,10,156]},
-        {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,10,156]},
-        {'name':'FGOALS-s2'     ,'props':[3,0,10,156]},
-        {'name':'GFDL-CM2p1'    ,'props':[9,0,10,156]},
-        {'name':'GISS-E2-H-CC'  ,'props':[1,0,10,156]},
-        {'name':'HadCM3'        ,'props':[9,0, 0,146]},
-        {'name':'HadGEM2-CC'    ,'props':[1,0, 0,146]},
-        {'name':'HadGEM2-ES'    ,'props':[3,3, 0,146]},
-        {'name':'IPSL-CM5A-LR'  ,'props':[6,3,10,156]},
-        {'name':'IPSL-CM5A-MR'  ,'props':[3,3,10,156]},
-        {'name':'IPSL-CM5B-LR'  ,'props':[1,0,10,156]},
-        {'name':'MIROC-ESM-CHEM','props':[1,1,10,156]},
-        {'name':'MIROC-ESM'     ,'props':[3,3,10,156]},
-        {'name':'MPI-ESM-LR'    ,'props':[3,0,10,156]},
-        {'name':'MPI-ESM-MR'    ,'props':[3,0,10,156]},
-        {'name':'MPI-ESM-P'     ,'props':[2,0,10,156]},
-        {'name':'NorESM1-ME'    ,'props':[1,0,10,156]},
-        {'name':'NorESM1-M'     ,'props':[2,0,10,156]},
+        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[0]}, # 0
+        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[0]}, # 1
+        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
+        {'name':'bcc-csm1-1'    ,'props':[2,1,11,156], 'picontrol':[0]}, # 3
+        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[0]}, # 4
+        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[0]}, # 5
+        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[0]}, # 6
+        {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[0]}, # 7
+        {'name':'CESM1-CAM5'    ,'props':[3,3,11,156], 'picontrol':[0]}, # 8
+        {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[0]}, # 9
+        {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[0]}, # 10
+        {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[0]}, # 11
+        {'name':'CMCC-CM'       ,'props':[1,0,11,156], 'picontrol':[0]}, # 12
+        {'name':'CMCC-CMS'      ,'props':[1,0,11,156], 'picontrol':[0]}, # 13
+        {'name':'CNRM-CM5-2'    ,'props':[1,0,11,156], 'picontrol':[0]}, # 14
+        {'name':'CNRM-CM5'      ,'props':[9,6,11,156], 'picontrol':[0]}, # 15
+        {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,11,156], 'picontrol':[0]}, # 16
+        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,155], 'picontrol':[0]}, # 17 - 145 time steps
+        {'name':'EC-EARTH'      ,'props':[6,0,11,156], 'picontrol':[0]}, # 18
+        {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[0]}, # 19
+        {'name':'FGOALS-s2'     ,'props':[3,0,11,156], 'picontrol':[0]}, # 20
+        {'name':'GFDL-CM2p1'    ,'props':[9,0,11,156], 'picontrol':[0]}, # 21
+        {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22 - 145 time steps
+        {'name':'GFDL-ESM2G'    ,'props':[1,0, 0,146], 'picontrol':[0]}, # 23 - 145 time steps
+        {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[0]}, # 24 - 145 time steps
+        {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[0]},# 25
+        {'name':'GISS-E2-H-CC'  ,'props':[1,0,11,156], 'picontrol':[0]}, # 26
+        {'name':'GISS-E2-R'     ,'props':[16,11,11,156], 'picontrol':[0]}, # 27
+        {'name':'GISS-E2-R-CC'  ,'props':[1,0,11,156], 'picontrol':[0]}, # 28
+        {'name':'HadCM3'        ,'props':[9,0, 1,146], 'picontrol':[0]}, # 29
+        {'name':'HadGEM2-CC'    ,'props':[1,0, 1,146], 'picontrol':[0]}, # 30
+        {'name':'HadGEM2-ES'    ,'props':[3,3, 1,146], 'picontrol':[0]}, # 31
+        {'name':'IPSL-CM5A-LR'  ,'props':[6,3,11,156], 'picontrol':[0]}, # 32
+        {'name':'IPSL-CM5A-MR'  ,'props':[3,3,11,156], 'picontrol':[0]}, # 33
+        {'name':'IPSL-CM5B-LR'  ,'props':[1,0,11,156], 'picontrol':[0]}, # 34
+        {'name':'MIROC-ESM-CHEM','props':[1,1,11,156], 'picontrol':[0]}, # 35
+        {'name':'MIROC-ESM'     ,'props':[3,3,11,156], 'picontrol':[0]}, # 36
+        {'name':'MPI-ESM-LR'    ,'props':[3,0,11,156], 'picontrol':[0]}, # 37
+        {'name':'MPI-ESM-MR'    ,'props':[3,0,11,156], 'picontrol':[0]}, # 38
+        {'name':'MPI-ESM-P'     ,'props':[2,0,11,156], 'picontrol':[0]}, # 39
+        {'name':'NorESM1-ME'    ,'props':[1,0,11,156], 'picontrol':[0]}, # 40
+        {'name':'NorESM1-M'     ,'props':[2,0,11,156], 'picontrol':[0]}, # 41
         ]
 
     return models
@@ -55,16 +67,6 @@ def defModels():
 # models to check
 """
     models = [
-        {'name':'bcc-csm1-1'    ,'props':[3,1, 0,146]},    # to check
-        {'name':'CESM1-WACCM'   ,'props':[7,0,10,156]},    # to check
-        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,156]},    # 145 time steps (mm ok)
-        {'name':'EC-EARTH'      ,'props':[6,0,0,0]},       # to check
-        {'name':'FGOALS-g2'     ,'props':[5,3,10,156]},    # 96 time steps instead of 146
-        {'name':'GFDL-CM3'      ,'props':[4,3,10,156]},    # 145 time steps (mm ok)
-        {'name':'GFDL-ESM2G'    ,'props':[1,0,0,0]},       # to check
-        {'name':'GFDL-ESM2M'    ,'props':[1,1,0,0]},       # to check
-        {'name':'GISS-E2-H'     ,'props':[15,10,10,156]},  # r6i1p1 62 steps
-        {'name':'GISS-E2-R'     ,'props':[23,10,10,156]},  # 145 time steps
         ]
 """
 
@@ -163,9 +165,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     levN = isond0.shape[2]
     basN = isond0.shape[1]
     timN = isond0.shape[0]
-    runN = len(listFiles)  
+    runN = len(listFiles)
 
-    print ' Number of members:',len(listFiles) 
+    print ' Number of members:',len(listFiles)
 
     valmask = isond0.missing_value
 
@@ -275,7 +277,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
 
         # Only keep points with rhon >  bowl-delta_rho
         delta_rho = 0.
-        if mme: # start from average of <var>Agree 
+        if mme: # start from average of <var>Agree
             isonVarBowl = cdu.averager(varbowl2D, axis=0)
             isonVarBowl = cdm.createVariable(isonVarBowl , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
             isonVarBowl = maskVal(isonVarBowl, valmask)
@@ -311,11 +313,11 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                         # mask all points
                         isonVarBowl [:,ib,:,il].mask = True
                         isonVarStd  [:,ib,:,il].mask = True
-                        vardiffsgSum[:,ib,:,il].mask = True                
+                        vardiffsgSum[:,ib,:,il].mask = True
         else:
             isonVarBowl = isonVarAve*1. # start from variable
             if iv == 0:
-                siglimit = cdu.averager(varbowl, axis=0) 
+                siglimit = cdu.averager(varbowl, axis=0)
                 siglimit = cdu.averager(siglimit, axis=0) - delta_rho
             # TODO: remove loop by building global array with 1/0
             for il in range(latN):
@@ -329,7 +331,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                         # mask all points
                         vardiffsgSum[:,ib,:,il].mask = True
             isonVarBowl = maskVal(isonVarBowl, valmask)
-            
+
         # Write
         isonave = cdm.createVariable(isonVarAve, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id)
         isonave.long_name = isonRead.long_name
@@ -349,7 +351,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
             isonvarstd.long_name = isonRead.long_name+' intermodel std'
             isonvarstd.units     = isonRead.units
             outFile_f.write(isonvarstd.astype('float32'))
-           
+
     # <--- end of loop on variables 
 
     outFile_f.close()
@@ -414,7 +416,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     latN = ptopd0.shape[2]
     basN = ptopd0.shape[1]
     timN = ptopd0.shape[0]
-    runN = len(listFiles)  
+    runN = len(listFiles)
 
     print ' Number of members:',len(listFiles)
 
@@ -468,7 +470,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                 return
             # read array
             isonRead = ft(var,time = slice(t1,t2))
-            #print isonRead.shape
+            #print isonRead.shape, isonvar.shape, file
             if varFill[iv] != valmask:
                 isonvar[ic,...] = isonRead.filled(varFill[iv])
             else:

@@ -19,7 +19,7 @@ from   netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 #from   matplotlib.colors import LinearSegmentedColormap
 
-from   densitlib import zon_2dom, defVar
+from   densit_matplot_lib import zon_2dom, defVar
 
 # -------------------------------------------------------------------------------
 #                               Define work
@@ -46,10 +46,10 @@ varname = defVar('salinity')
 plotName = 'cmip5_mme_hist_r1i1p1_' + varname['var']
 
 # years for difference
-y11 = 140 - 1
-y12 = 146 - 1
-y21 = 2 - 1
-y22 = 30 - 1
+y11 = 140
+y12 = 145
+y21 = 0
+y22 = 50
 labBowl = ['<1950', '2000']
 
 # density domain
