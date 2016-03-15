@@ -38,11 +38,11 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 
 
 # Define variable  TODO: read as argument
-#varname = defVar('salinity')
-varname = defVar('temp')
-#varname = defVar('depth')
-#varname = defVar('volume')
-# varname = defVar('persist')
+varname = defVar('salinity')
+#varname = defVar('temp')
+varname = defVar('depth')
+varname = defVar('volume')
+varname = defVar('persist')
 
 # Define plot name
 plotName = 'cmip5_hist_vs_histNat_stddev_' + varname['var']
@@ -153,5 +153,5 @@ ttxt = fig.suptitle('Hist minus HistNat - '+legVar + ' for ' + workh+' (last '+s
 
 # -- Output  # TODO read as argument
 
-#plt.show()
-plt.savefig(plotName+'.pdf', bbox_inches='tight')
+plt.show()
+#plt.savefig(plotName+'.pdf', bbox_inches='tight')

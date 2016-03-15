@@ -123,7 +123,7 @@ def defVar(longName):
         'var': 'isonso',  # variable name
         'minmax': [-.2, .2, 16],  # for diff shading + number of color interval
         'clevsm': np.arange(30, 40, .2),  # for mean contours
-        'clevsmstd': np.arange(0., .2, .02),  # for stddev contours
+        'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
         'legVar': "Salinity",  # Legend name
         'unit': "PSU",  # TODO: could be read from file
     }
@@ -133,7 +133,7 @@ def defVar(longName):
             'legVar': "Temperature", 'unit': "C", 'longN': 'temp',
             }
     depth = {'var': 'isondepth', 'minmax': [-75., 75., 30], 'clevsm': np.arange(0, 2000, 100),
-             'clevsmstd': np.arange(0, 20, 1),
+             'clevsmstd': np.arange(0, 20, 5),
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
     volume = {'var': 'isonvol', 'minmax': [-20., 20., 20], 'clevsm': np.arange(0, 200, 20),
@@ -141,7 +141,7 @@ def defVar(longName):
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
-            'clevsmstd': np.arange(0, 5., 1),
+            'clevsmstd': np.arange(0, 3., .5),
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
 
