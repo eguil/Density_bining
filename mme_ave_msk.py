@@ -16,8 +16,8 @@ twoD = False
 
 #oneD = True
 twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 
 exper  = 'historicalNat'
 
@@ -50,8 +50,12 @@ if exper == 'historicalNat':
 listens = []
 listens1 = []
 print
-print 'Number of models to consider in mme_ave_mask.py:',nmodels
-print ' -> work: oneD, twoD, mm, mme:', oneD, twoD
+print '-------------------------------------------------------------------------'
+print 'Enter mme_ave_mask.py for multi-model ensemble averaging for density bins'
+if oneD:
+    print ' -> work on 1D files'
+if twoD:
+    print ' -> work on 2D files'
 if mm:
         print ' -> Performing model ensembles for',exper
 if mme:
@@ -89,11 +93,11 @@ for i in modelSel:
             # Perform model ensemble
             if mm:
                 if twoD:
-                    print ' -> working on: ', i,mod, 'slice', years, nens
+                    print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
                     mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme)
                     print 'Wrote ',outdir+'/'+outFile
                 if oneD:
-                    print ' -> working on: ', i,mod, 'slice', years, nens
+                    print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
                     mmeAveMsk1D(listf1,years,indir,outdir,outFile1,timeInt,mme)
                     print 'Wrote ',outdir+'/'+outFile1
                     
@@ -101,11 +105,11 @@ if mme:
     # run 1D MME first
     indir  = outdir
     if twoD:
-        outFile = 'cmip5.multimodel_'+selMME+'.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+        outFile = 'cmip5.multimodel_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
         mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme)
         print 'Wrote ',outdir+'/'+outFile
     if oneD:
-        outFile1 = 'cmip5.multimodel_'+selMME+'.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+        outFile1 = 'cmip5.multimodel_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
         mmeAveMsk1D(listens1,idxtime,indir,outdir,outFile1,timeInt,mme)
         print 'Wrote ',outdir+'/'+outFile1
 
