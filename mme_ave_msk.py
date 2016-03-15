@@ -16,10 +16,10 @@ twoD = False
 
 #oneD = True
 twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 
-exper  = 'historicalNat'
+exper  = 'historical'
 # define all models
 models = defModels()
 nmodels = len(models)
@@ -27,6 +27,9 @@ modelSel = range(nmodels)
 # perform a selection ?
 # modelSel = [3,10,18,19,25,27,28]
 # modelSel = [22,23,24]
+
+#selMME = 'All' # select all models for MME
+selMME = 'Nat' # select only models for which there are hist AND histNat simulations
 
 # Years interval for difference reference
 iniyear = 1861
@@ -47,7 +50,11 @@ listens = []
 listens1 = []
 print
 print 'Number of models to consider in mme_ave_mask.py:',nmodels
-print ' -> work: oneD, twoD, mm, mme:', oneD, twoD, mm, mme
+print ' -> work: oneD, twoD, mm, mme:', oneD, twoD
+if mm:
+        print ' -> Performing model ensembles for',exper
+if mme:
+        print ' -> Performing MME for',selMME, 'models for', exper
 print
 os.chdir(indir)
 for i in modelSel:
@@ -57,7 +64,6 @@ for i in modelSel:
     if exper == 'historicalNat':
         nens = models[i]['props'][1]
     years = [models[i]['props'][2],models[i]['props'][3]]
-    print ' ',i,mod, 'slice', years, nens
     if years[1] <> 0: # do not ignore model
         if nens > 0: # only if 1 member or more
             listf  = glob.glob('cmip5.'+mod+'.*zon2D*')
@@ -67,15 +73,23 @@ for i in modelSel:
             rip = listf[0][start:end]
             outFile = replace(listf[0],rip,'.ensm')
             outFile1 = replace(outFile,'2D','1D')
-            listens.append(outFile)
-            listens1.append(outFile1)
+            if selMME == 'All':
+                listens.append(outFile)
+                listens1.append(outFile1)
+                print ' Add ',i,mod, 'slice', years, nens, 'to MME'
+
+            if selMME == 'Nat': # only select model if histNat mm is present
+                if models[i]['props'][1] > 0:
+                    listens.append(outFile)
+                    listens1.append(outFile1)
+                    print ' Add ',i,mod, 'slice', years, nens, 'to MME'
             if mm:
                 if twoD:
-                    print ' -> working on: ', outFile
+                    print ' -> working on: ', i,mod, 'slice', years, nens
                     mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme)
                     print 'Wrote ',outdir+'/'+outFile
                 if oneD:
-                    print ' -> working on: ', outFile1
+                    print ' -> working on: ', i,mod, 'slice', years, nens
                     mmeAveMsk1D(listf1,years,indir,outdir,outFile1,timeInt,mme)
                     print 'Wrote ',outdir+'/'+outFile1
                     
@@ -83,11 +97,11 @@ if mme:
     # run 1D MME first
     indir  = outdir
     if twoD:
-        outFile = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+        outFile = 'cmip5.multimodel_'+selMME+'.historical.ensm.an.ocn.Omon.density_zon2D.nc'
         mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme)
         print 'Wrote ',outdir+'/'+outFile
     if oneD:
-        outFile1 = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+        outFile1 = 'cmip5.multimodel_'+selMME+'.historical.ensm.an.ocn.Omon.density_zon1D.nc'
         mmeAveMsk1D(listens1,idxtime,indir,outdir,outFile1,timeInt,mme)
         print 'Wrote ',outdir+'/'+outFile1
 

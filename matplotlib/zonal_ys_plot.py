@@ -7,8 +7,7 @@ Make density/latitude section for Atl/Pac/Ind for a number of variables
 (c) Eric Guilyardi Feb 2016
 
 TODO: - add arguments for variable and output type
-      - read unit from file
-      - add mesh/dots for agreement zone
+      - read variable unit from file
 
 """
 import numpy as np
