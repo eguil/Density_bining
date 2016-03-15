@@ -53,6 +53,11 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
     # -- levels for diff plot
     levels = MaxNLocator(nbins=minmax[2]).tick_values(minmax[0], minmax[1])
 
+    # -- Format for contour labels
+    levfmt='%.1f'
+    if clevsm[1]-clevsm[0] < 0.1:
+        levfmt='%.2f'
+
     # -- draw filled contours of period diff
     cnplot = ax0.contourf(lat, lev, var, cmap=cmap, levels=levels)
 
@@ -66,7 +71,7 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
     # -- draw mean contours
     cmapb = LinearSegmentedColormap('cmapb', blkcol())
     cpplot = ax0.contour(lat, lev, varm, clevsm, cmap=cmapb)
-    ax0.clabel(cpplot, inline=1, fontsize=10, fmt='%.1f')
+    ax0.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
 
     # -- draw ptopsigma for 2 periods (yr1 = ref, yr2 = end of serie)
     lnplot1 = ax0.plot(lat, varSigma['yr1'], linestyle='--', color='black', linewidth=2)
@@ -93,7 +98,7 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
     # -- draw mean contours
     cmapb = LinearSegmentedColormap('cmapb', blkcol())
     cpplot = ax1.contour(lat, lev, varm, clevsm, cmap=cmapb)
-    ax1.clabel(cpplot, inline=1, fontsize=10, fmt='%.1f')
+    ax1.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
 
     # -- draw ptopsigma for 2 periods (yr1 = ref, yr2 = end of serie)
     lnplot1b = ax1.plot(lat, varSigma['yr1'], linestyle='--', color='black', linewidth=2, label=label1)
@@ -118,20 +123,25 @@ def defVar(longName):
         'var': 'isonso',  # variable name
         'minmax': [-.2, .2, 16],  # for diff shading + number of color interval
         'clevsm': np.arange(30, 40, .2),  # for mean contours
+        'clevsmstd': np.arange(0., .2, .02),  # for stddev contours
         'legVar': "Salinity",  # Legend name
         'unit': "PSU",  # TODO: could be read from file
     }
 
     temp = {'var': 'isonthetao', 'minmax': [-.4, .4, 16], 'clevsm': np.arange(-2, 30, 1),
+            'clevsmstd': np.arange(0, 2., .01),
             'legVar': "Temperature", 'unit': "C", 'longN': 'temp',
             }
     depth = {'var': 'isondepth', 'minmax': [-75., 75., 30], 'clevsm': np.arange(0, 2000, 100),
+             'clevsmstd': np.arange(0, 20, 1),
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
     volume = {'var': 'isonvol', 'minmax': [-20., 20., 20], 'clevsm': np.arange(0, 200, 20),
+              'clevsmstd': np.arange(0, 20, 1),
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
+            'clevsmstd': np.arange(0, 5., 1),
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
 

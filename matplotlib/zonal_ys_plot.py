@@ -28,8 +28,8 @@ from densit_matplot_lib import zon_2dom, defVar
 indir = '/Users/ericg/Projets/Density_bining/'
 work = 'Prod_density_april15/mme_hist/'
 indir = indir + work
-file2d = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-file1d = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+file2d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+file1d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon1D.nc'
 
 
 # Model agreement level

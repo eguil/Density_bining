@@ -38,14 +38,14 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 
 
 # Define variable  TODO: read as argument
-varname = defVar('salinity')
-#varname = defVar('temp')
+#varname = defVar('salinity')
+varname = defVar('temp')
 #varname = defVar('depth')
 #varname = defVar('volume')
 # varname = defVar('persist')
 
 # Define plot name
-plotName = 'cmip5_hist_vs_histNat_' + varname['var']
+plotName = 'cmip5_hist_vs_histNat_stddev_' + varname['var']
 
 # years for difference (last 10 years)
 nyearsComp = 5
@@ -63,7 +63,7 @@ delrho = [.5, .2]
 
 var = varname['var']
 minmax = varname['minmax']
-clevsm = varname['clevsm']
+clevsm = varname['clevsmstd']
 legVar = varname['legVar']
 unit = varname['unit']
 
@@ -100,14 +100,14 @@ ptopsighni = nc1dhn.variables['ptopsigma'][:, 3, :].squeeze()
 vara = np.ma.average(tvarha[y11:y12], axis=0) - np.ma.average(tvarhna[y11:y12], axis=0)
 varp = np.ma.average(tvarhp[y11:y12], axis=0) - np.ma.average(tvarhnp[y11:y12], axis=0)
 vari = np.ma.average(tvarhi[y11:y12], axis=0) - np.ma.average(tvarhni[y11:y12], axis=0)
-# mean
-varam = np.ma.average(tvarha, axis=0)
-varpm = np.ma.average(tvarhp, axis=0)
-varim = np.ma.average(tvarhi, axis=0)
-# Average model agreement over final period
-varaa = np.ma.average(tvarha[y11:y12], axis=0)
-varap = np.ma.average(tvarhp[y11:y12], axis=0)
-varai = np.ma.average(tvarhi[y11:y12], axis=0)
+# Compute significance of difference when diff within 1 stddev of histNat variability (in the MME sense)
+varam = np.ma.std(tvarhna, axis=0)
+varpm = np.ma.std(tvarhnp, axis=0)
+varim = np.ma.std(tvarhni, axis=0)
+# testing:
+varaa=0.
+varap=0.
+varai=0.
 # Periods ptopsigma
 ptopsigyr1a = np.ma.average(ptopsighna[y11:y12], axis=0)
 ptopsigyr1p = np.ma.average(ptopsighnp[y11:y12], axis=0)
@@ -153,5 +153,5 @@ ttxt = fig.suptitle('Hist minus HistNat - '+legVar + ' for ' + workh+' (last '+s
 
 # -- Output  # TODO read as argument
 
-plt.show()
-#plt.savefig(plotName+'.pdf', bbox_inches='tight')
+#plt.show()
+plt.savefig(plotName+'.pdf', bbox_inches='tight')
