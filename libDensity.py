@@ -26,7 +26,7 @@ def defModels():
         {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[0]}, # 5
         {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[0]}, # 6
         {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[0]}, # 7
-        {'name':'CESM1-CAM5'    ,'props':[3,3,11,156], 'picontrol':[0]}, # 8
+        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[0]}, # 8
         {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[0]}, # 9
         {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[0]}, # 10
         {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[0]}, # 11

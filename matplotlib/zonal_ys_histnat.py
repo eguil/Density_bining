@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Python matplotlib 
-Make density/latitude section for Atl/Pac/Ind for a number of variables
+Make density/latitude section diff between hist and histNat
+Per model and for mme of each
+for Atl/Pac/Ind for a number of variables
 
 (c) Eric Guilyardi Feb 2016
 
@@ -16,10 +18,9 @@ from netCDF4 import Dataset as open_ncfile
 from densit_matplot_lib import zon_2dom, defVar
 
 #import matplotlib as mpl
-#from mpl_toolkits.basemap import Basemap, cm
-#from mpl_toolkits.axes_grid1 import Grid
-#from matplotlib.colors import LinearSegmentedColormap
-
+#from   mpl_toolkits.basemap import Basemap, cm
+#from   mpl_toolkits.axes_grid1 import Grid
+#from   matplotlib.colors import LinearSegmentedColormap
 
 # -------------------------------------------------------------------------------
 #                               Define work
@@ -28,8 +29,10 @@ from densit_matplot_lib import zon_2dom, defVar
 indir = '/Users/ericg/Projets/Density_bining/'
 work = 'Prod_density_april15/mme_hist/'
 indir = indir + work
-file2d = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-file1d = 'cmip5.multimodel.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+file2dh = 'cmip5.multimodel.historical_Nat.ensm.an.ocn.Omon.density_zon2D.nc'
+file1dh = 'cmip5.multimodel.historical_Nat.ensm.an.ocn.Omon.density_zon1D.nc'
+file2dhn = 'cmip5.multimodel.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+file1dhn = 'cmip5.multimodel.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
 
 
 # Model agreement level

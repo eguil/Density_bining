@@ -16,20 +16,23 @@ twoD = False
 
 #oneD = True
 twoD = True
-mm  = False
-mme = True
+mme  = False
+mm = True
 
-exper  = 'historical'
+exper  = 'historicalNat'
+
 # define all models
 models = defModels()
 nmodels = len(models)
+
+# perform a selection of a few models (for testing or updating)?
 modelSel = range(nmodels)
-# perform a selection ?
 # modelSel = [3,10,18,19,25,27,28]
 # modelSel = [22,23,24]
 
-#selMME = 'All' # select all models for MME
-selMME = 'Nat' # select only models for which there are hist AND histNat simulations
+# Select range of MME
+selMME = 'All' # select all models for MME
+#selMME = 'Nat' # select only models for which there are hist AND histNat simulations
 
 # Years interval for difference reference
 iniyear = 1861
@@ -38,8 +41,6 @@ peri2 = (1950-iniyear)+2
 timeInt=[peri1,peri2]
 idxtime=[0,145]
 
-#indir  = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/z_individual'
-#outdir = '/Users/ericg/Projets/Density_bining/Prod_density_nov14/test_mme'
 if exper == 'historical':
     indir  = '/Users/ericg/Projets/Density_bining/Prod_density_april15/historical'
     outdir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/mme_hist'
@@ -73,16 +74,19 @@ for i in modelSel:
             rip = listf[0][start:end]
             outFile = replace(listf[0],rip,'.ensm')
             outFile1 = replace(outFile,'2D','1D')
-            if selMME == 'All':
-                listens.append(outFile)
-                listens1.append(outFile1)
-                print ' Add ',i,mod, 'slice', years, nens, 'to MME'
-
-            if selMME == 'Nat': # only select model if histNat mm is present
-                if models[i]['props'][1] > 0:
+            # Create lists for mme
+            if mme:
+                if selMME == 'All':
                     listens.append(outFile)
                     listens1.append(outFile1)
-                    print ' Add ',i,mod, 'slice', years, nens, 'to MME'
+                    print ' Add ',i,mod, 'slice', years, nens, 'members to MME'
+
+                if selMME == 'Nat': # only select model if histNat mm is present
+                    if models[i]['props'][1] > 0:
+                        listens.append(outFile)
+                        listens1.append(outFile1)
+                        print ' Add ',i,mod, 'slice', years, nens, 'members to MME'
+            # Perform model ensemble
             if mm:
                 if twoD:
                     print ' -> working on: ', i,mod, 'slice', years, nens
