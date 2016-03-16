@@ -141,12 +141,13 @@ def defVar(longName):
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
-            'clevsmstd': np.arange(0, 3., .5),
+               'clevsmstd': np.arange(0, 3., .5),
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
 
     vars = [salinity, temp, depth, volume, persist]
 
+    varout = 'None'
     for ivar in range(len(vars)):
         if vars[ivar]['longN'] == longName:
             varout = vars[ivar]
