@@ -124,24 +124,25 @@ def defVar(longName):
         'minmax': [-.2, .2, 16],  # for diff shading + number of color interval
         'clevsm': np.arange(30, 40, .2),  # for mean contours
         'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
+        '1dminmax': [-.1, .15], # for 1D ToE plots
         'legVar': "Salinity",  # Legend name
         'unit': "PSU",  # TODO: could be read from file
     }
 
     temp = {'var': 'isonthetao', 'minmax': [-.4, .4, 16], 'clevsm': np.arange(-2, 30, 1),
-            'clevsmstd': np.arange(0, 2., .01),
+            'clevsmstd': np.arange(0, 2., .01), '1dminmax': [-1, .1],
             'legVar': "Temperature", 'unit': "C", 'longN': 'temp',
             }
     depth = {'var': 'isondepth', 'minmax': [-75., 75., 30], 'clevsm': np.arange(0, 2000, 100),
-             'clevsmstd': np.arange(0, 20, 5),
+             'clevsmstd': np.arange(0, 20, 5),'1dminmax': [-100, 100],
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
     volume = {'var': 'isonvol', 'minmax': [-20., 20., 20], 'clevsm': np.arange(0, 200, 20),
-              'clevsmstd': np.arange(0, 20, 1),
+              'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-50, 50],
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
-               'clevsmstd': np.arange(0, 3., .5),
+               'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
 
@@ -178,7 +179,7 @@ def bluecol():
 
 # - average in lat/rho domain
 
-def averageDom(field, domain, lat, rho):
+def averageDom(field, dim, domain, lat, rho):
 
     latidx = np.argwhere((lat >= domain[0]) & (lat <= domain[1])).transpose()
     rhoidx = np.argwhere((rho >= domain[2]) & (rho <= domain[3])).transpose()
@@ -186,8 +187,12 @@ def averageDom(field, domain, lat, rho):
     lidx2 = latidx[0][-1]
     ridx1 = rhoidx[0][0];
     ridx2 = rhoidx[0][-1]
-    vara = np.ma.average(field[:, ridx1:ridx2, :], axis=1)
-    var_ave = np.ma.average(vara[:, lidx1:lidx2], axis=1)
+    if dim == 3:
+        vara = np.ma.average(field[:, ridx1:ridx2, :], axis=1)
+        var_ave = np.ma.average(vara[:, lidx1:lidx2], axis=1)
+    else:
+        vara = np.ma.average(field[ridx1:ridx2, :], axis=0)
+        var_ave = np.ma.average(vara[lidx1:lidx2], axis=0)
 
     return var_ave
 
