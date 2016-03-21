@@ -38,14 +38,14 @@ ToE_Method = 'usehistNat'
 
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
-# varname = defVar('temp')
-# varname = defVar('depth')
-# varname = defVar('volume')
+varname = defVar('temp')
+varname = defVar('depth')
+#varname = defVar('volume')
 # varname = defVar('persist')
 
 # Define plot name and title
 plotName = 'cmip5_ToE_mme_hist_Nat_16models_' + varname['var']
-figTitle = 'Time of emergence mme_hist (16 models) vs. HistNat'
+figTitle = 'Time of emergence mme_hist (16 models) vs. HistNat ['+ varname['var']+']'
 
 # density/latitude domains (where agreement level was noted > agreelev on ys plots)
 # Atl

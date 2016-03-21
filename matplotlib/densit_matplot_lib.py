@@ -124,21 +124,21 @@ def defVar(longName):
         'minmax': [-.2, .2, 16],  # for diff shading + number of color interval
         'clevsm': np.arange(30, 40, .2),  # for mean contours
         'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
-        '1dminmax': [-.1, .15], # for 1D ToE plots
+        '1dminmax': [-.1, .1], # for 1D ToE plots
         'legVar': "Salinity",  # Legend name
         'unit': "PSU",  # TODO: could be read from file
     }
 
     temp = {'var': 'isonthetao', 'minmax': [-.4, .4, 16], 'clevsm': np.arange(-2, 30, 1),
-            'clevsmstd': np.arange(0, 2., .01), '1dminmax': [-1, .1],
+            'clevsmstd': np.arange(0, 2., .01), '1dminmax': [-.4, .4],
             'legVar': "Temperature", 'unit': "C", 'longN': 'temp',
             }
     depth = {'var': 'isondepth', 'minmax': [-75., 75., 30], 'clevsm': np.arange(0, 2000, 100),
-             'clevsmstd': np.arange(0, 20, 5),'1dminmax': [-100, 100],
+             'clevsmstd': np.arange(0, 20, 5),'1dminmax': [-10, 50],
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
     volume = {'var': 'isonvol', 'minmax': [-20., 20., 20], 'clevsm': np.arange(0, 200, 20),
-              'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-50, 50],
+              'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-5, 5],
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
