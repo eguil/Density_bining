@@ -40,17 +40,23 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
 #varname = defVar('temp')
-varname = defVar('depth')
-varname = defVar('volume')
-varname = defVar('persist')
+#varname = defVar('depth')
+#varname = defVar('volume')
+#varname = defVar('persist')
 
+ToE = True
+#ToE = False
+multStd = 1. # detect ToE at multStd std dev of histNat
 # Define plot name
 plotName = 'cmip5_hist_vs_histNat_stddev_' + varname['var']
-
+if ToE:
+    plotName = 'cmip5_ToE_hist_vs_histNat_stddev_' + varname['var']
+valmask = 1.e20
 # years for difference (last 10 years)
 nyearsComp = 5
 y11 = -nyearsComp
 y12 = -1
+iniyear = -40
 labBowl = ['histNat', 'hist']
 
 # density domain
@@ -66,6 +72,8 @@ minmax = varname['minmax']
 clevsm = varname['clevsmstd']
 legVar = varname['legVar']
 unit = varname['unit']
+if ToE:
+    clevsm = np.arange(-40, 150, 20)
 
 agreelev = 0. # not used
 
@@ -81,7 +89,11 @@ tvarha = nc2dh.variables[var + 'Bowl'][:, 1, :, :].squeeze()
 tvarhp = nc2dh.variables[var + 'Bowl'][:, 2, :, :].squeeze()
 tvarhi = nc2dh.variables[var + 'Bowl'][:, 3, :, :].squeeze()
 lev = nc2dh.variables['lev'][:]
+levN = lev.size
 lat = nc2dh.variables['latitude'][:]
+latN = lat.size
+time = nc2dh.variables['time'][:]
+timN = time.size
 # Restrict variables to bowl (histNat)
 tvarhna = nc2dhn.variables[var + 'Bowl'][:, 1, :, :].squeeze()
 tvarhnp = nc2dhn.variables[var + 'Bowl'][:, 2, :, :].squeeze()
@@ -101,10 +113,47 @@ vara = np.ma.average(tvarha[y11:y12], axis=0) - np.ma.average(tvarhna[y11:y12], 
 varp = np.ma.average(tvarhp[y11:y12], axis=0) - np.ma.average(tvarhnp[y11:y12], axis=0)
 vari = np.ma.average(tvarhi[y11:y12], axis=0) - np.ma.average(tvarhni[y11:y12], axis=0)
 # Compute significance of difference when diff within 1 stddev of histNat variability (in the MME sense)
-varam = np.ma.std(tvarhna, axis=0)
-varpm = np.ma.std(tvarhnp, axis=0)
-varim = np.ma.std(tvarhni, axis=0)
-# testing:
+varams = np.ma.std(tvarhna, axis=0)
+varpms = np.ma.std(tvarhnp, axis=0)
+varims = np.ma.std(tvarhni, axis=0)
+if ToE:
+    # Compute ToE as date when diff host- histNat is larger than mult * stddev
+    varam,varpm,varim = [np.ma.ones([levN,latN])*valmask for _ in range(3)]
+    for i in range(latN):
+        for j in range(levN):
+            if tvarha[0,j,i] <> valmask:
+                idxa=timN ; sw = 0
+                for t in range(timN)[::-1]:
+                    if (abs(tvarha[t,j,i]-tvarhna[t,j,i]) <= multStd*varams[j,i]):
+                        if sw == 0:
+                            idxa = t+1 ; sw = 1
+                varam[j,i] = idxa+iniyear
+
+    for i in range(latN):
+        for j in range(levN):
+            if tvarhp[0,j,i] <> valmask:
+                idxp=timN ; sw = 0
+                for t in range(timN)[::-1]:
+                    if (abs(tvarhp[t,j,i]-tvarhnp[t,j,i]) <= multStd*varpms[j,i]):
+                        if sw == 0:
+                            idxp = t+1 ; sw = 1
+                varpm[j,i] = idxp+iniyear
+
+    for i in range(latN):
+        for j in range(levN):
+            if tvarhi[0,j,i] <> valmask:
+                idxi=timN ; sw = 0
+                for t in range(timN)[::-1]:
+                    if (abs(tvarhi[t,j,i]-tvarhni[t,j,i]) <= multStd*varims[j,i]):
+                        if sw == 0:
+                            idxi = t+1 ; sw = 1
+                varim[j,i] = idxi+iniyear
+else:
+    varam = varams
+    varpm = varpms
+    varim = varims
+
+# Not used
 varaa=0.
 varap=0.
 varai=0.

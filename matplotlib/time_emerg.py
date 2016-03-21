@@ -178,7 +178,6 @@ fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10, 10))
 # Atlantic
 
 axes[0].axis([tmin, tmax, minmax[0], minmax[1]])
-
 xaxisa0 = axes[0].plot([tmin, tmax], [0., 0.], linestyle='-', color='black', linewidth=1)
 
 print time.shape, varToEA1.shape
@@ -204,9 +203,7 @@ axes[0].legend(loc='upper left', title='Atlantic', prop={'size': 10})
 
 axes[1].axis([tmin, tmax, minmax[0], minmax[1]])
 xaxisp0 = axes[1].plot([tmin, tmax], [0., 0.], linestyle='-', color='black', linewidth=1)
-#xaxispp = axes[1].plot([tmin, tmax], [agreelev, agreelev], linestyle='--', color='red', linewidth=1)
-#xaxispm = axes[1].plot([tmin, tmax], [-agreelev, -agreelev], linestyle='--', color='blue', linewidth=1)
-
+#xaxispp =
 pltP1 = axes[1].plot(time + iniyear, varToEP1, linestyle='-', color=ToEP1['color'], linewidth=2, label=ToEP1['name'])
 xaxisap = axes[1].plot([tmin, tmax], [varToEP1d, varToEP1d], linestyle='--', color=ToEP1['color'], linewidth=1)
 xaxisam = axes[1].plot([tmin, tmax], [-varToEP1d, -varToEP1d], linestyle='--', color=ToEP1['color'], linewidth=1)
@@ -225,9 +222,7 @@ axes[1].legend(loc='upper left', title='Pacific', prop={'size': 10})
 
 axes[2].axis([tmin, tmax, minmax[0], minmax[1]])
 xaxisi0 = axes[2].plot([tmin, tmax], [0., 0.], linestyle='-', color='black', linewidth=1)
-#xaxisip = axes[2].plot([tmin, tmax], [agreelev, agreelev], linestyle='--', color='red', linewidth=1)
-#xaxisim = axes[2].plot([tmin, tmax], [-agreelev, -agreelev], linestyle='--', color='blue', linewidth=1)
-
+#xaxisip =
 pltI1 = axes[2].plot(time + iniyear, varToEI1, linestyle='-', color=ToEI1['color'], linewidth=2, label=ToEI1['name'])
 xaxisap = axes[2].plot([tmin, tmax], [varToEI1d, varToEI1d], linestyle='--', color=ToEI1['color'], linewidth=1)
 xaxisam = axes[2].plot([tmin, tmax], [-varToEI1d, -varToEI1d], linestyle='--', color=ToEI1['color'], linewidth=1)

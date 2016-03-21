@@ -54,7 +54,9 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
     levels = MaxNLocator(nbins=minmax[2]).tick_values(minmax[0], minmax[1])
 
     # -- Format for contour labels
-    levfmt='%.1f'
+    levfmt='%.0f'
+    if clevsm[1]-clevsm[0] < 1:
+        levfmt='%.1f'
     if clevsm[1]-clevsm[0] < 0.1:
         levfmt='%.2f'
 
