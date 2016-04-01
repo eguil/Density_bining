@@ -46,7 +46,7 @@ varname = defVar('salinity')
 
 ToE = True
 #ToE = False
-multStd = 1. # detect ToE at multStd std dev of histNat
+multStd = 2. # detect ToE at multStd std dev of histNat
 # Define plot name
 plotName = 'cmip5_hist_vs_histNat_stddev_' + varname['var']
 if ToE:
@@ -73,7 +73,7 @@ clevsm = varname['clevsmstd']
 legVar = varname['legVar']
 unit = varname['unit']
 if ToE:
-    clevsm = np.arange(-40, 150, 20)
+    clevsm = np.arange(-40, 160, 20)
 
 agreelev = 0. # not used
 
@@ -198,9 +198,14 @@ cbar = fig.colorbar(cnplot[0], ax=axes.ravel().tolist(), fraction=0.015, shrink=
 cbar.set_label(unit)
 
 # add Title text
-ttxt = fig.suptitle('Hist minus HistNat - '+legVar + ' for ' + workh+' (last '+str(nyearsComp)+' yrs)', fontsize=14, fontweight='bold')
+titleText='Hist minus HistNat - '+legVar + ' for ' + workh
+if ToE:
+    titleText = titleText+' ToE + mult x std = '+str(multStd)
+else:
+    titleText = titleText+' (last '+str(nyearsComp)+' yrs)'
 
+ttxt = fig.suptitle(titleText, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
-plt.show()
-#plt.savefig(plotName+'.pdf', bbox_inches='tight')
+#plt.show()
+plt.savefig(plotName+'.pdf', bbox_inches='tight')

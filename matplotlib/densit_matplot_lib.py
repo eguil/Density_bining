@@ -37,7 +37,7 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
     deltalat = 20
     labels = ['', '60S', '40S', '20S', 'Eq', '20N', '40N', '60N', '']
     #
-    # ====   Window 1  ===================================================
+    # ====  Upper panel  ===================================================
     #
     ax0.axis([latmin, latmax, rhomin, rhomid])
     ax0.invert_yaxis()
@@ -80,7 +80,7 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
     lnplot2 = ax0.plot(lat, varSigma['yr2'], linestyle='-', color='black', linewidth=2)
 
     #
-    # ====   Window 2  ===================================================
+    # ====  Lower panel   ===================================================
     #
     ax1.axis([latmin, latmax, rhomid, rhomax])
     ax1.invert_yaxis()
