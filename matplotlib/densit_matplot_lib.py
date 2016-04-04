@@ -50,7 +50,7 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
         ax0.yaxis.tick_right()
         ax1.yaxis.tick_right()
 
-    # -- levels for diff plot
+    # -- levels for shade plot
     levels = MaxNLocator(nbins=minmax[2]).tick_values(minmax[0], minmax[1])
 
     # -- Format for contour labels
@@ -125,6 +125,7 @@ def defVar(longName):
         'var': 'isonso',  # variable name
         'minmax': [-.2, .2, 16],  # for diff shading + number of color interval
         'clevsm': np.arange(30, 40, .2),  # for mean contours
+        'clevsmdif': np.arange(-.2, .2, .05),  # for mean contours
         'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
         '1dminmax': [-.1, .1], # for 1D ToE plots
         'legVar': "Salinity",  # Legend name
@@ -140,7 +141,7 @@ def defVar(longName):
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
     volume = {'var': 'isonvol', 'minmax': [-20., 20., 20], 'clevsm': np.arange(0, 200, 20),
-              'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-5, 5],
+              'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-5, 5],'clevsmdif': np.arange(-20, 20, 5),
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),

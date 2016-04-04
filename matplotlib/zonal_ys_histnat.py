@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from densit_matplot_lib import zon_2dom, defVar
+from matplotlib.ticker import MaxNLocator
 
 #import matplotlib as mpl
 #from   mpl_toolkits.basemap import Basemap, cm
@@ -69,11 +70,9 @@ delrho = [.5, .2]
 
 var = varname['var']
 minmax = varname['minmax']
-clevsm = varname['clevsmstd']
+clevsm = varname['clevsmdif']
 legVar = varname['legVar']
 unit = varname['unit']
-if ToE:
-    clevsm = np.arange(-40, 160, 20)
 
 agreelev = 0. # not used
 
@@ -148,6 +147,16 @@ if ToE:
                         if sw == 0:
                             idxi = t+1 ; sw = 1
                 varim[j,i] = idxi+iniyear
+    # shade ToE and contour diff hist-histNat
+    tmpa = vara
+    vara = varam+1900
+    varam = tmpa
+    tmpp = varp
+    varp = varpm+1900
+    varpm = tmpp
+    tmpi = vari
+    vari = varim+1900
+    varim = tmpi
 else:
     varam = varams
     varpm = varpms
@@ -178,6 +187,10 @@ fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 
 # -- color map
 cmap = plt.get_cmap('bwr')  # red/white/blue difference map
+if ToE:
+    cmap = plt.get_cmap('viridis')
+    minmax = [1900, 2000, 20]
+    unit = 'ToE'
 
 #
 # -------- Make plot ----------------
@@ -194,13 +207,15 @@ cnplot = zon_2dom(plt, axes[0, 2], axes[1, 2], lat, lev, varInd, vartsigi, unit,
 plt.subplots_adjust(hspace=.00001, wspace=0.05, left=0.04, right=0.86)
 
 # -- Add colorbar
+levels = MaxNLocator(nbins=minmax[2]).tick_values(minmax[0], minmax[1])
 cbar = fig.colorbar(cnplot[0], ax=axes.ravel().tolist(), fraction=0.015, shrink=2.0, pad=0.05)
+#extend='both',boundaries=[1880] + levels + [2010], extendfrac='auto')
 cbar.set_label(unit)
 
 # add Title text
 titleText='Hist minus HistNat - '+legVar + ' for ' + workh
 if ToE:
-    titleText = titleText+' ToE + mult x std = '+str(multStd)
+    titleText = titleText+' [ToE > '+str(multStd)+' std]'
 else:
     titleText = titleText+' (last '+str(nyearsComp)+' yrs)'
 
