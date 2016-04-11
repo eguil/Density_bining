@@ -13,7 +13,8 @@ PJD  7 Mar 2015     - Code cleanup and added r1Prioritize to enable r1i1p1 sims 
 PJD 13 Mar 2015     - Updated outPath to be generated dynamically using a timestamp (don't overwrite existing files)
 PJD 13 Mar 2015     - Added experiment to outFile path - deal with concurrent runs
 PJD 26 Mar 2015     - Added overWrite argument
-PJD 27 Jan 2016     - Added piControl to experiment list - will need to check
+PJD 27 Jan 2016     - Added piControl to experiment list
+PJD 11 Apr 2016     - Added 1pctCO2 to experiment list
                     - TODO:
 
 @author: durack1
@@ -39,7 +40,7 @@ if (args.modelSuite in ['cmip3','cmip5']):
     modelSuite  = args.modelSuite ; # 1 = make files
 else:
     print "** Invalid arguments - no *.nc files will be written **"
-if (args.experiment in ['20c3m','historical','historicalNat','piControl','rcp26','rcp45','rcp60','rcp85','sresa1b','sresa2','sresb1']):
+if (args.experiment in ['1pctCO2','20c3m','historical','historicalNat','piControl','rcp26','rcp45','rcp60','rcp85','sresa1b','sresa2','sresb1']):
     experiment   = args.experiment
 else:
     print "** Invalid arguments - no *.nc files will be written **"
