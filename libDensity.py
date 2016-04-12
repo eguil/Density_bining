@@ -101,6 +101,20 @@ def maskVal(field,valmask):
     field = mv.masked_where(field > valmask/10, field)
     return field
 
+def findToE(signal, noise, mult):
+    # define Time of Emergence (ToE) from last time index at which signal is larger than mult*noise
+    # signal is [time,space]
+    # noise is [space]
+    # mult is float
+    toe_wrk = npy.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
+    signaltile = npy.reshape(np.tile(signal,timN),(timN,levN*latN)) # repeat timN
+    toe_idx = npy.argwhere(abs(tvarha-tvarhna) >= multStd*stdvarams) # find indices of points > stdev
+    toe_wrk[toe1_idx[:,0],toe1_idx[:,1]] = 0. # set points in toe1_wrk to zero
+    toe = timN-npy.flipud(toe1_wrk).argmax(axis=0) # compute ToE1
+
+    varam = np.reshape(toe1,(levN,latN))
+
+    return toe
 def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=True):
     '''
     The mmeAveMsk2D() function averages rhon/lat density bined files with differing masks
