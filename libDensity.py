@@ -104,8 +104,11 @@ def maskVal(field,valmask):
 def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=True):
     '''
     The mmeAveMsk2D() function averages rhon/lat density bined files with differing masks
-    It ouputs the MME, a percentage of non-masked bins, and the sign agreement of period2-period1 differences.
-    
+    It ouputs
+     - the MME
+     - a percentage of non-masked bins
+     - the sign agreement of period2-period1 differences
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
 
     Created on Tue Nov 25 13:56:20 CET 2014
@@ -183,7 +186,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
-    time.units = 'years since 1851'
+    time.units = 'years since 1861'
     time.designateTime()
 
     # loop on variables
@@ -232,7 +235,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                 for t in range(timN):
                     vardiff[i,t,...] = isonvar[i,t,...] - varinit
                 vardiff[i,...].mask = isonvar[i,...].mask
-                # Read bowl and truncate 2D field above bowl+delta_rho
+                # Read bowl and truncate 2D field above bowl
                 if iv == 0:
                     bowlRead = f1d('ptopsigma',time = slice(t1,t2))
                     varbowl[i,...] = bowlRead
@@ -437,7 +440,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
-    time.units = 'years since 1851'
+    time.units = 'years since 1861'
     time.designateTime()
 
     axis1D = [time,axesList[1],axesList[2]]

@@ -55,9 +55,9 @@ def zon_2dom(plt, ax0, ax1, lat, lev, varBasin, varSigma, unit, minmax, clevsm, 
 
     # -- Format for contour labels
     levfmt='%.0f'
-    if clevsm[1]-clevsm[0] < 1:
+    if abs(clevsm[1]-clevsm[0]) < 1:
         levfmt='%.1f'
-    if clevsm[1]-clevsm[0] < 0.1:
+    if abs(clevsm[1]-clevsm[0]) < 0.1:
         levfmt='%.2f'
 
     # -- draw filled contours of period diff
@@ -125,7 +125,7 @@ def defVar(longName):
         'var': 'isonso',  # variable name
         'minmax': [-.2, .2, 16],  # for diff shading + number of color interval
         'clevsm': np.arange(30, 40, .2),  # for mean contours
-        'clevsmdif': np.arange(-.2, .2, .05),  # for mean contours
+        'clevsmdif': np.arange(-.2, .2, .025),  # for mean contours
         'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
         '1dminmax': [-.1, .1], # for 1D ToE plots
         'legVar': "Salinity",  # Legend name
@@ -133,11 +133,11 @@ def defVar(longName):
     }
 
     temp = {'var': 'isonthetao', 'minmax': [-.4, .4, 16], 'clevsm': np.arange(-2, 30, 1),
-            'clevsmstd': np.arange(0, 2., .01), '1dminmax': [-.4, .4],
+            'clevsmstd': np.arange(0, 2., .01), '1dminmax': [-.4, .4],'clevsmdif': np.arange(-.4, .4, .05),
             'legVar': "Temperature", 'unit': "C", 'longN': 'temp',
             }
     depth = {'var': 'isondepth', 'minmax': [-75., 75., 30], 'clevsm': np.arange(0, 2000, 100),
-             'clevsmstd': np.arange(0, 20, 5),'1dminmax': [-10, 50],
+             'clevsmstd': np.arange(0, 20, 5),'1dminmax': [-10, 50],'clevsmdif': np.arange(-75, 75, 10),
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
     volume = {'var': 'isonvol', 'minmax': [-20., 20., 20], 'clevsm': np.arange(0, 200, 20),
@@ -145,7 +145,7 @@ def defVar(longName):
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
-               'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],
+               'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],'clevsmdif': np.arange(-10, 10, 2),
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
 

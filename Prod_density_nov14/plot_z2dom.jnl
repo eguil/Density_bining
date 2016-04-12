@@ -6,8 +6,7 @@ define symbol zlim $5
 define symbol levs $6
 define symbol palet $7
 define symbol contlev $8
-define symbol fldp1 $9let levs = "(-.4)(-.15,.15,.005)(.4)"
-
+define symbol fldp1 $9
 define symbol fldp2 $10
 define symbol spu $11
 define symbol spl $12

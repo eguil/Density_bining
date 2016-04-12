@@ -115,38 +115,43 @@ vari = np.ma.average(tvarhi[y11:y12], axis=0) - np.ma.average(tvarhni[y11:y12], 
 varams = np.ma.std(tvarhna, axis=0)
 varpms = np.ma.std(tvarhnp, axis=0)
 varims = np.ma.std(tvarhni, axis=0)
+
 if ToE:
-    # Compute ToE as date when diff host- histNat is larger than mult * stddev
+    # reorganise i,j dims in single dimension data (speeds up loops)
+    tvarha  = np.reshape(tvarha, (timN,levN*latN))
+    tvarhna = np.reshape(tvarhna,(timN,levN*latN))
+    varams  = np.reshape(varams, (levN*latN))
+    tvarhp  = np.reshape(tvarhp, (timN,levN*latN))
+    tvarhnp = np.reshape(tvarhnp,(timN,levN*latN))
+    varpms  = np.reshape(varpms, (levN*latN))
+    tvarhi  = np.reshape(tvarhi, (timN,levN*latN))
+    tvarhni = np.reshape(tvarhni,(timN,levN*latN))
+    varims  = np.reshape(varims, (levN*latN))
+    # Compute ToE as last date when diff hist-histNat is larger than mult * stddev
     varam,varpm,varim = [np.ma.ones([levN,latN])*valmask for _ in range(3)]
-    for i in range(latN):
-        for j in range(levN):
-            if tvarha[0,j,i] <> valmask:
-                idxa=timN ; sw = 0
-                for t in range(timN)[::-1]:
-                    if (abs(tvarha[t,j,i]-tvarhna[t,j,i]) <= multStd*varams[j,i]):
-                        if sw == 0:
-                            idxa = t+1 ; sw = 1
-                varam[j,i] = idxa+iniyear
+    toe1,toe2,toe3 = [np.ma.ones([levN*latN])*valmask for _ in range(3)]
 
-    for i in range(latN):
-        for j in range(levN):
-            if tvarhp[0,j,i] <> valmask:
-                idxp=timN ; sw = 0
-                for t in range(timN)[::-1]:
-                    if (abs(tvarhp[t,j,i]-tvarhnp[t,j,i]) <= multStd*varpms[j,i]):
-                        if sw == 0:
-                            idxp = t+1 ; sw = 1
-                varpm[j,i] = idxp+iniyear
+    toe1_wrk = np.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
+    stdvarams = np.reshape(np.tile(varams,timN),(timN,levN*latN)) # repeat timN
+    toe1_idx = np.argwhere(abs(tvarha-tvarhna) >= multStd*stdvarams) # find indices of points > stdev
+    toe1_wrk[toe1_idx[:,0],toe1_idx[:,1]] = 0. # set points in toe1_wrk to zero
+    toe1 = timN-np.flipud(toe1_wrk).argmax(axis=0)+iniyear # compute ToE1
+    varam = np.reshape(toe1,(levN,latN))
 
-    for i in range(latN):
-        for j in range(levN):
-            if tvarhi[0,j,i] <> valmask:
-                idxi=timN ; sw = 0
-                for t in range(timN)[::-1]:
-                    if (abs(tvarhi[t,j,i]-tvarhni[t,j,i]) <= multStd*varims[j,i]):
-                        if sw == 0:
-                            idxi = t+1 ; sw = 1
-                varim[j,i] = idxi+iniyear
+    toe2_wrk = np.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
+    stdvarpms = np.reshape(np.tile(varpms,timN),(timN,levN*latN)) # repeat timN
+    toe2_idx = np.argwhere(abs(tvarhp-tvarhnp) >= multStd*stdvarpms) # find indices of points > stdev
+    toe2_wrk[toe2_idx[:,0],toe2_idx[:,1]] = 0. # set points in toe1_wrk to zero
+    toe2 = timN-np.flipud(toe2_wrk).argmax(axis=0)+iniyear # compute ToE1
+    varpm = np.reshape(toe2,(levN,latN))
+
+    toe2_wrk = np.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
+    stdvarims = np.reshape(np.tile(varims,timN),(timN,levN*latN)) # repeat timN
+    toe2_idx = np.argwhere(abs(tvarhi-tvarhni) >= multStd*stdvarims) # find indices of points > stdev
+    toe2_wrk[toe2_idx[:,0],toe2_idx[:,1]] = 0. # set points in toe1_wrk to zero
+    toe2 = timN-np.flipud(toe2_wrk).argmax(axis=0)+iniyear # compute ToE1
+    varim = np.reshape(toe2,(levN,latN))
+
     # shade ToE and contour diff hist-histNat
     tmpa = vara
     vara = varam+1900
@@ -213,14 +218,14 @@ cbar = fig.colorbar(cnplot[0], ax=axes.ravel().tolist(), fraction=0.015, shrink=
 cbar.set_label(unit)
 
 # add Title text
-titleText='Hist minus HistNat - '+legVar + ' for ' + workh
+titleText=legVar + ' [' + workh +'] - Hist minus HistNat '
 if ToE:
-    titleText = titleText+' [ToE > '+str(multStd)+' std]'
+    titleText = titleText+'(contour) - & MME ToE [> '+str(multStd)+' std] (shading)'
 else:
     titleText = titleText+' (last '+str(nyearsComp)+' yrs)'
 
 ttxt = fig.suptitle(titleText, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
-#plt.show()
-plt.savefig(plotName+'.pdf', bbox_inches='tight')
+plt.show()
+#plt.savefig(plotName+'.pdf', bbox_inches='tight')
