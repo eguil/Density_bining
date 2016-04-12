@@ -15,7 +15,7 @@ TODO: - add arguments for variable and output type
 import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
-from densit_matplot_lib import zon_2dom, defVar
+from densit_matplot_lib import zon_2dom, defVar, findToE
 from matplotlib.ticker import MaxNLocator
 
 #import matplotlib as mpl
@@ -128,29 +128,14 @@ if ToE:
     tvarhni = np.reshape(tvarhni,(timN,levN*latN))
     varims  = np.reshape(varims, (levN*latN))
     # Compute ToE as last date when diff hist-histNat is larger than mult * stddev
-    varam,varpm,varim = [np.ma.ones([levN,latN])*valmask for _ in range(3)]
-    toe1,toe2,toe3 = [np.ma.ones([levN*latN])*valmask for _ in range(3)]
+    #varam,varpm,varim = [np.ma.ones([levN,latN])*valmask for _ in range(3)]
 
-    toe1_wrk = np.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
-    stdvarams = np.reshape(np.tile(varams,timN),(timN,levN*latN)) # repeat timN
-    toe1_idx = np.argwhere(abs(tvarha-tvarhna) >= multStd*stdvarams) # find indices of points > stdev
-    toe1_wrk[toe1_idx[:,0],toe1_idx[:,1]] = 0. # set points in toe1_wrk to zero
-    toe1 = timN-np.flipud(toe1_wrk).argmax(axis=0)+iniyear # compute ToE1
+    toe1 = findToE(tvarha-tvarhna, varams, multStd)+iniyear
     varam = np.reshape(toe1,(levN,latN))
-
-    toe2_wrk = np.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
-    stdvarpms = np.reshape(np.tile(varpms,timN),(timN,levN*latN)) # repeat timN
-    toe2_idx = np.argwhere(abs(tvarhp-tvarhnp) >= multStd*stdvarpms) # find indices of points > stdev
-    toe2_wrk[toe2_idx[:,0],toe2_idx[:,1]] = 0. # set points in toe1_wrk to zero
-    toe2 = timN-np.flipud(toe2_wrk).argmax(axis=0)+iniyear # compute ToE1
+    toe2 = findToE(tvarhp-tvarhnp, varpms, multStd)+iniyear
     varpm = np.reshape(toe2,(levN,latN))
-
-    toe2_wrk = np.ma.ones([timN,levN*latN])*1. # init toe1_wrk array to 1
-    stdvarims = np.reshape(np.tile(varims,timN),(timN,levN*latN)) # repeat timN
-    toe2_idx = np.argwhere(abs(tvarhi-tvarhni) >= multStd*stdvarims) # find indices of points > stdev
-    toe2_wrk[toe2_idx[:,0],toe2_idx[:,1]] = 0. # set points in toe1_wrk to zero
-    toe2 = timN-np.flipud(toe2_wrk).argmax(axis=0)+iniyear # compute ToE1
-    varim = np.reshape(toe2,(levN,latN))
+    toe3 = findToE(tvarhi-tvarhni, varims, multStd)+iniyear
+    varim = np.reshape(toe3,(levN,latN))
 
     # shade ToE and contour diff hist-histNat
     tmpa = vara
