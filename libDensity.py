@@ -1,4 +1,4 @@
-import os,sys
+import os,sys,re,glob
 import cdms2 as cdm
 import cdutil as cdu
 import MV2 as mv
@@ -212,6 +212,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         # loop over files to fill up array
         for i,file in enumerate(listFiles):
             ft      = cdm.open(inDir[0]+'/'+file)
+            model = file.split('.')[1]
             timeax  = ft.getAxis('time')
             file1d  =  replace(inDir[0]+'/'+file,'2D','1D')
             if os.path.isfile(file1d):
@@ -257,8 +258,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 if ToeType == 'histnat':
                     # Read mean and Std dev from histnat
                     if i == 0:
-                        filehn = replace(outFile,'historical','historicalNat')
-                        fthn = cdm.open(inDir[1]+'/'+filehn)
+                        filehn  = glob.glob(inDir[1]+'/cmip5.'+model+'.*zon2D*')[0]
+                        #filehn = replace(outFile,'historical','historicalNat')
+                        fthn = cdm.open(filehn)
                         varmeanhn = fthn(var)
                         varst = var+'Std'
                         varmaxstd = fthn(varst)
@@ -385,7 +387,6 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         outFile_f.write(isonmaxstd.astype('float32'))
 
         if ToeType == 'histnat':
-            print varToE1.shape
             isontoe1 = cdm.createVariable(varToE1, axes = [ensembleAxis,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE1')
             isontoe1.long_name = 'ToE 1 for '+isonRead.long_name
             isontoe1.units     = 'Year'

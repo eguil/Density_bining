@@ -13,8 +13,14 @@ warnings.filterwarnings("ignore")
 #
 # ----------------------------------------------------------------------------
 
-# define work
-# run oneD first and mm first, then twoD and mme
+#
+#  ----------------------------
+# !!! Compulsory work order !!!
+#  ----------------------------
+# 1) run oneD first (mm and mme) for historical and histNat
+# 2) run twoD mm for histNat
+# 3) run twoD + ToE mm for historical
+# 4) run twoD mm2 for historical (still to implement for ToE)
 
 oneD = False
 twoD = False
@@ -42,7 +48,7 @@ nmodels = len(models)
 # perform a selection of a few models (for testing or updating)?
 modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
-modelSel = [22,23]
+#modelSel = [22,23]
 
 # Select range of MME
 selMME = 'All' # select all models for MME
