@@ -985,6 +985,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 del (depthBintmp,x1Bintmp,x2Bintmp); gc.collect()
                 tpe2 = timc.clock()
 
+
                 ptopsigma = ptopdepth*0. + rhoAxis[p_top] # to keep mask of ptopdepth
                 ptopdepth = npy.ma.reshape(ptopdepth, (latN, lonN))
                 ptopsigma = npy.ma.reshape(ptopsigma, (latN, lonN))

@@ -18,10 +18,10 @@ def findToE(signal, noise, mult):
     '''
     timN = signal.shape[0]
     toe_wrk = np.ma.ones(signal.shape)*1. # init toe_wrk array to 1
-    signaltile = np.reshape(np.tile(noise,timN),signal.shape) # repeat timN
-    toe_idx = np.argwhere(abs(signal) >= mult*signaltile) # find indices of points > stdev
-    toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set points in toe_wrk to zero
-    toe = timN-np.flipud(toe_wrk).argmax(axis=0) # compute ToE1
+    signaltile = np.reshape(np.tile(noise,timN),signal.shape) # repeat noise timN
+    toe_idx = np.argwhere(abs(signal) >= mult*signaltile) # find indices of points where signal > noise
+    toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
+    toe = timN-np.flipud(toe_wrk).argmax(axis=0) # compute ToE as last index when signal > noise
 
     return toe
 
@@ -151,7 +151,7 @@ def defVar(longName):
             'clevsmstd': np.arange(0, 2., .01), '1dminmax': [-.4, .4],'clevsmdif': np.arange(-.4, .4, .05),
             'legVar': "Temperature", 'unit': "C", 'longN': 'temp',
             }
-    depth = {'var': 'isondepth', 'minmax': [-75., 75., 30], 'clevsm': np.arange(0, 2000, 100),
+    depth = {'var': 'isondepth', 'minmax': [-75., 75., 10], 'clevsm': np.arange(0, 2000, 100),
              'clevsmstd': np.arange(0, 20, 5),'1dminmax': [-10, 50],'clevsmdif': np.arange(-75, 75, 10),
              'legVar': "Depth", 'unit': "m", 'longN': 'depth',
              }
@@ -163,8 +163,12 @@ def defVar(longName):
                'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],'clevsmdif': np.arange(-10, 10, 2),
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
+    heatcontent = {'var': 'isonhtc', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
+               'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],'clevsmdif': np.arange(-10, 10, 2),
+               'legVar': "Heat content", 'unit': "10^XX J", 'longN': 'persist'
+               }
 
-    vars = [salinity, temp, depth, volume, persist]
+    vars = [salinity, temp, depth, volume, persist, heatcontent]
 
     varout = 'None'
     for ivar in range(len(vars)):

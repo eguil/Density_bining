@@ -42,8 +42,9 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 varname = defVar('salinity')
 #varname = defVar('temp')
 #varname = defVar('depth')
-#varname = defVar('volume')
+varname = defVar('volume')
 #varname = defVar('persist')
+#varname = defVar('heatcontent')
 
 ToE = True
 #ToE = False
@@ -71,6 +72,7 @@ delrho = [.5, .2]
 var = varname['var']
 minmax = varname['minmax']
 clevsm = varname['clevsmdif']
+#clevsm = varname['clevsm']
 legVar = varname['legVar']
 unit = varname['unit']
 
@@ -83,20 +85,26 @@ nc1dhn = open_ncfile(indirhn + '/' + file1dhn)
 nc2dhn = open_ncfile(indirhn + '/' + file2dhn)
 
 # -- Read variables
-# Restrict variables to bowl (hist)
-tvarha = nc2dh.variables[var + 'Bowl'][:, 1, :, :].squeeze()
-tvarhp = nc2dh.variables[var + 'Bowl'][:, 2, :, :].squeeze()
-tvarhi = nc2dh.variables[var + 'Bowl'][:, 3, :, :].squeeze()
+# Restrict variables to bowl (hist) TODO add switch for bowl
+#tvarha = nc2dh.variables[var + 'Bowl'][:, 1, :, :].squeeze()
+#tvarhp = nc2dh.variables[var + 'Bowl'][:, 2, :, :].squeeze()
+#tvarhi = nc2dh.variables[var + 'Bowl'][:, 3, :, :].squeeze()
+tvarha = nc2dh.variables[var][:, 1, :, :].squeeze()
+tvarhp = nc2dh.variables[var][:, 2, :, :].squeeze()
+tvarhi = nc2dh.variables[var][:, 3, :, :].squeeze()
 lev = nc2dh.variables['lev'][:]
 levN = lev.size
 lat = nc2dh.variables['latitude'][:]
 latN = lat.size
 time = nc2dh.variables['time'][:]
 timN = time.size
-# Restrict variables to bowl (histNat)
-tvarhna = nc2dhn.variables[var + 'Bowl'][:, 1, :, :].squeeze()
-tvarhnp = nc2dhn.variables[var + 'Bowl'][:, 2, :, :].squeeze()
-tvarhni = nc2dhn.variables[var + 'Bowl'][:, 3, :, :].squeeze()
+# Restrict variables to bowl (histNat) TODO add switch for bowl
+#tvarhna = nc2dhn.variables[var + 'Bowl'][:, 1, :, :].squeeze()
+#tvarhnp = nc2dhn.variables[var + 'Bowl'][:, 2, :, :].squeeze()
+#tvarhni = nc2dhn.variables[var + 'Bowl'][:, 3, :, :].squeeze()
+tvarhna = nc2dhn.variables[var ][:, 1, :, :].squeeze()
+tvarhnp = nc2dhn.variables[var ][:, 2, :, :].squeeze()
+tvarhni = nc2dhn.variables[var ][:, 3, :, :].squeeze()
 
 # Read lightest density of persistent ocean (ptopsigma)
 ptopsigha = nc1dh.variables['ptopsigma'][:, 1, :].squeeze()
@@ -127,15 +135,11 @@ if ToE:
     tvarhi  = np.reshape(tvarhi, (timN,levN*latN))
     tvarhni = np.reshape(tvarhni,(timN,levN*latN))
     varims  = np.reshape(varims, (levN*latN))
-    # Compute ToE as last date when diff hist-histNat is larger than mult * stddev
-    #varam,varpm,varim = [np.ma.ones([levN,latN])*valmask for _ in range(3)]
 
-    toe1 = findToE(tvarha-tvarhna, varams, multStd)+iniyear
-    varam = np.reshape(toe1,(levN,latN))
-    toe2 = findToE(tvarhp-tvarhnp, varpms, multStd)+iniyear
-    varpm = np.reshape(toe2,(levN,latN))
-    toe3 = findToE(tvarhi-tvarhni, varims, multStd)+iniyear
-    varim = np.reshape(toe3,(levN,latN))
+    # Compute ToE as last date when diff hist-histNat is larger than mult * stddev
+    varam = np.reshape(findToE(tvarha-tvarhna, varams, multStd)+iniyear,(levN,latN))
+    varpm = np.reshape(findToE(tvarhp-tvarhnp, varpms, multStd)+iniyear,(levN,latN))
+    varim = np.reshape(findToE(tvarhi-tvarhni, varims, multStd)+iniyear,(levN,latN))
 
     # shade ToE and contour diff hist-histNat
     tmpa = vara
@@ -148,9 +152,15 @@ if ToE:
     vari = varim+1900
     varim = tmpi
 else:
+    # std dev TODO: add switch
     varam = varams
     varpm = varpms
     varim = varims
+    # mean field
+    varam = np.ma.average(tvarha[y11:y12], axis=0)
+    varpm = np.ma.average(tvarhp[y11:y12], axis=0)
+    varim = np.ma.average(tvarhi[y11:y12], axis=0)
+
 
 # Not used
 varaa=0.
@@ -212,5 +222,5 @@ else:
 ttxt = fig.suptitle(titleText, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
-plt.show()
-#plt.savefig(plotName+'.pdf', bbox_inches='tight')
+#plt.show()
+plt.savefig(plotName+'.pdf', bbox_inches='tight')

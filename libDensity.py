@@ -101,7 +101,7 @@ def maskVal(field,valmask):
     field = mv.masked_where(field > valmask/10, field)
     return field
 
-def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=True):
+def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType, debug=True):
     '''
     The mmeAveMsk2D() function averages rhon/lat density bined files with differing masks
     It ouputs
@@ -122,6 +122,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     - outFile(str)           - output file
     - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
+    - ToeType(str)           - ToE type ('F': none, 'histnat')
     - debug <optional>       - boolean value
 
     Notes:
@@ -130,9 +131,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     - EG 27 Nov 2014   - Rewrite with loop on variables
     - EG 06 Dec 2014   - Added agreement on difference with init period - save as <var>Agree
     - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
+    - EG 19 Apr 2016   - ToE computation (just for 2D files)
 
     - TO DO :
                  - optimization of loops
+                 - add computation of ToE per model (toe 1 and toe 2) see ticket #50
+                 - add isonhtc (see ticket #48)
     '''
 
     # CDMS initialisation - netCDF compression
@@ -154,7 +158,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
-    fi      = cdm.open(inDir+'/'+listFiles[0])
+    fi      = cdm.open(inDir[0]+'/'+listFiles[0])
     isond0  = fi('isondepth',time = slice(t1,t2)) ; # Create variable handle
     # Get grid objects
     axesList = isond0.getAxisList()
@@ -177,7 +181,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
     varFill = [0.,0.,valmask,valmask,0.,0.]
     #varList = ['isondepth']
-    #varList = ['isonthetao']
+    print ' !!! ### Testing one variable ###'
+    varList = ['isonthetao']
 
     # init arrays
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
@@ -195,13 +200,14 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
         # Array inits
         isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
         vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
+        varstd =  npy.ma.ones([runN,basN,levN,latN], dtype='float32')*1.
         varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         print ' Variable ',iv, var
         # loop over files to fill up array
         for i,file in enumerate(listFiles):
-            ft      = cdm.open(inDir+'/'+file)
+            ft      = cdm.open(inDir[0]+'/'+file)
             timeax  = ft.getAxis('time')
-            file1d  =  replace(inDir+'/'+file,'2D','1D')
+            file1d  =  replace(inDir[0]+'/'+file,'2D','1D')
             if os.path.isfile(file1d):
                 f1d = cdm.open(file1d)
             else:
@@ -224,7 +230,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
                 percent[i,...] = npy.float32(npy.equal(maskvar,0))
             if mme:
-                # if mme then just average Bowl and Agree fields
+                # if mme then just accumulate Bowl, Agree and Std fields
                 varst = var+'Agree'
                 vardiff[i,...] = ft(varst,time = slice(t1,t2))
                 varb = var+'Bowl'
@@ -239,7 +245,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                 if iv == 0:
                     bowlRead = f1d('ptopsigma',time = slice(t1,t2))
                     varbowl[i,...] = bowlRead
-
+                # Compute Stddev
+                varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
             ft.close()
             f1d.close()
         # <-- end of loop on files
@@ -334,6 +341,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
                         # mask all points
                         vardiffsgSum[:,ib,:,il].mask = True
             isonVarBowl = maskVal(isonVarBowl, valmask)
+            # Find max of Std dev of all members
+            isonVarStd = npy.ma.max(varstd, axis=0)
 
         # Write
         isonave = cdm.createVariable(isonVarAve, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id)
@@ -345,10 +354,14 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
         isonavebowl = cdm.createVariable(isonVarBowl, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Bowl')
         isonavebowl.long_name = isonRead.long_name
         isonavebowl.units     = isonRead.units
+        isonmaxstd = cdm.createVariable(isonVarStd, axes = [axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Std')
+        isonmaxstd.long_name = isonRead.long_name
+        isonmaxstd.units     = isonRead.units
 
         outFile_f.write(    isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
         outFile_f.write(isonavebowl.astype('float32'))
+        outFile_f.write(isonmaxstd.astype('float32'))
         if mme:
             isonvarstd = cdm.createVariable(isonVarStd , axes =[time,axesList[1],axesList[2],axesList[3]] , id = isonRead.id+'ModStd')
             isonvarstd.long_name = isonRead.long_name+' intermodel std'
@@ -407,7 +420,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
-    fi      = cdm.open(inDir+'/'+listFiles[0])
+    fi      = cdm.open(inDir[0]+'/'+listFiles[0])
     ptopd0  = fi('ptopdepth',time=slice(t1,t2)) ; # Create variable handle
     # Get grid objects
     axesList = ptopd0.getAxisList()
@@ -463,7 +476,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
         print ' Variable ',iv, var, varDim[iv]
         # loop over files to fill up array
         for ic,file in enumerate(listFiles):
-            ft      = cdm.open(inDir+'/'+file)
+            ft      = cdm.open(inDir[0]+'/'+file)
             timeax  = ft.getAxis('time')
             if ic == 0:
                 tmax0 = timeax.shape[0]
