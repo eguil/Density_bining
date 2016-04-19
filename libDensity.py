@@ -196,14 +196,17 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     time.id    = 'time'
     time.units = 'years since 1861'
     time.designateTime()
-
+    # init ensemble axis
+    ensembleAxis       = cdm.createAxis(npy.float32(range(runN)))
+    ensembleAxis.id    = 'members'
+    ensembleAxis.units = 'N'
     # loop on variables
     for iv,var in enumerate(varList):
 
         # Array inits
         isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
         vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
-        varstd,varToE1 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*1. for _ in range(2)]
+        varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
         varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         print ' Variable ',iv, var
         # loop over files to fill up array
@@ -248,6 +251,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 if iv == 0:
                     bowlRead = f1d('ptopsigma',time = slice(t1,t2))
                     varbowl[i,...] = bowlRead
+                # Compute Stddev
+                varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
                 # Compute ToE
                 if ToeType == 'histnat':
                     # Read mean and Std dev from histnat
@@ -256,15 +261,13 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                         fthn = cdm.open(inDir[1]+'/'+filehn)
                         varmeanhn = fthn(var)
                         varst = var+'Std'
-                        varstd = fthn(varst)
+                        varmaxstd = fthn(varst)
                     toemult = 1.
-                    print i
-                    varToE1[i,...] = findToE(isonvar[i,...]-varmeanhn, varstd, toemult)
-#                    toemult = 2.
-#                    varToE2[i,...] = findToE(isonvar[i,...]-varmeanhn[i,...], varst, toemult)
-                else:
-                    # Compute Stddev
-                    varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
+                    signal = npy.reshape(isonvar[i,...]-varmeanhn,(timN,basN*levN*latN))
+                    noise = npy.reshape(varmaxstd,(basN*levN*latN))
+                    varToE1[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
+                    toemult = 2.
+                    varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
             ft.close()
             f1d.close()
         # <-- end of loop on files
@@ -375,14 +378,24 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         isonmaxstd = cdm.createVariable(isonVarStd, axes = [axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Std')
         isonmaxstd.long_name = isonRead.long_name
         isonmaxstd.units     = isonRead.units
-        isontoe1 = cdm.createVariable(varToE1, axes = [axesList[0],axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE1')
-        isontoe1.long_name = 'ToE 1 for '+isonRead.long_name
-        isontoe1.units     = 'Year'
 
         outFile_f.write(    isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
         outFile_f.write(isonavebowl.astype('float32'))
         outFile_f.write(isonmaxstd.astype('float32'))
+
+        if ToeType == 'histnat':
+            print varToE1.shape
+            isontoe1 = cdm.createVariable(varToE1, axes = [ensembleAxis,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE1')
+            isontoe1.long_name = 'ToE 1 for '+isonRead.long_name
+            isontoe1.units     = 'Year'
+            isontoe2 = cdm.createVariable(varToE2, axes = [ensembleAxis,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE2')
+            isontoe2.long_name = 'ToE 2 for '+isonRead.long_name
+            isontoe2.units     = 'Year'
+            outFile_f.write(isontoe1.astype('float32'))
+            outFile_f.write(isontoe2.astype('float32'))
+
+
         if mme:
             isonvarstd = cdm.createVariable(isonVarStd , axes =[time,axesList[1],axesList[2],axesList[3]] , id = isonRead.id+'ModStd')
             isonvarstd.long_name = isonRead.long_name+' intermodel std'

@@ -41,9 +41,9 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
-#varname = defVar('temp')
+varname = defVar('temp')
 #varname = defVar('depth')
-varname = defVar('volume')
+#varname = defVar('volume')
 #varname = defVar('persist')
 #varname = defVar('heatcontent')
 
@@ -223,5 +223,5 @@ else:
 ttxt = fig.suptitle(titleText, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
-#plt.show()
-plt.savefig(plotName+'.pdf', bbox_inches='tight')
+plt.show()
+#plt.savefig(plotName+'.pdf', bbox_inches='tight')
