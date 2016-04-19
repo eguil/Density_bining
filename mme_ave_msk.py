@@ -28,8 +28,8 @@ exper  = 'historical'
 #exper  = 'historicalNat'
 
 # ToE
-#ToE = True
-ToE = False
+ToE = True
+#ToE = False
 ToeType = 'histnat' # working from hist and histnat
 #ToeType = 'picontrol' # working from hist and picontrol
 if not ToE:
@@ -64,8 +64,7 @@ idxtime=[0,145]
 rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
 histDir    = rootDir+'historical'
 histNatDir = rootDir+'historicalNat'
-#histMMEOut = rootDir+'mme_hist'
-histMMEOut = rootDir+'test'
+histMMEOut = rootDir+'mme_hist'
 histNatMMEOut = rootDir+'mme_histNat'
 ToeNatOut = rootDir+'toe_histNat'
 
@@ -77,7 +76,7 @@ if exper == 'historicalNat':
     outdir = histNatMMEOut
 if ToE:
     if ToeType == 'histnat':
-        indir  = [histDir, histNatDir]
+        indir  = [histDir, histNatMMEOut]
         outdir  = ToeNatOut
 
 listens = []

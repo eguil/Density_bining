@@ -5,6 +5,8 @@ import MV2 as mv
 import numpy as npy
 from string import replace
 from genutil import statistics
+sys.path.append('./matplotlib')
+from libToE import findToE
 
 
 
@@ -117,12 +119,13 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     -------
     - listFiles(str)         - the list of files to be averaged
     - years(t1,t2)           - years for slice read
-    - inDir(str)             - input directory where files are stored
+    - inDir[](str)           - input directory where files are stored (add histnat as inDir[1] for ToE)
     - outDir(str)            - output directory
     - outFile(str)           - output file
     - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
     - ToeType(str)           - ToE type ('F': none, 'histnat')
+                               -> requires running first mm+mme without ToE to compute Stddev
     - debug <optional>       - boolean value
 
     Notes:
@@ -140,7 +143,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     '''
 
     # CDMS initialisation - netCDF compression
-    comp = 1 ; # 0 for no compression
+    comp = 1 # 0 for no compression
     cdm.setNetcdfShuffleFlag(comp)
     cdm.setNetcdfDeflateFlag(comp)
     cdm.setNetcdfDeflateLevelFlag(comp)
@@ -200,7 +203,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         # Array inits
         isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
         vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
-        varstd =  npy.ma.ones([runN,basN,levN,latN], dtype='float32')*1.
+        varstd,varToE1 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*1. for _ in range(2)]
         varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         print ' Variable ',iv, var
         # loop over files to fill up array
@@ -245,8 +248,23 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 if iv == 0:
                     bowlRead = f1d('ptopsigma',time = slice(t1,t2))
                     varbowl[i,...] = bowlRead
-                # Compute Stddev
-                varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
+                # Compute ToE
+                if ToeType == 'histnat':
+                    # Read mean and Std dev from histnat
+                    if i == 0:
+                        filehn = replace(outFile,'historical','historicalNat')
+                        fthn = cdm.open(inDir[1]+'/'+filehn)
+                        varmeanhn = fthn(var)
+                        varst = var+'Std'
+                        varstd = fthn(varst)
+                    toemult = 1.
+                    print i
+                    varToE1[i,...] = findToE(isonvar[i,...]-varmeanhn, varstd, toemult)
+#                    toemult = 2.
+#                    varToE2[i,...] = findToE(isonvar[i,...]-varmeanhn[i,...], varst, toemult)
+                else:
+                    # Compute Stddev
+                    varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
             ft.close()
             f1d.close()
         # <-- end of loop on files
@@ -357,6 +375,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         isonmaxstd = cdm.createVariable(isonVarStd, axes = [axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Std')
         isonmaxstd.long_name = isonRead.long_name
         isonmaxstd.units     = isonRead.units
+        isontoe1 = cdm.createVariable(varToE1, axes = [axesList[0],axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE1')
+        isontoe1.long_name = 'ToE 1 for '+isonRead.long_name
+        isontoe1.units     = 'Year'
 
         outFile_f.write(    isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))

@@ -15,7 +15,8 @@ TODO: - add arguments for variable and output type
 import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
-from densit_matplot_lib import zon_2dom, defVar, findToE
+from densit_matplot_lib import zon_2dom, defVar
+from libToE import findToE
 from matplotlib.ticker import MaxNLocator
 
 #import matplotlib as mpl
