@@ -17,6 +17,8 @@ def findToE(signal, noise, mult):
     toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
     toe = timN-np.flipud(toe_wrk).argmax(axis=0) # compute ToE as last index when signal > noise
     #tcpu1 = timc.clock()
+    # perf
     #print ' ToE CPU = ',tcpu1-tcpu0
+
 
     return toe

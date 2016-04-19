@@ -184,8 +184,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
     varFill = [0.,0.,valmask,valmask,0.,0.]
     #varList = ['isondepth']
-    print ' !!! ### Testing one variable ###'
-    varList = ['isonthetao']
+    #print ' !!! ### Testing one variable ###'
+    #varList = ['isonthetao']
 
     # init arrays
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
