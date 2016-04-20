@@ -111,15 +111,15 @@ fig, ax = plt.subplots(nrows=3, ncols=1)
 
 rects1 = ax[0].bar(center, ToE1A1Means, deltay, color='b')
 ax[0].set_ylabel('Members')
-ax[0].set_title('ToE1 in '+DomToEA1['name'])
+ax[0].set_title('ToE1 in '+DomToEA1['name']+' Atl')
 
 rects2 = ax[1].bar(center, ToE1P1Means, deltay, color='b')
 ax[1].set_ylabel('Members')
-ax[1].set_title('ToE1 in '+DomToEP1['name'])
+ax[1].set_title('ToE1 in '+DomToEP1['name']+' Pac')
 
 rects3 = ax[2].bar(center, ToE1I1Means, deltay, color='b')
 ax[2].set_ylabel('Members')
-ax[2].set_title('ToE1 in '+DomToEI1['name'])
+ax[2].set_title('ToE1 in '+DomToEI1['name']+' Ind')
 
 plt.subplots_adjust(hspace=.5, wspace=5, left=0.04, right=0.86)
 
