@@ -72,7 +72,7 @@ histDir    = rootDir+'historical'
 histNatDir = rootDir+'historicalNat'
 histMMEOut = rootDir+'mme_hist'
 histNatMMEOut = rootDir+'mme_histNat'
-ToeNatOut = rootDir+'toe_histNat'
+#ToeNatOut = rootDir+'toe_histNat'
 
 if exper == 'historical':
     indir  = [histDir]
@@ -83,7 +83,7 @@ if exper == 'historicalNat':
 if ToE:
     if ToeType == 'histnat':
         indir  = [histDir, histNatMMEOut]
-        outdir  = ToeNatOut
+        outdir  = histMMEOut
 
 listens = []
 listens1 = []
