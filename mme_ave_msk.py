@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
 # 3) run twoD + ToE mm for historical
-# 4) run twoD mm2 for historical (still to implement for ToE)
+# 4) run twoD mme for historical (still to implement for ToE)
 
 oneD = False
 twoD = False
@@ -30,13 +30,13 @@ twoD = True
 mme  = False
 mm = True
 # experiment
-exper  = 'historical'
-#exper  = 'historicalNat'
+#exper  = 'historical'
+exper  = 'historicalNat'
 
 # ToE
 ToE = True
-#ToE = False
-ToeType = 'histnat' # working from hist and histnat
+ToE = False
+ToeType = 'histnat'    # working from hist and histnat
 #ToeType = 'picontrol' # working from hist and picontrol
 if not ToE:
     ToeType ='F'

@@ -349,6 +349,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                         vardiffsgSum[:,ib,:,il].mask = True
         else:
             isonVarBowl = isonVarAve*1. # start from variable
+            isonVarStd  = isonVarAve*1. # start from variable
             if iv == 0:
                 siglimit = cdu.averager(varbowl, axis=0)
                 siglimit = cdu.averager(siglimit, axis=0) - delta_rho
@@ -366,6 +367,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             isonVarBowl = maskVal(isonVarBowl, valmask)
             # Find max of Std dev of all members
             isonVarStd = npy.ma.max(varstd, axis=0)
+            # mask
+            if varFill[iv] == valmask:
+                isonVarStd = maskVal(isonVarStd, valmask)
 
         # Write
         isonave = cdm.createVariable(isonVarAve, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id)
