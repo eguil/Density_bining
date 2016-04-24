@@ -11,6 +11,7 @@
 # PJD 24 Apr 2016   - Updated SODA224 to use --time-linear
 #                   - TODO:
 #                   - Fix issue with ORAS4 time dimension, not CF/CDMS cannot read
+#                   - Add in time dimension for SODA224
 #
 #@author: durack1
 #"""
