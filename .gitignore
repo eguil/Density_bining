@@ -4,6 +4,7 @@
 *.nc
 /test
 durolib.py
+*crunchy.log
 *oceanonly.log
 /_obsolete
 durolib.py
