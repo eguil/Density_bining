@@ -19,7 +19,7 @@
 if [ "$HOST" == "oceanonly.llnl.gov" ]; then
     echo ocean
     cd /work/durack1/Shared/160421_data_density
-    setenv PATH /usr/local/uvcdat/2016-02-17/bin:$PATH
+    export PATH=/usr/local/uvcdat/2016-02-17/bin:$PATH
     # Obs
     # EN4
     \rm -f obs.EN4.historical.r0i0p0.mo.ocn.Omon.*.xml ; # Cleanup existing *.xmls
@@ -49,7 +49,7 @@ if [ "$HOST" == "oceanonly.llnl.gov" ]; then
 elif [ "$HOST" == 'crunchy.llnl.gov' ] ; then
     echo crunch
     cd /work/durack1/Shared/160421_data_density
-    setenv PATH /usr/local/uvcdat/2.4.1/bin:$PATH   
+    export PATH=/usr/local/uvcdat/2.4.1/bin:$PATH   
     # ORAS4
     # '-t "t"' or '-e 't.id = "time"' options do not work
     \rm -f ocerean.ORAS4.historical.r0i0p0.mo.ocn.Omon.*.xml ; # Cleanup existing *.xmls
