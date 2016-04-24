@@ -59,7 +59,7 @@ elif [ "$HOST" == 'crunchy.llnl.gov' ] ; then
     # SODA224
     \rm -f ocerean.SODA224.historical.r0i0p0.mo.ocn.Omon.*.xml ; # Cleanup existing *.xmls
     cdscan -a alias_SODA224.txt --include so --time-linear '0,1,months since 1870,gregorian' -x ocerean.SODA224.historical.r0i0p0.mo.ocn.Omon.so.ver-1.latestX.xml /work/guilyardi/database/SODA224/*.cdf
-    cdscan -a alias_SODA224.txt --include thetao --time-linear '0,1,months since 1870,gregorian'-x ocerean.SODA224.historical.r0i0p0.mo.ocn.Omon.thetao.ver-1.latestX.xml /work/guilyardi/database/SODA224/*.cdf
+    cdscan -a alias_SODA224.txt --include thetao --time-linear '0,1,months since 1870,gregorian' -x ocerean.SODA224.historical.r0i0p0.mo.ocn.Omon.thetao.ver-1.latestX.xml /work/guilyardi/database/SODA224/*.cdf
 else
     echo "Platform unrecognized"
 fi
