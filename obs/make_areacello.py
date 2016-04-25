@@ -32,7 +32,7 @@ earthArea = 510.072e6 ; # Earth area in km^2
 earthAreaM2 = earthArea*1e6 ; # Earth area in m^2
 
 #%% Get input grids
-os.chdir('cd /work/durack1/Shared/160421_data_density')
+os.chdir('/work/durack1/Shared/160421_data_density')
 inFiles = glob.glob('*thetao*')
 
 #%% Determine machine and host files
