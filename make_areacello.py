@@ -8,6 +8,7 @@ Paul J. Durack 24th April 2016
 This script generates area weight (areacello) variables from input grids
 
 PJD 24 Apr 2016     - Started
+PJD 24 Apr 2016     - Added skip for IPRC - time issue
                     - TODO:
 
 @author: durack1
@@ -52,6 +53,7 @@ for count,inFile in enumerate(inFiles):
     print count,inFile
     fH = cdm.open(inFile)
     if 'IPRC' in inFile:
+        continue
         tmp = fH('thetao',time=slice(0,1),level=slice(0,1)) ; # Load grid only
     elif 'Ishii' in inFile:
         tmp = fH('thetao',time=slice(0,1),lev=slice(0,1)) ; # Load grid only
@@ -68,7 +70,8 @@ for count,inFile in enumerate(inFiles):
     areacello.units = 'm2'
     # Create outfile handle
     outFile = replace(replace(inFile,'thetao','areacello'),'.xml','.nc')
-    if os.path.isfile(outFile):
+    if os.path.isfile(outFile) and os.path.getsize(outFile) < (1024*1024):
+        # if file exists and is smaller than 1mb
         print 'purge'
         os.remove(outFile)
     fHo = cdm.open(outFile,'w')
