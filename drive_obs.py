@@ -10,6 +10,8 @@ This script generates input lists of obs ocean fields and drives densityBin
 PJD 20 Apr 2016     - Started file
 PJD 24 Apr 2016     - Updated to rewrite inputs rather than function
 PJD 24 Apr 2016     - Added host check as inputs are linked and host dependent
+PJD 25 Apr 2016     - Updated outFile name from so not areacello (xml -> nc)
+PJD 25 Apr 2016     - Added IPRC fudge - needs rewriting
                     - TODO:
                     - Resolve temp/to vs thetao inconsistencies
                     - Resolve pressure vs depth inconsistencies
@@ -45,17 +47,35 @@ for count,inFile in enumerate(processList):
 processList = hostFiles
 del(hostFiles)
 
+#%% IPRC fudge
+noIPRC = []
+for count,inFile in enumerate(processList):
+    if 'IPRC' not in inFile:
+        noIPRC += [inFile]
+# Reset input to sublist
+processList = noIPRC
+del(noIPRC)
+        
 #%% Call densityBin
 iterCount = len(processList)/3 ; # Assumes three input files
 listCount = 0
 for input in range(0,iterCount):
     print 'Processing: ',input
-    areacello = processList[listCount]
-    so = processList[listCount+1]
-    thetao = processList[listCount+2]
-    outfileDensity = os.path.join(outDir,replace(areacello,'areacello','density'))
+    areacello       = processList[listCount]
+    so              = processList[listCount+1]
+    thetao          = processList[listCount+2]
+    outfileDensity  = os.path.join(outDir,replace(replace(so,'so','density'),'.xml','.nc'))
     if os.path.isfile(outfileDensity):
-        os.remove(outfileDensity)
+        #print 'found file'
+        #print os.path.getsize(outfileDensity),(1024*1024)
+        if os.path.getsize(outfileDensity) < (1024*1024):
+            # if file exists and is smaller than 1mb:
+            print 'purge'
+            os.remove(outfileDensity)
+        else:
+            print 'found big file, skipping'
+            listCount = listCount+3
+            continue
     listCount = listCount+3
     print 'areacello: ',areacello
     print 'so:        ',so
