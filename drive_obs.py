@@ -13,6 +13,7 @@ PJD 24 Apr 2016     - Added host check as inputs are linked and host dependent
 PJD 25 Apr 2016     - Updated outFile name from so not areacello (xml -> nc)
 PJD 25 Apr 2016     - Added IPRC fudge - needs rewriting
                     - TODO:
+                    - Rewrite: IPRC, ORAS4, SODA224
                     - Resolve temp/to vs thetao inconsistencies (JAMSTEC, UCSD, Ishii, SODA224)
                     - Resolve pressure vs depth inconsistencies (JAMSTEC)
 
