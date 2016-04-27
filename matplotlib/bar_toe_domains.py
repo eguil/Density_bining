@@ -23,6 +23,7 @@ import numpy as np
 
 inDir = '/Users/ericg/Projets/Density_bining/'
 workh = 'Prod_density_april15/toe_histNat'
+#workh = 'Prod_density_april15/mme_hist'
 inDirh = inDir + workh
 
 # Define variable  TODO: read as argument
@@ -41,7 +42,7 @@ deltay = 10.
 # file inits
 
 os.chdir(inDirh)
-listFiles = glob.glob('cmip5.*')
+listFiles = glob.glob('cmip5.*_zon2D.nc')
 var = varname['var']
 
 # find dimensions
