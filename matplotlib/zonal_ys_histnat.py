@@ -223,5 +223,5 @@ else:
 ttxt = fig.suptitle(titleText, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
-plt.show()
-#plt.savefig(plotName+'.pdf', bbox_inches='tight')
+#plt.show()
+plt.savefig(plotName+'.pdf', bbox_inches='tight')
