@@ -29,7 +29,7 @@ dow = 'ishii'
 
 # output format
 outfmt = 'view'
-outfmt = 'save'
+#outfmt = 'save'
 
 # models
 if dow == 'model':
@@ -39,13 +39,13 @@ if dow == 'model':
 
 # observations
 if dow == 'EN4':
-    work = 'Prod_density_obs_april16'
-    file2d = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestX_zon2D.nc'
-    file1d = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestX_zon1D.nc'
+    work = 'Prod_density_obs_april16/mme_obs'
+    file2d = 'obs.EN4.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon2D.nc'
+    file1d = 'obs.EN4.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon1D.nc'
 if dow == 'ishii':
-    work = 'Prod_density_obs_april16'
-    file2d = 'obs.Ishii.historical.r0i0p0.an.ocn.Omon.density.ver-1.latestX_zon2D.nc'
-    file1d = 'obs.Ishii.historical.r0i0p0.an.ocn.Omon.density.ver-1.latestX_zon1D.nc'
+    work = 'Prod_density_obs_april16/mme_obs'
+    file2d = 'obs.Ishii.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon2D.nc'
+    file1d = 'obs.Ishii.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon1D.nc'
 
 indir = indir + work
 
@@ -61,7 +61,7 @@ varname = defVar('depth')
 
 # Define plot name, years for difference, bowl label and bowl and model agreement plot options
 
-if dow == 'model':
+if dow == 'model': # MME for 1861-2005 (146 time steps)
     plotName = 'cmip5_mme_hist_42models_' + varname['var']
     y11 = 140 ; y12 = 145
     y21 = 0 ; y22 = 50
@@ -69,22 +69,24 @@ if dow == 'model':
     restrictBowl = True
     modelAgree = True
 
-if dow == 'EN4':
+if dow == 'EN4': # 1900.01 - 2015.04 (115 time steps, ignore last year) Good et al.
     plotName = 'obs_EN4_' + varname['var']
-    y11 = 109 ; y12 = 114
+    y11 = 108 ; y12 = 113
     y21 = 0 ; y22 = 30
     labBowl = ['<1930', '2010']
-    restrictBowl = False
+    restrictBowl = True
     modelAgree = False
 
-if dow == 'ishii':
+if dow == 'ishii': # 1945.01 - 2012.12 (68 time steps)
     plotName = 'obs_ishii_' + varname['var']
     y11 = 62 ; y12 = 67
     y21 = 0 ; y22 = 5
-    labBowl = ['1950', '2010']
-    restrictBowl = False
+    labBowl = ['<1950', '2010']
+    restrictBowl = True
     modelAgree = False
-
+#(ignore for now JAMSTEC: 2001.01 - 2014.12
+#(ignore for now UCSD: 2004.01 - 2015.03
+# SmithAndMurphy2007 # 1950.01 - 2013.02 (ignore last year)
 
 # density domain
 domrho = [21., 26., 28.]  # min/mid/max
