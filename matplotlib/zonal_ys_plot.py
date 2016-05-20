@@ -24,8 +24,8 @@ indir = '/Users/ericg/Projets/Density_bining/'
 
 # description of work (dow)
 dow = 'model'
-dow = 'EN4'
-dow = 'ishii'
+#dow = 'EN4'
+#dow = 'ishii'
 
 # output format
 outfmt = 'view'
@@ -55,7 +55,7 @@ agreelev = 0.6
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
 #varname = defVar('temp')
-varname = defVar('depth')
+#varname = defVar('depth')
 #varname = defVar('volume')
 # varname = defVar('persist')
 

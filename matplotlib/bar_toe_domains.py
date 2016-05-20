@@ -10,6 +10,10 @@ Make time emergence PDF bar plots from
 
 TODO: - add arguments for variable and output type
 
+TODO: - weigth PDF with 1/N members
+TODO: - ToE as function of number of members (use GISS or large ensemble)
+TODO: - use piControl for noise rather than histNat as signal is hist-histNat
+
 """
 import os, glob
 from netCDF4 import Dataset as open_ncfile

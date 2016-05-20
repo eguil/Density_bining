@@ -17,46 +17,44 @@ def defModels():
 #  name, props=[Nb of hist members, nb of HistNat members, idx of common interval [1861-2005]]
 #      picontrol=[length of run]
 #
-#  set last idx (2005) to 0 to ignore model
-#
     models = [
-        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[0]}, # 0
-        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[0]}, # 1
+        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[500]}, # 0
+        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
         {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
         {'name':'bcc-csm1-1'    ,'props':[2,1,11,156], 'picontrol':[0]}, # 3
-        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[0]}, # 4
-        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[0]}, # 5
-        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[0]}, # 6
-        {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[0]}, # 7
-        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[0]}, # 8
-        {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[0]}, # 9
-        {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[0]}, # 10
-        {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[0]}, # 11
-        {'name':'CMCC-CM'       ,'props':[1,0,11,156], 'picontrol':[0]}, # 12
-        {'name':'CMCC-CMS'      ,'props':[1,0,11,156], 'picontrol':[0]}, # 13
-        {'name':'CNRM-CM5-2'    ,'props':[1,0,11,156], 'picontrol':[0]}, # 14
-        {'name':'CNRM-CM5'      ,'props':[9,6,11,156], 'picontrol':[0]}, # 15
-        {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,11,156], 'picontrol':[0]}, # 16
-        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,155], 'picontrol':[0]}, # 17 - 145 time steps
-        {'name':'EC-EARTH'      ,'props':[6,0,11,156], 'picontrol':[0]}, # 18
-        {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[0]}, # 19
-        {'name':'FGOALS-s2'     ,'props':[3,0,11,156], 'picontrol':[0]}, # 20
+        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
+        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
+        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
+        {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[500]}, # 7
+        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
+        {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[175]}, # 9
+        {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[200]}, # 10
+        {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[277]}, # 11
+        {'name':'CMCC-CM'       ,'props':[1,0,11,156], 'picontrol':[330]}, # 12
+        {'name':'CMCC-CMS'      ,'props':[1,0,11,156], 'picontrol':[500]}, # 13
+        {'name':'CNRM-CM5-2'    ,'props':[1,0,11,156], 'picontrol':[410]}, # 14
+        {'name':'CNRM-CM5'      ,'props':[9,6,11,156], 'picontrol':[850]}, # 15
+        {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,11,156], 'picontrol':[500]}, # 16
+        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,155], 'picontrol':[0]}, # 17
+        {'name':'EC-EARTH'      ,'props':[6,0,11,156], 'picontrol':[452]}, # 18
+        {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[700]}, # 19
+        {'name':'FGOALS-s2'     ,'props':[3,0,11,156], 'picontrol':[501]}, # 20
         {'name':'GFDL-CM2p1'    ,'props':[9,0,11,156], 'picontrol':[0]}, # 21
-        {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22 - 145 time steps
-        {'name':'GFDL-ESM2G'    ,'props':[1,0, 0,146], 'picontrol':[0]}, # 23 - 145 time steps
-        {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[0]}, # 24 - 145 time steps
-        {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[0]},# 25
-        {'name':'GISS-E2-H-CC'  ,'props':[1,0,11,156], 'picontrol':[0]}, # 26
-        {'name':'GISS-E2-R'     ,'props':[16,11,11,156], 'picontrol':[0]}, # 27
-        {'name':'GISS-E2-R-CC'  ,'props':[1,0,11,156], 'picontrol':[0]}, # 28
+        {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22
+        {'name':'GFDL-ESM2G'    ,'props':[1,0, 0,146], 'picontrol':[500]}, # 23
+        {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[500]}, # 24
+        {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[780]},# 25
+        {'name':'GISS-E2-H-CC'  ,'props':[1,0,11,156], 'picontrol':[251]}, # 26
+        {'name':'GISS-E2-R'     ,'props':[16,11,11,156],'picontrol':[846]},# 27
+        {'name':'GISS-E2-R-CC'  ,'props':[1,0,11,156], 'picontrol':[251]}, # 28
         {'name':'HadCM3'        ,'props':[9,0, 1,146], 'picontrol':[0]}, # 29
-        {'name':'HadGEM2-CC'    ,'props':[1,0, 1,146], 'picontrol':[0]}, # 30
-        {'name':'HadGEM2-ES'    ,'props':[3,3, 1,146], 'picontrol':[0]}, # 31
-        {'name':'IPSL-CM5A-LR'  ,'props':[6,3,11,156], 'picontrol':[0]}, # 32
-        {'name':'IPSL-CM5A-MR'  ,'props':[3,3,11,156], 'picontrol':[0]}, # 33
-        {'name':'IPSL-CM5B-LR'  ,'props':[1,0,11,156], 'picontrol':[0]}, # 34
-        {'name':'MIROC-ESM-CHEM','props':[1,1,11,156], 'picontrol':[0]}, # 35
-        {'name':'MIROC-ESM'     ,'props':[3,3,11,156], 'picontrol':[0]}, # 36
+        {'name':'HadGEM2-CC'    ,'props':[1,0, 1,146], 'picontrol':[240]}, # 30
+        {'name':'HadGEM2-ES'    ,'props':[3,3, 1,146], 'picontrol':[576]}, # 31
+        {'name':'IPSL-CM5A-LR'  ,'props':[6,3,11,156], 'picontrol':[1000]}, # 32
+        {'name':'IPSL-CM5A-MR'  ,'props':[3,3,11,156], 'picontrol':[300]}, # 33
+        {'name':'IPSL-CM5B-LR'  ,'props':[1,0,11,156], 'picontrol':[300]}, # 34
+        {'name':'MIROC-ESM-CHEM','props':[1,1,11,156], 'picontrol':[255]}, # 35
+        {'name':'MIROC-ESM'     ,'props':[3,3,11,156], 'picontrol':[100]}, # 36
         {'name':'MPI-ESM-LR'    ,'props':[3,0,11,156], 'picontrol':[0]}, # 37
         {'name':'MPI-ESM-MR'    ,'props':[3,0,11,156], 'picontrol':[0]}, # 38
         {'name':'MPI-ESM-P'     ,'props':[2,0,11,156], 'picontrol':[0]}, # 39
@@ -299,7 +297,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             vardiffsgSum.mask = percentw.mask
             vardiffsgSum._FillValue = valmask
 
-        # average accross members
+        # average variable accross members
         isonVarAve = cdu.averager(isonvar, axis=0)
         isonVarAve = cdm.createVariable(isonVarAve , axes =[time,axesList[1],axesList[2],axesList[3]] , id = 'foo')
         # mask
