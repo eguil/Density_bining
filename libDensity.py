@@ -135,12 +135,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - EG 06 Dec 2014   - Added agreement on difference with init period - save as <var>Agree
     - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
     - EG 19 Apr 2016   - ToE computation (just for 2D files)
+    - EG 04 Oct 2016   - Add 3D files support
 
     - TODO :
                  - optimization of loops
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
-                 - Add 3D files support (should just be about changing init of arrays)
     '''
 
     # CDMS initialisation - netCDF compression

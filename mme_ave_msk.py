@@ -29,13 +29,13 @@ oneD = False
 twoD = False
 
 oneD = True
-twoD = True
+#twoD = True
 mme  = False
 mm = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
-exper = 'obs'
+#exper = 'obs'
 
 # ToE
 ToE = True
@@ -56,6 +56,7 @@ if exper <> 'obs':
 
     # I/O directories
     rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
+    rootDir = '/data/ericglod/Projets/Prod_density_april15/Raw'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
