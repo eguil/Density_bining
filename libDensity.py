@@ -508,9 +508,6 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
 
     varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
 
-    if sw2d == 1:
-    elif sw2d == 2:
-
     axis1D = [time,axesList[1],axesList[2]]
     axis0D = [time,axesList[1]]
 
