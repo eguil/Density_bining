@@ -48,7 +48,7 @@ varname = defVar('temp')
 #varname = defVar('heatcontent')
 
 ToE = True
-#ToE = False
+ToE = False
 multStd = 2. # detect ToE at multStd std dev of histNat
 # Define plot name
 plotName = 'cmip5_hist_vs_histNat_stddev_' + varname['var']
@@ -87,12 +87,12 @@ nc2dhn = open_ncfile(indirhn + '/' + file2dhn)
 
 # -- Read variables
 # Restrict variables to bowl (hist) TODO add switch for bowl
-#tvarha = nc2dh.variables[var + 'Bowl'][:, 1, :, :].squeeze()
-#tvarhp = nc2dh.variables[var + 'Bowl'][:, 2, :, :].squeeze()
-#tvarhi = nc2dh.variables[var + 'Bowl'][:, 3, :, :].squeeze()
-tvarha = nc2dh.variables[var][:, 1, :, :].squeeze()
-tvarhp = nc2dh.variables[var][:, 2, :, :].squeeze()
-tvarhi = nc2dh.variables[var][:, 3, :, :].squeeze()
+tvarha = nc2dh.variables[var + 'Bowl'][:, 1, :, :].squeeze()
+tvarhp = nc2dh.variables[var + 'Bowl'][:, 2, :, :].squeeze()
+tvarhi = nc2dh.variables[var + 'Bowl'][:, 3, :, :].squeeze()
+#tvarha = nc2dh.variables[var][:, 1, :, :].squeeze()
+#tvarhp = nc2dh.variables[var][:, 2, :, :].squeeze()
+#tvarhi = nc2dh.variables[var][:, 3, :, :].squeeze()
 lev = nc2dh.variables['lev'][:]
 levN = lev.size
 lat = nc2dh.variables['latitude'][:]
@@ -223,5 +223,5 @@ else:
 ttxt = fig.suptitle(titleText, fontsize=14, fontweight='bold')
 # -- Output  # TODO read as argument
 
-#plt.show()
-plt.savefig(plotName+'.pdf', bbox_inches='tight')
+plt.show()
+#plt.savefig(plotName+'.pdf', bbox_inches='tight')

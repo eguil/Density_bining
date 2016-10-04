@@ -10,7 +10,9 @@ warnings.filterwarnings("ignore")
 # run with 'pythoncd -W ignore mme_ave_msk.py' (cdms python on mac)
 #
 # April 2016 : add ToE computation support (for 2D files only)
-# Mai 2016   : add obs support
+# May 2016   : add obs support
+#
+# TODO: add 3D files support
 #
 # ----------------------------------------------------------------------------
 

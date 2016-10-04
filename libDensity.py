@@ -109,6 +109,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
      - the MME
      - a percentage of non-masked bins
      - the sign agreement of period2-period1 differences
+     - ToE per run and for MME
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
 
@@ -135,10 +136,11 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
     - EG 19 Apr 2016   - ToE computation (just for 2D files)
 
-    - TO DO :
+    - TODO :
                  - optimization of loops
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
+                 - Add 3D files support (should just be about changing init of arrays)
     '''
 
     # CDMS initialisation - netCDF compression
@@ -186,7 +188,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     #print ' !!! ### Testing one variable ###'
     #varList = ['isonthetao']
 
-    # init arrays
+    # init arrays (2D rho/lat)
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
     minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
     varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
@@ -202,7 +204,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     # loop on variables
     for iv,var in enumerate(varList):
 
-        # Array inits
+        # Array inits (2D rho/lat)
         isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
         vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
         varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
@@ -434,8 +436,9 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     - EG 25 Nov 2014   - Initial function write
     - EG  9 Dec 2014   - Add agreement on difference with init period - save as <var>Agree
 
-    To do:
+    TODO:
     ------
+    - add 2D support for 3D files
                  
     '''
 
@@ -472,27 +475,41 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     timN = ptopd0.shape[0]
     runN = len(listFiles)
 
+    if len(ptopd0.shape) == 4: #2D files
+        lonN = ptopd0.shape[3]
+        sw2d = 2
+    else:
+        sw2d = 1
+
     print ' Number of members:',len(listFiles)
 
     valmask = ptopd0.missing_value
 
-    # loop on variables
-
-    varList = ['ptopdepth','ptopsigma','ptopso','ptopthetao','volpers','salpers','tempers']
-    #varFill = [0.,0.,valmask,valmask,0.,0.,0.,valmask,valmask]
-    varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
-    varDim  = [1,1,1,1,0,0,0]
-    #varList = ['ptopdepth']
-
-    valmask = ptopd0.missing_value
-
-    # init percent array
-    percent  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*0.
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
     time.units = 'years since 1861'
     time.designateTime()
+
+    # loop on variables
+    # init percent array
+
+    if sw2d == 1:
+        varList = ['ptopdepth','ptopsigma','ptopso','ptopthetao','volpers','salpers','tempers']
+        #varList = ['ptopdepth']
+        varDim  = [1,1,1,1,0,0,0]
+        percent  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*0.
+    elif sw2d == 2:
+        varList = ['ptopdepthxy','ptopsigmaxy','ptopsoxy','ptopthetaoxy','volpers','salpers','tempers']
+        varList = ['ptopdepthxy']
+        varDim  = [2,2,2,2,0,0,0]
+        percent  = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*0.
+        axis2D = [time,axesList[1],axesList[2],axesList[3]]
+
+    varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
+
+    if sw2d == 1:
+    elif sw2d == 2:
 
     axis1D = [time,axesList[1],axesList[2]]
     axis0D = [time,axesList[1]]
@@ -501,7 +518,12 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     for iv,var in enumerate(varList):
 
         # Array inits
-        if varDim[iv] == 1:
+        if varDim[iv] == 2:
+            isonvar = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*valmask
+            vardiff = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*valmask
+            varones = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*1.
+            axisVar = axis2D
+        elif varDim[iv] == 1:
             isonvar = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*valmask
             vardiff = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*valmask
             varones = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
