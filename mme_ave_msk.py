@@ -70,7 +70,9 @@ if exper <> 'obs':
     # output name
     outroot = 'cmip5.multimodel'
     inroot  = 'cmip5'
+
 else:
+
 # Specific variables for observations
     #obsm = {'name':'EN4'     ,'props':[1,0,0,114], 'picontrol':[0]}
     obsm = {'name':'Ishii'   ,'props':[1,0,0,67], 'picontrol':[0]}
