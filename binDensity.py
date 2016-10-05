@@ -1185,6 +1185,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ptopd  = cdm.createVariable(ptopdepthi, axes = [timeyr,lati,loni], id = 'ptopdepthxy')
             ptopt  = cdm.createVariable(ptoptempi , axes = [timeyr,lati,loni], id = 'ptopthetaoxy')
             ptops  = cdm.createVariable(ptopsalti , axes = [timeyr,lati,loni], id = 'ptopsoxy')
+            ptopsig  = cdm.createVariable(ptopsigmai , axes = [timeyr,lati,loni], id = 'ptopsigmaxy')
 
             # Write volume/temp/salinity of persistent ocean 1D (time)
             # Collapse onto basin axis
@@ -1279,6 +1280,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopt.units         = 'degrees_C'
                 ptops.long_name     = 'Salinity of shallowest persistent ocean on ison'
                 ptops.units         = so_h.units
+                ptopsig.long_name     = 'Density of shallowest persistent ocean on ison'
+                ptopsig.units         = 'sigma_n'
                 #
                 dbpdz.long_name     = 'Zonal depth of shallowest persistent ocean on ison'
                 dbpdz.units         = 'm'
@@ -1304,6 +1307,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFile_f.write(ptopd.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptops.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(ptopsig.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(dbpz.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
             del(persim,ptopd,ptopt,ptops,dbpz) ; gc.collect()
             outFile_f.write(dbpdz.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
