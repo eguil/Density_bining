@@ -423,7 +423,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
     Inputs:
     -------
     - listFiles(str)         - the list of files to be averaged
-    - sw2d                    - dimension of fields to consider (1 or 2)
+    - sw2d                   - dimension of fields to consider (1 or 2)
     - years(t1,t2)           - years for slice read
     - inDir(str)             - input directory where files are stored
     - outDir(str)            - output directory
@@ -436,11 +436,11 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
     -----
     - EG 25 Nov 2014   - Initial function write
     - EG  9 Dec 2014   - Add agreement on difference with init period - save as <var>Agree
+    - EG 04 Oct 2016   - Add 3D files support
 
     TODO:
     ------
-    - add 2D support for 3D files
-                 
+
     '''
 
     # CDMS initialisation - netCDF compression
@@ -504,7 +504,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         percent  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*0.
     elif sw2d == 2:
         varList = ['ptopdepthxy','ptopsigmaxy','ptopsoxy','ptopthetaoxy','volpers','salpers','tempers']
-        varList = ['ptopdepthxy']
+        #varList = ['ptopdepthxy']
         varDim  = [2,2,2,2,0,0,0]
         percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
 
