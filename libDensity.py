@@ -23,6 +23,7 @@ def defModels():
 #        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
 #        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
         {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0]}, # 3
+#        {'name':'bcc-csm1-1'    ,'props':[3,1,11,21], 'picontrol':[0]}, # 3
 #        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
         {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
         {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
@@ -547,11 +548,36 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
             if var == 'ptopsigmaxy':
                 # reconstruct from isondepthg and ptopdepthxy
                 isond = ft('isondepthg',time = slice(t1,t2))
+                #print isond.data.shape, timN*latN*lonN
                 axesList = isond.getAxisList()
                 levs = axesList[1][:]
-                print levs,len(levs)
-                idx = npy.argwhere(isond == vardepth[ic,...])
-                isonRead = levs[idx]
+                levN = len(levs)
+                isonwrk = npy.ma.ones([timN*latN*lonN], dtype='float32')*valmask
+                #levs3d  = npy.transpose(mv.reshape(npy.tile(levs,timN*latN*lonN),(levN,timN*latN*lonN)))
+                #print levs3d.shape
+                isond3d = mv.reshape(npy.transpose(isond.data,(0,2,3,1)),(timN*latN*lonN,levN))
+                #print isond3d.shape
+                depthlo = mv.reshape(vardepth[ic,...],timN*latN*lonN)
+                depth3d = npy.transpose(mv.reshape(npy.tile(depthlo, levN),(levN,timN*latN*lonN)))
+                #print depth3d.shape
+                isond3dp1 = npy.roll(isond3d,-1,axis=1)
+                isond3dp1[:,-1] = isond3d[:,-1]
+                #itest = 50*500
+                #print isond3d[itest,:], isond3dp1[itest,:]
+                #print depth3d[itest,0], isond3d[itest,30], isond3dp1[itest,30], isond3d[itest,31], isond3dp1[itest,31]
+                #print npy.argwhere( (depth3d[itest,:] >= isond3d[itest,:]) & (isond3d[itest,:] < valmask/10) )
+                #print npy.argwhere( (depth3d[itest,:] < isond3dp1[itest,:])& (isond3d[itest,:] < valmask/10) )
+                idx = npy.argwhere( (depth3d >= isond3d) & (depth3d < isond3dp1) & (isond3d < valmask/10) ) # check transpose ok
+                #print idx.shape
+                for ixy in range(idx.shape[0]): # TODO remove loop, maybe using levs3d
+                    isonwrk[idx[ixy,0]]=levs[idx[ixy,1]]
+                #print isonwrk.shape
+                isonRead = mv.reshape(isonwrk,(timN,latN,lonN))
+                #print isonRead.shape
+                isonRead.mask = isond.mask[:,0,...]
+                isonRead.long_name = isond.long_name
+                isonRead.units = isond.units
+
             else:
                 isonRead = ft(var,time = slice(t1,t2))
                 #print isonRead.shape, isonvar.shape, file
