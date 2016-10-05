@@ -25,6 +25,8 @@ warnings.filterwarnings("ignore")
 # 3) run twoD + ToE mm for historical
 # 4) run twoD mme for historical (still to implement for ToE)
 
+raw = True
+
 oneD = False
 twoD = False
 
@@ -56,8 +58,8 @@ if exper <> 'obs':
     idxtime=[0,145]
 
     # I/O directories
-    rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
-    rootDir = '/data/ericglod/Projets/Prod_density_april15/Raw'
+    #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
+    rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
@@ -118,6 +120,10 @@ if ToE:
     if ToeType == 'histnat':
         indir  = [histDir, histNatMMEOut]
         outdir  = ToeNatOut
+if raw:
+    dim = 2
+else:
+    dim = 1
 
 timeInt=[peri1,peri2]
 
@@ -141,6 +147,7 @@ print
 os.chdir(indir[0])
 for i in modelSel:
     mod = models[i]['name']
+    print mod
     if exper == 'historical':
         nens = models[i]['props'][0]
         chartest = exper
@@ -156,8 +163,13 @@ for i in modelSel:
     years = [models[i]['props'][2],models[i]['props'][3]]
     if years[1] <> 0: # do not ignore model
         if nens > 0: # only if 1 member or more
-            listf  = glob.glob(inroot+'.'+mod+'.*zon2D*')
-            listf1 = glob.glob(inroot+'.'+mod+'.*zon1D*')
+            if raw:
+                listf  = glob.glob(inroot+'.'+mod+'.*')
+                listf1 = listf
+            else:
+                listf  = glob.glob(inroot+'.'+mod+'.*zon2D*')
+                listf1 = glob.glob(inroot+'.'+mod+'.*zon1D*')
+
             if len(listf) == 0:
                 sys.exit('### no such file !')
             start = listf[0].find(chartest)+len(chartest)
@@ -185,7 +197,7 @@ for i in modelSel:
                     print 'Wrote ',outdir+'/'+outFile
                 if oneD:
                     print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
-                    mmeAveMsk1D(listf1,years,indir,outdir,outFile1,timeInt,mme,ToeType)
+                    mmeAveMsk1D(listf1,dim,years,indir,outdir,outFile1,timeInt,mme,ToeType)
                     print 'Wrote ',outdir+'/'+outFile1
                     
 if mme:
@@ -197,7 +209,7 @@ if mme:
         print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
-        mmeAveMsk1D(listens1,idxtime,indir,outdir,outFile1,timeInt,mme,Toetype)
+        mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,Toetype)
         print 'Wrote ',outdir+'/'+outFile1
 
 # ---------------------------

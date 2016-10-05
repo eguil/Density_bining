@@ -19,12 +19,12 @@ def defModels():
 #
 
     models = [
-        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[500]}, # 0
-        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
-        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
-        {'name':'bcc-csm1-1'    ,'props':[2,1,11,156], 'picontrol':[0]}, # 3
-        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
-        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
+#        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[500]}, # 0
+#        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
+#        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
+#        {'name':'bcc-csm1-1'    ,'props':[2,1,11,156], 'picontrol':[0]}, # 3
+#        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
+#        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
         {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
         {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[500]}, # 7
         {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
@@ -413,7 +413,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     outFile_f.close()
     fi.close()
 
-def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=True):
+def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, debug=True):
     '''
     The mmeAveMsk1D() function averages rhon or scalar density bined files with differing masks
     It ouputs the MME and a percentage of non-masked bins
@@ -423,6 +423,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     Inputs:
     -------
     - listFiles(str)         - the list of files to be averaged
+    - sw2d                    - dimension of fields to consider (1 or 2)
     - years(t1,t2)           - years for slice read
     - inDir(str)             - input directory where files are stored
     - outDir(str)            - output directory
@@ -461,25 +462,27 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
-    fi      = cdm.open(inDir[0]+'/'+listFiles[0])
-    ptopd0  = fi('ptopdepth',time=slice(t1,t2)) ; # Create variable handle
+    # Find dimension
+    runN = len(listFiles)
+
+    fi = cdm.open(inDir[0]+'/'+listFiles[0])
+    if sw2d == 1:
+        ptopd0  = fi('ptopdepth',time=slice(t1,t2)) ; # Create variable handle
+        latN = ptopd0.shape[2]
+        basN = ptopd0.shape[1]
+        timN = ptopd0.shape[0]
+    elif sw2d == 2:
+        ptopd0  = fi('ptopdepthxy',time=slice(t1,t2)) ; # Create variable handle
+        lonN = ptopd0.shape[2]
+        latN = ptopd0.shape[1]
+        timN = ptopd0.shape[0]
+
     # Get grid objects
     axesList = ptopd0.getAxisList()
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
         os.remove(outDir+'/'+outFile)
     outFile_f = cdm.open(outDir+'/'+outFile,'w')
-
-    latN = ptopd0.shape[2]
-    basN = ptopd0.shape[1]
-    timN = ptopd0.shape[0]
-    runN = len(listFiles)
-
-    if len(ptopd0.shape) == 4: #2D files
-        lonN = ptopd0.shape[3]
-        sw2d = 2
-    else:
-        sw2d = 1
 
     print ' Number of members:',len(listFiles)
 
@@ -503,8 +506,7 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
         varList = ['ptopdepthxy','ptopsigmaxy','ptopsoxy','ptopthetaoxy','volpers','salpers','tempers']
         varList = ['ptopdepthxy']
         varDim  = [2,2,2,2,0,0,0]
-        percent  = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*0.
-        axis2D = [time,axesList[1],axesList[2],axesList[3]]
+        percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
 
     varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
 
@@ -516,10 +518,10 @@ def mmeAveMsk1D(listFiles, years, inDir, outDir, outFile, timeInt, mme, debug=Tr
 
         # Array inits
         if varDim[iv] == 2:
-            isonvar = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*valmask
-            vardiff = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*valmask
-            varones = npy.ma.ones([runN,timN,basN,latN,lonN], dtype='float32')*1.
-            axisVar = axis2D
+            isonvar = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
+            vardiff = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
+            varones = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
+            axisVar = axis1D
         elif varDim[iv] == 1:
             isonvar = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*valmask
             vardiff = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*valmask
