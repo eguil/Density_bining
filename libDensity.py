@@ -547,9 +547,9 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
             if var == 'ptopsigmaxy':
                 # reconstruct from isondepthg and ptopdepthxy
                 isond = ft('isondepthg',time = slice(t1,t2))
-                levN = isond.shape[1]
-                levs = ft('lev')
-                print levs
+                axesList = isond.getAxisList()
+                levs = axesList[1][:]
+                print levs,len(levs)
                 idx = npy.argwhere(isond == vardepth[ic,...])
                 isonRead = levs[idx]
             else:
