@@ -70,7 +70,6 @@ if exper <> 'obs':
     # output name
     outroot = 'cmip5.multimodel'
     inroot  = 'cmip5'
-
 else:
 
 # Specific variables for observations
