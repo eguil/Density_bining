@@ -22,7 +22,7 @@ def defModels():
 #        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[500]}, # 0
 #        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
 #        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
-        {'name':'bcc-csm1-1'    ,'props':[2,1,11,156], 'picontrol':[0]}, # 3
+        {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0]}, # 3
 #        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
         {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
         {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
@@ -503,9 +503,9 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         varDim  = [1,1,1,1,0,0,0]
         percent  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*0.
     elif sw2d == 2:
-        varList = ['ptopdepthxy','ptopsoxy','ptopthetaoxy','volpers','salpers','tempers']
+        varList = ['ptopdepthxy','ptopsoxy','ptopthetaoxy']
         #varList = ['ptopdepthxy']
-        varDim  = [2,2,2,2,0,0,0]
+        varDim  = [2,2,2]
         percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
 
     varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
