@@ -135,12 +135,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - EG 06 Dec 2014   - Added agreement on difference with init period - save as <var>Agree
     - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
     - EG 19 Apr 2016   - ToE computation (just for 2D files)
-    - EG 04 Oct 2016   - Add 3D files support
 
     - TODO :
                  - optimization of loops
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
+                 - add 3D file support - ptopsigmaxy is missing - see if ptopdepth can be used instead
     '''
 
     # CDMS initialisation - netCDF compression
@@ -503,9 +503,9 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         varDim  = [1,1,1,1,0,0,0]
         percent  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*0.
     elif sw2d == 2:
-        varList = ['ptopdepthxy','ptopsoxy','ptopthetaoxy']
+        varList = ['ptopdepthxy','ptopsigmaxy','ptopsoxy','ptopthetaoxy']
         #varList = ['ptopdepthxy']
-        varDim  = [2,2,2]
+        varDim  = [2,2,2,2]
         percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
 
     varFill = [valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask,valmask]
@@ -544,8 +544,17 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 print "wrong time axis: exiting..."
                 return
             # read array
-            isonRead = ft(var,time = slice(t1,t2))
-            #print isonRead.shape, isonvar.shape, file
+            if var == 'ptopsigmaxy':
+                # reconstruct from isondepthg and ptopdepthxy
+                isond = ft('isondepthg',time = slice(t1,t2))
+                levN = isond.shape[1]
+                levs = ft('lev')
+                print levs
+                idx = npy.argwhere(isond == vardepth[ic,...])
+                isonRead = levs[idx]
+            else:
+                isonRead = ft(var,time = slice(t1,t2))
+                #print isonRead.shape, isonvar.shape, file
             if varFill[iv] != valmask:
                 isonvar[ic,...] = isonRead.filled(varFill[iv])
             else:
@@ -568,6 +577,10 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
 
             ft.close()
         # <-- end of loop on files
+        # if ptopdepthxy, keep for ptopsigmaxy computation (reconstruct from isondepthg and ptopdepthxy)
+        if var =='ptopdepthxy':
+            vardepth = isonvar
+            vardepthdiff = vardiff
         # Compute percentage of bin presence
         # Only keep points where percent > 50%
         if iv == 0:
