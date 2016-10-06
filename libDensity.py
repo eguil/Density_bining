@@ -1,11 +1,10 @@
-import os,sys,re,glob
+import os,sys,gc,glob
 import cdms2 as cdm
 import cdutil as cdu
 import MV2 as mv
 import numpy as npy
 from string import replace
 from genutil import statistics
-sys.path.append('./matplotlib')
 from libToE import findToE
 
 
@@ -549,29 +548,33 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 # reconstruct from isondepthg and ptopdepthxy
                 isond = ft('isondepthg',time = slice(t1,t2))
                 #print isond.data.shape, timN*latN*lonN
+                itest = 50*500
                 axesList = isond.getAxisList()
                 levs = axesList[1][:]
                 levN = len(levs)
-                isonwrk = npy.ma.ones([timN*latN*lonN], dtype='float32')*valmask
-                #levs3d  = npy.transpose(mv.reshape(npy.tile(levs,timN*latN*lonN),(levN,timN*latN*lonN)))
+                #isonwrk = npy.ma.ones([timN*latN*lonN], dtype='float32')*valmask
+                levs3d  = mv.reshape(npy.tile(levs,timN*latN*lonN),(timN*latN*lonN,levN))
                 #print levs3d.shape
                 isond3d = mv.reshape(npy.transpose(isond.data,(0,2,3,1)),(timN*latN*lonN,levN))
+                isond3d[isond3d > valmask/10] = 0.
+                isond3dp1 = npy.roll(isond3d,-1,axis=1)
+                isond3dp1[:,-1] = isond3d[:,-1]
+
                 #print isond3d.shape
                 depthlo = mv.reshape(vardepth[ic,...],timN*latN*lonN)
                 depth3d = npy.transpose(mv.reshape(npy.tile(depthlo, levN),(levN,timN*latN*lonN)))
-                #print depth3d.shape
-                isond3dp1 = npy.roll(isond3d,-1,axis=1)
-                isond3dp1[:,-1] = isond3d[:,-1]
-                #itest = 50*500
-                #print isond3d[itest,:], isond3dp1[itest,:]
-                #print depth3d[itest,0], isond3d[itest,30], isond3dp1[itest,30], isond3d[itest,31], isond3dp1[itest,31]
-                #print npy.argwhere( (depth3d[itest,:] >= isond3d[itest,:]) & (isond3d[itest,:] < valmask/10) )
-                #print npy.argwhere( (depth3d[itest,:] < isond3dp1[itest,:])& (isond3d[itest,:] < valmask/10) )
-                idx = npy.argwhere( (depth3d >= isond3d) & (depth3d < isond3dp1) & (isond3d < valmask/10) ) # check transpose ok
-                #print idx.shape
-                for ixy in range(idx.shape[0]): # TODO remove loop, maybe using levs3d
-                    isonwrk[idx[ixy,0]]=levs[idx[ixy,1]]
-                #print isonwrk.shape
+
+                #print depth3d[itest,0]
+                levs3d[levs3d > 27.8 ] = 0. # to distinguish bottom masked points from surface masked points
+                #print levs3d[itest,:]
+                levs3d[(depth3d <= isond3d)] = 0.
+                #print levs3d[itest,:]
+                levs3d[(depth3d > isond3dp1)] = 0.
+                #print levs3d[itest,:]
+                del (isond3d,isond3dp1,depth3d); gc.collect()
+
+                #depth3d[depth3d > 0.] = 1.
+                isonwrk = npy.sum(levs3d,axis=1)
                 isonRead = mv.reshape(isonwrk,(timN,latN,lonN))
                 #print isonRead.shape
                 isonRead.mask = isond.mask[:,0,...]
