@@ -547,11 +547,11 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 return
             # read array
             if var == 'ptopsigmaxy':
-
                 # reconstruct from isondepthg and ptopdepthxy
+
                 isond = ft('isondepthg',time = slice(t1,t2))
                 #print isond.data.shape, timN*latN*lonN
-                itest = 50*500
+                itest = 94*360+150
                 axesList = isond.getAxisList()
                 levs = axesList[1][:]
                 levN = len(levs)
@@ -560,48 +560,52 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 levs3d0  = mv.reshape(npy.tile(levs,latN*lonN),(latN*lonN,levN))
                 #ti05 = timc.clock()
                 isonRead = npy.ma.ones([timN,latN,lonN], dtype='float32')*valmask
-                for it in range(timN):
-                    levs3d = levs3d0
+                for it in range(timN): # loop on time to limit memory usage
+                    levs3d = levs3d0*1.
                     depthlo = mv.reshape(vardepth[ic,it,...],latN*lonN)
                     depth3d = npy.reshape(npy.repeat(depthlo,levN),(latN*lonN,levN))
                     isond3d = mv.reshape(npy.transpose(isond.data[it,...],(1,2,0)),(latN*lonN,levN))
+                    #print isond3d[itest,:]
                     isond3d[isond3d > valmask/10] = 0.
+                    #print isond3d[itest,:]
                     isond3dp1 = npy.roll(isond3d,-1,axis=1)
                     isond3dp1[:,-1] = isond3d[:,-1]
-                #ti1 = timc.clock()
-                #print isond3d.shape
-                #ti12 = timc.clock()
-                #ti15 = timc.clock()
-                #print depth3d[itest,0]
-                    levs3d[levs3d > 27.8 ] = 0. # to distinguish bottom masked points from surface masked points
-                #print levs3d[itest,:]
+                    #print isond3dp1[itest,:]
+                    #levs3d[levs3d > 30. ] = 0. # to distinguish bottom masked points from surface masked points
+                    #print levs3d[itest,:]
                     levs3d[(depth3d <= isond3d)] = 0.
-                #print levs3d[itest,:]
+                    #print levs3d[itest,:]
                     levs3d[(depth3d > isond3dp1)] = 0.
-                #print levs3d[itest,:]
-                #ti2 = timc.clock()
-                    del (isond3d,isond3dp1); gc.collect()
-
-                #depth3d[depth3d > 0.] = 1.
-                    isonwrk = npy.sum(levs3d,axis=1)
+                    #print levs3d[itest,:]
+                    #isonwrk = npy.sum(levs3d,axis=1)
+                    isonwrk = npy.max(levs3d,axis=1)
+                    if it < 0:
+                        print ic,it
+                        print depthlo[itest]
+                        print isond3d[itest,:]
+                        print isonwrk[itest]
+                        print
                     isonRead[it,...] = mv.reshape(isonwrk,(latN,lonN))
-                #print isonRead.shape
-                isonRead.mask = isond.mask[:,0,...]
-                isonRead.long_name = isond.long_name
-                isonRead.units = isond.units
-                isonRead.id = isond.id
+                # <-- end of loop on time
+                del (isond3d,isond3dp1); gc.collect()
+                # mask with depthxy and where sigmaxy = 0
+                isonRead.mask = vardepth.mask[ic,...]
+                isonRead = mv.masked_where(isonRead == 0, isonRead)
+                isonRead.long_name = var
+                isonRead.units = 'sigma_n'
+                isonRead.id = var
                 del (isond,depth3d,levs3d,levs3d0,isonwrk); gc.collect()
                 ti3 = timc.clock()
                 #print ti02-ti0,ti05-ti02, ti1-ti05,ti12-ti1,ti15-ti12,ti2-ti15,ti3-ti2
                 #print ti3-ti0
             else:
+                # Direct read of variable
                 isonRead = ft(var,time = slice(t1,t2))
-                #print isonRead.shape, isonvar.shape, file
             if varFill[iv] != valmask:
                 isonvar[ic,...] = isonRead.filled(varFill[iv])
             else:
                 isonvar[ic,...] = isonRead
-
+            #print isonvar[ic,:,40,100]
             # compute percentage of non-masked points accros MME
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
@@ -622,7 +626,6 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         # if ptopdepthxy, keep for ptopsigmaxy computation (reconstruct from isondepthg and ptopdepthxy)
         if var =='ptopdepthxy':
             vardepth = isonvar
-            vardepthdiff = vardiff
         # Compute percentage of bin presence
         # Only keep points where percent > 50%
         if iv == 0:
@@ -667,7 +670,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         outFile_f.write(isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
         tf = timc.clock()
-        print 'time var',tf-ti0
+        print '   time var',tf-ti0
     # <--- end of loop on variables 
 
     outFile_f.close()

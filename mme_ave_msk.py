@@ -59,9 +59,9 @@ if exper <> 'obs':
 
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
-    rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
-    rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
-    rootdir = '/work/guilyardi/Prod_density_april15/Raw'
+    rootDir = '/Volumes/hciclad1/data/Density_binning/Prod_density_april15/Raw/'
+    #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
+    #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
