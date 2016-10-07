@@ -521,7 +521,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         latN = ptopd0.shape[1]
 
     #timN = ptopd0.shape[0]
-    timN = t2-t1+1
+    timN = t2-t1
     # Get grid objects
     axesList = ptopd0.getAxisList()
     # Declare and open files for writing
@@ -647,7 +647,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
             else:
                 # Direct read of variable
                 isonRead = ft(var,time = slice(t1,t2))
-            print
+            print isonRead.shape, timN
             if varFill[iv] != valmask:
                 isonvar[ic,...] = isonRead.filled(varFill[iv])
             else:
