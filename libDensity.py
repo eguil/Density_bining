@@ -28,7 +28,7 @@ def defModels():
 #        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
 #        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
 #        {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[500]}, # 7
-#        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
+        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
 #        {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[175]}, # 9
 #        {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[200]}, # 10
 #        {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[277]}, # 11
@@ -39,12 +39,12 @@ def defModels():
 #        {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,11,156], 'picontrol':[500]}, # 16
 #        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,155], 'picontrol':[0]}, # 17
 #        {'name':'EC-EARTH'      ,'props':[6,0,11,156], 'picontrol':[452]}, # 18
-        {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[700]}, # 19
+#        {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[700]}, # 19
 #        {'name':'FGOALS-s2'     ,'props':[3,0,11,156], 'picontrol':[501]}, # 20
 #        {'name':'GFDL-CM2p1'    ,'props':[9,0,11,156], 'picontrol':[0]}, # 21
-        {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22
+#        {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22
 #        {'name':'GFDL-ESM2G'    ,'props':[1,0, 0,146], 'picontrol':[500]}, # 23
-        {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[500]}, # 24
+#        {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[500]}, # 24
         {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[780]},# 25
 #        {'name':'GISS-E2-H-CC'  ,'props':[1,0,11,156], 'picontrol':[251]}, # 26
         {'name':'GISS-E2-R'     ,'props':[16,11,11,156],'picontrol':[846]},# 27
