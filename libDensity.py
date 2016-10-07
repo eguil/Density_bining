@@ -6,6 +6,7 @@ import numpy as npy
 from string import replace
 from genutil import statistics
 from libToE import findToE
+import time as timc
 
 
 
@@ -21,8 +22,8 @@ def defModels():
 #        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[500]}, # 0
 #        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
 #        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
-        {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0]}, # 3
-#        {'name':'bcc-csm1-1'    ,'props':[3,1,11,21], 'picontrol':[0]}, # 3
+#        {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0]}, # 3
+        {'name':'bcc-csm1-1'    ,'props':[3,1,11,21], 'picontrol':[0]}, # 3
 #        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
         {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
         {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
@@ -515,6 +516,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
 
     # loop on 1D variables
     for iv,var in enumerate(varList):
+        ti0 = timc.clock()
 
         # Array inits
         if varDim[iv] == 2:
@@ -545,6 +547,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 return
             # read array
             if var == 'ptopsigmaxy':
+
                 # reconstruct from isondepthg and ptopdepthxy
                 isond = ft('isondepthg',time = slice(t1,t2))
                 #print isond.data.shape, timN*latN*lonN
@@ -552,35 +555,45 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 axesList = isond.getAxisList()
                 levs = axesList[1][:]
                 levN = len(levs)
-                #isonwrk = npy.ma.ones([timN*latN*lonN], dtype='float32')*valmask
-                levs3d  = mv.reshape(npy.tile(levs,timN*latN*lonN),(timN*latN*lonN,levN))
-                #print levs3d.shape
-                isond3d = mv.reshape(npy.transpose(isond.data,(0,2,3,1)),(timN*latN*lonN,levN))
-                isond3d[isond3d > valmask/10] = 0.
-                isond3dp1 = npy.roll(isond3d,-1,axis=1)
-                isond3dp1[:,-1] = isond3d[:,-1]
-
+                #ti02 = timc.clock()
+                #levs3d  = mv.reshape(npy.tile(levs,timN*latN*lonN),(timN*latN*lonN,levN))
+                levs3d0  = mv.reshape(npy.tile(levs,latN*lonN),(latN*lonN,levN))
+                #ti05 = timc.clock()
+                isonRead = npy.ma.ones([timN,latN,lonN], dtype='float32')*valmask
+                for it in range(timN):
+                    levs3d = levs3d0
+                    depthlo = mv.reshape(vardepth[ic,it,...],latN*lonN)
+                    depth3d = npy.reshape(npy.repeat(depthlo,levN),(latN*lonN,levN))
+                    isond3d = mv.reshape(npy.transpose(isond.data[it,...],(1,2,0)),(latN*lonN,levN))
+                    isond3d[isond3d > valmask/10] = 0.
+                    isond3dp1 = npy.roll(isond3d,-1,axis=1)
+                    isond3dp1[:,-1] = isond3d[:,-1]
+                #ti1 = timc.clock()
                 #print isond3d.shape
-                depthlo = mv.reshape(vardepth[ic,...],timN*latN*lonN)
-                depth3d = npy.transpose(mv.reshape(npy.tile(depthlo, levN),(levN,timN*latN*lonN)))
-
+                #ti12 = timc.clock()
+                #ti15 = timc.clock()
                 #print depth3d[itest,0]
-                levs3d[levs3d > 27.8 ] = 0. # to distinguish bottom masked points from surface masked points
+                    levs3d[levs3d > 27.8 ] = 0. # to distinguish bottom masked points from surface masked points
                 #print levs3d[itest,:]
-                levs3d[(depth3d <= isond3d)] = 0.
+                    levs3d[(depth3d <= isond3d)] = 0.
                 #print levs3d[itest,:]
-                levs3d[(depth3d > isond3dp1)] = 0.
+                    levs3d[(depth3d > isond3dp1)] = 0.
                 #print levs3d[itest,:]
-                del (isond3d,isond3dp1,depth3d); gc.collect()
+                #ti2 = timc.clock()
+                    del (isond3d,isond3dp1); gc.collect()
 
                 #depth3d[depth3d > 0.] = 1.
-                isonwrk = npy.sum(levs3d,axis=1)
-                isonRead = mv.reshape(isonwrk,(timN,latN,lonN))
+                    isonwrk = npy.sum(levs3d,axis=1)
+                    isonRead[it,...] = mv.reshape(isonwrk,(latN,lonN))
                 #print isonRead.shape
                 isonRead.mask = isond.mask[:,0,...]
                 isonRead.long_name = isond.long_name
                 isonRead.units = isond.units
-
+                isonRead.id = isond.id
+                del (isond,depth3d,levs3d,levs3d0,isonwrk); gc.collect()
+                ti3 = timc.clock()
+                #print ti02-ti0,ti05-ti02, ti1-ti05,ti12-ti1,ti15-ti12,ti2-ti15,ti3-ti2
+                #print ti3-ti0
             else:
                 isonRead = ft(var,time = slice(t1,t2))
                 #print isonRead.shape, isonvar.shape, file
@@ -653,6 +666,8 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
 
         outFile_f.write(isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
+        tf = timc.clock()
+        print 'time var',tf-ti0
     # <--- end of loop on variables 
 
     outFile_f.close()
