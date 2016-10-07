@@ -23,7 +23,7 @@ def defModels():
 #        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500]}, # 1
 #        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0]}, # 2
 #        {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0]}, # 3
-        {'name':'bcc-csm1-1'    ,'props':[3,1,11,21], 'picontrol':[0]}, # 3
+#        {'name':'bcc-csm1-1'    ,'props':[3,1,11,21], 'picontrol':[0]}, # 3
 #        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
         {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
         {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
