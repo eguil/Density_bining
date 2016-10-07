@@ -25,10 +25,10 @@ def defModels():
 #        {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0]}, # 3
 #        {'name':'bcc-csm1-1'    ,'props':[3,1,11,21], 'picontrol':[0]}, # 3
 #        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559]}, # 4
-        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
-        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
+#        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
+#        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
 #        {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[500]}, # 7
-        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
+#        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
 #        {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[175]}, # 9
 #        {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[200]}, # 10
 #        {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[277]}, # 11

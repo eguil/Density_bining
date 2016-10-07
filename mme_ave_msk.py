@@ -1,4 +1,4 @@
-import os,glob,sys
+import os,glob,sys,resource
 from libDensity import defModels,mmeAveMsk2D,mmeAveMsk1D
 from string import replace
 import warnings
@@ -214,6 +214,9 @@ if mme:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
         mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,Toetype)
         print 'Wrote ',outdir+'/'+outFile1
+
+print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
+
 
 # ---------------------------
 
