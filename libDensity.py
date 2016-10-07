@@ -137,12 +137,12 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     - EG 06 Dec 2014   - Added agreement on difference with init period - save as <var>Agree
     - EG 07 Dec 2014   - Read bowl to remove points above bowl - save as <var>Bowl
     - EG 19 Apr 2016   - ToE computation (just for 2D files)
+    - EG 07 Oct 2016   - add 3D file support
 
     - TODO :
-                 - optimization of loops
+                 - remove loops
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
-                 - add 3D file support - ptopsigmaxy is missing - see if ptopdepth can be used instead
     '''
 
     # CDMS initialisation - netCDF compression
@@ -200,7 +200,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         varFill = [0.,0.,valmask,valmask,0.,0.]
         # init arrays (2D rho/lat)
         percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
-        minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
+        #minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
         varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
     #varList = ['isondepth']
     #print ' !!! ### Testing one variable ###'
@@ -209,7 +209,6 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         varList = ['isondepthg','persistmxy','sog','thetaog','isonthickg']
         varFill = [valmask,valmask,valmask,valmask,valmask]
         percent  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*0.
-        minbowl  = npy.ma.ones([latN,lonN], dtype='float32')*1000.
         varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
         varList = ['isondepthg']
         print ' !!! ### Testing one variable ###'
@@ -516,13 +515,13 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
         ptopd0  = fi['ptopdepth'] ; # Create variable handle
         latN = ptopd0.shape[2]
         basN = ptopd0.shape[1]
-        timN = ptopd0.shape[0]
     elif sw2d == 2:
         ptopd0  = fi['ptopdepthxy'] ; # Create variable handle
         lonN = ptopd0.shape[2]
         latN = ptopd0.shape[1]
-        timN = ptopd0.shape[0]
 
+    #timN = ptopd0.shape[0]
+    timN = t2-t1+1
     # Get grid objects
     axesList = ptopd0.getAxisList()
     # Declare and open files for writing
@@ -586,9 +585,10 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
             timeax  = ft.getAxis('time')
             if ic == 0:
                 tmax0 = timeax.shape[0]
-                tmax = timeax.shape[0]
+            tmax = timeax.shape[0]
             if tmax != tmax0:
                 print "wrong time axis: exiting..."
+                print ' -> file:',ic, inDir[0]+'/'+file
                 return
             # read array
             if var == 'ptopsigmaxy':
@@ -647,6 +647,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
             else:
                 # Direct read of variable
                 isonRead = ft(var,time = slice(t1,t2))
+            print
             if varFill[iv] != valmask:
                 isonvar[ic,...] = isonRead.filled(varFill[iv])
             else:

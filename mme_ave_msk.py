@@ -119,6 +119,9 @@ elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
 
+if raw & twoD :
+    outdir = outdir+'/mme'
+
 if ToE:
     if ToeType == 'histnat':
         indir  = [histDir, histNatMMEOut]
@@ -139,6 +142,8 @@ if oneD:
     print ' -> work on 1D files'
 if twoD:
     print ' -> work on 2D files'
+if raw:
+    print ' -> work on raw 4D data'
 if ToE:
     print ' -> computing ToE for type = ',ToeType
 if mm:
@@ -167,7 +172,7 @@ for i in modelSel:
     if years[1] <> 0: # do not ignore model
         if nens > 0: # only if 1 member or more
             if raw:
-                listf  = glob.glob(inroot+'.'+mod+'.*')
+                listf  = glob.glob(inroot+'.'+mod+'.*.nc')
                 listf1 = listf
             else:
                 listf  = glob.glob(inroot+'.'+mod+'.*zon2D*')
@@ -196,7 +201,7 @@ for i in modelSel:
             if mm:
                 if twoD:
                     print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
-                    mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
+                    mmeAveMsk2D(listf,dim,years,indir,outdir,outFile,timeInt,mme,ToeType)
                     print 'Wrote ',outdir+'/'+outFile
                 if oneD:
                     print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
@@ -208,7 +213,7 @@ if mme:
     indir  = outdir
     if twoD:
         outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
-        mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme,Toetype)
+        mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,Toetype)
         print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
