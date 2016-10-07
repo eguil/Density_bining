@@ -45,7 +45,7 @@ def defModels():
 #        {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22
 #        {'name':'GFDL-ESM2G'    ,'props':[1,0, 0,146], 'picontrol':[500]}, # 23
 #        {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[500]}, # 24
-        {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[780]},# 25
+#        {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[780]},# 25
 #        {'name':'GISS-E2-H-CC'  ,'props':[1,0,11,156], 'picontrol':[251]}, # 26
         {'name':'GISS-E2-R'     ,'props':[16,11,11,156],'picontrol':[846]},# 27
 #        {'name':'GISS-E2-R-CC'  ,'props':[1,0,11,156], 'picontrol':[251]}, # 28
@@ -166,16 +166,23 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     peri2 = timeInt[1]
     fi      = cdm.open(inDir[0]+'/'+listFiles[0])
     if sw2d == 1:
-        isond0  = fi('isondepth',time = slice(t1,t2)) ; # Create variable handle
+        isond0  = fi['isondepth'] ; # Create variable handle
         # Get grid objects
         axesList = isond0.getAxisList()
         sigmaGrd = isond0.getLevel()
         latN = isond0.shape[3]
         levN = isond0.shape[2]
         basN = isond0.shape[1]
+        varsig='ptopsigma'
     elif sw2d == 2:
-        t=0
-        #TODO Continue here
+        isond0  = fi['isondepthg'] ; # Create variable handle
+        # Get grid objects
+        axesList = isond0.getAxisList()
+        sigmaGrd = isond0.getLevel()
+        lonN = isond0.shape[3]
+        latN = isond0.shape[2]
+        levN = isond0.shape[1]
+        varsig='ptopsigmaxy'
 
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
@@ -201,9 +208,11 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     elif sw2d == 2:
         varList = ['isondepthg','persistmxy','sog','thetaog','isonthickg']
         varFill = [valmask,valmask,valmask,valmask,valmask]
-        percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
-        minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
-        varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
+        percent  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*0.
+        minbowl  = npy.ma.ones([latN,lonN], dtype='float32')*1000.
+        varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
+        varList = ['isondepthg']
+        print ' !!! ### Testing one variable ###'
 
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
@@ -217,18 +226,28 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     # loop on variables
     for iv,var in enumerate(varList):
 
-        # Array inits (2D rho/lat)
-        isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
-        vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
-        varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
-        varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
+        # Array inits (2D rho/lat 3D rho/lat/lon)
+        if sw2d == 1:
+            isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
+            vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
+            varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
+            varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
+        elif sw2d == 2:
+            isonvar  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*valmask
+            vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
+            varstd,varToE1,varToE2 =  [npy.ma.ones([runN,levN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
+            varones  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*1.
+
         print ' Variable ',iv, var
         # loop over files to fill up array
         for i,file in enumerate(listFiles):
             ft      = cdm.open(inDir[0]+'/'+file)
             model = file.split('.')[1]
             timeax  = ft.getAxis('time')
-            file1d  =  replace(inDir[0]+'/'+file,'2D','1D')
+            if sw2d == 1:
+                file1d = replace(inDir[0]+'/'+file,'2D','1D')
+            elif sw2d ==2:
+                file1d = inDir[0]+'/'+file
             if os.path.isfile(file1d):
                 f1d = cdm.open(file1d)
             else:
@@ -236,7 +255,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 sys.exit(1)
             if i == 0:
                 tmax0 = timeax.shape[0]
-                tmax = timeax.shape[0]
+            tmax = timeax.shape[0]
             if tmax != tmax0:
                 print 'wrong time axis: exiting...'
                 return
@@ -264,26 +283,30 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 vardiff[i,...].mask = isonvar[i,...].mask
                 # Read bowl and truncate 2D field above bowl
                 if iv == 0:
-                    bowlRead = f1d('ptopsigma',time = slice(t1,t2))
+                    bowlRead = f1d(varsig,time = slice(t1,t2))
                     varbowl[i,...] = bowlRead
                 # Compute Stddev
                 varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
                 # Compute ToE
                 if ToeType == 'histnat':
                     # Read mean and Std dev from histnat
-                    if i == 0:
-                        filehn  = glob.glob(inDir[1]+'/cmip5.'+model+'.*zon2D*')[0]
-                        #filehn = replace(outFile,'historical','historicalNat')
-                        fthn = cdm.open(filehn)
-                        varmeanhn = fthn(var)
-                        varst = var+'Std'
-                        varmaxstd = fthn(varst)
-                    toemult = 1.
-                    signal = npy.reshape(isonvar[i,...]-varmeanhn,(timN,basN*levN*latN))
-                    noise = npy.reshape(varmaxstd,(basN*levN*latN))
-                    varToE1[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
-                    toemult = 2.
-                    varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
+                    if sw2d ==1:
+                        if i == 0:
+                            filehn  = glob.glob(inDir[1]+'/cmip5.'+model+'.*zon2D*')[0]
+                            #filehn = replace(outFile,'historical','historicalNat')
+                            fthn = cdm.open(filehn)
+                            varmeanhn = fthn(var)
+                            varst = var+'Std'
+                            varmaxstd = fthn(varst)
+                        toemult = 1.
+                        signal = npy.reshape(isonvar[i,...]-varmeanhn,(timN,basN*levN*latN))
+                        noise = npy.reshape(varmaxstd,(basN*levN*latN))
+                        varToE1[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
+                        toemult = 2.
+                        varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
+                    elif sw2d == 2:
+                        tot=0
+                        #TODO
             ft.close()
             f1d.close()
         # <-- end of loop on files
@@ -342,25 +365,30 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 else:
                     print 'ERROR:',file1d,'missing (if mme, run 1D first)'
                     sys.exit(1)
-                bowlRead = f1d('ptopsigma',time = slice(t1,t2))
+                bowlRead = f1d(varsig,time = slice(t1,t2))
                 f1d.close()
                 siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
             # TODO: remove loop by building global array with 1/0
-            for il in range(latN):
-                for ib in range(basN):
-                    #if ib == 2:
-                    #    print il, siglimit[ib,il]
-                    if siglimit[ib,il] < valmask/1000.:
-                        # if mme bowl density defined, mask above bowl
-                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
-                        isonVarBowl [:,ib,0:index[0],il].mask = True
-                        isonVarStd  [:,ib,0:index[0],il].mask = True
-                        vardiffsgSum[:,ib,0:index[0],il].mask = True
-                    else:
-                        # mask all points
-                        isonVarBowl [:,ib,:,il].mask = True
-                        isonVarStd  [:,ib,:,il].mask = True
-                        vardiffsgSum[:,ib,:,il].mask = True
+            if sw2d == 1:
+                for il in range(latN):
+                    for ib in range(basN):
+                        #if ib == 2:
+                        #    print il, siglimit[ib,il]
+                        if siglimit[ib,il] < valmask/1000.:
+                             # if mme bowl density defined, mask above bowl
+                            index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
+                            isonVarBowl [:,ib,0:index[0],il].mask = True
+                            isonVarStd  [:,ib,0:index[0],il].mask = True
+                            vardiffsgSum[:,ib,0:index[0],il].mask = True
+                        else:
+                            # mask all points
+                            isonVarBowl [:,ib,:,il].mask = True
+                            isonVarStd  [:,ib,:,il].mask = True
+                            vardiffsgSum[:,ib,:,il].mask = True
+            elif sw2d == 2:
+                tot=0
+                #TODO
+
         else:
             isonVarBowl = isonVarAve*1. # start from variable
             isonVarStd  = isonVarAve*1. # start from variable
@@ -368,16 +396,21 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 siglimit = cdu.averager(varbowl, axis=0)
                 siglimit = cdu.averager(siglimit, axis=0) - delta_rho
             # TODO: remove loop by building global array with 1/0
-            for il in range(latN):
-                for ib in range(basN):
-                    if siglimit[ib,il] < valmask/1000.:
-                        # if bowl density defined, mask above bowl
-                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
-                        isonVarBowl[:,ib,0:index[0],il].mask = True
-                        vardiffsgSum[:,ib,0:index[0],il].mask = True
-                    else:
-                        # mask all points
-                        vardiffsgSum[:,ib,:,il].mask = True
+            if sw2d == 1:
+                for il in range(latN):
+                    for ib in range(basN):
+                        if siglimit[ib,il] < valmask/1000.:
+                            # if bowl density defined, mask above bowl
+                            index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
+                            isonVarBowl[:,ib,0:index[0],il].mask = True
+                            vardiffsgSum[:,ib,0:index[0],il].mask = True
+                        else:
+                            # mask all points
+                            vardiffsgSum[:,ib,:,il].mask = True
+            elif sw2d == 2:
+                tot=0
+                #TODO
+
             isonVarBowl = maskVal(isonVarBowl, valmask)
             # Find max of Std dev of all members
             isonVarStd = npy.ma.max(varstd, axis=0)
@@ -480,12 +513,12 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
 
     fi = cdm.open(inDir[0]+'/'+listFiles[0])
     if sw2d == 1:
-        ptopd0  = fi('ptopdepth',time=slice(t1,t2)) ; # Create variable handle
+        ptopd0  = fi['ptopdepth'] ; # Create variable handle
         latN = ptopd0.shape[2]
         basN = ptopd0.shape[1]
         timN = ptopd0.shape[0]
     elif sw2d == 2:
-        ptopd0  = fi('ptopdepthxy',time=slice(t1,t2)) ; # Create variable handle
+        ptopd0  = fi['ptopdepthxy'] ; # Create variable handle
         lonN = ptopd0.shape[2]
         latN = ptopd0.shape[1]
         timN = ptopd0.shape[0]
