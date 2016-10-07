@@ -35,8 +35,8 @@ def defModels():
 #        {'name':'CMCC-CM'       ,'props':[1,0,11,156], 'picontrol':[330]}, # 12
 #        {'name':'CMCC-CMS'      ,'props':[1,0,11,156], 'picontrol':[500]}, # 13
 #        {'name':'CNRM-CM5-2'    ,'props':[1,0,11,156], 'picontrol':[410]}, # 14
-        {'name':'CNRM-CM5'      ,'props':[9,6,11,156], 'picontrol':[850]}, # 15
-        {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,11,156], 'picontrol':[500]}, # 16
+        {'name':'CNRM-CM5'      ,'props':[10,6,11,156], 'picontrol':[850]}, # 15
+        {'name':'CSIRO-Mk3-6-0' ,'props':[10,5,11,156], 'picontrol':[500]}, # 16
 #        {'name':'CSIRO-Mk3L-1-2','props':[2,0,10,155], 'picontrol':[0]}, # 17
 #        {'name':'EC-EARTH'      ,'props':[6,0,11,156], 'picontrol':[452]}, # 18
         {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[700]}, # 19
@@ -547,6 +547,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 return
             # read array
             if var == 'ptopsigmaxy':
+                print '  ic = ',ic
                 # reconstruct from isondepthg and ptopdepthxy
 
                 isond = ft('isondepthg',time = slice(t1,t2))
