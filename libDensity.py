@@ -28,7 +28,7 @@ def defModels():
 #        {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996]}, # 5
 #        {'name':'CCSM4'         ,'props':[6,4,11,156], 'picontrol':[1051]}, # 6
 #        {'name':'CESM1-BGC'     ,'props':[1,0,11,156], 'picontrol':[500]}, # 7
-        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
+#        {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319]}, # 8
 #        {'name':'CESM1-FASTCHEM','props':[3,0,11,156], 'picontrol':[175]}, # 9
 #        {'name':'CESM1-WACCM'   ,'props':[1,0,11,156], 'picontrol':[200]}, # 10
 #        {'name':'CMCC-CESM'     ,'props':[1,0,11,156], 'picontrol':[277]}, # 11
@@ -103,7 +103,7 @@ def maskVal(field,valmask):
     field = mv.masked_where(field > valmask/10, field)
     return field
 
-def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType, debug=True):
+def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, ToeType, debug=True):
     '''
     The mmeAveMsk2D() function averages rhon/lat density bined files with differing masks
     It ouputs
@@ -119,6 +119,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     Inputs:
     -------
     - listFiles(str)         - the list of files to be averaged
+    - sw2d                   - dimension of input fields to consider (1 = lat/rho or 2 = lon/lat/rho)
     - years(t1,t2)           - years for slice read
     - inDir[](str)           - input directory where files are stored (add histnat as inDir[1] for ToE)
     - outDir(str)            - output directory
@@ -164,35 +165,46 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     peri1 = timeInt[0]
     peri2 = timeInt[1]
     fi      = cdm.open(inDir[0]+'/'+listFiles[0])
-    isond0  = fi('isondepth',time = slice(t1,t2)) ; # Create variable handle
-    # Get grid objects
-    axesList = isond0.getAxisList()
-    sigmaGrd = isond0.getLevel()
+    if sw2d == 1:
+        isond0  = fi('isondepth',time = slice(t1,t2)) ; # Create variable handle
+        # Get grid objects
+        axesList = isond0.getAxisList()
+        sigmaGrd = isond0.getLevel()
+        latN = isond0.shape[3]
+        levN = isond0.shape[2]
+        basN = isond0.shape[1]
+    elif sw2d == 2:
+        t=0
+        #TODO Continue here
+
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
         os.remove(outDir+'/'+outFile)
     outFile_f = cdm.open(outDir+'/'+outFile,'w')
 
-    latN = isond0.shape[3]
-    levN = isond0.shape[2]
-    basN = isond0.shape[1]
     timN = isond0.shape[0]
     runN = len(listFiles)
 
     print ' Number of members:',len(listFiles)
 
     valmask = isond0.missing_value
-
-    varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
-    varFill = [0.,0.,valmask,valmask,0.,0.]
+    if sw2d == 1:
+        varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
+        varFill = [0.,0.,valmask,valmask,0.,0.]
+        # init arrays (2D rho/lat)
+        percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
+        minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
+        varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
     #varList = ['isondepth']
     #print ' !!! ### Testing one variable ###'
     #varList = ['isonthetao']
+    elif sw2d == 2:
+        varList = ['isondepthg','persistmxy','sog','thetaog','isonthickg']
+        varFill = [valmask,valmask,valmask,valmask,valmask]
+        percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
+        minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
+        varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
 
-    # init arrays (2D rho/lat)
-    percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
-    minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
-    varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
