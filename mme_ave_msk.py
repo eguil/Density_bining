@@ -26,6 +26,7 @@ warnings.filterwarnings("ignore")
 # 4) run twoD mme for historical (still to implement for ToE)
 
 raw = True
+fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 
 oneD = False
 twoD = False
@@ -206,7 +207,7 @@ for i in modelSel:
                     print 'Wrote ',outdir+'/'+outFile
                 if oneD:
                     print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
-                    mmeAveMsk1D(listf1,dim,years,indir,outdir,outFile1,timeInt,mme,ToeType)
+                    mmeAveMsk1D(listf1,dim,years,indir,outdir,outFile1,timeInt,mme,ToeType,fullTS)
                     print 'Wrote ',outdir+'/'+outFile1
                     
 if mme:
@@ -214,11 +215,11 @@ if mme:
     indir  = outdir
     if twoD:
         outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
-        mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,Toetype)
+        mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
         print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
-        mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,Toetype)
+        mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,ToeType,False)
         print 'Wrote ',outdir+'/'+outFile1
 
 print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'

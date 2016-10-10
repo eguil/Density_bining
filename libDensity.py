@@ -459,7 +459,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     outFile_f.close()
     fi.close()
 
-def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, debug=True):
+def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, fullTS=True, debug=True):
     '''
     The mmeAveMsk1D() function averages rhon or scalar density bined files with differing masks
     It ouputs the MME and a percentage of non-masked bins
@@ -476,6 +476,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
     - outFile(str)           - output file
     - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
+    - FfllTS                 - boolean: if True, uses full time serie (ignores years(t1,t2))
     - debug <optional>       - boolean value
 
     Notes:
@@ -523,6 +524,10 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
 
     #timN = ptopd0.shape[0]
     timN = t2-t1
+    if fullTS:
+        timN = ptopd0.shape[0]
+        t1=1
+        t2=timN
     # Get grid objects
     axesList = ptopd0.getAxisList()
     # Declare and open files for writing
@@ -642,9 +647,18 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 isonRead.units = 'sigma_n'
                 isonRead.id = var
                 del (isond,depth3d,levs3d,levs3d0,isonwrk); gc.collect()
-                ti3 = timc.clock()
+                #ti3 = timc.clock()
                 #print ti02-ti0,ti05-ti02, ti1-ti05,ti12-ti1,ti15-ti12,ti2-ti15,ti3-ti2
                 #print ti3-ti0
+                # write ptopsigmaxy
+                if os.path.isfile(inDir[0]+'/work/'+file):
+                    os.remove(inDir[0]+'/work/'+file)
+                fiout = cdm.open(inDir[0]+'/work/'+file,'w')
+                isonsigxy = cdm.createVariable(isonRead, axes = axis1D, id = 'ptopsigmaxy')
+                isonsigxy.long_name = 'Density of shallowest persistent ocean on ison'
+                isonsigxy.units     = 'sigma_n'
+                fiout.write(isonsigxy.astype('float32'))
+                fiout.close()
             else:
                 # Direct read of variable
                 isonRead = ft(var,time = slice(t1,t2))
@@ -670,17 +684,6 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, de
                 vardiff[ic,...].mask = isonvar[ic,...].mask
 
             ft.close()
-            # write ptopsigmaxy
-            if var == 'ptopsigmaxy':
-                if os.path.isfile(inDir[0]+'/work/'+file):
-                    os.remove(inDir[0]+'/work/'+file)
-                fiout = cdm.open(inDir[0]+'/work/'+file,'w')
-                isonsigxy = cdm.createVariable(isonRead, axes = axis1D, id = 'ptopsigmaxy')
-                isonsigxy.long_name = 'Density of shallowest persistent ocean on ison'
-                isonsigxy.units     = 'sigma_n'
-                fiout.write(isonsigxy.astype('float32'))
-                fiout.close()
-
         # <-- end of loop on files
         # if ptopdepthxy, keep for ptopsigmaxy computation (reconstruct from isondepthg and ptopdepthxy)
         if var =='ptopdepthxy':
