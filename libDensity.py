@@ -527,7 +527,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, fu
     if fullTS:
         timN = ptopd0.shape[0]
         t1=1
-        t2=timN
+        t2=timN-1
     # Get grid objects
     axesList = ptopd0.getAxisList()
     # Declare and open files for writing
