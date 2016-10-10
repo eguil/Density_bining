@@ -59,8 +59,8 @@ if exper <> 'obs':
 
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
-    rootDir = '/Volumes/hciclad1/data/Density_binning/Prod_density_april15/Raw/'
-    rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
+    rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
+    #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
@@ -119,9 +119,6 @@ elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
 
-if raw & twoD :
-    outdir = outdir+'/mme'
-
 if ToE:
     if ToeType == 'histnat':
         indir  = [histDir, histNatMMEOut]
@@ -131,6 +128,10 @@ if raw:
 else:
     dim = 1
 
+if raw & twoD :
+    outdir = outdir+'/mme'
+
+print 'indir=',indir
 timeInt=[peri1,peri2]
 
 listens = []
