@@ -189,7 +189,8 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         os.remove(outDir+'/'+outFile)
     outFile_f = cdm.open(outDir+'/'+outFile,'w')
 
-    timN = isond0.shape[0]
+    #timN = isond0.shape[0]
+    timN = t2-t1
     runN = len(listFiles)
 
     print ' Number of members:',len(listFiles)
