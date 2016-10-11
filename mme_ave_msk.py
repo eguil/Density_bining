@@ -26,7 +26,8 @@ warnings.filterwarnings("ignore")
 # 4) run twoD mme for historical (still to implement for ToE)
 
 raw = True
-fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
+#fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
+fullTS = False
 
 oneD = False
 twoD = False
