@@ -163,7 +163,6 @@ print '  ==> outdir = ',outdir
 os.chdir(indir[0])
 for i in modelSel:
     mod = models[i]['name']
-    print mod
     if exper == 'historical':
         nens = models[i]['props'][0]
         chartest = exper
