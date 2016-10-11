@@ -43,7 +43,7 @@ exper  = 'historical'
 
 
 # ToE
-ToE = True
+#ToE = True
 ToE = False
 ToeType = 'histnat'    # working from hist and histnat
 #ToeType = 'picontrol' # working from hist and picontrol
@@ -129,16 +129,15 @@ if raw:
     dim = 2
     if mme:
         if exper == 'historical':
-            indir = [rootDir+'/mme_hist']
+            indir = [rootDir+'mme_hist']
+            outdir = rootDir+'mme_hist'
 else:
     dim = 1
 
 if raw & twoD :
     outdir = outdir+'/mme'
 
-print 'indir=',indir
 timeInt=[peri1,peri2]
-print 'fullTS =',fullTS
 
 listens = []
 listens1 = []
@@ -158,6 +157,8 @@ if mm:
 if mme:
         print ' -> Performing MME for',selMME, 'models for', exper
 print
+print '  ==> indir = ',indir
+print '  ==> outdir = ',outdir
 
 os.chdir(indir[0])
 for i in modelSel:
@@ -217,7 +218,7 @@ for i in modelSel:
                     
 if mme:
     # run 1D MME first
-    indir  = outdir
+    indir[0]  = outdir
     if twoD:
         outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
         mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)

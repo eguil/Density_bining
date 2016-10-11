@@ -511,8 +511,11 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     peri2 = timeInt[1]
     # Find dimension
     runN = len(listFiles)
-
-    fi = cdm.open(inDir[0]+'/'+listFiles[0])
+    try:
+        fi = cdm.open(inDir[0]+'/'+listFiles[0])
+    except:
+        print ' *** file not found ',inDir[0]+'/'+listFiles[0]
+        sys.exit(' Abort')
     if sw2d == 1:
         ptopd0  = fi['ptopdepth'] ; # Create variable handle
         latN = ptopd0.shape[2]
@@ -564,6 +567,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
 
     axis1D = [time,axesList[1],axesList[2]]
     axis0D = [time,axesList[1]]
+    print ' timN = ',timN
 
     # loop on 1D variables
     for iv,var in enumerate(varList):
