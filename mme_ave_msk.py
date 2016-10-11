@@ -127,6 +127,9 @@ if ToE:
         outdir  = ToeNatOut
 if raw:
     dim = 2
+    if mme:
+        if exper == 'historical':
+            indir = indir+'/mme_hist'
 else:
     dim = 1
 
