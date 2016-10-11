@@ -129,7 +129,7 @@ if raw:
     dim = 2
     if mme:
         if exper == 'historical':
-            indir = [indir[0]+'/mme_hist']
+            indir = [rootDir+'/mme_hist']
 else:
     dim = 1
 
