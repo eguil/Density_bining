@@ -34,8 +34,8 @@ twoD = False
 
 oneD = True
 #twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
@@ -142,7 +142,7 @@ timeInt=[peri1,peri2]
 listens = []
 listens1 = []
 print
-print '-------------------------------------------------------------------------'
+print '-----------------------------------------------------------------------------------------------'
 print 'Enter mme_ave_mask.py for multi-model ensemble averaging for density bins'
 if oneD:
     print ' -> work on 1D files'
@@ -159,6 +159,8 @@ if mme:
 print
 print '  ==> indir = ',indir
 print '  ==> outdir = ',outdir
+print '-----------------------------------------------------------------------------------------------'
+print
 
 os.chdir(indir[0])
 for i in modelSel:
