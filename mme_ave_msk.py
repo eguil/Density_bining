@@ -34,8 +34,8 @@ twoD = False
 
 oneD = True
 #twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
@@ -62,7 +62,7 @@ if exper <> 'obs':
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
     rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
-    rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
+    #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
@@ -135,6 +135,7 @@ if raw & twoD :
 
 print 'indir=',indir
 timeInt=[peri1,peri2]
+print 'fullTS =',fullTS
 
 listens = []
 listens1 = []

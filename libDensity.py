@@ -42,9 +42,9 @@ def defModels():
          {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[700]}, # 19
 #        {'name':'FGOALS-s2'     ,'props':[3,0,11,156], 'picontrol':[501]}, # 20
 #        {'name':'GFDL-CM2p1'    ,'props':[9,0,11,156], 'picontrol':[0]}, # 21
-         {'name':'GFDL-CM3'      ,'props':[4,3, 0,146], 'picontrol':[0]}, # 22
-#        {'name':'GFDL-ESM2G'    ,'props':[1,0, 0,146], 'picontrol':[500]}, # 23
-         {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,146], 'picontrol':[500]}, # 24
+         {'name':'GFDL-CM3'      ,'props':[4,3, 1,146], 'picontrol':[0]}, # 22
+#        {'name':'GFDL-ESM2G'    ,'props':[1,0, 1,146], 'picontrol':[500]}, # 23
+         {'name':'GFDL-ESM2M'    ,'props':[1,1, 1,146], 'picontrol':[500]}, # 24
          {'name':'GISS-E2-H'     ,'props':[14,11,11,156],'picontrol':[780]},# 25
 #        {'name':'GISS-E2-H-CC'  ,'props':[1,0,11,156], 'picontrol':[251]}, # 26
          {'name':'GISS-E2-R'     ,'props':[16,11,11,156],'picontrol':[846]},# 27
@@ -459,7 +459,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     outFile_f.close()
     fi.close()
 
-def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, fullTS, debug=True):
+def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, ToeType, fullTS, debug=True):
     '''
     The mmeAveMsk1D() function averages rhon or scalar density bined files with differing masks
     It ouputs the MME and a percentage of non-masked bins
@@ -476,7 +476,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, fu
     - outFile(str)           - output file
     - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
-    - FfllTS                 - boolean: if True, uses full time serie (ignores years(t1,t2))
+    - FfllTS                 - 0/1: if 1, uses full time serie (ignores years(t1,t2))
     - debug <optional>       - boolean value
 
     Notes:
@@ -524,7 +524,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, fu
 
     #timN = ptopd0.shape[0]
     timN = t2-t1
-    if fullTS == True:
+    if fullTS:
         print '  !!! Working on full Time Serie (fullTS = True)'
         timN = ptopd0.shape[0]
         t1=0
@@ -599,11 +599,10 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, fu
                 return
             # read array
             computeVar = False
-            varPresent = ft[var]
-            try:
-                varPresent[0]
-            except NameError:
-                computeVar = True
+            #try:
+            #    varPresent = ft[var][0]
+            #except NameError:
+            #computeVar = True
             if (var == 'ptopsigmaxy') & computeVar:
                 print '  ic = ',ic
                 # reconstruct from isondepthg and ptopdepthxy
