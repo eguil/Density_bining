@@ -28,14 +28,16 @@ warnings.filterwarnings("ignore")
 raw = True
 #fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
+#testOneModel = True
+testOneModel = False
 
 oneD = False
 twoD = False
 
-oneD = True
-#twoD = True
-mm  = False
-mme = True
+#oneD = True
+twoD = True
+mme  = False
+mm = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
@@ -62,7 +64,7 @@ if exper <> 'obs':
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
     rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
-    rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
+    #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
@@ -102,6 +104,8 @@ nmodels = len(models)
 modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
 #modelSel = [22,23]
+if testOneModel:
+    modelSel = [0]
 
 # Select range of MME
 selMME = 'All' # select all models for MME

@@ -211,8 +211,8 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         varFill = [valmask,valmask,valmask,valmask,valmask]
         percent  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*0.
         varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-        varList = ['isondepthg']
-        print ' !!! ### Testing one variable ###'
+        #varList = ['isondepthg']
+        #print ' !!! ### Testing one variable ###'
 
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
