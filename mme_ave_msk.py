@@ -1,4 +1,4 @@
-import os,glob,sys,resource, socket
+import os,glob,sys,resource,socket
 from libDensity import defModels,mmeAveMsk2D,mmeAveMsk1D
 from string import replace
 import warnings
@@ -54,7 +54,7 @@ if not ToE:
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/'
-elif hostname == 'ciclad-ng.private.ipsl.fr':
+elif 'private.ipsl.fr' in hostname:
     baseDir = '/data/ericglod'
 else:
     print hostname
@@ -207,8 +207,12 @@ for i in modelSel:
             start = listf[0].find(chartest)+len(chartest)
             end = listf[0].find('.an.')
             rip = listf[0][start:end]
-            outFile = replace(listf[0],rip,'.ensm')
-            outFile1 = replace(outFile,'2D','1D')
+            if raw:
+                outFile = replace(listf[0],rip,'.ensm')
+                outFile1 = outFile
+            else:
+                outFile = replace(listf[0],rip,'.ensm')
+                outFile1 = replace(outFile,'2D','1D')
             # Create lists for mme
             if mme:
                 if selMME == 'All':
