@@ -228,11 +228,13 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
 
         # Array inits (2D rho/lat 3D rho/lat/lon)
         if sw2d == 1:
+            shapeR = [basN,levN,latN]
             isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
             vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
             varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
             varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         elif sw2d == 2:
+            shapeR = [levN,latN,lonN]
             isonvar  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*valmask
             vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
             varstd,varToE1,varToE2 =  [npy.ma.ones([runN,levN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
@@ -260,21 +262,25 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 print 'wrong time axis: exiting...'
                 return
             # read array
-            isonRead = ft(var,time = slice(t1,t2))
-            if varFill[iv] != valmask:
-                isonvar[i,...] = isonRead.filled(varFill[iv])
-            else:
-                isonvar[i,...] = isonRead
+            # loop over time for memory management
+            for it in range(timN):
+                t1r = t1 + it
+                t2r = t1r + 1
+                isonRead = ft(var,time = slice(t1r,t2r))
+                if varFill[iv] != valmask:
+                    isonvar[i,it,...] = isonRead.filled(varFill[iv])
+                else:
+                    isonvar[i,it,...] = isonRead
             # compute percentage of non-masked points accros MME
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
-                percent[i,...] = npy.float32(npy.equal(maskvar,0))
+                percent[i,it,...] = npy.float32(npy.equal(maskvar,0))
             if mme:
                 # if mme then just accumulate Bowl, Agree and Std fields
                 varst = var+'Agree'
-                vardiff[i,...] = ft(varst,time = slice(t1,t2))
+                vardiff[i,it,...] = ft(varst,time = slice(t1r,t2r))
                 varb = var+'Bowl'
-                varbowl2D[i,...] = ft(varb,time = slice(t1,t2))
+                varbowl2D[i,it,...] = ft(varb,time = slice(t1r,t2r))
             else:
                 # Compute difference with average of first initN years
                 varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
@@ -305,7 +311,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                         toemult = 2.
                         varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
                     elif sw2d == 2:
-                        tot=0
+                        sys.exit('ToE not yet implemented for 3D fields')
                         #TODO
             ft.close()
             f1d.close()
@@ -386,7 +392,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                             isonVarStd  [:,ib,:,il].mask = True
                             vardiffsgSum[:,ib,:,il].mask = True
             elif sw2d == 2:
-                tot=0
+                sys.exit('ToE not yet implemented for 3D fields')
                 #TODO
 
         else:
@@ -408,7 +414,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                             # mask all points
                             vardiffsgSum[:,ib,:,il].mask = True
             elif sw2d == 2:
-                tot=0
+                sys.exit('ToE not yet implemented for 3D fields')
                 #TODO
 
             isonVarBowl = maskVal(isonVarBowl, valmask)

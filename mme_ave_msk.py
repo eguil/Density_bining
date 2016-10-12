@@ -1,4 +1,4 @@
-import os,glob,sys,resource
+import os,glob,sys,resource, socket
 from libDensity import defModels,mmeAveMsk2D,mmeAveMsk1D
 from string import replace
 import warnings
@@ -28,8 +28,8 @@ warnings.filterwarnings("ignore")
 raw = True
 #fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
-#testOneModel = True
-testOneModel = False
+testOneModel = True
+#testOneModel = False
 
 oneD = False
 twoD = False
@@ -51,6 +51,15 @@ ToeType = 'histnat'    # working from hist and histnat
 #ToeType = 'picontrol' # working from hist and picontrol
 if not ToE:
     ToeType ='F'
+hostname = socket.gethostname()
+if 'locean-ipsl.upmc.fr' in hostname:
+    baseDir = '/Volumes/hciclad/data/'
+elif hostname == 'ciclad-ng.private.ipsl.fr':
+    baseDir = '/data/ericglod'
+else:
+    print hostname
+    sys.exit('Unknown hostname')
+
 if exper <> 'obs':
     # define all models
     models = defModels()
@@ -63,9 +72,10 @@ if exper <> 'obs':
 
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
-    rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
-    rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
+    #rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
+    #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
+    rootDir =baseDir+'Density_binning/Prod_density_april15/Raw/'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
@@ -147,7 +157,8 @@ listens = []
 listens1 = []
 print
 print '-----------------------------------------------------------------------------------------------'
-print 'Enter mme_ave_mask.py for multi-model ensemble averaging for density bins'
+print ' Enter mme_ave_mask.py for multi-model ensemble averaging for density bins'
+print '-----------------------------------------------------------------------------------------------'
 if oneD:
     print ' -> work on 1D files'
 if twoD:
@@ -161,8 +172,8 @@ if mm:
 if mme:
         print ' -> Performing MME for',selMME, 'models for', exper
 print
-print '  ==> indir = ',indir
-print '  ==> outdir = ',outdir
+print '  --> indir = ',indir
+print '  --> outdir = ',outdir
 print '-----------------------------------------------------------------------------------------------'
 print
 
