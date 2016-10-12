@@ -211,8 +211,8 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         varFill = [valmask,valmask,valmask,valmask,valmask]
         percent  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*0.
         varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-        #varList = ['isondepthg']
-        #print ' !!! ### Testing one variable ###'
+        varList = ['isondepthg']
+        print ' !!! ### Testing one variable ###'
 
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
@@ -274,13 +274,13 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
             # compute percentage of non-masked points accros MME
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
-                percent[i,it,...] = npy.float32(npy.equal(maskvar,0))
+                percent[i,...] = npy.float32(npy.equal(maskvar,0))
             if mme:
                 # if mme then just accumulate Bowl, Agree and Std fields
                 varst = var+'Agree'
-                vardiff[i,it,...] = ft(varst,time = slice(t1r,t2r))
+                vardiff[i,...] = ft(varst,time = slice(t1r,t2r))
                 varb = var+'Bowl'
-                varbowl2D[i,it,...] = ft(varb,time = slice(t1r,t2r))
+                varbowl2D[i,...] = ft(varb,time = slice(t1r,t2r))
             else:
                 # Compute difference with average of first initN years
                 varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
@@ -414,8 +414,20 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                             # mask all points
                             vardiffsgSum[:,ib,:,il].mask = True
             elif sw2d == 2:
-                sys.exit('ToE not yet implemented for 3D fields')
-                #TODO
+                siglimit = npy.reshape(siglimit,[latN*lonN])
+                isonVarBowl = npy.reshape(isonVarBowl,[runN,timN,levN,latN*lonN])
+                vardiffsgSum = npy.reshape(vardiffsgSum,[runN,timN,levN,latN*lonN])
+                for il in range(latN*lonN):
+                    if siglimit(il)  < valmask/1000.:
+                        # if bowl density defined, mask above bowl
+                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[il]))
+                        isonVarBowl[:,0:index[0],il].mask = True
+                        vardiffsgSum[:,0:index[0],il].mask = True
+                    else:
+                        # mask all points
+                        vardiffsgSum[:,:,il].mask = True
+                isonVarBowl = npy.reshape(isonVarBowl,[runN,timN,levN,latN,lonN])
+                vardiffsgSum = npy.reshape(vardiffsgSum,[runN,timN,levN,latN,lonN])
 
             isonVarBowl = maskVal(isonVarBowl, valmask)
             # Find max of Std dev of all members
