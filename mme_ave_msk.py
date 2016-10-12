@@ -55,7 +55,7 @@ hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/'
 elif 'private.ipsl.fr' in hostname:
-    baseDir = '/data/ericglod'
+    baseDir = '/data/ericglod/'
 else:
     print hostname
     sys.exit('Unknown hostname')
