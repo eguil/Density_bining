@@ -117,7 +117,7 @@ modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
 #modelSel = [22,23]
 if testOneModel:
-    modelSel = [0]
+    modelSel = [2]
 
 # Select range of MME
 selMME = 'All' # select all models for MME
