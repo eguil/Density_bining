@@ -53,9 +53,11 @@ if not ToE:
     ToeType ='F'
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
-    baseDir = '/Volumes/hciclad/data/'
+    baseDir = '/Volumes/hciclad/data/Density_binning/'
 elif 'private.ipsl.fr' in hostname:
-    baseDir = '/data/ericglod/'
+    baseDir = '/data/ericglod/Density_binning/'
+elif 'crunchy.llnl.gov' in hostname:
+    baseDir = '/work/guilyardi/'
 else:
     print hostname
     sys.exit('Unknown hostname')
@@ -75,7 +77,7 @@ if exper <> 'obs':
     #rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
     #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
-    rootDir =baseDir+'Density_binning/Prod_density_april15/Raw/'
+    rootDir =baseDir+'Prod_density_april15/Raw/'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
