@@ -141,6 +141,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
 
     - TODO :
                  - remove loops
+                 - change memory management to allow 3D file support
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
     '''
@@ -234,6 +235,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
             varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
             varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         elif sw2d == 2:
+            # TODO review memory management
             shapeR = [levN,latN,lonN]
             isonvar  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*valmask
             vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
@@ -713,6 +715,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
 
             ft.close()
         # <-- end of loop on files
+        # TODO remove masked points at longitudes 0 or 180deg for some models
         # if ptopdepthxy, keep for ptopsigmaxy computation (reconstruct from isondepthg and ptopdepthxy)
         if var =='ptopdepthxy':
             vardepth = isonvar

@@ -659,6 +659,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
+            # TODO check that interp in linear or/and stabilise column as post-pro
             tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
