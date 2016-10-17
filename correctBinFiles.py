@@ -5,7 +5,7 @@ import MV2 as mv
 import numpy as npy
 from string import replace
 
-def correctFile(model,inFile, inDir, outFile, outDir):
+def correctFile(model,inFile, inDir, outFile, outDir,corr_long):
     '''
     Correct density binned files (undefined ptop & long 0 issue)
     CCSM4: i=139-140, j=0,145
@@ -20,7 +20,7 @@ def correctFile(model,inFile, inDir, outFile, outDir):
     npy.set_printoptions(precision=2)
 
     varList3D = ['isondepthg','isonthickg', 'sog','thetaog']
-    varList2D = ['persistmxy','ptopdepthxy','ptopsigmaxy','ptopsoxy','ptopthetaoxy',]
+    varList2D = ['ptopsoxy','ptopdepthxy','ptopsigmaxy','ptopthetaoxy','persistmxy']
 
     # First test, read level by level and write level by level (memory management)
     # use ncpdq -a time,lev,lat,lon to recover the dimension order
@@ -42,65 +42,82 @@ def correctFile(model,inFile, inDir, outFile, outDir):
         ic2 = 140
         jcmax = 145
 
-    for it in range(1):
+    for it in range(timN):
         print it
         # test
         i = 90
         j = 90
-        ij = j*360+i
+        i2d = 6
+        j2d = 12
+        ij = j*lonN+i
+        ij2d = j2d*lonN+i2d
         #print 'ij=',ij
         # 3D variables
         for iv in varList3D:
-            print iv
-            var = fi(iv,time = slice(it,it+1))
-            outVar = var
-            # Correct
-            for jt in range(jcmax):
-                outVar[:,:,jt,ic1] = (outVar[:,:,jt,ic1-1]+outVar[:,:,jt,ic2+1])/2
-                outVar[:,:,jt,ic2] = outVar[:,:,jt,ic1]
-            if iv == 'sog':
+            #print iv
+            outVar = fi(iv,time = slice(it,it+1))
+            # Correct for longitude interpolation issue
+            if corr_long:
+                for jt in range(jcmax):
+                    outVar[:,:,jt,ic1] = (outVar[:,:,jt,ic1-1]+outVar[:,:,jt,ic2+1])/2
+                    outVar[:,:,jt,ic2] = outVar[:,:,jt,ic1]
+            # Correct Bowl properties
+            if iv =='isondepthg':
+                vardepth = npy.reshape(outVar,(levN,latN*lonN))
+                #print 'test'
+                #print outVar[:,:,j2d,i2d]
+                #print vardepth[:,ij2d]
+                # find values of surface points
+                vardepthBowl = npy.min(npy.reshape(outVar,(levN,latN*lonN)),axis=0)
+                vardepthBowlTile = npy.repeat(vardepthBowl,levN,axis=0).reshape((latN*lonN,levN)).transpose()
+                #print vardepthBowlTile.shape
+                #print vardepthBowl[ij2d], vardepthBowlTile[:,ij2d]
+                levs = outVar.getAxisList()[1][:]
+                #print 'levs',levs
+                levs3d  = mv.reshape(npy.tile(levs,latN*lonN),(latN*lonN,levN)).transpose()
+                varsigmaBowl = npy.max(npy.where(vardepth == vardepthBowlTile,levs3d,0),axis=0)
+                #print varsigmaBowl[ij2d],levs3d[:,ij2d]
+
+            elif iv == 'sog':
                 varsog = npy.reshape(outVar,(levN,latN*lonN))
+                varsoBowl = npy.max(npy.where(vardepth == vardepthBowlTile,varsog,0),axis=0)
+                #print varsoBowl[ij2d], varsog[:,ij2d]
+                #print vardepth[:,ij2d],vardepthBowlTile[:,ij2d]
+                del (varsog); gc.collect()
             elif iv =='thetaog':
                 varthetao = npy.reshape(outVar,(levN,latN*lonN))
-            elif iv =='isondepthg':
-                # find indices of surface points
-                vardepth = npy.min(npy.reshape(outVar,(levN,latN*lonN)),axis=0)
-                print vardepth.shape
-                #print idxdepth[:,ij]
-                #idxdepth1 = npy.min(vardepth,axis=0).transpose()
-                #idxrep = npy.reshape(npy.tile(idxdepth1,levN),(levN,latN*lonN))
-                #idxsurf = npy.argwhere(idxrep == vardepth).transpose()
-                #print idxrep.shape, idxrep[0,ij]
-                #print idxsurf.shape
-                #for te in range(idxsurf.shape[1]):
-                #    if idxsurf[1,te] == ij:
-                #        print te, idxsurf[0,te]
+                varthetaoBowl = npy.max(npy.where(vardepth == vardepthBowlTile,varthetao,-1000),axis=0)
+                #print varthetaoBowl[ij2d],varthetao[:,ij2d]
+                del (varthetao); gc.collect()
 
             # Write
-            outVar.long_name = var.long_name
-            outVar.units = var.units
             fo.write(outVar.astype('float32'), extend = 1, index = it)
             fo.sync()
+        del (vardepth); gc.collect()
         # 2D variables and correct isondepthg = 0
         for iv in varList2D:
             outVar = fi(iv,time = slice(it,it+1))
             # Correct for longitude interpolation issue
-            for jt in range(jcmax):
-                outVar[:,jt,ic1] = (outVar[:,jt,ic1-1]+outVar[:,jt,ic2+1])/2
-                outVar[:,jt,ic2] = outVar[:,jt,ic1]
-            # Correct for ptopdepthxy = 0
-            if iv == 'ptopdepthxy':
-                outVar.data[...] = npy.where(npy.reshape(outVar,(latN*lonN)) == 0.,vardepth,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
-
-            #if iv == 'ptopsoxy':
-
-
-            #elif iv == 'ptopthetaoxy':
-            #elif iv == 'ptopsigmaxy':
+            if corr_long:
+                for jt in range(jcmax):
+                    outVar[:,jt,ic1] = (outVar[:,jt,ic1-1]+outVar[:,jt,ic2+1])/2
+                    outVar[:,jt,ic2] = outVar[:,jt,ic1]
+            # Correct for ptopdepthxy = 0 or ptopsoxy < 20
+            #print 'before',outVar[:,j2d,i2d]
+            if iv == 'ptopsoxy':
+                testdepth = npy.reshape(outVar,(latN*lonN)) < 20.
+                #print 'testdepth', testdepth[ij2d]
+                #print npy.argwhere(testdepth)[0:10]/lonN, npy.argwhere(testdepth)[0:10]-npy.argwhere(testdepth)[0:10]/lonN*lonN
+                outVar.data[...] = npy.where(testdepth,varsoBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+            elif iv == 'ptopdepthxy':
+                outVar.data[...] = npy.where(testdepth,vardepthBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+            elif iv == 'ptopthetaoxy':
+                outVar.data[...] = npy.where(testdepth,varthetaoBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+            elif iv == 'ptopsigmaxy':
+                outVar.data[...] = npy.where(testdepth,varsigmaBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+            #print 'after',outVar[:,j2d,i2d]
 
             # Write
-            outVar.long_name = var.long_name
-            outVar.units = var.units
             fo.write(outVar.astype('float32'), extend = 1, index = it)
             fo.sync()
 
@@ -109,9 +126,10 @@ def correctFile(model,inFile, inDir, outFile, outDir):
 
 # testing
 model = 'CCSM4'
+corr_long = True
 inFile = 'cmip5.CCSM4.historical24.r1i1p1.an.ocn.Omon.density.ver-v20121128.nc'
 inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
 outFile = 'cmip5.CCSM4.historical24.outtest.nc'
 outDir = inDir
 
-correctFile(model,inFile, inDir, outFile, outDir)
+correctFile(model,inFile, inDir, outFile, outDir,corr_long)
