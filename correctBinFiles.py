@@ -5,7 +5,7 @@ import MV2 as mv
 import numpy as npy
 from string import replace
 
-def correctFile(model,inFile, inDir, outFile, outDir,corr_long):
+def correctFile(model, idxcorr,inFile, inDir, outFile, outDir, corr_long):
     '''
     Correct density binned files (undefined ptop & long 0 issue)
     CCSM4: i=139-140, j=0,145
@@ -37,11 +37,17 @@ def correctFile(model,inFile, inDir, outFile, outDir,corr_long):
     timN = isondg.shape[0]
     valmask = isondg.missing_value
 
-    if model == 'CCSM4':
-        ic1 = 139
-        ic2 = 140
-        jcmax = 145
-
+    #if model == 'CCSM4':
+    #    ic1 = 139
+    #    ic2 = 140
+    #    jcmax = 145
+    #elif model == 'CanESM2':
+    #    ic1 = 179
+    #    ic2 = 180
+    #    jcmax = latN
+    ic1 = idxcorr[0]
+    ic2 = idxcorr[1]
+    jcmax = idxcorr[2]
     for it in range(timN):
         print it
         # test
@@ -89,7 +95,6 @@ def correctFile(model,inFile, inDir, outFile, outDir,corr_long):
                 varthetaoBowl = npy.max(npy.where(vardepth == vardepthBowlTile,varthetao,-1000),axis=0)
                 #print varthetaoBowl[ij2d],varthetao[:,ij2d]
                 del (varthetao); gc.collect()
-
             # Write
             fo.write(outVar.astype('float32'), extend = 1, index = it)
             fo.sync()
@@ -102,19 +107,19 @@ def correctFile(model,inFile, inDir, outFile, outDir,corr_long):
                 for jt in range(jcmax):
                     outVar[:,jt,ic1] = (outVar[:,jt,ic1-1]+outVar[:,jt,ic2+1])/2
                     outVar[:,jt,ic2] = outVar[:,jt,ic1]
-            # Correct for ptopdepthxy = 0 or ptopsoxy < 20
+            # Correct for ptopsoxy < 30
             #print 'before',outVar[:,j2d,i2d]
             if iv == 'ptopsoxy':
-                testdepth = npy.reshape(outVar,(latN*lonN)) < 20.
+                testso = npy.reshape(outVar,(latN*lonN)) < 30.
                 #print 'testdepth', testdepth[ij2d]
                 #print npy.argwhere(testdepth)[0:10]/lonN, npy.argwhere(testdepth)[0:10]-npy.argwhere(testdepth)[0:10]/lonN*lonN
-                outVar.data[...] = npy.where(testdepth,varsoBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+                outVar.data[...] = npy.where(testso,varsoBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
             elif iv == 'ptopdepthxy':
-                outVar.data[...] = npy.where(testdepth,vardepthBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+                outVar.data[...] = npy.where(testso,vardepthBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
             elif iv == 'ptopthetaoxy':
-                outVar.data[...] = npy.where(testdepth,varthetaoBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+                outVar.data[...] = npy.where(testso,varthetaoBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
             elif iv == 'ptopsigmaxy':
-                outVar.data[...] = npy.where(testdepth,varsigmaBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
+                outVar.data[...] = npy.where(testso,varsigmaBowl,npy.reshape(outVar,(latN*lonN))).reshape(outVar.shape)[...]
             #print 'after',outVar[:,j2d,i2d]
 
             # Write
@@ -125,11 +130,21 @@ def correctFile(model,inFile, inDir, outFile, outDir,corr_long):
     fo.close()
 
 # testing
-model = 'CCSM4'
+#model = 'CCSM4'
+#corr_long = True
+#idxcorr=[139,140,145]
+#inFile = 'cmip5.CCSM4.historical24.r1i1p1.an.ocn.Omon.density.ver-v20121128.nc'
+#inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
+#outFile = 'cmip5.CCSM4.historical24.outtest.nc'
+#outDir = inDir
+
+model = 'CanESM2'
 corr_long = True
-inFile = 'cmip5.CCSM4.historical24.r1i1p1.an.ocn.Omon.density.ver-v20121128.nc'
+idxcorr=[179,180,180]
+inFile = 'cmip5.CanESM2.historical24.r1i1p1.an.ocn.Omon.density.ver-1.nc'
 inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
-outFile = 'cmip5.CCSM4.historical24.outtest.nc'
+outFile = 'cmip5.CanESM2.historical24.outtest.nc'
 outDir = inDir
 
-correctFile(model,inFile, inDir, outFile, outDir,corr_long)
+
+correctFile(model,idxcorr, inFile, inDir, outFile, outDir,corr_long)
