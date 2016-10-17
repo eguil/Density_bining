@@ -235,7 +235,7 @@ def mmeAveMsk2D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
             varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
             varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
         elif sw2d == 2:
-            # TODO review memory management
+            # TODO review memory management: loop on sigma
             shapeR = [levN,latN,lonN]
             isonvar  = npy.ma.ones([runN,timN,levN,latN,lonN], dtype='float32')*valmask
             vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
