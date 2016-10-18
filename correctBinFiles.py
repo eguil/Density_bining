@@ -59,8 +59,8 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
         corr_long = False
     testp = 10
     for it in range(timN):
-        if it/testp*testp == it:
-            print ' year =',it
+        #if it/testp*testp == it:
+        #    print ' year =',it
         # test
         i = 90
         j = 90
@@ -179,15 +179,15 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
 #inDir='/Volumes/hciclad/data/Density_binning/Prod_density_obs_april16'
 #outFile = 'obs.Ishii.historical.r0i0p0.an.ocn.Omon.density.ver-1.latestXCorr.nc'
 
-model = 'EN4'
-idxcorr=[[359,359,39],[180,180,180]]
+#model = 'EN4'
+#idxcorr=[[359,359,39],[180,180,180]]
 #idxcorr=[359,359,39]
-ncorr = 2
-inFile = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestX.nc'
-inDir='/Volumes/hciclad/data/Density_binning/Prod_density_obs_april16'
-outFile = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestXCorr.nc'
+#ncorr = 2
+#inFile = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestX.nc'
+#inDir='/Volumes/hciclad/data/Density_binning/Prod_density_obs_april16'
+#outFile = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestXCorr.nc'
 
-outDir = inDir
+#outDir = inDir
 
 
-correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir)
+#correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir)

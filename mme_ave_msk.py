@@ -1,5 +1,7 @@
 import os,glob,sys,resource,socket
-from libDensity import defModels,mmeAveMsk2D,mmeAveMsk1D
+from libDensity import mmeAveMsk2D,mmeAveMsk1D
+from modelsDef import defModels
+from correctBinFiles import correctFile
 from string import replace
 import warnings
 
@@ -13,6 +15,7 @@ warnings.filterwarnings("ignore")
 # May 2016   : add obs support
 #
 # TODO: add 3D files support
+# TODO: run correctBinFile before working on files
 #
 # ----------------------------------------------------------------------------
 
@@ -27,7 +30,7 @@ warnings.filterwarnings("ignore")
 
 raw = True
 #fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
-fullTS = True
+fullTS = False
 #testOneModel = True
 testOneModel = False
 
@@ -39,11 +42,14 @@ oneD = True
 mme  = False
 mm = True
 # experiment
-#exper  = 'historical'
+exper  = 'historical'
 #exper  = 'historicalNat'
-exper = 'obs'
+#exper = 'obs'
 
-
+# Initial correction of Raw binned files (longitude interpolation and bowl issues)
+correctF = True  # only active if Raw = True
+if twoD:
+    correctF = False # already done for oneD
 # ToE
 #ToE = True
 ToE = False
@@ -118,7 +124,7 @@ modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
 #modelSel = [22,23]
 if testOneModel:
-    modelSel = [2]
+    modelSel = [0]
 
 # Select range of MME
 selMME = 'All' # select all models for MME
@@ -168,6 +174,8 @@ if twoD:
     print ' -> work on 2D files'
 if raw:
     print ' -> work on raw 4D data'
+    if correctF:
+        print ' -> Correct files for longitude and bowl issues'
 if ToE:
     print ' -> computing ToE for type = ',ToeType
 if mm:
@@ -213,6 +221,13 @@ for i in modelSel:
             if raw:
                 outFile = replace(listf[0],rip,'.ensm')
                 outFile1 = outFile
+                if mm & correctF: # correct file in indir+'/correct' and change indir
+                    idxcorr = models[i]['correctFile']
+                    outDirc = indir[0]+'/correct'
+                    for filec in listf:
+                        print ' -> correct ',indir[0]+'/+filec'
+                        correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)
+                    indir[0] = outDirc
             else:
                 outFile = replace(listf[0],rip,'.ensm')
                 outFile1 = replace(outFile,'2D','1D')
