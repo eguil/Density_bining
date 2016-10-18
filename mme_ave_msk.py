@@ -33,6 +33,8 @@ raw = True
 fullTS = False
 #testOneModel = True
 testOneModel = False
+# Initial correction of Raw binned files (longitude interpolation and bowl issues)
+correctF = True  # only active if Raw = True
 
 oneD = False
 twoD = False
@@ -46,8 +48,6 @@ exper  = 'historical'
 #exper  = 'historicalNat'
 #exper = 'obs'
 
-# Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = True  # only active if Raw = True
 if twoD:
     correctF = False # already done for oneD
 # ToE
@@ -224,6 +224,7 @@ for i in modelSel:
                 if mm & correctF: # correct file in indir+'/correct' and change indir
                     idxcorr = models[i]['correctFile']
                     outDirc = indir[0]+'/correct'
+                    print ' -> correct '+len(listf)+' files'
                     for filec in listf:
                         print ' -> correct ',indir[0]+'/+filec'
                         correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)

@@ -7,7 +7,7 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
     '''
     Correct density binned files (undefined ptop & long 0 issue)
     idxcorr = [idx_i,idx_i1,jmax] indices for longitude correction - if [0,0,0] ignore
-    ncorr   = number of corrections
+    ncorr   = number of corrections: 1 or 2
     '''
     # CDMS initialisation - netCDF compression
     comp = 1 # 0 for no compression
@@ -27,14 +27,14 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
     fi = cdm.open(inDir+'/'+inFile)
     fo = cdm.open(outDir+'/'+outFile,'w')
     isondg  = fi['isondepthg'] ; # Create variable handle
-        # Get grid objects
-    axesList = isondg.getAxisList()
-    sigmaGrd = isondg.getLevel()
+    # Get grid objects
+    #axesList = isondg.getAxisList()
+    #sigmaGrd = isondg.getLevel()
     lonN = isondg.shape[3]
     latN = isondg.shape[2]
     levN = isondg.shape[1]
     timN = isondg.shape[0]
-    valmask = isondg.missing_value
+    #valmask = isondg.missing_value
 
     if ncorr == 2:
         ic1 = idxcorr[0][0]
@@ -57,17 +57,17 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
     corr_long = True
     if ic1 == 0 and ic2 == 0 and jcmax == 0:
         corr_long = False
-    testp = 10
+    #testp = 10
     for it in range(timN):
         #if it/testp*testp == it:
         #    print ' year =',it
         # test
-        i = 90
-        j = 90
-        i2d = 6
-        j2d = 12
-        ij = j*lonN+i
-        ij2d = j2d*lonN+i2d
+        #i = 90
+        #j = 90
+        #i2d = 6
+        #j2d = 12
+        #ij = j*lonN+i
+        #ij2d = j2d*lonN+i2d
         #print 'ij=',ij
         # 3D variables
         for iv in varList3D:
@@ -149,6 +149,7 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
     fo.close()
 
 # testing
+
 #model = 'CCSM4'
 #idxcorr=[139,140,145]
 #ncorr = 1
