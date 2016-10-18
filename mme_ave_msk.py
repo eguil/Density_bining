@@ -27,21 +27,21 @@ warnings.filterwarnings("ignore")
 
 raw = True
 #fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
-fullTS = False
-testOneModel = True
-#testOneModel = False
+fullTS = True
+#testOneModel = True
+testOneModel = False
 
 oneD = False
 twoD = False
 
-#oneD = True
-twoD = True
+oneD = True
+#twoD = True
 mme  = False
 mm = True
 # experiment
-exper  = 'historical'
+#exper  = 'historical'
 #exper  = 'historicalNat'
-#exper = 'obs'
+exper = 'obs'
 
 
 # ToE
@@ -90,8 +90,8 @@ if exper <> 'obs':
 else:
 
 # Specific variables for observations
-    #obsm = {'name':'EN4'     ,'props':[1,0,0,114], 'picontrol':[0]}
-    obsm = {'name':'Ishii'   ,'props':[1,0,0,67], 'picontrol':[0]}
+    obsm = {'name':'EN4'     ,'props':[1,0,0,114], 'picontrol':[0]}
+    #obsm = {'name':'Ishii'   ,'props':[1,0,0,67], 'picontrol':[0]}
     models = [obsm]
     if models[0]['name'] == 'EN4': # 1900.01 - 2015.04 (115 time steps, ignore last year) Good et al.
         iniyear = 1900
@@ -103,7 +103,8 @@ else:
         peri1 = (2012-iniyear)+1
         peri2 = (1945-iniyear)+2
         idxtime = [0,67]
-    rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_obs_april16/'
+    #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_obs_april16/'
+    rootDir ='/Volumes/hciclad/data/Density_binning/Prod_density_obs_april16/'
     ObsMMEOut = rootDir+'mme_obs'
     outroot = models[0]['name']
     inroot = 'obs'

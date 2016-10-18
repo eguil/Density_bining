@@ -1,14 +1,13 @@
-import os,sys,gc,glob
+import gc
 import cdms2 as cdm
-import cdutil as cdu
 import MV2 as mv
 import numpy as npy
-from string import replace
 
-def correctFile(model, idxcorr,inFile, inDir, outFile, outDir, corr_long):
+def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
     '''
     Correct density binned files (undefined ptop & long 0 issue)
-    CCSM4: i=139-140, j=0,145
+    idxcorr = [idx_i,idx_i1,jmax] indices for longitude correction - if [0,0,0] ignore
+    ncorr   = number of corrections
     '''
     # CDMS initialisation - netCDF compression
     comp = 1 # 0 for no compression
@@ -37,19 +36,31 @@ def correctFile(model, idxcorr,inFile, inDir, outFile, outDir, corr_long):
     timN = isondg.shape[0]
     valmask = isondg.missing_value
 
-    #if model == 'CCSM4':
-    #    ic1 = 139
-    #    ic2 = 140
-    #    jcmax = 145
-    #elif model == 'CanESM2':
-    #    ic1 = 179
-    #    ic2 = 180
-    #    jcmax = latN
-    ic1 = idxcorr[0]
-    ic2 = idxcorr[1]
-    jcmax = idxcorr[2]
+    if ncorr == 2:
+        ic1 = idxcorr[0][0]
+        ic2 = idxcorr[0][1]
+        jcmax = idxcorr[0][2]
+        ic12 = idxcorr[1][0]
+        ic22 = idxcorr[1][1]
+        jcmax2 = idxcorr[1][2]
+        if ic2 >= lonN-1:
+            ic2 = 0
+        if ic22 >= lonN-1:
+            ic22 = 0
+    elif ncorr == 1:
+        ic1 = idxcorr[0]
+        ic2 = idxcorr[1]
+        jcmax = idxcorr[2]
+        if ic2 >= lonN-1:
+            ic2 = 0
+    #print ic1,ic2,jcmax
+    corr_long = True
+    if ic1 == 0 and ic2 == 0 and jcmax == 0:
+        corr_long = False
+    testp = 10
     for it in range(timN):
-        print it
+        if it/testp*testp == it:
+            print ' year =',it
         # test
         i = 90
         j = 90
@@ -67,6 +78,10 @@ def correctFile(model, idxcorr,inFile, inDir, outFile, outDir, corr_long):
                 for jt in range(jcmax):
                     outVar[:,:,jt,ic1] = (outVar[:,:,jt,ic1-1]+outVar[:,:,jt,ic2+1])/2
                     outVar[:,:,jt,ic2] = outVar[:,:,jt,ic1]
+                if ncorr == 2:
+                    for jt in range(jcmax2):
+                        outVar[:,:,jt,ic12] = (outVar[:,:,jt,ic12-1]+outVar[:,:,jt,ic22+1])/2
+                        outVar[:,:,jt,ic22] = outVar[:,:,jt,ic12]
             # Correct Bowl properties
             if iv =='isondepthg':
                 vardepth = npy.reshape(outVar,(levN,latN*lonN))
@@ -107,6 +122,10 @@ def correctFile(model, idxcorr,inFile, inDir, outFile, outDir, corr_long):
                 for jt in range(jcmax):
                     outVar[:,jt,ic1] = (outVar[:,jt,ic1-1]+outVar[:,jt,ic2+1])/2
                     outVar[:,jt,ic2] = outVar[:,jt,ic1]
+                if ncorr == 2:
+                    for jt in range(jcmax2):
+                        outVar[:,jt,ic12] = (outVar[:,jt,ic12-1]+outVar[:,jt,ic22+1])/2
+                        outVar[:,jt,ic22] = outVar[:,jt,ic12]
             # Correct for ptopsoxy < 30
             #print 'before',outVar[:,j2d,i2d]
             if iv == 'ptopsoxy':
@@ -131,20 +150,44 @@ def correctFile(model, idxcorr,inFile, inDir, outFile, outDir, corr_long):
 
 # testing
 #model = 'CCSM4'
-#corr_long = True
 #idxcorr=[139,140,145]
+#ncorr = 1
 #inFile = 'cmip5.CCSM4.historical24.r1i1p1.an.ocn.Omon.density.ver-v20121128.nc'
 #inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
 #outFile = 'cmip5.CCSM4.historical24.outtest.nc'
-#outDir = inDir
 
-model = 'CanESM2'
-corr_long = True
-idxcorr=[179,180,180]
-inFile = 'cmip5.CanESM2.historical24.r1i1p1.an.ocn.Omon.density.ver-1.nc'
-inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
-outFile = 'cmip5.CanESM2.historical24.outtest.nc'
+#model = 'CanESM2'
+#idxcorr=[179,180,180]
+#ncorr = 1
+#inFile = 'cmip5.CanESM2.historical24.r1i1p1.an.ocn.Omon.density.ver-1.nc'
+#inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
+#outFile = 'cmip5.CanESM2.historical24.outtest.nc'
+
+#model = 'IPSL-CM5A-LR'
+#idxcorr=[0,0,0]
+#ncorr=1
+#inFile = 'cmip5.IPSL-CM5A-LR.historical24.r1i1p1.an.ocn.Omon.density.ver-v20111119.nc'
+#inDir = '/Users/ericg/Projets/Density_bining/Raw_testing'
+#outFile = 'cmip5.IPSL-CM5A-LR.historical24.outtest.nc'
+
+
+#model = 'Ishii'
+#idxcorr=[[359,359,39],[180,180,180]]
+#idxcorr=[359,359,39]
+#ncorr = 1
+#inFile = 'obs.Ishii.historical.r0i0p0.an.ocn.Omon.density.ver-1.latestX.nc'
+#inDir='/Volumes/hciclad/data/Density_binning/Prod_density_obs_april16'
+#outFile = 'obs.Ishii.historical.r0i0p0.an.ocn.Omon.density.ver-1.latestXCorr.nc'
+
+model = 'EN4'
+idxcorr=[[359,359,39],[180,180,180]]
+#idxcorr=[359,359,39]
+ncorr = 2
+inFile = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestX.nc'
+inDir='/Volumes/hciclad/data/Density_binning/Prod_density_obs_april16'
+outFile = 'obs.EN4.historical.r0i0p0.mo.ocn.Omon.density.ver-1.latestXCorr.nc'
+
 outDir = inDir
 
 
-correctFile(model,idxcorr, inFile, inDir, outFile, outDir,corr_long)
+correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir)
