@@ -224,10 +224,14 @@ for i in modelSel:
                 if mm & correctF: # correct file in indir+'/correct' and change indir
                     idxcorr = models[i]['correctFile']
                     outDirc = indir[0]+'/correct'
-                    print ' -> correct '+len(listf)+' files'
+                    print ' -> correct ',len(listf),' files'
                     for filec in listf:
-                        print ' -> correct ',indir[0]+'/'+filec
-                        correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)
+                        # TODO test if file is here before creating
+                        if os.path.isfile(outDirc+'/'+filec):
+                            print ' -> corrected file present: ',outDirc+'/'+filec
+                        else:
+                            print ' -> correct ',indir[0]+'/'+filec
+                            correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)
                     i#ndirnew = outDirc
             else:
                 outFile = replace(listf[0],rip,'.ensm')
