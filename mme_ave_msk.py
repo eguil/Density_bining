@@ -226,9 +226,9 @@ for i in modelSel:
                     outDirc = indir[0]+'/correct'
                     print ' -> correct '+len(listf)+' files'
                     for filec in listf:
-                        print ' -> correct ',indir[0]+'/+filec'
+                        print ' -> correct ',indir[0]+'/'+filec
                         correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)
-                    indir[0] = outDirc
+                    i#ndirnew = outDirc
             else:
                 outFile = replace(listf[0],rip,'.ensm')
                 outFile1 = replace(outFile,'2D','1D')
