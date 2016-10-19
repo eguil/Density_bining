@@ -29,10 +29,11 @@ warnings.filterwarnings("ignore")
 # 4) run twoD mme for historical (still to implement for ToE)
 
 raw = True
-#fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
+# fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
 #testOneModel = True
 testOneModel = False
+
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
 correctF = True  # only active if Raw = True
 
@@ -224,13 +225,13 @@ for i in modelSel:
                 if mm & correctF: # correct file in indir+'/correct' and change indir
                     idxcorr = models[i]['correctFile']
                     outDirc = indir[0]+'/correct'
-                    print ' -> correct ',len(listf),' files'
+                    print ' -> correct',len(listf),'files towards', outDirc
                     for filec in listf:
-                        # TODO test if file is here before creating
+                        # test if file is here before creating
                         if os.path.isfile(outDirc+'/'+filec):
-                            print ' -> corrected file present: ',outDirc+'/'+filec
+                            print ' -> corrected file present: ',filec
                         else:
-                            print ' -> correct ',indir[0]+'/'+filec
+                            print ' -> correct ',filec
                             correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)
                     i#ndirnew = outDirc
             else:
@@ -251,13 +252,19 @@ for i in modelSel:
             # Perform model ensemble
             if mm:
                 if twoD:
-                    print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
-                    mmeAveMsk2D(listf,dim,years,indir,outdir,outFile,timeInt,mme,ToeType)
-                    print 'Wrote ',outdir+'/'+outFile
+                    if os.path.isfile(outdir+'/'+outFile):
+                        print ' -> IGNORE: mm of',outFile,'already in',outdir
+                    else:
+                        print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
+                        mmeAveMsk2D(listf,dim,years,indir,outdir,outFile,timeInt,mme,ToeType)
+                        print 'Wrote ',outdir+'/'+outFile
                 if oneD:
-                    print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
-                    mmeAveMsk1D(listf1,dim,years,indir,outdir,outFile1,timeInt,mme,ToeType,fullTS)
-                    print 'Wrote ',outdir+'/'+outFile1
+                    if os.path.isfile(outdir+'/'+outFile1):
+                        print ' -> IGNORE: mm of',outFile1,'already in',outdir
+                    else:
+                        print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
+                        mmeAveMsk1D(listf1,dim,years,indir,outdir,outFile1,timeInt,mme,ToeType,fullTS)
+                        print 'Wrote ',outdir+'/'+outFile1
                     
 if mme:
     # run 1D MME first
