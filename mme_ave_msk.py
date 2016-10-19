@@ -15,7 +15,6 @@ warnings.filterwarnings("ignore")
 # May 2016   : add obs support
 #
 # TODO: add 3D files support
-# TODO: run correctBinFile before working on files
 #
 # ----------------------------------------------------------------------------
 
@@ -36,6 +35,9 @@ testOneModel = False
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
 correctF = True  # only active if Raw = True
+
+# Keep existing files or replace (if True ignores the model mm or mme computation)
+keepFiles = True
 
 oneD = False
 twoD = False
@@ -252,14 +254,14 @@ for i in modelSel:
             # Perform model ensemble
             if mm:
                 if twoD:
-                    if os.path.isfile(outdir+'/'+outFile):
+                    if os.path.isfile(outdir+'/'+outFile) & keepFiles:
                         print ' -> IGNORE: mm of',outFile,'already in',outdir
                     else:
                         print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
                         mmeAveMsk2D(listf,dim,years,indir,outdir,outFile,timeInt,mme,ToeType)
                         print 'Wrote ',outdir+'/'+outFile
                 if oneD:
-                    if os.path.isfile(outdir+'/'+outFile1):
+                    if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
                         print ' -> IGNORE: mm of',outFile1,'already in',outdir
                     else:
                         print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
@@ -271,12 +273,18 @@ if mme:
     indir[0]  = outdir
     if twoD:
         outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
-        mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
-        print 'Wrote ',outdir+'/'+outFile
+        if os.path.isfile(outdir+'/'+outFile) & keepFiles:
+            print ' -> IGNORE: mme of',outFile,'already in',outdir
+        else:
+            mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
+            print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
-        mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,ToeType,False)
-        print 'Wrote ',outdir+'/'+outFile1
+        if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
+            print ' -> IGNORE: mme of',outFile,'already in',outdir
+        else:
+            mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,ToeType,False)
+            print 'Wrote ',outdir+'/'+outFile1
 
 print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
 
