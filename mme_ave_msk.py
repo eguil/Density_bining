@@ -29,12 +29,12 @@ warnings.filterwarnings("ignore")
 
 raw = True
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
-fullTS = False
+fullTS = True
 #testOneModel = True
 testOneModel = False
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = False  # only active if Raw = True
+correctF = True  # only active if Raw = True
 
 # Keep existing files or replace (if True ignores the model mm or mme computation)
 keepFiles = True
@@ -44,8 +44,8 @@ twoD = False
 
 oneD = True
 #twoD = True
-mm  = False
-mme = True
+mme  = False
+mm = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
