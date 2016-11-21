@@ -285,6 +285,7 @@ if mme:
             print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
+        print outFile1
         if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
             print ' -> IGNORE: mme of',outFile,'already in',outdir
         else:
