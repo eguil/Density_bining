@@ -34,7 +34,7 @@ fullTS = False
 testOneModel = False
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = True  # only active if Raw = True
+correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True ignores the model mm or mme computation)
 keepFiles = True
@@ -44,8 +44,8 @@ twoD = False
 
 oneD = True
 #twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
