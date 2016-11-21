@@ -164,6 +164,11 @@ else:
 if raw & twoD :
     outdir = outdir+'/mme'
 
+if mme:
+    raw = False
+    fullTS = False
+    correctF = False
+
 timeInt=[peri1,peri2]
 
 listens = []
