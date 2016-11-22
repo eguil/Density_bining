@@ -544,7 +544,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                         #    varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
                 tim04 = timc.clock()
                 ft.close()
-                print 'ib, section 1 timing',ib, tim02-tim01,tim03-tim02,tim04-tim03
+                #print 'ib, section 1 timing',ib, tim02-tim01,tim03-tim02,tim04-tim03
             # <-- end of loop on files
             tim1 = timc.clock()
 
@@ -702,7 +702,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             tim4 = timc.clock()
         # <--- end of loop on variables
 
-        print 'ib, timing',ib, tim01-tim0,tim1-tim01,tim2-tim1,tim3-tim2,tim4-tim3
+        #print 'ib, timing',ib, tim01-tim0,tim1-tim01,tim2-tim1,tim3-tim2,tim4-tim3
     # <--- end of loop on density
 
     outFile_f.close()
