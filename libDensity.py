@@ -446,8 +446,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varFill = [valmask,valmask,valmask,valmask,valmask]
     percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
     varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-    varList = ['isondepthg']
-    print ' !!! ### Testing one variable ###', varList
+    #varList = ['isondepthg']
+    #print ' !!! ### Testing one variable ###', varList
 
     # init sigma axis
     sigma = cdm.createAxis(npy.float32(range(1)))
@@ -475,8 +475,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
 
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensiosn)
     for ib in range(levN):
-    #for ib in range(20-21):
-        print ' Sigma index',ib
+        #print ' Sigma index',ib
         delta_ib = 1
         ib1 = ib + delta_ib
         # loop on variables
@@ -631,15 +630,15 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     # build bowl position
                     siglimit = cdu.averager(varbowl, axis=0) # average accross members
                     siglimit = npy.reshape(siglimit,[timN*latN*lonN])
+                if iv == 0:
+                    sigarr = siglimit*1.
+                    sigarr[:] = sigmaGrd[ib]
                 # test
                 i = 60
                 j = 60
                 ij = j*lonN+i
                 isonVarBowl = npy.reshape(isonVarBowl,[timN*latN*lonN])
                 vardiffsgSum = npy.reshape(vardiffsgSum,[timN*latN*lonN])
-
-                sigarr = siglimit*1.
-                sigarr[:] = sigmaGrd[ib]
 
                 isonVarBowl.mask = npy.where(sigarr < siglimit, True, isonVarBowl.mask)
                 vardiffsgSum.mask = npy.where(sigarr < siglimit, True, vardiffsgSum.mask)
@@ -648,6 +647,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 vardiffsgSum = npy.reshape(vardiffsgSum,[timN,latN,lonN])
 
                 isonVarBowl = maskVal(isonVarBowl, valmask)
+                vardiffsgSum = maskVal(vardiffsgSum, valmask)
                 # Find max of Std dev of all members
                 isonVarStd = npy.ma.max(varstd, axis=0)
                 # mask
