@@ -483,6 +483,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 print ' Variable ',iv, var
             # loop over files to fill up array
             for i,file in enumerate(listFiles):
+                tim01 = timc.clock()
                 ft      = cdm.open(inDir[0]+'/'+file)
                 model = file.split('.')[1]
                 timeax  = ft.getAxis('time')
@@ -498,13 +499,13 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     isonvar[i,...] = isonRead.filled(varFill[iv])
                 else:
                     isonvar[i,...] = isonRead
-                tim01 = timc.clock()
+                tim02 = timc.clock()
                 #print 'isonvar',isonvar.shape
                 # compute percentage of non-masked points accros MME
                 if iv == 0:
                     maskvar = mv.masked_values(isonRead.data,valmask).mask
                     percent[i,...] = npy.float32(npy.equal(maskvar,0))
-                tim02 = timc.clock()
+                tim03 = timc.clock()
                 if mme:
                     # if mme then just accumulate Bowl, Agree and Std fields
                     varst = var+'Agree'
@@ -541,7 +542,9 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                         #    varToE1[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
                         #    toemult = 2.
                         #    varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
+                tim04 = timc.clock()
                 ft.close()
+                print 'ib, section 1 timing',ib, tim02-tim01,tim03-tim02,tim04-tim03
             # <-- end of loop on files
             tim1 = timc.clock()
 

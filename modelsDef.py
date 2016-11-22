@@ -11,7 +11,7 @@ def defModels():
 #        {'name':'ACCESS1-0'     ,'props':[2,0,11,156], 'picontrol':[500],'correctFile':[0,0,0]}, # 0
 #        {'name':'ACCESS1-3'     ,'props':[3,0,11,156], 'picontrol':[500],'correctFile':[0,0,0]}, # 1
 #        {'name':'bcc-csm1-1-m'  ,'props':[3,0,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 2
-         {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 3
+#         {'name':'bcc-csm1-1'    ,'props':[3,1,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 3
         {'name':'bcc-csm1-1'    ,'props':[3,1,11,30], 'picontrol':[0],'correctFile':[0,0,0]}, # 3
 #        {'name':'BNU-ESM'       ,'props':[1,0,11,156], 'picontrol':[559],'correctFile':[0,0,0]}, # 4
          {'name':'CanESM2'       ,'props':[5,5,11,156], 'picontrol':[996],'correctFile':[179,180,180]}, # 5
