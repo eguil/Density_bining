@@ -1,10 +1,10 @@
 import os,glob,sys,resource,socket
-from libDensity import mmeAveMsk2D,mmeAveMsk1D
+from libDensity import mmeAveMsk1D,mmeAveMsk2D, mmeAveMsk3D
 from modelsDef import defModels
 from correctBinFiles import correctFile
 from string import replace
 import warnings
-
+import time as timc
 warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------
 #
@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 # TODO: add 3D files support
 #
 # ----------------------------------------------------------------------------
-
+tcpu0 = timc.clock()
 #
 #  ----------------------------
 # !!! Compulsory work order !!!
@@ -31,21 +31,21 @@ raw = True
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
 #testOneModel = True
-testOneModel = False
+testOneModel = True
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = True  # only active if Raw = True
+correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True ignores the model mm or mme computation)
-keepFiles = True
+keepFiles = False
 
 oneD = False
 twoD = False
 
-oneD = True
-#twoD = True
-mm  = False
-mme = True
+#oneD = True
+twoD = True
+mme  = False
+mm = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
@@ -63,6 +63,8 @@ if not ToE:
     ToeType ='F'
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
+    baseDir = '/Volumes/hciclad/data/Density_binning/'
+elif 'waippo.local' in hostname:
     baseDir = '/Volumes/hciclad/data/Density_binning/'
 elif 'private.ipsl.fr' in hostname:
     baseDir = '/data/ericglod/Density_binning/'
@@ -249,13 +251,13 @@ for i in modelSel:
                 if selMME == 'All':
                     listens.append(outFile)
                     listens1.append(outFile1)
-                    print ' Add ',i,mod, 'slice', years, nens, 'members to MME'
+                    print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
 
                 if selMME == 'Nat': # only select model if histNat mm is present
                     if models[i]['props'][1] > 0:
                         listens.append(outFile)
                         listens1.append(outFile1)
-                        print ' Add ',i,mod, 'slice', years, nens, 'members to MME'
+                        print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
             # Perform model ensemble
             if mm:
                 if twoD:
@@ -263,7 +265,10 @@ for i in modelSel:
                         print ' -> IGNORE: mm of',outFile,'already in',outdir
                     else:
                         print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
-                        mmeAveMsk2D(listf,dim,years,indir,outdir,outFile,timeInt,mme,ToeType)
+                        if dim == 1:
+                            mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
+                        elif dim == 2:
+                            mmeAveMsk3D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
                         print 'Wrote ',outdir+'/'+outFile
                 if oneD:
                     if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
@@ -281,18 +286,22 @@ if mme:
         if os.path.isfile(outdir+'/'+outFile) & keepFiles:
             print ' -> IGNORE: mme of',outFile,'already in',outdir
         else:
-            mmeAveMsk2D(listens,dim,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
+            if dim == 1:
+                mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
+            elif dim ==2:
+                mmeAveMsk3D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
             print 'Wrote ',outdir+'/'+outFile
     if oneD:
         outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
-        print outFile1
         if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
-            print ' -> IGNORE: mme of',outFile,'already in',outdir
+            print ' -> IGNORE: mme of',outFile1,'already in',outdir
         else:
             mmeAveMsk1D(listens1,dim,idxtime,indir,outdir,outFile1,timeInt,mme,ToeType,False)
             print 'Wrote ',outdir+'/'+outFile1
+tcpu1 = timc.clock()
 
 print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
+print ' CPU use',tcpu1-tcpu0
 
 
 # ---------------------------
