@@ -443,8 +443,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varFill = [valmask,valmask,valmask,valmask,valmask]
     percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
     varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-    varList = ['isondepthg']
-    print ' !!! ### Testing one variable ###', varList
+    #varList = ['isondepthg']
+    #print ' !!! ### Testing one variable ###', varList
 
     # init sigma axis
     sigma = cdm.createAxis(npy.float32(range(1)))
@@ -466,9 +466,9 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     sigmaTimeList = [sigma,time,axesList[2],axesList[3]] ; # sigma, time, lat, lon
     # init arrays
     isonvar  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
-    vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
+    varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(1)]
     varstd,varToE1,varToE2 =  [npy.ma.ones([runN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
-    varones  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
+    #varones  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
 
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
 
@@ -508,17 +508,16 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 tim03 = timc.clock()
                 if mme:
                     # if mme then just accumulate Bowl, Agree and Std fields
-                    varst = var+'Agree'
-                    vardiff[i,...] = ft(varst,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
+                    #varst = var+'Agree'
+                    #vardiff[i,...] = ft(varst,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
                     varb = var+'Bowl'
                     varbowl2D[i,...] = ft(varb,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
                 else:
                     # Compute difference with average of first initN years
-                    varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
-                    # todo: remove loop with 3D array or varinit
-                    for t in range(timN):
-                        vardiff[i,t,...] = isonvar[i,t,...] - varinit
-                    vardiff[i,...].mask = isonvar[i,...].mask
+                    #varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
+                    #for t in range(timN):
+                    #    vardiff[i,t,...] = isonvar[i,t,...] - varinit
+                    #vardiff[i,...].mask = isonvar[i,...].mask
                     # Read bowl to truncate field above bowl
                     if ib == 0 and iv == 0:
                         varbowl[i,...] = ft(varsig,time = slice(t1,t2))
@@ -561,18 +560,18 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 outFile_f.write(percentw.astype('float32'), extend = 1, index = ib)
 
             # Sign of difference
-            if mme:
-                vardiffsgSum = cdu.averager(vardiff, axis=0)
-                vardiffsgSum = cdm.createVariable(vardiffsgSum , axes = sigmaTimeList , id = 'foo')
-                vardiffsgSum = maskVal(vardiffsgSum, valmask)
-                vardiffsgSum.mask = percentw.mask
-            else:
-                vardiffsg = npy.copysign(varones,vardiff)
-                # average signs
-                vardiffsgSum = cdu.averager(vardiffsg, axis=0)
-                vardiffsgSum = mv.masked_greater(vardiffsgSum, 10000.)
-                vardiffsgSum.mask = percentw.mask
-                vardiffsgSum._FillValue = valmask
+            #if mme:
+            #    vardiffsgSum = cdu.averager(vardiff, axis=0)
+            #    vardiffsgSum = cdm.createVariable(vardiffsgSum , axes = sigmaTimeList , id = 'foo')
+            #    vardiffsgSum = maskVal(vardiffsgSum, valmask)
+            #    vardiffsgSum.mask = percentw.mask
+            #else:
+            #    vardiffsg = npy.copysign(varones,vardiff)
+            #    # average signs
+            #    vardiffsgSum = cdu.averager(vardiffsg, axis=0)
+            #    vardiffsgSum = mv.masked_greater(vardiffsgSum, 10000.)
+            #    vardiffsgSum.mask = percentw.mask
+            #    vardiffsgSum._FillValue = valmask
 
             # average variable accross members
             isonVarAve = cdu.averager(isonvar, axis=0)
@@ -630,7 +629,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             # mm case
             else:
                 isonVarBowl = isonVarAve*1. # start from variable
-                isonVarStd  = isonVarAve*1. # start from variable
+                #isonVarStd  = isonVarAve*1. # start from variable
                 if ib == 0 and iv == 0:
                     # build bowl position
                     siglimit = cdu.averager(varbowl, axis=0) # average accross members
@@ -643,31 +642,30 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 j = 60
                 ij = j*lonN+i
                 isonVarBowl = npy.reshape(isonVarBowl,[timN*latN*lonN])
-                vardiffsgSum = npy.reshape(vardiffsgSum,[timN*latN*lonN])
+                #vardiffsgSum = npy.reshape(vardiffsgSum,[timN*latN*lonN])
 
                 isonVarBowl.mask = npy.where(sigarr < siglimit, True, isonVarBowl.mask)
-                vardiffsgSum.mask = npy.where(sigarr < siglimit, True, vardiffsgSum.mask)
+                #vardiffsgSum.mask = npy.where(sigarr < siglimit, True, vardiffsgSum.mask)
 
                 isonVarBowl = npy.reshape(isonVarBowl,[timN,latN,lonN])
-                vardiffsgSum = npy.reshape(vardiffsgSum,[timN,latN,lonN])
+                #vardiffsgSum = npy.reshape(vardiffsgSum,[timN,latN,lonN])
 
                 isonVarBowl = maskVal(isonVarBowl, valmask)
-                vardiffsgSum = maskVal(vardiffsgSum, valmask)
+                #vardiffsgSum = maskVal(vardiffsgSum, valmask)
                 # Find max of Std dev of all members
                 isonVarStd = npy.ma.max(varstd, axis=0)
                 # mask
-                if varFill[iv] == valmask:
-                    isonVarStd = maskVal(isonVarStd, valmask)
+                isonVarStd = maskVal(isonVarStd, valmask)
 
             tim3 = timc.clock()
             # Write
             isonave = cdm.createVariable(isonVarAve, axes = sigmaTimeList, id = isonRead.id)
             isonave.long_name = isonRead.long_name
             isonave.units     = isonRead.units
-            vardiffsgSum = npy.reshape(vardiffsgSum,[delta_ib,timN,latN,lonN])
-            isonavediff = cdm.createVariable(vardiffsgSum, axes = sigmaTimeList, id = isonRead.id+'Agree')
-            isonavediff.long_name = isonRead.long_name
-            isonavediff.units     = isonRead.units
+            #vardiffsgSum = npy.reshape(vardiffsgSum,[delta_ib,timN,latN,lonN])
+            #isonavediff = cdm.createVariable(vardiffsgSum, axes = sigmaTimeList, id = isonRead.id+'Agree')
+            #isonavediff.long_name = isonRead.long_name
+            #isonavediff.units     = isonRead.units
             isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
             isonavebowl = cdm.createVariable(isonVarBowl, axes = sigmaTimeList, id = isonRead.id+'Bowl')
             isonavebowl.long_name = isonRead.long_name
@@ -678,7 +676,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             isonmaxstd.units     = isonRead.units
 
             outFile_f.write(    isonave.astype('float32'), extend = 1, index = ib)
-            outFile_f.write(isonavediff.astype('float32'), extend = 1, index = ib)
+            #outFile_f.write(isonavediff.astype('float32'), extend = 1, index = ib)
             outFile_f.write(isonavebowl.astype('float32'), extend = 1, index = ib)
             outFile_f.write(isonmaxstd.astype('float32'), extend = 1, index = ib)
 
