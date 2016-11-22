@@ -79,7 +79,6 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
 
     - TODO :
                  - remove loops
-                 - change memory management to allow 3D file support
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
     '''
@@ -393,8 +392,6 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - EG 21 Nov 2016   - Initial function write
 
     - TODO :
-                 - remove loops
-                 - change memory management to allow 3D file support
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
     '''
@@ -446,8 +443,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varFill = [valmask,valmask,valmask,valmask,valmask]
     percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
     varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-    #varList = ['isondepthg']
-    #print ' !!! ### Testing one variable ###', varList
+    varList = ['isondepthg']
+    print ' !!! ### Testing one variable ###', varList
 
     # init sigma axis
     sigma = cdm.createAxis(npy.float32(range(1)))
@@ -473,11 +470,13 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varstd,varToE1,varToE2 =  [npy.ma.ones([runN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
     varones  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
 
-    # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensiosn)
+    # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
+
     for ib in range(levN):
         #print ' Sigma index',ib
         delta_ib = 1
         ib1 = ib + delta_ib
+        tim0 = timc.clock()
         # loop on variables
         for iv,var in enumerate(varList):
             if ib == 0:
@@ -499,12 +498,13 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     isonvar[i,...] = isonRead.filled(varFill[iv])
                 else:
                     isonvar[i,...] = isonRead
-
+                tim01 = timc.clock()
                 #print 'isonvar',isonvar.shape
                 # compute percentage of non-masked points accros MME
                 if iv == 0:
                     maskvar = mv.masked_values(isonRead.data,valmask).mask
                     percent[i,...] = npy.float32(npy.equal(maskvar,0))
+                tim02 = timc.clock()
                 if mme:
                     # if mme then just accumulate Bowl, Agree and Std fields
                     varst = var+'Agree'
@@ -543,6 +543,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                         #    varToE2[i,...] = npy.reshape(findToE(signal, noise, toemult),(basN,levN,latN))
                 ft.close()
             # <-- end of loop on files
+            tim1 = timc.clock()
 
             # Compute percentage of bin presence
             # Only keep points where percent > 50%
@@ -579,6 +580,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 isonVarAve = maskVal(isonVarAve, valmask)
 
             isonVarAve.mask = percentw.mask
+            tim2 = timc.clock()
 
             # Only keep points with rhon >  bowl-delta_rho
             delta_rho = 0.
@@ -629,7 +631,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 if ib == 0 and iv == 0:
                     # build bowl position
                     siglimit = cdu.averager(varbowl, axis=0) # average accross members
-                    siglimit = npy.reshape(siglimit,[timN*latN*lonN])
+                    siglimit = npy.reshape(siglimit,[timN*latN*lonN]) - delta_rho
                 if iv == 0:
                     sigarr = siglimit*1.
                     sigarr[:] = sigmaGrd[ib]
@@ -654,6 +656,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 if varFill[iv] == valmask:
                     isonVarStd = maskVal(isonVarStd, valmask)
 
+            tim3 = timc.clock()
             # Write
             isonave = cdm.createVariable(isonVarAve, axes = sigmaTimeList, id = isonRead.id)
             isonave.long_name = isonRead.long_name
@@ -693,8 +696,10 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 isonvarstd.units     = isonRead.units
                 outFile_f.write(isonvarstd.astype('float32'), extend = 1, index = ib)
 
+            tim4 = timc.clock()
         # <--- end of loop on variables
 
+        print 'ib, timing',ib, tim01-tim0,tim1-tim01,tim2-tim1,tim3-tim2,tim4-tim3
     # <--- end of loop on density
 
     outFile_f.close()
