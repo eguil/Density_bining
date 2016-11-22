@@ -471,6 +471,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varones  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
 
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
+
     for ib in range(levN):
         #print ' Sigma index',ib
         delta_ib = 1
