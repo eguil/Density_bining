@@ -659,9 +659,9 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
 
             tim3 = timc.clock()
             # Write
-            isonave = cdm.createVariable(isonVarAve, axes = sigmaTimeList, id = isonRead.id)
-            isonave.long_name = isonRead.long_name
-            isonave.units     = isonRead.units
+            #isonave = cdm.createVariable(isonVarAve, axes = sigmaTimeList, id = isonRead.id)
+            #isonave.long_name = isonRead.long_name
+            #isonave.units     = isonRead.units
             #vardiffsgSum = npy.reshape(vardiffsgSum,[delta_ib,timN,latN,lonN])
             #isonavediff = cdm.createVariable(vardiffsgSum, axes = sigmaTimeList, id = isonRead.id+'Agree')
             #isonavediff.long_name = isonRead.long_name
@@ -675,7 +675,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             isonmaxstd.long_name = isonRead.long_name
             isonmaxstd.units     = isonRead.units
 
-            outFile_f.write(    isonave.astype('float32'), extend = 1, index = ib)
+            #outFile_f.write(    isonave.astype('float32'), extend = 1, index = ib)
             #outFile_f.write(isonavediff.astype('float32'), extend = 1, index = ib)
             outFile_f.write(isonavebowl.astype('float32'), extend = 1, index = ib)
             outFile_f.write(isonmaxstd.astype('float32'), extend = 1, index = ib)
