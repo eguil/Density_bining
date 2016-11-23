@@ -47,8 +47,8 @@ twoD = True
 mme  = False
 mm = True
 # experiment
-#exper  = 'historical'
-exper  = 'historicalNat'
+exper  = 'historical'
+#exper  = 'historicalNat'
 #exper = 'obs'
 
 
@@ -90,7 +90,7 @@ if exper <> 'obs':
     #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     rootDir =baseDir+'Prod_density_april15/Raw/'
-    histDir    = rootDir+'historical'
+    histDir    = rootDir+'historical/correct'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
     histNatMMEOut = rootDir+'mme_histNat'
