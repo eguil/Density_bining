@@ -19,8 +19,7 @@ def correctFile(idxcorr, ncorr, inFile, inDir, outFile, outDir):
     npy.set_printoptions(precision=2)
 
     varList3D = ['isondepthg','isonthickg', 'sog','thetaog']
-    #varList2D = ['ptopsoxy','ptopdepthxy','ptopsigmaxy','ptopthetaoxy','persistmxy']
-    varList2D = ['ptopsoxy','ptopdepthxy','ptopthetaoxy','persistmxy']
+    varList2D = ['ptopsoxy','ptopdepthxy','ptopsigmaxy','ptopthetaoxy','persistmxy']
 
     # First test, read level by level and write level by level (memory management)
     # use ncpdq -a time,lev,lat,lon to recover the dimension order

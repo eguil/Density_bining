@@ -23,6 +23,9 @@ tcpu0 = timc.clock()
 #  ----------------------------
 # !!! Compulsory work order !!!
 #  ----------------------------
+# 0) create ptopsigmaxy and correct grid interpolation issues
+#   0.1) raw, oneD, mm, fullTS = T, correctF = F
+#   0.2) raw, oneD, mm, fullTS = F, correctF = T
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
 # 3) run twoD + ToE mm for historical
@@ -33,12 +36,12 @@ tcpu0 = timc.clock()
 # ===============================================================================================================
 raw = True
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
-fullTS = False
+fullTS = True
 #testOneModel = True
 testOneModel = True
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = True  # only active if Raw = True
+correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True ignores the model mm or mme computation)
 keepFiles = False
@@ -155,12 +158,12 @@ if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
     if not correctF:
-        indir = indir+'/correct'
+        indir[0] = indir[0]+'/correct'
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
     if not correctF:
-        indir = indir+'/correct'
+        indir[0] = indir[0]+'/correct'
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
