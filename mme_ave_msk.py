@@ -47,8 +47,8 @@ twoD = True
 mme  = False
 mm = True
 # experiment
-exper  = 'historical'
-#exper  = 'historicalNat'
+#exper  = 'historical'
+exper  = 'historicalNat'
 #exper = 'obs'
 
 

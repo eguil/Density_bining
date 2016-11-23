@@ -451,12 +451,10 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     sigma.id = axesList[1].id
     sigma.units = axesList[1].units
     sigma.designateTime()
-    #print sigma
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
     time.units = 'years since 1861'
-    #print time
     # init ensemble axis
     ensembleAxis       = cdm.createAxis(npy.float32(range(runN)))
     ensembleAxis.id    = 'members'
@@ -468,7 +466,6 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     isonvar  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
     varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(1)]
     varstd,varToE1,varToE2 =  [npy.ma.ones([runN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
-    #varones  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
 
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
 
@@ -500,7 +497,6 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 else:
                     isonvar[i,...] = isonRead
                 tim02 = timc.clock()
-                #print 'isonvar',isonvar.shape
                 # compute percentage of non-masked points accros MME
                 if iv == 0:
                     maskvar = mv.masked_values(isonRead.data,valmask).mask
@@ -525,7 +521,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     # Compute Stddev
                     varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
                     # Compute ToE
-                    #if ToeType == 'histnat':
+                    if ToeType == 'histnat':
+                        toto=1
                         # TODO
                         # Read mean and Std dev from histnat
                         #    if i == 0:
