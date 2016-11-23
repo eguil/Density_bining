@@ -9,12 +9,13 @@ warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------
 #
 # Perform model ensemble mean and other statistics for density binning output
-# run with 'pythoncd -W ignore mme_ave_msk.py' (cdms python on mac)
+# run with 'pythoncd mme_ave_msk.py' (cdms python)
 #
 # April 2016 : add ToE computation support (for 2D files only)
 # May 2016   : add obs support
+# Nov 2016   : add 3D files support
 #
-# TODO: add 3D files support
+# TODO : add arguments to proc for INIT part (exper, raw, fullTS, test, keepfiles, oneD/twoD, mm/mme, ToE...)
 #
 # ----------------------------------------------------------------------------
 tcpu0 = timc.clock()
@@ -26,7 +27,10 @@ tcpu0 = timc.clock()
 # 2) run twoD mm for histNat
 # 3) run twoD + ToE mm for historical
 # 4) run twoD mme for historical (still to implement for ToE)
-
+#
+# ===============================================================================================================
+#                                        INIT - work definition
+# ===============================================================================================================
 raw = True
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
@@ -34,7 +38,7 @@ fullTS = False
 testOneModel = True
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = False  # only active if Raw = True
+correctF = True  # only active if Raw = True
 
 # Keep existing files or replace (if True ignores the model mm or mme computation)
 keepFiles = False
@@ -42,13 +46,13 @@ keepFiles = False
 oneD = False
 twoD = False
 
-#oneD = True
-twoD = True
+oneD = True
+#twoD = True
 mme  = False
 mm = True
 # experiment
-exper  = 'historical'
-#exper  = 'historicalNat'
+#exper  = 'historical'
+exper  = 'historicalNat'
 #exper = 'obs'
 
 
@@ -61,6 +65,9 @@ ToeType = 'histnat'    # working from hist and histnat
 #ToeType = 'picontrol' # working from hist and picontrol
 if not ToE:
     ToeType ='F'
+
+# ===============================================================================================================
+
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/Density_binning/'
@@ -90,7 +97,7 @@ if exper <> 'obs':
     #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     rootDir =baseDir+'Prod_density_april15/Raw/'
-    histDir    = rootDir+'historical/correct'
+    histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
     histMMEOut = rootDir+'mme_hist'
     histNatMMEOut = rootDir+'mme_histNat'
@@ -136,6 +143,10 @@ if testOneModel:
 selMME = 'All' # select all models for MME
 #selMME = 'Nat' # select only models for which there are hist AND histNat simulations
 
+if mme:
+    fullTS = False
+    correctF = False
+
 if ToE:
     if ToeType == 'histnat':
         selMME = 'Nat'        # force if ToE & histnat used
@@ -143,12 +154,17 @@ if ToE:
 if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
+    if not correctF:
+        indir = indir+'/correct'
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
+    if not correctF:
+        indir = indir+'/correct'
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
+
 
 if ToE:
     if ToeType == 'histnat':
@@ -165,10 +181,6 @@ else:
 
 if raw & twoD :
     outdir = outdir+'/mme'
-
-if mme:
-    fullTS = False
-    correctF = False
 
 timeInt=[peri1,peri2]
 
