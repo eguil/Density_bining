@@ -23,9 +23,10 @@ tcpu0 = timc.clock()
 #  ----------------------------
 # !!! Compulsory work order !!!
 #  ----------------------------
-# 0) create ptopsigmaxy and correct grid interpolation issues
+# 0) create ptopsigmaxy and correct grid interpolation issues (hist and histNat)
 #   0.1) raw, oneD, mm, fullTS = T, correctF = F
 #   0.2) raw, oneD, mm, fullTS = F, correctF = T
+#   0.3) ncks -v ptopsigmaxy ../work_ptopsigma back to main
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
 # 3) run twoD + ToE mm for historical
@@ -157,12 +158,12 @@ if ToE:
 if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
-    if not correctF:
+    if not correctF and twoD:
         indir[0] = indir[0]+'/correct'
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
-    if not correctF:
+    if not correctF and twoD:
         indir[0] = indir[0]+'/correct'
 elif exper == 'obs':
     indir  = [rootDir]
