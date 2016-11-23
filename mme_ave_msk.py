@@ -176,6 +176,9 @@ if raw:
         if exper == 'historical':
             indir = [rootDir+'mme_hist']
             outdir = rootDir+'mme_hist'
+    if exper == 'historicalNat':
+        indir = [rootDir+'mme_histNat']
+        outdir = rootDir+'mme_histNat'
 else:
     dim = 1
 
