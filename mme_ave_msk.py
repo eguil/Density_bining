@@ -158,13 +158,9 @@ if ToE:
 if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
-    if not correctF and twoD:
-        indir[0] = indir[0]+'/correct'
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
-    if not correctF and twoD:
-        indir[0] = indir[0]+'/correct'
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
