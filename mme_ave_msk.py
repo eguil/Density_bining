@@ -44,16 +44,16 @@ testOneModel = False
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
 correctF = False  # only active if Raw = True
 
-# Keep existing files or replace (if True ignores the model mm or mme computation)
+# Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
 keepFiles = False
 
 oneD = False
 twoD = False
 
-oneD = True
-#twoD = True
-mm  = False
-mme = True
+#oneD = True
+twoD = True
+mme  = False
+mm = True
 # experiment
 #exper  = 'historical'
 exper  = 'historicalNat'
@@ -176,6 +176,8 @@ if ToE:
         outdir  = ToeNatOut
 if raw:
     dim = 2
+    appendDim1d='2D'
+    appendDim2d='3D'
     if mme:
         if exper == 'historical':
             indir = [rootDir+'mme_hist']
@@ -186,6 +188,8 @@ if raw:
             outdir = rootDir+'mme_histNat'
 else:
     dim = 1
+    appendDim1d='zon1D'
+    appendDim2d='zon2D'
 
 if raw & twoD :
     outdir = outdir+'/mme'
@@ -302,7 +306,7 @@ if mme:
     # run 1D MME first
     indir[0]  = outdir
     if twoD:
-        outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
+        outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_'+appendDim2d+'.nc'
         if os.path.isfile(outdir+'/'+outFile) & keepFiles:
             print ' -> IGNORE: mme of',outFile,'already in',outdir
         else:
@@ -312,7 +316,7 @@ if mme:
                 mmeAveMsk3D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
             print 'Wrote ',outdir+'/'+outFile
     if oneD:
-        outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
+        outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_'+appendDim1d+'.nc'
         if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
             print ' -> IGNORE: mme of',outFile1,'already in',outdir
         else:
