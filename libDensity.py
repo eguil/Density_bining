@@ -907,6 +907,8 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 if os.path.isfile(inDir[0]+'/work_ptopsigmaxy/'+file):
                     os.remove(inDir[0]+'/work_ptopsigmaxy/'+file)
                 fiout = cdm.open(inDir[0]+'/work_ptopsigmaxy/'+file,'w')
+                if ic == 0:
+                        print ' Creating ',inDir[0]+'/work_ptopsigmaxy/'+file
                 isonsigxy = cdm.createVariable(isonRead, axes = axis1D, id = 'ptopsigmaxy')
                 isonsigxy.long_name = 'Density of shallowest persistent ocean on ison'
                 isonsigxy.units     = 'sigma_n'

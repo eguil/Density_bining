@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 # May 2016   : add obs support
 # Nov 2016   : add 3D files support
 #
-# TODO : add arguments to proc for INIT part (exper, raw, fullTS, test, keepfiles, oneD/twoD, mm/mme, ToE...)
+# TODO : add arguments to proc for INIT part (exper, raw, fullTS, test, keepfiles, oneD/twoD, mm/mme, ToE...) or per step
 #
 # ----------------------------------------------------------------------------
 tcpu0 = timc.clock()
@@ -25,8 +25,8 @@ tcpu0 = timc.clock()
 #  ----------------------------
 # 0) create ptopsigmaxy and correct grid interpolation issues (hist and histNat)
 #   0.1) raw, oneD, mm, fullTS = T, correctF = F
-#   0.2) raw, oneD, mm, fullTS = F, correctF = T
-#   0.3) ncks -v ptopsigmaxy ../work_ptopsigma back to main
+#   0.2) for file in cmip5.* ; do  ncks -A -v ptopsigmaxy $file ../$file ; echo $file; done
+#   0.3) raw, oneD, mm, fullTS = F, correctF = T
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
 # 3) run twoD + ToE mm for historical
@@ -37,9 +37,9 @@ tcpu0 = timc.clock()
 # ===============================================================================================================
 raw = True
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
-fullTS = True
+fullTS = False
 #testOneModel = True
-testOneModel = True
+testOneModel = False
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
 correctF = False  # only active if Raw = True
