@@ -500,7 +500,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
-    regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
+    regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
     tintrp     = timc.clock()
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
