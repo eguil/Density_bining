@@ -501,7 +501,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
     print 'out',outgrid,outgrid.getLatitude()
-    print 'in',ingrid#getLatitude()
+    print 'in',ingrid,lat,lon
     #regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
     regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
     tintrp     = timc.clock()
