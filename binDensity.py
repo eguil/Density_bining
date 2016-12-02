@@ -324,8 +324,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Define temperature and salinity arrays
     #thetao_h    = ft['thetao'] ; # Create variable handle
     #so_h        = fs['so'] ; # Create variable handle
-    thetao_h    = ft('thetao', time = slice(1,1)) ; # remove handle for non cmor files
-    so_h        = fs('so'    , time = slice(1,1)) ; #
+    thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
+    so_h        = fs('so'    , time = slice(1,10)) ; #
     tur = timc.clock()
     # Read time and grid
     lon     = thetao_h.getLongitude()
@@ -506,8 +506,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
-    regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
-    #regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
+    #regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
+    regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
     tintrp     = timc.clock()
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
