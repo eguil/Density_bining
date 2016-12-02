@@ -324,8 +324,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Define temperature and salinity arrays
     #thetao_h    = ft['thetao'] ; # Create variable handle
     #so_h        = fs['so'] ; # Create variable handle
-    thetao_h    = ft('thetao') ; # remove handle for non cmor files
-    so_h        = fs('so') ; #
+    thetao_h    = ft('thetao', time = slice(1,1)) ; # remove handle for non cmor files
+    so_h        = fs('so'    , time = slice(1,1)) ; #
     tur = timc.clock()
     # Read time and grid
     lon     = thetao_h.getLongitude()
