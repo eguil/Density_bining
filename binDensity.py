@@ -367,7 +367,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
         print '** Input variables have different dimensions, exiting..'
         return
-
+    #
+    thetaoLongName = thetao_h.long_name
+    soLongName = so_h.long_name
+    soUnits = so_h.units
+    del(thetao_h,so_h); gc.collect()
     # Dates to read
     if timeint == 'all':
         tmin = 0
@@ -797,10 +801,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 depthBin.units      = 'm'
                 thickBin.long_name  = 'Thickness of isopycnal'
                 thickBin.units      = 'm'
-                x1Bin.long_name     = thetao_h.long_name
+                x1Bin.long_name     = thetaoLongName
                 x1Bin.units         = 'C'
-                x2Bin.long_name     = so_h.long_name
-                x2Bin.units         = so_h.units
+                x2Bin.long_name     = soLongName
+                x2Bin.units         = soUnits
                 outFileMon_f.write(area.astype('float32')) ; # Added area so isonvol can be computed
 
         # -------------------------------------------------------------
@@ -913,10 +917,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 depthbini.units      = 'm'
                 thickbini.long_name  = 'Thickness of isopycnal'
                 thickbini.units      = 'm'
-                x1bini.long_name     = thetao_h.long_name
+                x1bini.long_name     = thetaoLongName
                 x1bini.units         = 'C'
-                x2bini.long_name     = so_h.long_name
-                x2bini.units         = so_h.units
+                x2bini.long_name     = soLongName
+                x2bini.units         = soUnits
 
             tozi = timc.clock()
 
@@ -1373,10 +1377,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tbz.units       = 'm'
                 vbz.long_name   = 'Volume of isopycnal'
                 vbz.units       = '1.e12 m^3'
-                x1bz.long_name  = thetao_h.long_name
+                x1bz.long_name  = thetaoLongName
                 x1bz.units      = 'degrees_C'
-                x2bz.long_name  = so_h.long_name
-                x2bz.units      = so_h.units
+                x2bz.long_name  = soLongName
+                x2bz.units      = soUnits
                 # Cleanup
             # Write & append
             outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
