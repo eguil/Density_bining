@@ -1293,7 +1293,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopt.long_name     = 'Temp. of shallowest persistent ocean on ison'
                 ptopt.units         = 'degrees_C'
                 ptops.long_name     = 'Salinity of shallowest persistent ocean on ison'
-                ptops.units         = so_h.units
+                ptops.units         = soUnits
                 ptopsig.long_name     = 'Density of shallowest persistent ocean on ison'
                 ptopsig.units         = 'sigma_n'
                 #
@@ -1304,14 +1304,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbptz.long_name     = 'Zonal Temp. of shallowest persistent ocean on ison'
                 dbptz.units         = 'degrees_C'
                 dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
-                dbpsz.units         = so_h.units
+                dbpsz.units         = soUnits
                 #
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
                 temper.long_name    = 'Temperature of persistent ocean'
                 temper.units        = 'degrees_C'
                 salper.long_name    = 'Salinity of persistent ocean'
-                salper.units        = so_h.units
+                salper.units        = soUnits
             # Write & append
             outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
             outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12)
