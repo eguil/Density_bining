@@ -318,14 +318,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         cpuan = False
 
     # Open files to read
-    ft      = cdm.open(fileT)
-    fs      = cdm.open(fileS)
+    ft = cdm.open(fileT)
+    fs = cdm.open(fileS)
+    # temporary fix to read grid from CMIP5 IPSL file
+    ft2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
+    fs2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
     timeax  = ft.getAxis('time')
     # Define temperature and salinity arrays
-    #thetao_h    = ft['thetao'] ; # Create variable handle
-    #so_h        = fs['so'] ; # Create variable handle
-    thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
-    so_h        = fs('so'    , time = slice(1,10)) ; #
+    thetao_h    = ft2['thetao'] ; # Create variable handle
+    so_h        = fs2['so'] ; # Create variable handle
+    #thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
+    #so_h        = fs('so'    , time = slice(1,10)) ; #
     tur = timc.clock()
     # Read time and grid
     lon     = thetao_h.getLongitude()
@@ -334,7 +337,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # depth profiles:
     z_zt = depth[:]
     try:
-        bounds  = ft('lev_bnds')
+        bounds  = ft2('lev_bnds')
         z_zw = bounds.data[:,0]
     except Exception,err:
         print 'Exception: ',err
@@ -372,6 +375,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     soLongName = so_h.long_name
     soUnits = so_h.units
     del(thetao_h,so_h); gc.collect()
+    ft2.close()
+    fs2.close()
+
     # Dates to read
     if timeint == 'all':
         tmin = 0
