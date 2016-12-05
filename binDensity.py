@@ -375,8 +375,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     soLongName = so_h.long_name
     soUnits = so_h.units
     del(thetao_h,so_h); gc.collect()
-    ft2.close()
-    fs2.close()
+    #ft2.close()
+    #fs2.close()
 
     # Dates to read
     if timeint == 'all':
