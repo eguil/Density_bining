@@ -596,12 +596,12 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 isonVarStd.mask = percentw.mask
                 if ib == 0 and iv == 0:
                     # TODO review
-                    # Read mulitmodel sigma on bowl and average in time
+                    # Read multimodel sigma on bowl and average in time
                     file1d  =  replace(outDir+'/'+outFile,'2D','1D')
                     if os.path.isfile(file1d):
                         f1d = cdm.open(file1d)
                     else:
-                        print 'ERROR:',file1d,'missing (if mme, run 1D first)'
+                        print 'ERROR:',file1d,'missing (if mme, run 2D first)'
                         sys.exit(1)
                     bowlRead = f1d(varsig,time = slice(t1,t2),lev = slice(ib,ib1))
                     f1d.close()
