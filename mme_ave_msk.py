@@ -45,18 +45,18 @@ testOneModel = False
 correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
-keepFiles = False
+keepFiles = True
 
 oneD = False
 twoD = False
 
 #oneD = True
 twoD = True
-mm  = False
-mme = True
+mme  = False
+mm = True
 # experiment
-#exper  = 'historical'
-exper  = 'historicalNat'
+exper  = 'historical'
+#exper  = 'historicalNat'
 #exper = 'obs'
 
 

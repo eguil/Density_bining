@@ -415,8 +415,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
-    fi      = cdm.open(inDir[0]+'/'+listFiles[0])
-    isond0  = fi['isondepthg'] ; # Create variable handle
+    fi    = cdm.open(inDir[0]+'/'+listFiles[0])
+    isond0 = fi['isondepthg'] ; # Create variable handle
     # Get grid objects
     axesList = isond0.getAxisList()
     sigmaGrd = isond0.getLevel()
