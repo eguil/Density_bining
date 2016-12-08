@@ -190,7 +190,7 @@ else:
 if raw & twoD :
     outdir = outdir+'/mme'
     if mme:
-        indir = indir+'/mme'
+        indir[0] = indir[0]+'/mme'
 
 timeInt=[peri1,peri2]
 
