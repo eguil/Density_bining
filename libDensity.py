@@ -416,7 +416,10 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     peri1 = timeInt[0]
     peri2 = timeInt[1]
     fi    = cdm.open(inDir[0]+'/'+listFiles[0])
-    isond0 = fi['isondepthg'] ; # Create variable handle
+    if mme:
+        isond0 = fi['isondepthgBowl'] ; # Create variable handle
+    else:
+        isond0 = fi['isondepthg'] ; # Create variable handle
     # Get grid objects
     axesList = isond0.getAxisList()
     sigmaGrd = isond0.getLevel()

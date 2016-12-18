@@ -52,8 +52,8 @@ twoD = False
 
 #oneD = True
 twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
