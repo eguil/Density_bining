@@ -416,7 +416,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     peri1 = timeInt[0]
     peri2 = timeInt[1]
     fi    = cdm.open(inDir[0]+'/'+listFiles[0])
-    if mme:
+    bowlonly = True
+    if bowlonly:
         isond0 = fi['isondepthgBowl'] ; # Create variable handle
     else:
         isond0 = fi['isondepthg'] ; # Create variable handle
@@ -479,6 +480,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         tim0 = timc.clock()
         # loop on variables
         for iv,var in enumerate(varList):
+
+
             if ib == 0:
                 print ' Variable ',iv, var
             # loop over files to fill up array
@@ -494,16 +497,17 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     print 'wrong time axis: exiting...'
                     return
                 # read array
-                isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
-                if varFill[iv] != valmask:
-                    isonvar[i,...] = isonRead.filled(varFill[iv])
-                else:
-                    isonvar[i,...] = isonRead
-                tim02 = timc.clock()
+                if not bowlonly:
+                    isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
+                    if varFill[iv] != valmask:
+                        isonvar[i,...] = isonRead.filled(varFill[iv])
+                    else:
+                        isonvar[i,...] = isonRead
+                    tim02 = timc.clock()
                 # compute percentage of non-masked points accros MME
-                if iv == 0:
-                    maskvar = mv.masked_values(isonRead.data,valmask).mask
-                    percent[i,...] = npy.float32(npy.equal(maskvar,0))
+                    if iv == 0:
+                        maskvar = mv.masked_values(isonRead.data,valmask).mask
+                        percent[i,...] = npy.float32(npy.equal(maskvar,0))
                 tim03 = timc.clock()
                 if mme:
                     # if mme then just accumulate Bowl, Agree and Std fields
