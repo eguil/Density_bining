@@ -512,7 +512,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     #varst = var+'Agree'
                     #vardiff[i,...] = ft(varst,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
                     varb = var+'Bowl'
-                    varbowl2D[i,...] = ft(varb,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
+                    isonRead = ft(varb,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
+                    varbowl2D[i,...] = isonRead
                 else:
                     # Compute difference with average of first initN years
                     #varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
