@@ -595,13 +595,13 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 print ' Write ',isonRead.id
                 isonVarBowl = cdu.averager(varbowl2D, axis=0)
                 isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
-                isonVarBowl = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = isonRead.id)
+                isonVarBowl = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = varb)
                 isonVarBowl = maskVal(isonVarBowl, valmask)
                 isonVarBowl.mask = percentw.mask
                 # Compute intermodel stddev
                 isonVarStd = statistics.std(varbowl2D, axis=0)
                 isonVarStd = npy.reshape(isonVarStd,[delta_ib,timN,latN,lonN])
-                isonVarStd = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = isonRead.id+'Std')
+                isonVarStd = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = varb+'Std')
                 isonVarStd = maskVal(isonVarStd, valmask)
                 isonVarStd.mask = percentw.mask
 
