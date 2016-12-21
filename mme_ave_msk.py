@@ -45,7 +45,7 @@ testOneModel = False
 correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
-keepFiles = True
+keepFiles = False
 
 oneD = False
 twoD = False

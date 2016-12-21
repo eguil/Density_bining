@@ -416,8 +416,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     peri1 = timeInt[0]
     peri2 = timeInt[1]
     fi    = cdm.open(inDir[0]+'/'+listFiles[0])
-    bowlonly = True
-    if bowlonly:
+    nobowl = True
+    if nobowl:
         isond0 = fi['isondepthgBowl'] ; # Create variable handle
     else:
         isond0 = fi['isondepthg'] ; # Create variable handle
@@ -468,20 +468,18 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     sigmaTimeList = [sigma,time,axesList[2],axesList[3]] ; # sigma, time, lat, lon
     # init arrays
     isonvar  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
-    varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(1)]
+    varbowl2D  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
     varstd,varToE1,varToE2 =  [npy.ma.ones([runN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
 
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
 
+    delta_ib = 1
     for ib in range(levN):
         #print ' Sigma index',ib
-        delta_ib = 1
         ib1 = ib + delta_ib
         tim0 = timc.clock()
         # loop on variables
         for iv,var in enumerate(varList):
-
-
             if ib == 0:
                 print ' Variable ',iv, var
             # loop over files to fill up array
@@ -497,7 +495,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     print 'wrong time axis: exiting...'
                     return
                 # read array
-                if not bowlonly:
+                if not nobowl:
                     isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
                     if varFill[iv] != valmask:
                         isonvar[i,...] = isonRead.filled(varFill[iv])
@@ -548,7 +546,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 tim04 = timc.clock()
                 ft.close()
                 #print 'ib, section 1 timing',ib, tim02-tim01,tim03-tim02,tim04-tim03
-            # <-- end of loop on files
+            # <-- end of loop on files (i)
+
             tim1 = timc.clock()
 
             # Compute percentage of bin presence
