@@ -592,6 +592,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             delta_rho = 0.
             # mme case
             if mme: # start from average of <var>Agree
+                print isonRead.id
                 isonVarBowl = cdu.averager(varbowl2D, axis=0)
                 isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
                 isonVarBowl = maskVal(isonVarBowl, valmask)
