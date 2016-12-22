@@ -595,24 +595,26 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 print ' Write ',isonRead.id
                 isonVarBowl = cdu.averager(varbowl2D, axis=0)
                 isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
-                isonVarBowl = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = varb)
+                isonVarBowl = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = 'foo')
                 isonVarBowl = maskVal(isonVarBowl, valmask)
                 isonVarBowl.mask = percentw.mask
                 # Compute intermodel stddev
                 isonVarStd = statistics.std(varbowl2D, axis=0)
                 isonVarStd = npy.reshape(isonVarStd,[delta_ib,timN,latN,lonN])
-                isonVarStd = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = varb+'Std')
+                isonVarStd = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = 'foo')
                 isonVarStd = maskVal(isonVarStd, valmask)
                 isonVarStd.mask = percentw.mask
 
                 # Write
-                isonVarBowl.long_name = isonRead.long_name
-                isonVarBowl.units     = isonRead.units
-                isonVarStd.long_name = isonRead.long_name+' intermodel std'
-                isonVarStd.units     = isonRead.units
+                isonvarbowlw = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = isonRead.id)
+                isonvarbowlw.long_name = isonRead.long_name
+                isonvarbowlw.units     = isonRead.units
+                isonvarstdw = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = isonRead.id+'Std')
+                isonvarstdw.long_name = isonRead.long_name+' intermodel std'
+                isonvarstdw.units     = isonRead.units
 
-                outFile_f.write(isonVarBowl.astype('float32'), extend = 1, index = ib)
-                outFile_f.write(isonVarStd.astype('float32'), extend = 1, index = ib)
+                outFile_f.write(isonvarbowlw.astype('float32'), extend = 1, index = ib)
+                outFile_f.write(isonvarstdw.astype('float32'), extend = 1, index = ib)
 
                 #if ib == 0 and iv == 0:
                 #    # TODO review
