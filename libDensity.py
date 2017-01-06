@@ -416,6 +416,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     peri1 = timeInt[0]
     peri2 = timeInt[1]
     fi    = cdm.open(inDir[0]+'/'+listFiles[0])
+    # Switch if only variables below the bowl are present/treated
     nobowl = True
     if nobowl:
         isond0 = fi['isondepthgBowl'] ; # Create variable handle
@@ -429,6 +430,11 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     latN = isond0.shape[2]
     levN = isond0.shape[1]
     varsig='ptopsigmaxy'
+
+    # Limit number of models to 3 for testing of mme
+    if mme:
+        listFiles = listFiles[0:2]
+        print ' !!! ### Testing 3 models ###',  listFiles
 
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
@@ -447,8 +453,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varFill = [valmask,valmask,valmask,valmask,valmask]
     percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
     varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-    #varList = ['isondepthg']
-    #print ' !!! ### Testing one variable ###', varList
+    varList = ['isondepthg']
+    print ' !!! ### Testing one variable ###', varList
 
     # init sigma axis
     sigma = cdm.createAxis(npy.float32(range(1)))
@@ -495,17 +501,16 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     print 'wrong time axis: exiting...'
                     return
                 # read array
-                if not nobowl:
-                    isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
-                    if varFill[iv] != valmask:
-                        isonvar[i,...] = isonRead.filled(varFill[iv])
-                    else:
-                        isonvar[i,...] = isonRead
-                    tim02 = timc.clock()
+                isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
+                if varFill[iv] != valmask:
+                    isonvar[i,...] = isonRead.filled(varFill[iv])
+                else:
+                    isonvar[i,...] = isonRead
+                tim02 = timc.clock()
                 # compute percentage of non-masked points accros MME
-                    if iv == 0:
-                        maskvar = mv.masked_values(isonRead.data,valmask).mask
-                        percent[i,...] = npy.float32(npy.equal(maskvar,0))
+                if iv == 0:
+                    maskvar = mv.masked_values(isonRead.data,valmask).mask
+                    percent[i,...] = npy.float32(npy.equal(maskvar,0))
                 tim03 = timc.clock()
                 if mme:
                     # if mme then just accumulate Bowl, Agree and Std fields
