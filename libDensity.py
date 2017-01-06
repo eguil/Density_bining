@@ -432,9 +432,9 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varsig='ptopsigmaxy'
 
     # Limit number of models to 3 for testing of mme
-    if mme:
-        listFiles = listFiles[0:2]
-        print ' !!! ### Testing 3 models ###',  listFiles
+    #if mme:
+    #    listFiles = listFiles[0:2]
+    #    print ' !!! ### Testing 3 models ###',  listFiles
 
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
@@ -453,8 +453,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     varFill = [valmask,valmask,valmask,valmask,valmask]
     percent  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*0.
     varbowl  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
-    varList = ['isondepthg']
-    print ' !!! ### Testing one variable ###', varList
+    #varList = ['isondepthg']
+    #print ' !!! ### Testing one variable ###', varList
 
     # init sigma axis
     sigma = cdm.createAxis(npy.float32(range(1)))
@@ -480,9 +480,10 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
 
     delta_ib = 1
+    print ' Sigma index:'
     for ib in range(levN):
-        #print ' Sigma index',ib
         ib1 = ib + delta_ib
+        print ib,
         tim0 = timc.clock()
         # loop on variables
         for iv,var in enumerate(varList):
@@ -491,7 +492,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             else:
                 varb = var
             if ib == 0:
-                print ' Variable ',iv, var
+                print ' Variable ',iv, varb
             # loop over files to fill up array
             for i,file in enumerate(listFiles):
                 tim01 = timc.clock()
@@ -600,7 +601,6 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             delta_rho = 0.
             # mme case
             if mme: # start from average of <var>Agree
-                print ' Write ',isonRead.id
                 isonVarBowl = cdu.averager(varbowl2D, axis=0)
                 isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
                 isonVarBowl = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = 'foo')
