@@ -21,6 +21,7 @@ from densit_matplot_lib import zon_2dom, defVar
 # -------------------------------------------------------------------------------
 
 indir = '/Users/ericg/Projets/Density_bining/'
+toto=1
 
 # description of work (dow)
 dow = 'model'
