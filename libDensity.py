@@ -501,6 +501,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     print 'wrong time axis: exiting...'
                     return
                 # read array
+                if nobowl:
+                    var = var+"Bowl"
                 isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
                 if varFill[iv] != valmask:
                     isonvar[i,...] = isonRead.filled(varFill[iv])
