@@ -486,6 +486,10 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         tim0 = timc.clock()
         # loop on variables
         for iv,var in enumerate(varList):
+            if nobowl:
+                varb = var+'Bowl'
+            else:
+                varb = var
             if ib == 0:
                 print ' Variable ',iv, var
             # loop over files to fill up array
@@ -501,9 +505,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     print 'wrong time axis: exiting...'
                     return
                 # read array
-                if nobowl:
-                    var = var+"Bowl"
-                isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
+                isonRead = ft(varb,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
                 if varFill[iv] != valmask:
                     isonvar[i,...] = isonRead.filled(varFill[iv])
                 else:
@@ -518,7 +520,6 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     # if mme then just accumulate Bowl, Agree and Std fields
                     #varst = var+'Agree'
                     #vardiff[i,...] = ft(varst,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
-                    varb = var+'Bowl'
                     isonRead = ft(varb,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
                     varbowl2D[i,...] = isonRead
                 else:
