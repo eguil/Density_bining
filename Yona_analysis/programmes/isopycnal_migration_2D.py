@@ -22,6 +22,7 @@ name = 'Durack & Wijffels'
 data = indir + file
 
 f = open_ncfile(data,'r')
+toto=1
 
 # ----- Variables ------
 
