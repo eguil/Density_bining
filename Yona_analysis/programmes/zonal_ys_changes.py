@@ -4,7 +4,7 @@
 """
 Python matplotlib
 Plot density/latitude salinity changes for each basin
-Use for mme rather than Drurack and Wijffels data
+Use for mme rather than Durack and Wijffels data
 (for the latter, see the script "isopycnal_migration_2D.py")
 
 
@@ -14,12 +14,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarDurack, zonal_2D, defVarmme
+from modelsDef import defModels
 
 # ----- Workspace ------
 
 #name = 'Durack & Wijffels'
 #name = 'mme_hist'
-name = 'mme_hist_histNat'
+#name = 'mme_hist_histNat'
+name = 'ens_mean_hist'
 
 if name == 'Durack & Wijffels':
     indir = '/data/ericglod/Density_binning/Obs_Prod_density_april16/'
@@ -43,6 +45,15 @@ if name == 'mme_hist_histNat':
     fh = open_ncfile(datah,'r')
     fhn = open_ncfile(datahn,'r')
 
+if name == 'ens_mean_hist':
+    models = defModels()
+    model = models[1] #Iterate
+    nb_members = model['props'][0]
+
+    indir = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
+    file = 'cmip5.' + model['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + model['file_end'] + '_zon2D.nc'
+    data = indir + file
+    fh = open_ncfile(data, 'r')
 
 
 # ----- Variables ------
@@ -63,19 +74,17 @@ if name == 'Durack & Wijffels':
     var_change = fh.variables[var_change][:].squeeze()
     var_change_er = fh.variables[var_change_er][:].squeeze()
 
-if name == 'mme_hist' or name == 'mme_hist_histNat':
+else:
     varname = defVarmme('salinity'); v = 'S'
     #varname = defVarmme('temp'); v = 'T'
     density = fh.variables['lev'][:]
     var = varname['var_zonal']
 
-    if name == 'mme_hist':
+    if name == 'mme_hist' or name == 'ens_mean_hist':
         var = fh.variables[var][88:,:,:,:] # Index 88 = year 1950
         var_mean = np.ma.average(var[0:,:,:,:], axis=0)
         var_change = np.ma.average(var[-5:,:,:,:], axis=0) - np.ma.average(var[0:5,:,:,:], axis=0)
     if name == 'mme_hist_histNat':
-        #varh = fh.variables[var][-5:, :, :, :]
-        #varhn = fhn.variables[var][-5:, :, :, :]
         varh = fh.variables[var][-5:, :, :, :]
         varhn = fhn.variables[var][-5:, :, :, :]
         var_change = np.ma.average(varh, axis=0) - np.ma.average(varhn, axis=0)
@@ -112,7 +121,7 @@ if name == 'Durack & Wijffels':
     varAtl = {'name': 'Atlantic', 'var_change': var_change_a, 'var_mean': var_mean_a, 'var_error': var_change_er_a}
     varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': var_mean_i, 'var_error': var_change_er_i}
 
-if name == 'mme_hist':
+if name == 'mme_hist' or name == 'ens_mean_hist':
     var_change_p = var_change[2,:,:].squeeze()
     var_change_a = var_change[1,:,:].squeeze()
     var_change_i = var_change[3,:,:].squeeze()
@@ -146,13 +155,15 @@ if name == 'Durack & Wijffels':
 
     cnplot = zonal_2D(plt, 'total', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm, clevsm_bold)
 
-if name == 'mme_hist' or name == 'mme_hist_histNat':
+else:
     cnplot = zonal_2D(plt, 'total_mme', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, minmax, domrho, clevsm, clevsm_bold)
 
     cnplot = zonal_2D(plt, 'total_mme', axes[0, 1], axes[1, 1], 'mid', lat, density, varPac, minmax, domrho, clevsm, clevsm_bold)
 
     cnplot = zonal_2D(plt, 'total_mme', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, minmax, domrho, clevsm, clevsm_bold)
 
+    if name == 'ens_mean_hist':
+        name = model['name']
     plotName = name + '_' + v + 'changes'
 
 
@@ -161,10 +172,18 @@ plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=cnplot[1][::3])
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
-
-plt.suptitle('Total %s changes (%s)' %(legVar, name),
+if name == 'mme_hist' or name == 'Durack & Wijffels':
+    plt.suptitle('%s changes (2000-1950), %s' %(legVar, name),
           fontweight='bold', fontsize=14, verticalalignment='top')
 
-plt.show()
+elif name == 'mme_hist_histNat':
+    plt.suptitle('%s changes %s (last 5 years), ' %(legVar, name),
+          fontweight='bold', fontsize=14, verticalalignment='top')
 
-#plt.savefig('/home/ysilvy/figures/models/zonal_ys/hist/'+plotName+'.png', bbox_inches='tight')
+else:
+    plt.suptitle('%s changes (2000-1950), %s ensemble mean (%d members)' %(legVar, name, nb_members), fontweight='bold',
+                 fontsize=14, va='top')
+
+#plt.show()
+
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/hist/'+plotName+'.png', bbox_inches='tight')

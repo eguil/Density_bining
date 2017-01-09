@@ -6,6 +6,8 @@ Python matplotlib
 Compute salinity changes due to isopycnal migration and plot maps projected on isopycnals
 
 """
+###### COMMENTS #####
+# NOT UP TO DATE
 
 import numpy as np
 import matplotlib.pyplot as plt

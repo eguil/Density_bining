@@ -16,9 +16,9 @@ from modelsDef import defModels
 # ------ Read files -----------
 
 # -- Choose single model or mme
-#name = 'mme_hist'
-#name = 'mme_hist_histNat'
-name = 'ens_mean_hist'
+name = 'mme_hist'
+#name = 'mme_hist_histNat' --> finish script
+#name = 'ens_mean_hist'
 
 if name == 'ens_mean_hist':
     models = defModels()
@@ -38,6 +38,7 @@ else:
         indirhn = '/data/ericglod/Density_binning/Prod_density_april15/Raw/mme_histNat/mme/'
         filehn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_3D.nc'
         datahn = indirhn + filehn
+        fhn = open_ncfile(datahn,'r')
 
 datah = indirh + fileh
 fh = open_ncfile(datah,'r')

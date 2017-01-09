@@ -289,11 +289,11 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     else:
         cnplot1 = ax0.contourf(lat2d, density2d, var, cmap=cmap, levels=levels, extend='both')
 
-    if (action == 'total_mme' and var_mean != None) or action == 'total' :
-        cpplot11 = ax0.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
-        #ax0.clabel(cpplot11, inline=1, fontsize=10, fmt=levfmt)
-        cpplot12 = ax0.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
-        ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+    # if (action == 'total_mme' and var_mean != None) or action == 'total' :
+    #     cpplot11 = ax0.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
+    #     #ax0.clabel(cpplot11, inline=1, fontsize=10, fmt=levfmt)
+    #     cpplot12 = ax0.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
+    #     ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
         # error_plot = ax0.contourf(lat2d, density2d, not_signif_change, levels=[0.25,0.5,1.5], colors='None',
         #                            hatches=['','....'], edgecolor='0.3', linewidth=0.0)
@@ -333,11 +333,11 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     else:
         cnplot2 = ax1.contourf(lat2d, density2d, var, cmap=cmap, levels=levels, extend='both')
 
-    if (action == 'total_mme'  and var_mean != None) or action == 'total':
-        cpplot21 = ax1.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
-        #ax1.clabel(cpplot21, inline=1, fontsize=10, fmt=levfmt)
-        cpplot22 = ax1.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
-        ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+    # if (action == 'total_mme'  and var_mean != None) or action == 'total':
+    #     cpplot21 = ax1.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
+    #     #ax1.clabel(cpplot21, inline=1, fontsize=10, fmt=levfmt)
+    #     cpplot22 = ax1.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
+    #     ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     #     # error_plot = ax1.contourf(lat2d, density2d, not_signif_change, levels=[0.25, 0.5, 1.5], colors='None',
     #     #                           hatches=['', '....'], edgecolor='0.6', linewidth=0.0)
@@ -437,7 +437,7 @@ def proj_map(kind, plt, ax, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc,
         levfmt = '%.2f'
 
     # Read grid for coloring continents
-    f2 = open_ncfile('/home/ysilvy/data/140807_WOD13_masks.nc', 'r')
+    f2 = open_ncfile('/home/ysilvy/Density_bining/Yona_analysis/data/140807_WOD13_masks.nc', 'r')
     landsea = f2.variables['landsea'][:]
 
     # Create mask
