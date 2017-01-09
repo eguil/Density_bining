@@ -318,12 +318,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         cpuan = False
 
     # Open files to read
-    ft      = cdm.open(fileT)
-    fs      = cdm.open(fileS)
+    ft = cdm.open(fileT)
+    fs = cdm.open(fileS)
+    # temporary fix to read grid from CMIP5 IPSL file
+    ft2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
+    fs2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
     timeax  = ft.getAxis('time')
     # Define temperature and salinity arrays
-    thetao_h    = ft['thetao'] ; # Create variable handle
-    so_h        = fs['so'] ; # Create variable handle
+    thetao_h    = ft2['thetao'] ; # Create variable handle
+    so_h        = fs2['so'] ; # Create variable handle
+    #thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
+    #so_h        = fs('so'    , time = slice(1,10)) ; #
     tur = timc.clock()
     # Read time and grid
     lon     = thetao_h.getLongitude()
@@ -332,7 +337,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # depth profiles:
     z_zt = depth[:]
     try:
-        bounds  = ft('lev_bnds')
+        bounds  = ft2('lev_bnds')
         z_zw = bounds.data[:,0]
     except Exception,err:
         print 'Exception: ',err
@@ -365,6 +370,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
         print '** Input variables have different dimensions, exiting..'
         return
+    #
+    thetaoLongName = thetao_h.long_name
+    soLongName = so_h.long_name
+    soUnits = so_h.units
+    del(thetao_h,so_h); gc.collect()
 
     # Dates to read
     if timeint == 'all':
@@ -500,7 +510,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
-    regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
+    regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
+    #regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf')
     tintrp     = timc.clock()
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
@@ -794,10 +805,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 depthBin.units      = 'm'
                 thickBin.long_name  = 'Thickness of isopycnal'
                 thickBin.units      = 'm'
-                x1Bin.long_name     = thetao_h.long_name
+                x1Bin.long_name     = thetaoLongName
                 x1Bin.units         = 'C'
-                x2Bin.long_name     = so_h.long_name
-                x2Bin.units         = so_h.units
+                x2Bin.long_name     = soLongName
+                x2Bin.units         = soUnits
                 outFileMon_f.write(area.astype('float32')) ; # Added area so isonvol can be computed
 
         # -------------------------------------------------------------
@@ -910,10 +921,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 depthbini.units      = 'm'
                 thickbini.long_name  = 'Thickness of isopycnal'
                 thickbini.units      = 'm'
-                x1bini.long_name     = thetao_h.long_name
+                x1bini.long_name     = thetaoLongName
                 x1bini.units         = 'C'
-                x2bini.long_name     = so_h.long_name
-                x2bini.units         = so_h.units
+                x2bini.long_name     = soLongName
+                x2bini.units         = soUnits
 
             tozi = timc.clock()
 
@@ -1280,7 +1291,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopt.long_name     = 'Temp. of shallowest persistent ocean on ison'
                 ptopt.units         = 'degrees_C'
                 ptops.long_name     = 'Salinity of shallowest persistent ocean on ison'
-                ptops.units         = so_h.units
+                ptops.units         = soUnits
                 ptopsig.long_name     = 'Density of shallowest persistent ocean on ison'
                 ptopsig.units         = 'sigma_n'
                 #
@@ -1291,14 +1302,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 dbptz.long_name     = 'Zonal Temp. of shallowest persistent ocean on ison'
                 dbptz.units         = 'degrees_C'
                 dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
-                dbpsz.units         = so_h.units
+                dbpsz.units         = soUnits
                 #
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
                 temper.long_name    = 'Temperature of persistent ocean'
                 temper.units        = 'degrees_C'
                 salper.long_name    = 'Salinity of persistent ocean'
-                salper.units        = so_h.units
+                salper.units        = soUnits
             # Write & append
             outFile_f.write(depthbini.astype('float32'), extend = 1, index = (trmin-tmin)/12) ; # Write out 4D variable first depth,rhon,lat,lon are written together
             outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12)
@@ -1370,10 +1381,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 tbz.units       = 'm'
                 vbz.long_name   = 'Volume of isopycnal'
                 vbz.units       = '1.e12 m^3'
-                x1bz.long_name  = thetao_h.long_name
+                x1bz.long_name  = thetaoLongName
                 x1bz.units      = 'degrees_C'
-                x2bz.long_name  = so_h.long_name
-                x2bz.units      = so_h.units
+                x2bz.long_name  = soLongName
+                x2bz.units      = soUnits
                 # Cleanup
             # Write & append
             outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)

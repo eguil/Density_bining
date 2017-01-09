@@ -9,12 +9,13 @@ warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------
 #
 # Perform model ensemble mean and other statistics for density binning output
-# run with 'pythoncd -W ignore mme_ave_msk.py' (cdms python on mac)
+# run with 'pythoncd mme_ave_msk.py' (cdms python)
 #
 # April 2016 : add ToE computation support (for 2D files only)
 # May 2016   : add obs support
+# Nov 2016   : add 3D files support
 #
-# TODO: add 3D files support
+# TODO : add arguments to proc for INIT part (exper, raw, fullTS, test, keepfiles, oneD/twoD, mm/mme, ToE...) or per step
 #
 # ----------------------------------------------------------------------------
 tcpu0 = timc.clock()
@@ -22,21 +23,28 @@ tcpu0 = timc.clock()
 #  ----------------------------
 # !!! Compulsory work order !!!
 #  ----------------------------
+# 0) create ptopsigmaxy and correct grid interpolation issues (hist and histNat)
+#   0.1) raw, oneD, mm, fullTS = T, correctF = F
+#   0.2) for file in cmip5.* ; do  ncks -A -v ptopsigmaxy $file ../$file ; echo $file; done
+#   0.3) raw, oneD, mm, fullTS = F, correctF = T
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
 # 3) run twoD + ToE mm for historical
 # 4) run twoD mme for historical (still to implement for ToE)
-
+#
+# ===============================================================================================================
+#                                        INIT - work definition
+# ===============================================================================================================
 raw = True
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
 #testOneModel = True
-testOneModel = True
+testOneModel = False
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
 correctF = False  # only active if Raw = True
 
-# Keep existing files or replace (if True ignores the model mm or mme computation)
+# Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
 keepFiles = False
 
 oneD = False
@@ -44,8 +52,8 @@ twoD = False
 
 #oneD = True
 twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 exper  = 'historical'
 #exper  = 'historicalNat'
@@ -61,6 +69,9 @@ ToeType = 'histnat'    # working from hist and histnat
 #ToeType = 'picontrol' # working from hist and picontrol
 if not ToE:
     ToeType ='F'
+
+# ===============================================================================================================
+
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/Density_binning/'
@@ -136,6 +147,10 @@ if testOneModel:
 selMME = 'All' # select all models for MME
 #selMME = 'Nat' # select only models for which there are hist AND histNat simulations
 
+if mme:
+    fullTS = False
+    correctF = False
+
 if ToE:
     if ToeType == 'histnat':
         selMME = 'Nat'        # force if ToE & histnat used
@@ -150,25 +165,32 @@ elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
 
+
 if ToE:
     if ToeType == 'histnat':
         indir  = [histDir, histNatMMEOut]
         outdir  = ToeNatOut
 if raw:
     dim = 2
+    appendDim1d='2D'
+    appendDim2d='3D'
     if mme:
         if exper == 'historical':
             indir = [rootDir+'mme_hist']
             outdir = rootDir+'mme_hist'
+    if mme:
+        if exper == 'historicalNat':
+            indir = [rootDir+'mme_histNat']
+            outdir = rootDir+'mme_histNat'
 else:
     dim = 1
+    appendDim1d='zon1D'
+    appendDim2d='zon2D'
 
 if raw & twoD :
     outdir = outdir+'/mme'
-
-if mme:
-    fullTS = False
-    correctF = False
+    if mme:
+        indir[0] = indir[0]+'/mme'
 
 timeInt=[peri1,peri2]
 
@@ -282,7 +304,7 @@ if mme:
     # run 1D MME first
     indir[0]  = outdir
     if twoD:
-        outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon2D.nc'
+        outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_'+appendDim2d+'.nc'
         if os.path.isfile(outdir+'/'+outFile) & keepFiles:
             print ' -> IGNORE: mme of',outFile,'already in',outdir
         else:
@@ -292,7 +314,7 @@ if mme:
                 mmeAveMsk3D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
             print 'Wrote ',outdir+'/'+outFile
     if oneD:
-        outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_zon1D.nc'
+        outFile1 = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_'+appendDim1d+'.nc'
         if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
             print ' -> IGNORE: mme of',outFile1,'already in',outdir
         else:
