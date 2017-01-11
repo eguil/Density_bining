@@ -415,8 +415,13 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
-    fi      = cdm.open(inDir[0]+'/'+listFiles[0])
-    isond0  = fi['isondepthg'] ; # Create variable handle
+    fi    = cdm.open(inDir[0]+'/'+listFiles[0])
+    # Switch if only variables below the bowl are present/treated
+    nobowl = True
+    if nobowl:
+        isond0 = fi['isondepthgBowl'] ; # Create variable handle
+    else:
+        isond0 = fi['isondepthg'] ; # Create variable handle
     # Get grid objects
     axesList = isond0.getAxisList()
     sigmaGrd = isond0.getLevel()
@@ -425,6 +430,11 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     latN = isond0.shape[2]
     levN = isond0.shape[1]
     varsig='ptopsigmaxy'
+
+    # Limit number of models to 3 for testing of mme
+    #if mme:
+    #    listFiles = listFiles[0:2]
+    #    print ' !!! ### Testing 3 models ###',  listFiles
 
     # Declare and open files for writing
     if os.path.isfile(outDir+'/'+outFile):
@@ -451,12 +461,10 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     sigma.id = axesList[1].id
     sigma.units = axesList[1].units
     sigma.designateTime()
-    #print sigma
     # init time axis
     time       = cdm.createAxis(npy.float32(range(timN)))
     time.id    = 'time'
     time.units = 'years since 1861'
-    #print time
     # init ensemble axis
     ensembleAxis       = cdm.createAxis(npy.float32(range(runN)))
     ensembleAxis.id    = 'members'
@@ -466,21 +474,25 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     sigmaTimeList = [sigma,time,axesList[2],axesList[3]] ; # sigma, time, lat, lon
     # init arrays
     isonvar  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
-    varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(1)]
+    varbowl2D  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*valmask
     varstd,varToE1,varToE2 =  [npy.ma.ones([runN,latN,lonN], dtype='float32')*valmask for _ in range(3)]
-    #varones  = npy.ma.ones([runN,timN,latN,lonN], dtype='float32')*1.
 
     # Loop on density levels (for memory management, becomes UNLIMITED axis and requires a ncpq to reorder dimensions)
 
+    delta_ib = 1
+    print ' Sigma index:'
     for ib in range(levN):
-        #print ' Sigma index',ib
-        delta_ib = 1
         ib1 = ib + delta_ib
+        print ib,
         tim0 = timc.clock()
         # loop on variables
         for iv,var in enumerate(varList):
+            if nobowl:
+                varb = var+'Bowl'
+            else:
+                varb = var
             if ib == 0:
-                print ' Variable ',iv, var
+                print ' Variable ',iv, varb
             # loop over files to fill up array
             for i,file in enumerate(listFiles):
                 tim01 = timc.clock()
@@ -494,13 +506,12 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     print 'wrong time axis: exiting...'
                     return
                 # read array
-                isonRead = ft(var,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
+                isonRead = ft(varb,time = slice(t1,t2), lev = slice(ib,ib1)).squeeze()
                 if varFill[iv] != valmask:
                     isonvar[i,...] = isonRead.filled(varFill[iv])
                 else:
                     isonvar[i,...] = isonRead
                 tim02 = timc.clock()
-                #print 'isonvar',isonvar.shape
                 # compute percentage of non-masked points accros MME
                 if iv == 0:
                     maskvar = mv.masked_values(isonRead.data,valmask).mask
@@ -510,8 +521,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     # if mme then just accumulate Bowl, Agree and Std fields
                     #varst = var+'Agree'
                     #vardiff[i,...] = ft(varst,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
-                    varb = var+'Bowl'
-                    varbowl2D[i,...] = ft(varb,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
+                    isonRead = ft(varb,time = slice(t1,t2),lev = slice(ib,ib1)).squeeze()
+                    varbowl2D[i,...] = isonRead
                 else:
                     # Compute difference with average of first initN years
                     #varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
@@ -525,7 +536,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                     # Compute Stddev
                     varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
                     # Compute ToE
-                    #if ToeType == 'histnat':
+                    if ToeType == 'histnat':
+                        toto=1
                         # TODO
                         # Read mean and Std dev from histnat
                         #    if i == 0:
@@ -544,7 +556,8 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 tim04 = timc.clock()
                 ft.close()
                 #print 'ib, section 1 timing',ib, tim02-tim01,tim03-tim02,tim04-tim03
-            # <-- end of loop on files
+            # <-- end of loop on files (i)
+
             tim1 = timc.clock()
 
             # Compute percentage of bin presence
@@ -589,26 +602,40 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             # mme case
             if mme: # start from average of <var>Agree
                 isonVarBowl = cdu.averager(varbowl2D, axis=0)
+                isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
                 isonVarBowl = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = 'foo')
                 isonVarBowl = maskVal(isonVarBowl, valmask)
                 isonVarBowl.mask = percentw.mask
                 # Compute intermodel stddev
                 isonVarStd = statistics.std(varbowl2D, axis=0)
+                isonVarStd = npy.reshape(isonVarStd,[delta_ib,timN,latN,lonN])
                 isonVarStd = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = 'foo')
                 isonVarStd = maskVal(isonVarStd, valmask)
                 isonVarStd.mask = percentw.mask
-                if ib == 0 and iv == 0:
-                    # TODO review
-                    # Read mulitmodel sigma on bowl and average in time
-                    file1d  =  replace(outDir+'/'+outFile,'2D','1D')
-                    if os.path.isfile(file1d):
-                        f1d = cdm.open(file1d)
-                    else:
-                        print 'ERROR:',file1d,'missing (if mme, run 1D first)'
-                        sys.exit(1)
-                    bowlRead = f1d(varsig,time = slice(t1,t2),lev = slice(ib,ib1))
-                    f1d.close()
-                    siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
+
+                # Write
+                isonvarbowlw = cdm.createVariable(isonVarBowl , axes = sigmaTimeList , id = isonRead.id)
+                isonvarbowlw.long_name = isonRead.long_name
+                isonvarbowlw.units     = isonRead.units
+                isonvarstdw = cdm.createVariable(isonVarStd , axes = sigmaTimeList , id = isonRead.id+'Std')
+                isonvarstdw.long_name = isonRead.long_name+' intermodel std'
+                isonvarstdw.units     = isonRead.units
+
+                outFile_f.write(isonvarbowlw.astype('float32'), extend = 1, index = ib)
+                outFile_f.write(isonvarstdw.astype('float32'), extend = 1, index = ib)
+
+                #if ib == 0 and iv == 0:
+                #    # TODO review
+                #    # Read multimodel sigma on bowl and average in time
+                #    file1d  =  replace(outDir+'/'+outFile,'2D','1D')
+                #    if os.path.isfile(file1d):
+                #        f1d = cdm.open(file1d)
+                #    else:
+                #        print 'ERROR:',file1d,'missing (if mme, run 2D first)'
+                #        sys.exit(1)
+                #    bowlRead = f1d(varsig,time = slice(t1,t2),lev = slice(ib,ib1))
+                #    f1d.close()
+                #    siglimit = cdu.averager(bowlRead, axis=0)  - delta_rho
                 # TODO: remove loop by building global array with 1/0
                 #if sw2d == 1:
                 #    for il in range(latN):
@@ -657,28 +684,29 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 # mask
                 isonVarStd = maskVal(isonVarStd, valmask)
 
-            tim3 = timc.clock()
-            # Write
-            #isonave = cdm.createVariable(isonVarAve, axes = sigmaTimeList, id = isonRead.id)
-            #isonave.long_name = isonRead.long_name
-            #isonave.units     = isonRead.units
-            #vardiffsgSum = npy.reshape(vardiffsgSum,[delta_ib,timN,latN,lonN])
-            #isonavediff = cdm.createVariable(vardiffsgSum, axes = sigmaTimeList, id = isonRead.id+'Agree')
-            #isonavediff.long_name = isonRead.long_name
-            #isonavediff.units     = isonRead.units
-            isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
-            isonavebowl = cdm.createVariable(isonVarBowl, axes = sigmaTimeList, id = isonRead.id+'Bowl')
-            isonavebowl.long_name = isonRead.long_name
-            isonavebowl.units     = isonRead.units
-            isonVarStd = npy.reshape(isonVarStd,[delta_ib,latN,lonN])
-            isonmaxstd = cdm.createVariable(isonVarStd, axes = sigmaList, id = isonRead.id+'Std')
-            isonmaxstd.long_name = isonRead.long_name
-            isonmaxstd.units     = isonRead.units
+                # Write
+                #isonave = cdm.createVariable(isonVarAve, axes = sigmaTimeList, id = isonRead.id)
+                #isonave.long_name = isonRead.long_name
+                #isonave.units     = isonRead.units
+                #vardiffsgSum = npy.reshape(vardiffsgSum,[delta_ib,timN,latN,lonN])
+                #isonavediff = cdm.createVariable(vardiffsgSum, axes = sigmaTimeList, id = isonRead.id+'Agree')
+                #isonavediff.long_name = isonRead.long_name
+                #isonavediff.units     = isonRead.units
+                isonVarBowl = npy.reshape(isonVarBowl,[delta_ib,timN,latN,lonN])
+                isonavebowl = cdm.createVariable(isonVarBowl, axes = sigmaTimeList, id = isonRead.id+'Bowl')
+                isonavebowl.long_name = isonRead.long_name
+                isonavebowl.units     = isonRead.units
+                isonVarStd = npy.reshape(isonVarStd,[delta_ib,latN,lonN])
+                isonmaxstd = cdm.createVariable(isonVarStd, axes = sigmaList, id = isonRead.id+'Std')
+                isonmaxstd.long_name = isonRead.long_name
+                isonmaxstd.units     = isonRead.units
 
-            #outFile_f.write(    isonave.astype('float32'), extend = 1, index = ib)
-            #outFile_f.write(isonavediff.astype('float32'), extend = 1, index = ib)
-            outFile_f.write(isonavebowl.astype('float32'), extend = 1, index = ib)
-            outFile_f.write(isonmaxstd.astype('float32'), extend = 1, index = ib)
+                #outFile_f.write(    isonave.astype('float32'), extend = 1, index = ib)
+                #outFile_f.write(isonavediff.astype('float32'), extend = 1, index = ib)
+                outFile_f.write(isonavebowl.astype('float32'), extend = 1, index = ib)
+                outFile_f.write(isonmaxstd.astype('float32'), extend = 1, index = ib)
+
+            tim3 = timc.clock()
 
             if ToeType == 'histnat':
                 isontoe1 = cdm.createVariable(varToE1, axes = [ensembleAxis,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE1')
@@ -689,13 +717,6 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 isontoe2.units     = 'Year'
                 outFile_f.write(isontoe1.astype('float32'), extend = 1, index = ib)
                 outFile_f.write(isontoe2.astype('float32'), extend = 1, index = ib)
-
-
-            if mme:
-                isonvarstd = cdm.createVariable(isonVarStd , axes =sigmaTimeList , id = isonRead.id+'ModStd')
-                isonvarstd.long_name = isonRead.long_name+' intermodel std'
-                isonvarstd.units     = isonRead.units
-                outFile_f.write(isonvarstd.astype('float32'), extend = 1, index = ib)
 
             tim4 = timc.clock()
         # <--- end of loop on variables
@@ -907,9 +928,11 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
                 #print ti02-ti0,ti05-ti02, ti1-ti05,ti12-ti1,ti15-ti12,ti2-ti15,ti3-ti2
                 #print ti3-ti0
                 # write ptopsigmaxy
-                if os.path.isfile(inDir[0]+'/work/'+file):
-                    os.remove(inDir[0]+'/work/'+file)
-                fiout = cdm.open(inDir[0]+'/work/'+file,'w')
+                if os.path.isfile(inDir[0]+'/work_ptopsigmaxy/'+file):
+                    os.remove(inDir[0]+'/work_ptopsigmaxy/'+file)
+                fiout = cdm.open(inDir[0]+'/work_ptopsigmaxy/'+file,'w')
+                if ic == 0:
+                        print ' Creating ',inDir[0]+'/work_ptopsigmaxy/'+file
                 isonsigxy = cdm.createVariable(isonRead, axes = axis1D, id = 'ptopsigmaxy')
                 isonsigxy.long_name = 'Density of shallowest persistent ocean on ison'
                 isonsigxy.units     = 'sigma_n'
