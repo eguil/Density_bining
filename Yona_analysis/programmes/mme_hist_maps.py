@@ -16,8 +16,8 @@ from modelsDef import defModels
 # ------ Read files -----------
 
 # -- Choose single model or mme
-name = 'mme_hist'
-#name = 'mme_hist_histNat' --> finish script
+#name = 'mme_hist'
+name = 'mme_hist_histNat'
 #name = 'ens_mean_hist'
 
 if name == 'ens_mean_hist':
@@ -32,11 +32,12 @@ if name == 'ens_mean_hist':
 
 else:
     indirh = '/data/ericglod/Density_binning/Prod_density_april15/Raw/mme_hist/mme/'
-    fileh = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_3D.nc'
+    #fileh = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_3D.nc'
+    fileh = 'cmip5.GFDL-ESM2M.historical.ensm.an.ocn.Omon.density.ver-v20130226.nc'
 
     if name == 'mme_hist_histNat':
         indirhn = '/data/ericglod/Density_binning/Prod_density_april15/Raw/mme_histNat/mme/'
-        filehn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_3D.nc'
+        filehn = 'cmip5.GFDL-ESM2M.historicalNat.ensm.an.ocn.Omon.density.ver-v20110601.nc'
         datahn = indirhn + filehn
         fhn = open_ncfile(datahn,'r')
 
@@ -77,11 +78,11 @@ isopyc4 = 27.5
 isopyc1_idx = np.argmin(np.abs(density - isopyc1))
 isopyc4_idx = np.argmin(np.abs(density - isopyc4))
 
-if name != 'mme_hist_histNat':
-    var = fh.variables[var][88:,isopyc1_idx:isopyc4_idx+1,:,:] #index 88 = year 1950
-    #var_std = f.variables[var_std][88:,isopyc1_idx:isopyc4_idx+1,:,:]
-else:
-    varhn = fhn.variables[var][88:,isopyc1_idx:isopyc4_idx+1,:,:]
+if name == 'mme_hist_histNat':
+    varhn = fhn.variables[var][-5:,isopyc1_idx:isopyc4_idx+1,:,:]
+
+var = fh.variables[var][88:,isopyc1_idx:isopyc4_idx+1,:,:] #index 88 = year 1950
+#var_std = f.variables[var_std][88:,isopyc1_idx:isopyc4_idx+1,:,:]
 
 sliced_density = density[isopyc1_idx:isopyc4_idx+1]
 #print(np.ma.nonzero(var))
@@ -96,10 +97,21 @@ ax2 = fig.add_axes([0.05, 0.51, 0.95, 0.2])
 ax3 = fig.add_axes([0.05, 0.28, 0.95, 0.2])
 ax4 = fig.add_axes([0.05, 0.05, 0.95, 0.2])
 
-bmap = proj_map('hist', plt, ax1, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc1, sliced_density, var)
-bmap = proj_map('hist', plt, ax2, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc2, sliced_density, var)
-bmap = proj_map('hist', plt, ax3, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc3, sliced_density, var)
-bmap = proj_map('hist', plt, ax4, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc4, sliced_density, var)
+if name != 'mme_hist_histNat':
+    bmap = proj_map('hist', plt, ax1, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc1, sliced_density, var)
+    bmap = proj_map('hist', plt, ax2, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc2, sliced_density, var)
+    bmap = proj_map('hist', plt, ax3, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc3, sliced_density, var)
+    bmap = proj_map('hist', plt, ax4, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc4, sliced_density, var)
+else:
+    bmap = proj_map('hist-histNat', plt, ax1, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc1, sliced_density,
+                    var, varhn)
+    bmap = proj_map('hist-histNat', plt, ax2, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc2, sliced_density,
+                    var, varhn)
+    bmap = proj_map('hist-histNat', plt, ax3, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc3, sliced_density,
+                    var, varhn)
+    bmap = proj_map('hist-histNat', plt, ax4, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc4, sliced_density,
+                    var, varhn)
+
 
 cb = plt.colorbar(bmap[0], ax = (ax1, ax2, ax3, ax4), ticks=bmap[1], orientation='vertical')
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
@@ -107,7 +119,9 @@ cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 if name == 'mme_hist':
     plt.suptitle('%s changes (2000-1950), %s ' %(legVar, name), fontweight='bold', fontsize=14, va='top')
     plotName = name + '_' + v + 'changes'
-
+elif name == 'mme_hist_histNat':
+    plt.suptitle('%s changes %s (last 5 years)' %(legVar, name), fontweight='bold', fontsize=14, va='top')
+    plotName = name + '_' + v + 'changes'
 else:
     plt.suptitle('%s changes (2000-1950), %s ensemble mean (%d members)' %(legVar, name, nb_members), fontweight='bold',
                  fontsize=14, va='top')

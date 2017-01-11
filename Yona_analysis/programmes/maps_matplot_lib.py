@@ -165,6 +165,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     # Colormap
     cmap = custom_div_cmap()
 
+    # latitude domain
+    domlat = [-70, 70]
+
 
     if action == 'total' :
         var = varBasin['var_change']
@@ -188,8 +191,6 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
         var = varBasin['var_change']
         var_mean = varBasin['var_mean']
         levels = np.linspace(minmax[0], minmax[1], minmax[2])
-        # latitude domain
-        domlat = [-70, 70]
 
         # -- Format for contour labels
         levfmt = '%.0f'
@@ -224,12 +225,12 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
 
     if action == 'dsig_dt':
         var = varBasin['dsig_dt']
-        levels = np.linspace(-0.5,0.5,16)
+        levels = np.linspace(-0.3,0.3,16)
         cmap = custom_div_cmap()
 
     if action == 'dy_dt':
         var = varBasin['dy_dt']
-        levels = np.linspace(-10, 10, 16)
+        levels = np.linspace(-5, 5, 16)
         cmap = custom_div_cmap()
 
     if action == 'residual':
@@ -262,7 +263,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     if action == 'mean_fields':
         var_1950 = varBasin['var_1950']
         var_2000 = varBasin['var_2000']
-        levels = np.arange(30,40,0.1)
+        levels = clevsm
 
         # -- Format for contour labels
         levfmt = '%.0f'
@@ -282,10 +283,12 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     if action == 'var_2000_lat_hr' or action == 'var_2000_sig_hr':
         cnplot1 = ax0.contourf(lat2d, density2d, var, cmap=plt.get_cmap('jet'))
     elif action == 'mean_fields':
-        cpplot11 = ax0.contour(lat2d,density2d,var_1950, levels=levels, colors='black', linewidths=0.5)
-        #ax0.clabel(cpplot11, inline=1, fontsize=9, fmt=levfmt)
-        cpplot12 = ax0.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linewidths=0.5, linestyles='dashed')
-        #ax0.clabel(cpplot12, inline=1, fontsize=9, fmt=levfmt)
+        ax0.contour(lat2d,density2d,var_1950, levels=levels, colors='black', linewidths=0.5)
+        cpplot11 = ax0.contour(lat2d,density2d,var_1950, levels=clevsm_bold, colors='black', linewidths=1.5)
+        ax0.clabel(cpplot11, inline=1, fontsize=11, fmt=levfmt)
+        ax0.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linewidths=0.5, linestyles='dashed')
+        cpplot12 = ax0.contour(lat2d,density2d,var_2000, levels=clevsm_bold, colors='black', linewidths=1.5, linestyles='dashed')
+        #ax0.clabel(cpplot12, inline=1, fontsize=11, fmt=levfmt)
     else:
         cnplot1 = ax0.contourf(lat2d, density2d, var, cmap=cmap, levels=levels, extend='both')
 
@@ -302,8 +305,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
         ax0.plot(lat, bowl, color='black')
 
     ax0.set_ylim([domrho[0], domrho[1]])
-    if action == 'total_mme':
-        ax0.set_xlim([domlat[0], domlat[1]])
+    ax0.set_xlim([domlat[0], domlat[1]])
     ax0.invert_yaxis()
     ax0.tick_params(
         axis='x',  # changes apply to the x axis
@@ -325,10 +327,12 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     if action == 'var_2000_lat_hr' or action == 'var_2000_sig_hr':
         cnplot2 = ax1.contourf(lat2d, density2d, var, cmap=plt.get_cmap('jet'))
     elif action == 'mean_fields':
-        cpplot21 = ax1.contour(lat2d,density2d,var_1950, levels=levels, colors='black', linewidths=0.5)
-        #ax1.clabel(cpplot21, inline=1, fontsize=9, fmt=levfmt)
-        cpplot22 = ax1.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linewidths=0.5, linestyles='dashed')
-        #ax1.clabel(cpplot22, inline=1, fontsize=9, fmt=levfmt)
+        ax1.contour(lat2d,density2d,var_1950, levels=levels, colors='black', linewidths=0.5)
+        cpplot21 = ax1.contour(lat2d,density2d,var_1950, levels=clevsm_bold, colors='black', linewidths=1.5)
+        ax1.clabel(cpplot21, inline=1, fontsize=11, fmt=levfmt)
+        ax1.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linewidths=0.5, linestyles='dashed')
+        cpplot22 = ax1.contour(lat2d,density2d,var_2000, levels=clevsm_bold, colors='black', linewidths=1.5, linestyles='dashed')
+        #ax1.clabel(cpplot22, inline=1, fontsize=11, fmt=levfmt)
         cnplot2 = cpplot22
     else:
         cnplot2 = ax1.contourf(lat2d, density2d, var, cmap=cmap, levels=levels, extend='both')
@@ -347,8 +351,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
 
 
     ax1.set_ylim([domrho[1], domrho[2]])
-    if action == 'total_mme':
-        ax1.set_xlim([domlat[0], domlat[1]])
+    ax1.set_xlim([domlat[0], domlat[1]])
     ax1.invert_yaxis()
     ax1.tick_params(
         axis='x',  # changes apply to the x axis
@@ -392,11 +395,11 @@ def proj_map(kind, plt, ax, minmax, clevsm, clevsm_bold, lat, lon, cmap, isopyc,
 
     isopyc_idx = np.argmin(np.abs(sliced_density - isopyc))
 
-    if kind == 'model':
+    if kind == 'hist-histNat':
         var_hist = np.squeeze(var1[:,isopyc_idx,:])
         var_histNat = np.squeeze(var2[:,isopyc_idx,:])
         # Difference
-        var_diff = np.ma.average(var_hist[-5:, :], axis=0) - np.ma.average(var_histNat[-5,:, :], axis=0)
+        var_diff = np.ma.average(var_hist[-5:, :], axis=0) - np.ma.average(var_histNat, axis=0)
         # Climatology
         var_mean = np.ma.average(var_hist, axis=0)
 

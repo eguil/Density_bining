@@ -35,7 +35,7 @@ varname = defVarDurack('salinity')
 
 # -- Define variable properties
 minmax = varname['minmax_zonal']
-clevsm = varname['clevsm']
+clevsm = varname['clevsm_zonal']
 clevsm_bold = varname['clevsm_bold']
 legVar = varname['legVar']
 unit = varname['unit']
@@ -175,13 +175,12 @@ dvar_dy_i = dvar_dy[:,:,3]
 
 
 
-# ==== Partial derivative of latitude for time dy/dt --> dy_dt===
+# ==== Partial derivative of latitude for time dy/dt --> dy_dt ===
 
-# -- Determine minimum values for each sigma to obtain a threshold
-dvar_dy_min_p = np.ma.min(np.ma.abs(dvar_dy_p), axis=1)
-dvar_dy_min_a = np.ma.min(np.ma.abs(dvar_dy_a), axis=1)
-dvar_dy_min_i = np.ma.min(np.ma.abs(dvar_dy_i), axis=1)
-#print('shape of dvar_dy_min: ', np.shape(dvar_dy_min_p))
+# # -- Determine minimum values for each sigma to obtain a threshold
+# dvar_dy_min_p = np.ma.min(np.ma.abs(dvar_dy_p), axis=1)
+# dvar_dy_min_a = np.ma.min(np.ma.abs(dvar_dy_a), axis=1)
+# dvar_dy_min_i = np.ma.min(np.ma.abs(dvar_dy_i), axis=1)
 
 # # -- Plot min
 # plt.figure()
@@ -193,20 +192,15 @@ dvar_dy_min_i = np.ma.min(np.ma.abs(dvar_dy_i), axis=1)
 # plt.title('dvar_dy min')
 
 # -- Define max distance (in lat degrees) between same var_1950 and var_2000
-max_lat_shift = 10
+max_lat_shift = 5
 
 # -- Initialize dy/dt to masked value
 dy_dt = np.ma.masked_all((levN,latN,basinN))
 
-# -- Initialize min_distance
-min_distance_lat = np.ma.masked_all((levN,latN,basinN))
-
 delta_var_min = np.ma.masked_all((levN,latN,4))
 
-# -- HR latitude
-lat_hr = np.arange(-70, 70.01, 0.01)
 # -- Initialize variable to store and plot the interpolated data
-var_2000_lat_hr = np.ma.masked_all((levN,len(lat_hr),basinN))
+#var_2000_lat_hr = np.ma.masked_all((levN,len(lat_hr),basinN))
 
 
 ### NEW METHOD ###
@@ -217,30 +211,34 @@ for ibasin in range(1,4):
 
         if np.any(var_1950[isig,:,ibasin] != valmask):
 
-            # -- Interpolate on a finer latitude grid
-            z = var_2000[isig, :, ibasin].squeeze()
-            # Find contiguous unmasked data of var_2000 at isig to interpolate
-            slice_z = np.ma.flatnotmasked_contiguous(z)
-            if len(slice_z) != 0:
-                # print(ibasin, isig, len(slice_z))
-                var_2000_hr = np.ma.masked_all(len(lat_hr))
-                for j in range(len(slice_z)):
-                    # print(ibasin, isig)
-                    lat1 = lat[slice_z[j]]
-                    z1 = z[slice_z[j]]
-                    if len(lat1) > 2:
-                        # print(lat1[0],lat1[-1],z1[0],z1[-1])
-                        lat1_hr = np.arange(lat1[0], lat1[-1] + 0.005, 0.01)
-                        # print(len(lat1_hr))
-                        interp = interpolate.interp1d(lat1, z1, bounds_error=False)
-                        var_2000_hr1 = interp(lat1_hr)
-                        i1 = np.searchsorted(lat_hr, lat1_hr[0])
-                        i2 = np.searchsorted(lat_hr, lat1_hr[-1])
-                        var_2000_hr[i1:i2 + 1] = var_2000_hr1
-                        # print(lat1_hr[0], lat1_hr[-1], var_2000_hr[i1], var_2000_hr[i2], len(var_2000_hr))
-
-                # -- Save interpolated data to plot and check if it makes sense
-                var_2000_lat_hr[isig, :, ibasin] = var_2000_hr
+            # # -- Interpolate on a finer latitude grid
+            # z = var_2000[isig, :, ibasin].squeeze()
+            # # Find contiguous unmasked data of var_2000 at isig to interpolate
+            # slice_z = np.ma.flatnotmasked_contiguous(z)
+            # if len(slice_z) != 0:
+            #     # print(ibasin, isig, len(slice_z))
+            #     var_2000_hr = np.ma.masked_all(len(lat_hr))
+            #     for j in range(len(slice_z)):
+            #         #print(basin[ibasin], density[isig])
+            #         lat1 = lat[slice_z[j]]
+            #         z1 = z[slice_z[j]]
+            #         if len(lat1) > 2:
+            #             #print(lat1[0],lat1[-1],z1[0],z1[-1])
+            #             lat1_hr = np.arange(lat1[0], lat1[-1] + step/2, step)
+            #             #print(len(lat1_hr))
+            #             interp = interpolate.interp1d(lat1, z1, bounds_error=False)
+            #             var_2000_hr1 = interp(lat1_hr)
+            #             i1 = np.searchsorted(lat_hr, lat1_hr[0])
+            #             i2 = np.searchsorted(lat_hr, lat1_hr[-1])
+            #             # # Clean up exceptions
+            #             # if (69.999 <= lat1_hr[-1] <= 70.0001) :
+            #             #     var_2000_hr1 = var_2000_hr1[:-1]
+            #             #     print(np.shape(var_2000_hr1))
+            #             var_2000_hr[i1:i2 + 1] = var_2000_hr1
+            #             # print(lat1_hr[0], lat1_hr[-1], var_2000_hr[i1], var_2000_hr[i2], len(var_2000_hr))
+            #
+            #     # -- Save interpolated data to plot and check if it makes sense
+            #     var_2000_lat_hr[isig, :, ibasin] = var_2000_hr
 
                 # if (ibasin == 2 and density[isig] == 27) or (ibasin==1 and density[isig]==26):
                 #     # -- Plot S(y)
@@ -253,35 +251,35 @@ for ibasin in range(1,4):
                 #     plt.title('S(y), sigma=%.2f, basin=%s' %(density[isig],basin[ibasin]))
 
 
-                for ilat in range(latN):
+            for ilat in range(latN):
 
-                    if (var_1950[isig,ilat,ibasin] != valmask):
+                if (var_1950[isig,ilat,ibasin] != valmask):
 
-                        # Look at the slope of dS/dy - if it is close to zero, only look at the vertical shift
-                        if np.ma.abs(dvar_dy[isig,ilat,ibasin]) <= 0.01 :
-                            dy_dt[isig,ilat,ibasin] =0
-                        else:
+                    # Look at the slope of dS/dy - if it is close to zero, only look at the vertical shift
+                    if np.ma.abs(dvar_dy[isig,ilat,ibasin]) <= 0.01 :
+                        dy_dt[isig,ilat,ibasin] =0
+                    else:
 
-                            # Find latitude indices where abs(lat_hr-lat[ilat])< 10 degrees
-                            ilat_interval = np.flatnonzero(np.ma.abs(lat_hr[:] - lat[ilat]) < max_lat_shift)
+                        # Find latitude indices where abs(lat_hr-lat[ilat])< 10 degrees
+                        ilat_interval = np.flatnonzero(np.ma.abs(lat[:] - lat[ilat]) < max_lat_shift)
 
-                            if len(ilat_interval) != 0:
-                                lat_interval = lat_hr[ilat_interval]
-                                # print('Hello')
-                                # print(ibasin,density[isig],lat[ilat],var_1950[isig,ilat,ibasin])
-                                # print(lat_interval)
-                                # print(var_2000_hr[ilat_interval])
+                        if len(ilat_interval) != 0:
+                            lat_interval = lat[ilat_interval]
+                            # print('Hello')
+                            # print(ibasin,density[isig],lat[ilat],var_1950[isig,ilat,ibasin])
+                            # print(lat_interval)
+                            # print(var_2000_hr[ilat_interval])
 
-                                ilat2 = ilat_interval[np.ma.argmin(np.ma.abs(var_2000_hr[ilat_interval] - var_1950[isig,ilat,ibasin]))]
-                                lat2 = lat_hr[ilat2]
-                                # Save value to plot
-                                delta_var_min[isig,ilat,ibasin] = np.ma.abs(var_2000_hr[ilat2]-var_1950[isig,ilat,ibasin])
-                                # print(delta_var_min[isig,ilat,ibasin])
-                                # print(lat2, lat2 - lat[ilat])
-                                dy_dt[isig, ilat, ibasin] = (lat2 - lat[ilat])
-                                # if ibasin ==1 and density[isig] == 26 and lat[ilat] == 35:
-                                #     print(basin[ibasin], density[isig], lat[ilat])
-                                #     print(dy_dt[isig,ilat,ibasin], var_1950[isig,ilat,ibasin], var_2000_hr[ilat2])
+                            ilat2 = ilat_interval[np.ma.argmin(np.ma.abs(var_2000[isig,ilat_interval,ibasin] - var_1950[isig,ilat,ibasin]))]
+                            lat2 = lat[ilat2]
+                            # Save value to plot
+                            delta_var_min[isig,ilat,ibasin] = np.ma.abs(var_2000[isig,ilat2,ibasin]-var_1950[isig,ilat,ibasin])
+                            # print(delta_var_min[isig,ilat,ibasin])
+                            # print(lat2, lat2 - lat[ilat])
+                            dy_dt[isig, ilat, ibasin] = -(lat2 - lat[ilat])
+                            # if ibasin ==1 and density[isig] == 26 and lat[ilat] == 35:
+                            #     print(basin[ibasin], density[isig], lat[ilat])
+                            #     print(dy_dt[isig,ilat,ibasin], var_1950[isig,ilat,ibasin], var_2000_hr[ilat2])
 
 
 
@@ -373,10 +371,10 @@ dy_dt_i = dy_dt[:,:,3]
 
 # ==== Partial derivative of sigma for time dsigma/dt ===
 
-# -- Determine minimum values for each latitude to obtain a threshold
-dvar_dsig_min_p = np.ma.min(np.ma.abs(dvar_dsig_p), axis=0)
-dvar_dsig_min_a = np.ma.min(np.ma.abs(dvar_dsig_a), axis=0)
-dvar_dsig_min_i = np.ma.min(np.ma.abs(dvar_dsig_i), axis=0)
+# # -- Determine minimum values for each latitude to obtain a threshold
+# dvar_dsig_min_p = np.ma.min(np.ma.abs(dvar_dsig_p), axis=0)
+# dvar_dsig_min_a = np.ma.min(np.ma.abs(dvar_dsig_a), axis=0)
+# dvar_dsig_min_i = np.ma.min(np.ma.abs(dvar_dsig_i), axis=0)
 
 # # -- Plot min
 # plt.figure()
@@ -392,16 +390,12 @@ max_density_shift1 = 0.3
 max_density_shift2 = 0.3
 
 # -- Initialize dsigma/dt to masked value
-dsig_dt = np.ma.masked_all((levN,latN,4))
+dsig_dt = np.ma.masked_all((levN,latN,basinN))
 
-min_distance_sig = np.ma.masked_all((levN,latN,4))
-delta_var_min = np.ma.masked_all((levN,latN,4))
+delta_var_min = np.ma.masked_all((levN,latN,basinN))
 
-# -- HR density : 3 different scales of densities for Durack&Wijffels data
-sig_hr1 = np.arange(21,22,0.1); sig_hr2 = np.arange(22,26.5,0.05); sig_hr3 = np.arange(26.5,28.0001,0.025)
-density_hr = np.hstack((sig_hr1,sig_hr2,sig_hr3))
 # -- Initialize variable to store and plot the interpolated data
-var_2000_sig_hr = np.ma.masked_all((len(density_hr), latN, basinN))
+#var_2000_sig_hr = np.ma.masked_all((len(density_hr), latN, basinN))
 
 ### NEW METHOD ###
 
@@ -411,28 +405,28 @@ for ibasin in range(1,4):
 
         if np.any(var_1950[:,ilat,ibasin] != valmask):
 
-            # -- Interpolate on a finer density grid
-            z = var_2000[:, ilat, ibasin].squeeze()
-            # Find contiguous unmasked data of var_2000 at ilat to interpolate
-            slice_z = np.ma.flatnotmasked_contiguous(z)
-            if len(slice_z) != 0:
-                # print(ibasin, ilat, len(slice_z))
-                var_2000_hr = np.ma.masked_all(len(density_hr))
-                density1 = density[slice_z[0]]
-                z1 = z[slice_z[0]]
-                if len(density1) > 2:
-                    # print(density1[0],density1[-1],z1[0],z1[-1])
-                    i1 = np.searchsorted(density_hr, density1[0])
-                    i2 = np.searchsorted(density_hr, density1[-1])
-                    density1_hr = density_hr[i1:i2 + 1]
-                    # print(len(density1_hr))
-                    interp = interpolate.interp1d(density1, z1, bounds_error=False)
-                    var_2000_hr1 = interp(density1_hr)
-                    var_2000_hr[i1:i2 + 1] = var_2000_hr1
-                    # print(density1_hr[0], density1_hr[-1], var_2000_hr[i1], var_2000_hr[i2], len(var_2000_hr))
-
-                # -- Save interpolated data to plot and check if it makes sense
-                var_2000_sig_hr[:, ilat, ibasin] = var_2000_hr
+            # # -- Interpolate on a finer density grid
+            # z = var_2000[:, ilat, ibasin].squeeze()
+            # # Find contiguous unmasked data of var_2000 at ilat to interpolate
+            # slice_z = np.ma.flatnotmasked_contiguous(z)
+            # if len(slice_z) != 0:
+            #     # print(ibasin, ilat, len(slice_z))
+            #     var_2000_hr = np.ma.masked_all(len(density_hr))
+            #     density1 = density[slice_z[0]]
+            #     z1 = z[slice_z[0]]
+            #     if len(density1) > 2:
+            #         # print(density1[0],density1[-1],z1[0],z1[-1])
+            #         i1 = np.searchsorted(density_hr, density1[0])
+            #         i2 = np.searchsorted(density_hr, density1[-1])
+            #         density1_hr = density_hr[i1:i2 + 1]
+            #         # print(len(density1_hr))
+            #         interp = interpolate.interp1d(density1, z1, bounds_error=False)
+            #         var_2000_hr1 = interp(density1_hr)
+            #         var_2000_hr[i1:i2 + 1] = var_2000_hr1
+            #         # print(density1_hr[0], density1_hr[-1], var_2000_hr[i1], var_2000_hr[i2], len(var_2000_hr))
+            #
+            #     # -- Save interpolated data to plot and check if it makes sense
+            #     var_2000_sig_hr[:, ilat, ibasin] = var_2000_hr
 
                 # if ibasin == 2 and lat[ilat] == 0:
                     # # -- Plot S(sigma)
@@ -445,36 +439,35 @@ for ibasin in range(1,4):
                     # plt.legend(('1950','2000'))
                     # plt.title('S(sigma)')
 
-                for isig in range(levN):
+            for isig in range(levN):
 
-                    if density[isig] < 26.5 :
-                        max_density_shift = max_density_shift1
-                    else :
-                        max_density_shift = max_density_shift2
+                if density[isig] < 26.5 :
+                    max_density_shift = max_density_shift1
+                else :
+                    max_density_shift = max_density_shift2
 
-                    if (var_1950[isig,ilat,ibasin] != valmask) :
+                if (var_1950[isig,ilat,ibasin] != valmask) :
 
-                        # Look at the slope of dS/dsigma - if it is close to zero, only look at the horizontal shift
-                        if np.ma.abs(dvar_dsig[isig, ilat, ibasin]) <= 0.25:
-                            dsig_dt[isig, ilat, ibasin] = 0
-                        else:
+                    # Look at the slope of dS/dsigma - if it is close to zero, only look at the horizontal shift
+                    if np.ma.abs(dvar_dsig[isig, ilat, ibasin]) <= 0.25:
+                        dsig_dt[isig, ilat, ibasin] = 0
+                    else:
 
-                            # Find density indices where abs(density_hr-density[isig])<0.5 kg.m-3
-                            isig_interval = np.flatnonzero(np.ma.abs(density_hr[:] - density[isig]) < max_density_shift)
+                        # Find density indices where abs(density_hr-density[isig])<0.5 kg.m-3
+                        isig_interval = np.flatnonzero(np.ma.abs(density[:] - density[isig]) < max_density_shift)
 
-                            if len(isig_interval) != 0:
-                                sig_interval = density_hr[isig_interval]
-                                # print(ibasin,density[isig],lat[ilat],var_1950[isig,ilat,ibasin])
-                                # print(sig_interval)
-                                # print(var_2000_hr[isig_interval])
+                        if len(isig_interval) != 0:
+                            sig_interval = density[isig_interval]
+                            # print(ibasin,density[isig],lat[ilat],var_1950[isig,ilat,ibasin])
+                            # print(sig_interval)
+                            # print(var_2000_hr[isig_interval])
 
-                                isig2 = isig_interval[np.ma.argmin(np.ma.abs(var_2000_hr[isig_interval] - var_1950[isig,ilat,ibasin]))]
-                                #isig2 = np.ma.argmin(np.ma.abs(var_2000_hr[:] - var_1950[isig,ilat,ibasin]))
-                                sig2 = density_hr[isig2]
-                                # Save value to plot
-                                delta_var_min[isig,ilat,ibasin] = np.ma.abs(var_2000_hr[isig2]-var_1950[isig,ilat,ibasin])
-                                # print(delta_var_min[isig,ilat,ibasin])
-                                dsig_dt[isig, ilat, ibasin] = (sig2 - density[isig])
+                            isig2 = isig_interval[np.ma.argmin(np.ma.abs(var_2000[isig_interval,ilat,ibasin] - var_1950[isig,ilat,ibasin]))]
+                            sig2 = density[isig2]
+                            # Save value to plot
+                            delta_var_min[isig,ilat,ibasin] = np.ma.abs(var_2000[isig2,ilat,ibasin]-var_1950[isig,ilat,ibasin])
+                            # print(delta_var_min[isig,ilat,ibasin])
+                            dsig_dt[isig, ilat, ibasin] = -(sig2 - density[isig])
 
                                 # if ibasin == 1 and lat[ilat] == 0 and 26.5 <= density[isig] <= 27 :
                                 # if ibasin == 2 and density[isig] == 27.55 and lat[ilat] == -20:
@@ -491,7 +484,7 @@ for ibasin in range(1,4):
 
 
 
-                        # ### OLD METHOD ###
+# ### OLD METHOD ###
 #
 # for ibasin in range(1,4):
 #
@@ -593,63 +586,60 @@ varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': var_mean_p,
           'var_1950': var_1950[:,:,1],  'var_2000': var_2000[:,:,1],
           'var_change_res': var_change_res_p, 'dvar_dsig': dvar_dsig_p, 'dvar_dy': dvar_dy_p,
           'dy_dt': dy_dt_p, 'dsig_dt': dsig_dt_p, 'bowl': bowl_p,
-          'var_2000_lat_hr': var_2000_lat_hr[:,:,1], 'var_2000_sig_hr': var_2000_sig_hr[:,:,1],
-          'min_dist_sig': min_distance_sig[:,:,1], 'min_dist_lat': min_distance_lat[:,:,1],
+          #'var_2000_lat_hr': var_2000_lat_hr[:,:,1], 'var_2000_sig_hr': var_2000_sig_hr[:,:,1],
           'delta_var_min': delta_var_min[:,:,1]}
 varAtl = {'name': 'Atlantic', 'var_change': var_change_a, 'var_mean': var_mean_a, 'var_error': var_change_er_a,
             'var_1950': var_1950[:,:,2],  'var_2000': var_2000[:,:,2],
           'var_change_res': var_change_res_a, 'dvar_dsig': dvar_dsig_a, 'dvar_dy': dvar_dy_a,
           'dy_dt': dy_dt_a, 'dsig_dt': dsig_dt_a, 'bowl': bowl_a,
-          'var_2000_lat_hr': var_2000_lat_hr[:, :, 2], 'var_2000_sig_hr': var_2000_sig_hr[:, :, 2],
-          'min_dist_sig': min_distance_sig[:, :, 2], 'min_dist_lat': min_distance_lat[:, :, 2],
+          #'var_2000_lat_hr': var_2000_lat_hr[:, :, 2], 'var_2000_sig_hr': var_2000_sig_hr[:, :, 2],
           'delta_var_min': delta_var_min[:,:, 2]}
 varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': var_mean_i, 'var_error': var_change_er_i,
             'var_1950': var_1950[:,:,3],  'var_2000': var_2000[:,:,3],
           'var_change_res': var_change_res_i, 'dvar_dsig': dvar_dsig_i, 'dvar_dy': dvar_dy_i,
           'dy_dt': dy_dt_i, 'dsig_dt': dsig_dt_i, 'bowl': bowl_i,
-          'var_2000_lat_hr': var_2000_lat_hr[:, :, 3], 'var_2000_sig_hr': var_2000_sig_hr[:, :, 3],
-          'min_dist_sig': min_distance_sig[:, :, 3], 'min_dist_lat': min_distance_lat[:, :, 3],
+          #'var_2000_lat_hr': var_2000_lat_hr[:, :, 3], 'var_2000_sig_hr': var_2000_sig_hr[:, :, 3],
           'delta_var_min': delta_var_min[:,:, 3]}
 
 
 # # ==== Total change ====
-fig1, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-
-cnplot1 = zonal_2D(plt, 'total', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho, clevsm, clevsm_bold)
-
-cnplot1 = zonal_2D(plt, 'total', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho, clevsm, clevsm_bold)
-
-cnplot1 = zonal_2D(plt, 'total', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm, clevsm_bold)
-
-
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-
-cb = plt.colorbar(cnplot1[0], ax=axes.ravel().tolist(), ticks=cnplot1[1][::3])
-cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
-
-plt.suptitle('Total %s changes (%s)' %(legVar, name),
-          fontweight='bold', fontsize=14, verticalalignment='top')
+# fig1, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 #
+# cnplot1 = zonal_2D(plt, 'total', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho, clevsm, clevsm_bold)
 #
-# ==== Isopycnal migration term ====
-# fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+# cnplot1 = zonal_2D(plt, 'total', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho, clevsm, clevsm_bold)
 #
-# cnplot2 = zonal_2D(plt, 'isopyc_mig', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho)
-#
-# cnplot2 = zonal_2D(plt, 'isopyc_mig', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho)
-#
-# cnplot2 = zonal_2D(plt, 'isopyc_mig', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho)
+# cnplot1 = zonal_2D(plt, 'total', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm, clevsm_bold)
 #
 #
 # plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 #
-# cb = plt.colorbar(cnplot2[0], ax=axes.ravel().tolist(), ticks=cnplot2[1][::3])
+# cb = plt.colorbar(cnplot1[0], ax=axes.ravel().tolist(), ticks=cnplot1[1][::3])
 # cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 #
-# plt.suptitle('%s changes due to isopycnal migration (%s)' %(legVar, name),
+# plt.suptitle('Total %s changes (%s)' %(legVar, name),
 #           fontweight='bold', fontsize=14, verticalalignment='top')
-
 #
+#
+# ==== Isopycnal migration term ====
+fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+
+cnplot2 = zonal_2D(plt, 'isopyc_mig', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho)
+
+cnplot2 = zonal_2D(plt, 'isopyc_mig', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho)
+
+cnplot2 = zonal_2D(plt, 'isopyc_mig', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho)
+
+
+plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+
+cb = plt.colorbar(cnplot2[0], ax=axes.ravel().tolist(), ticks=cnplot2[1][::3])
+cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
+
+plt.suptitle('%s changes due to isopycnal migration (%s)' %(legVar, name),
+          fontweight='bold', fontsize=14, verticalalignment='top')
+
+
 # ==== Residual term ====
 fig3, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 
@@ -669,10 +659,9 @@ plt.suptitle('Residual %s changes (%s)' %(legVar, name),
           fontweight='bold', fontsize=14, verticalalignment='top')
 
 
-#plt.close()
 
-# # ==== Latitude driven term ====
-#
+# ==== Latitude driven term ====
+
 # fig4, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 #
 # cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho)
@@ -689,11 +678,11 @@ plt.suptitle('Residual %s changes (%s)' %(legVar, name),
 #
 # plt.suptitle('%s changes due to latitude-driven isopycnal migration (%s)' %(legVar, name),
 #           fontweight='bold', fontsize=14, verticalalignment='top')
-#
+
 #
 #
 # # ==== Density driven term ====
-#
+
 # fig5, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 #
 # cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho)
@@ -750,10 +739,11 @@ plt.suptitle('Residual %s changes (%s)' %(legVar, name),
 #
 # plt.suptitle('dsigma/dt (%s)' %(name,),
 #           fontweight='bold', fontsize=14, verticalalignment='top')
-#
-#
-# # ==== dy/dt ====
-#
+
+
+
+# ==== dy/dt ====
+
 # fig8, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 #
 # cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho)
@@ -769,7 +759,7 @@ plt.suptitle('Residual %s changes (%s)' %(legVar, name),
 #
 # plt.suptitle('dy/dt (%s)' %(name,),
 #           fontweight='bold', fontsize=14, verticalalignment='top')
-#
+
 #
 # # ==== dS/dy ====
 #
@@ -889,11 +879,11 @@ plt.suptitle('Residual %s changes (%s)' %(legVar, name),
 
 # fig14, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 #
-# zonal_2D(plt, 'mean_fields', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho, clevsm)
+# zonal_2D(plt, 'mean_fields', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho, clevsm, clevsm_bold)
 #
-# zonal_2D(plt, 'mean_fields', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho, clevsm)
+# zonal_2D(plt, 'mean_fields', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho, clevsm, clevsm_bold)
 #
-# zonal_2D(plt, 'mean_fields', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm)
+# zonal_2D(plt, 'mean_fields', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm, clevsm_bold)
 #
 #
 # plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
