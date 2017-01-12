@@ -451,19 +451,19 @@ plt.suptitle('%s changes due to latitude-driven isopycnal migration (%s)' %(legV
 
 # ==== Mean contours 1950/2000 ====
 
-# fig14, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-#
-# zonal_2D(plt, 'mean_fields', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho, clevsm)
-#
-# zonal_2D(plt, 'mean_fields', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho, clevsm)
-#
-# zonal_2D(plt, 'mean_fields', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm)
-#
-#
-# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-#
-# plt.suptitle('Mean %s field in 1950 and in 2000' %(legVar,),
-#           fontweight='bold', fontsize=14, verticalalignment='top')
+fig14, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+
+zonal_2D(plt, 'mean_fields', axes[0,0], axes[1,0], 'left', lat, density, varAtl, minmax, domrho, clevsm)
+
+zonal_2D(plt, 'mean_fields', axes[0,1], axes[1,1], 'mid', lat, density, varPac, minmax, domrho, clevsm)
+
+zonal_2D(plt, 'mean_fields', axes[0,2], axes[1,2], 'right', lat, density, varInd, minmax, domrho, clevsm)
+
+
+plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+
+plt.suptitle('Mean %s field in 1950 and in 2000' %(legVar,),
+          fontweight='bold', fontsize=14, verticalalignment='top')
 
 
 plt.show()

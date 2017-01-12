@@ -225,7 +225,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
 
     if action == 'dsig_dt':
         var = varBasin['dsig_dt']
-        levels = np.linspace(-0.3,0.3,16)
+        levels = np.linspace(-0.5,0.5,16)
         cmap = custom_div_cmap()
 
     if action == 'dy_dt':
@@ -237,9 +237,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
         var = varBasin['var_change_res']
         levels = np.linspace(minmax[0], minmax[1], minmax[2])
 
-    if action == 'var_2000_lat_hr':
-        var = varBasin['var_2000_lat_hr']
-        levels = None
+    if action == 'var_2000_hr':
+        var = varBasin['var_2000_hr']
+        levels = np.arange(33.75,36,0.25)
 
     if action == 'var_2000_sig_hr':
         var = varBasin['var_2000_sig_hr']
@@ -280,8 +280,8 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
 
     # ==== Upper panel ====
 
-    if action == 'var_2000_lat_hr' or action == 'var_2000_sig_hr':
-        cnplot1 = ax0.contourf(lat2d, density2d, var, cmap=plt.get_cmap('jet'))
+    if action == 'var_2000_hr' or action == 'var_2000_sig_hr':
+        cnplot1 = ax0.contourf(lat2d, density2d, var, levels, cmap=plt.get_cmap('jet'), extend='both')
     elif action == 'mean_fields':
         ax0.contour(lat2d,density2d,var_1950, levels=levels, colors='black', linewidths=0.5)
         cpplot11 = ax0.contour(lat2d,density2d,var_1950, levels=clevsm_bold, colors='black', linewidths=1.5)
@@ -301,7 +301,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
         # error_plot = ax0.contourf(lat2d, density2d, not_signif_change, levels=[0.25,0.5,1.5], colors='None',
         #                            hatches=['','....'], edgecolor='0.3', linewidth=0.0)
 
-    if action != 'var_2000_lat_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme':
+    if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme':
         ax0.plot(lat, bowl, color='black')
 
     ax0.set_ylim([domrho[0], domrho[1]])
@@ -324,8 +324,8 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
 
     # === Lower panel ====
 
-    if action == 'var_2000_lat_hr' or action == 'var_2000_sig_hr':
-        cnplot2 = ax1.contourf(lat2d, density2d, var, cmap=plt.get_cmap('jet'))
+    if action == 'var_2000_hr' or action == 'var_2000_sig_hr':
+        cnplot2 = ax1.contourf(lat2d, density2d, var, levels, cmap=plt.get_cmap('jet'), extend='both')
     elif action == 'mean_fields':
         ax1.contour(lat2d,density2d,var_1950, levels=levels, colors='black', linewidths=0.5)
         cpplot21 = ax1.contour(lat2d,density2d,var_1950, levels=clevsm_bold, colors='black', linewidths=1.5)
@@ -346,7 +346,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, minmax, domrh
     #     # error_plot = ax1.contourf(lat2d, density2d, not_signif_change, levels=[0.25, 0.5, 1.5], colors='None',
     #     #                           hatches=['', '....'], edgecolor='0.6', linewidth=0.0)
 
-    if action != 'var_2000_lat_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme':
+    if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme':
         ax1.plot(lat, bowl, color='black')
 
 
