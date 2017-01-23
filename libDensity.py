@@ -723,6 +723,7 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
 
         #print 'ib, timing',ib, tim01-tim0,tim1-tim01,tim2-tim1,tim3-tim2,tim4-tim3
     # <--- end of loop on density
+    print ' '
 
     outFile_f.close()
     fi.close()
