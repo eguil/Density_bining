@@ -52,15 +52,15 @@ keepFiles = True
 oneD = False
 twoD = False
 
-#oneD = True
-twoD = True
+oneD = True
+#twoD = True
 mme  = False
 mm = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
-#exper = 'piControl'
-exper = '1pctCO2'
+exper = 'piControl'
+#exper = '1pctCO2'
 #exper = 'obs'
 
 
