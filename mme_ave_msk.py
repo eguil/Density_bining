@@ -54,8 +54,8 @@ twoD = False
 
 oneD = True
 #twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
@@ -100,7 +100,6 @@ if exper <> 'obs':
     iniyear = 1861
     peri1 = (1861-iniyear)+1
     peri2 = (1950-iniyear)+2
-    idxtime=[0,145]
 
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
@@ -173,15 +172,19 @@ if ToE:
 if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
+    idxtime=[0,145]
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
+    idxtime=[0,145]
 elif exper == 'piControl':
     indir  = [piControlDir]
     outdir = picMMEOut
+    idxtime=[0,0] # TODO: work out
 elif exper == '1pctCO2':
     indir  = [pctCO2Dir]
     outdir = pctMMEOut
+    idxtime=[0,140]
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
