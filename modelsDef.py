@@ -34,7 +34,7 @@ def defModels():
         {'name':'GFDL-CM3'      ,'props':[4,3,1, 1,146], 'picontrol':[0],'correctFile':[0,0,0]}, # 22
         {'name':'GFDL-ESM2G'    ,'props':[1,0,1, 1,146], 'picontrol':[500],'correctFile':[0,0,0]}, # 23
         {'name':'GFDL-ESM2M'    ,'props':[1,1,1, 0,145], 'picontrol':[500],'correctFile':[0,0,0]}, # 24
-        {'name':'GISS-E2-H'     ,'props':[10,11,1,11,156],'picontrol':[780],'correctFile':[0,0,0]},# 25
+        #{'name':'GISS-E2-H'     ,'props':[10,11,1,11,156],'picontrol':[780],'correctFile':[0,0,0]},# 25 BUG in Apr2015 binning
         {'name':'GISS-E2-H-CC'  ,'props':[1,0,0,11,156], 'picontrol':[251],'correctFile':[0,0,0]}, # 26
         {'name':'GISS-E2-R'     ,'props':[16,11,1,11,156],'picontrol':[846],'correctFile':[179,180,180]},# 27
         {'name':'GISS-E2-R-CC'  ,'props':[1,0,0,11,156], 'picontrol':[251],'correctFile':[0,0,0]}, # 28
