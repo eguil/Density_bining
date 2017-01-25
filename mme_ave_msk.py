@@ -52,8 +52,8 @@ keepFiles = True
 oneD = False
 twoD = False
 
-oneD = True
-#twoD = True
+#oneD = True
+twoD = True
 mm  = False
 mme = True
 # experiment
@@ -216,6 +216,10 @@ if raw & twoD :
     if mme:
         indir[0] = indir[0]+'/mme'
 
+if mme:
+    indir[0]  = outdir
+
+
 timeInt=[peri1,peri2]
 
 listens = []
@@ -341,7 +345,6 @@ for i in modelSel:
                     
 if mme:
     # run 1D MME first
-    indir[0]  = outdir
     if twoD:
         outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_'+appendDim2d+'.nc'
         if os.path.isfile(outdir+'/'+outFile) & keepFiles:

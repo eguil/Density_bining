@@ -186,7 +186,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
                 percent[i,...] = npy.float32(npy.equal(maskvar,0))
             if mme:
-                # if mme then just accumulate Bowl, Agree and Std fields
+                # if mme then just accumulate Bowl, Agree fields
                 varst = var+'Agree'
                 vardiff[i,...] = ft(varst,time = slice(t1r,t2r))
                 varb = var+'Bowl'
@@ -331,14 +331,16 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         isonavebowl = cdm.createVariable(isonVarBowl, axes = [time,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Bowl')
         isonavebowl.long_name = isonRead.long_name
         isonavebowl.units     = isonRead.units
-        isonmaxstd = cdm.createVariable(isonVarStd, axes = [axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Std')
-        isonmaxstd.long_name = isonRead.long_name
-        isonmaxstd.units     = isonRead.units
+        if not mme:
+            isonmaxstd = cdm.createVariable(isonVarStd, axes = [axesList[1],axesList[2],axesList[3]], id = isonRead.id+'Std')
+            isonmaxstd.long_name = isonRead.long_name
+            isonmaxstd.units     = isonRead.units
 
         outFile_f.write(    isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
         outFile_f.write(isonavebowl.astype('float32'))
-        outFile_f.write(isonmaxstd.astype('float32'))
+        if not mme:
+            outFile_f.write( isonmaxstd.astype('float32'))
 
         if ToeType == 'histnat':
             isontoe1 = cdm.createVariable(varToE1, axes = [ensembleAxis,axesList[1],axesList[2],axesList[3]], id = isonRead.id+'ToE1')
