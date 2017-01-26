@@ -117,6 +117,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
         os.remove(outDir+'/'+outFile)
     outFile_f = cdm.open(outDir+'/'+outFile,'w')
 
+    # Testing mme with less models
+    listFiles=listFiles[0:4]
+
     #timN = isond0.shape[0]
     timN = t2-t1
     runN = len(listFiles)
@@ -130,8 +133,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
     #minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
     varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
-    #varList = ['isondepth']
-    #print ' !!! ### Testing one variable ###'
+    varList = ['isondepth']
+    print ' !!! ### Testing one variable ###'
     #varList = ['isonthetao']
 
     # init time axis
@@ -143,6 +146,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     ensembleAxis       = cdm.createAxis(npy.float32(range(runN)))
     ensembleAxis.id    = 'members'
     ensembleAxis.units = 'N'
+
     # loop on variables
     for iv,var in enumerate(varList):
 
@@ -188,9 +192,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             if mme:
                 # if mme then just accumulate Bowl, Agree fields
                 varst = var+'Agree'
-                vardiff[i,...] = ft(varst,time = slice(t1r,t2r))
+                vardiff[i,...] = ft(varst,time = slice(t1,t2))
                 varb = var+'Bowl'
-                varbowl2D[i,...] = ft(varb,time = slice(t1r,t2r))
+                varbowl2D[i,...] = ft(varb,time = slice(t1,t2))
             else:
                 # Compute difference with average of first initN years
                 varinit = cdu.averager(isonvar[i,peri1:peri2,...],axis=0)
