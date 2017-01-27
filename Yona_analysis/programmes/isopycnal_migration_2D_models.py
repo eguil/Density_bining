@@ -59,6 +59,7 @@ var_mean = np.ma.average(var,axis=0)
 var_change = np.ma.average(var[-5:,:,:,:],axis=0) -np.ma.average(var[0:5,:,:,:],axis=0)
 
 z_mean = np.ma.average(z,axis=0)
+z_change = np.ma.average(z[-5:,:,:,:], axis=0) - np.ma.average(z[0:5,:,:,:], axis=0)
 
 # -- Determine field in 1950 and 2000
 var_1950 = np.ma.average(var[0:5,:,:,:], axis=0)
@@ -68,8 +69,8 @@ var_2000 = np.ma.average(var[-5:,:,:,:],axis=0)
 # var_2000[:,:,91:] = np.roll(var_1950[:,:,91:], 2, axis=2); var_2000[:,:,91:93] = var_1950[:,:,91:93]
 # var_2000[:,:,0:91] = np.roll(var_1950[:,:,0:91], -2, axis=2); var_2000[:,:,89:91] = var_1950[:,:,89:91]
 
-# -- Artificial 2000 field : shift in sigma only
-var_2000 = np.roll(var_1950, -1, axis=1); var_2000[:,-1,:] = var_1950[:,-1,:]
+# # -- Artificial 2000 field : shift in sigma only
+# var_2000 = np.roll(var_1950, -1, axis=1); var_2000[:,-1,:] = var_1950[:,-1,:]
 
 
 valmask = var_attributes.missing_value
@@ -84,7 +85,7 @@ delta_t = 50 # years
 # Aspect ratio H/L = vertical/meridional scale
 H = 4000 # mean height of the ocean
 L = 16000000 # meridional length
-ar = H/L
+ar = 2.5e-6 #H/L
 
 # Converting lat degrees to meters
 convert = 111110
@@ -212,43 +213,43 @@ density_hr = np.hstack((sig_hr1,sig_hr2))
 var_2000_hr = np.ma.masked_all((basinN,len(density_hr),len(lat_hr)))
 
 
-# Start loop
-for ibasin in range(1,4):
-
-    # 2D interpolation
-    interp  = interpolate.interp2d(lat,density,var_2000[ibasin,:,:])
-    var_2000_hr[ibasin,:,:] = interp(lat_hr,density_hr)
-
-    # Start loops over density and latitude
-    for isig in range(levN):
-        for ilat in range(latN):
-
-            if var_1950[ibasin,isig,ilat] != valmask:
-
-                # Find latitude and density indices within the window [lat-window_lat;lat+window_lat],[sig-window_density;sig+window_density]
-                ilat_window = np.flatnonzero(np.ma.abs(lat_hr[:]-lat[ilat]) < window_lat)
-                isig_window = np.flatnonzero(np.ma.abs(density_hr[:] - density[isig]) < window_density)
-                if len(ilat_window) != 0 and len(isig_window) != 0:
-                    lat_window = lat_hr[ilat_window]
-                    sig_window = density_hr[isig_window]
-                    #print(basin[ibasin], density[isig], lat[ilat], var_1950[isig,ilat,ibasin])
-                    # Find close salinity in 2000 to salinity in 1950 at isig,ilat within the window
-                    window_iijj = np.ma.nonzero(np.ma.abs(var_2000_hr[ibasin,isig_window[0]:isig_window[-1]+1,ilat_window[0]:ilat_window[-1]+1]
-                                                          - var_1950[ibasin,isig,ilat]) < epsilon)
-                    # window_iijj gives us the indices of the closest salinities in isig_window, ilat_window
-                    if len(window_iijj[0]) != 0 :
-                        ii = isig_window[window_iijj[0]] # accessing the indices of the full hr density vector
-                        jj = ilat_window[window_iijj[1]] # accessing the indices of the full hr latitude vector
-
-                        delta_sig = density_hr[ii] - density[isig]
-                        delta_lat = lat_hr[jj] - lat[ilat]
-                        # dist is a 1D array of distances from the point in 1950
-                        dist = np.ma.sqrt(np.square(delta_sig*dz_dsig[ibasin,isig,ilat]) + np.square(delta_lat*convert*ar))
-                        #dist = np.ma.sqrt(np.square(delta_sig) + np.square(delta_lat))
-
-                        dsig_dt[ibasin,isig,ilat] = -delta_sig[np.ma.argmin(dist)]
-                        dy_dt[ibasin,isig,ilat] = -delta_lat[np.ma.argmin(dist)]
-                        #print(dsig_dt[ibasin,isig,ilat], dy_dt[ibasin,isig,ilat])
+# # Start loop
+# for ibasin in range(1,4):
+#
+#     # 2D interpolation
+#     interp  = interpolate.interp2d(lat,density,var_2000[ibasin,:,:])
+#     var_2000_hr[ibasin,:,:] = interp(lat_hr,density_hr)
+#
+#     # Start loops over density and latitude
+#     for isig in range(levN):
+#         for ilat in range(latN):
+#
+#             if var_1950[ibasin,isig,ilat] != valmask:
+#
+#                 # Find latitude and density indices within the window [lat-window_lat;lat+window_lat],[sig-window_density;sig+window_density]
+#                 ilat_window = np.flatnonzero(np.ma.abs(lat_hr[:]-lat[ilat]) < window_lat)
+#                 isig_window = np.flatnonzero(np.ma.abs(density_hr[:] - density[isig]) < window_density)
+#                 if len(ilat_window) != 0 and len(isig_window) != 0:
+#                     lat_window = lat_hr[ilat_window]
+#                     sig_window = density_hr[isig_window]
+#                     #print(basin[ibasin], density[isig], lat[ilat], var_1950[isig,ilat,ibasin])
+#                     # Find close salinity in 2000 to salinity in 1950 at isig,ilat within the window
+#                     window_iijj = np.ma.nonzero(np.ma.abs(var_2000_hr[ibasin,isig_window[0]:isig_window[-1]+1,ilat_window[0]:ilat_window[-1]+1]
+#                                                           - var_1950[ibasin,isig,ilat]) < epsilon)
+#                     # window_iijj gives us the indices of the closest salinities in isig_window, ilat_window
+#                     if len(window_iijj[0]) != 0 :
+#                         ii = isig_window[window_iijj[0]] # accessing the indices of the full hr density vector
+#                         jj = ilat_window[window_iijj[1]] # accessing the indices of the full hr latitude vector
+#
+#                         delta_sig = density_hr[ii] - density[isig]
+#                         delta_lat = lat_hr[jj] - lat[ilat]
+#                         # dist is a 1D array of distances from the point in 1950
+#                         dist = np.ma.sqrt(np.square(delta_sig*dz_dsig[ibasin,isig,ilat]) + np.square(delta_lat*convert*ar))
+#                         #dist = np.ma.sqrt(np.square(delta_sig) + np.square(delta_lat))
+#
+#                         dsig_dt[ibasin,isig,ilat] = -delta_sig[np.ma.argmin(dist)]
+#                         dy_dt[ibasin,isig,ilat] = -delta_lat[np.ma.argmin(dist)]
+#                         #print(dsig_dt[ibasin,isig,ilat], dy_dt[ibasin,isig,ilat])
 
 
 
@@ -433,15 +434,15 @@ var_change_res_i = var_change_i - var_change_isopmig_i
 varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': var_mean_p,
           'var_1950': var_1950[2,:,:],  'var_2000': var_2000[2,:,:], 'isopyc_mig': var_change_isopmig_p,
           'residual': var_change_res_p, 'dvar_dsig': dvar_dsig_p, 'dvar_dy': dvar_dy_p,
-          'dy_dt': dy_dt_p, 'dsig_dt': dsig_dt_p, 'bowl': bowl_p, 'z_mean': z_mean[2,:,:]}
+          'dy_dt': dy_dt_p, 'dsig_dt': dsig_dt_p, 'bowl': bowl_p, 'z_mean': z_mean[2,:,:], 'z_change': z_change[2,:,:]}
 varAtl = {'name': 'Atlantic', 'var_change': var_change_a, 'var_mean': var_mean_a,
             'var_1950': var_1950[1,:,:],  'var_2000': var_2000[1,:,:], 'isopyc_mig': var_change_isopmig_a,
           'residual': var_change_res_a, 'dvar_dsig': dvar_dsig_a, 'dvar_dy': dvar_dy_a,
-          'dy_dt': dy_dt_a, 'dsig_dt': dsig_dt_a, 'bowl': bowl_a, 'z_mean': z_mean[1,:,:]}
+          'dy_dt': dy_dt_a, 'dsig_dt': dsig_dt_a, 'bowl': bowl_a, 'z_mean': z_mean[1,:,:], 'z_change': z_change[1,:,:]}
 varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': var_mean_i,
             'var_1950': var_1950[3,:,:],  'var_2000': var_2000[3,:,:], 'isopyc_mig': var_change_isopmig_i,
           'residual': var_change_res_i, 'dvar_dsig': dvar_dsig_i, 'dvar_dy': dvar_dy_i,
-          'dy_dt': dy_dt_i, 'dsig_dt': dsig_dt_i, 'bowl': bowl_i, 'z_mean': z_mean[3,:,:]}
+          'dy_dt': dy_dt_i, 'dsig_dt': dsig_dt_i, 'bowl': bowl_i, 'z_mean': z_mean[3,:,:], 'z_change': z_change[3,:,:]}
 
 
 
@@ -494,104 +495,104 @@ varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': var_mean_i,
 
 # ==== dsigma/dt ====
 
-fig7, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-
-levels = np.linspace(-0.5,0.5,16)
-cmap = custom_div_cmap()
-
-cnplot7 = zonal_2D(plt, 'dsig_dt', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
-                   domrho, cmap, levels)
-
-cnplot7 = zonal_2D(plt, 'dsig_dt', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
-                   domrho, cmap, levels)
-
-cnplot7 = zonal_2D(plt, 'dsig_dt', axes[0,2], axes[1,2], 'right', lat, density, varInd,
-                    domrho, cmap, levels)
-
-
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-
-cb = plt.colorbar(cnplot7, ax=axes.ravel().tolist(), ticks=levels[::3])
-
-plt.suptitle('dsigma/dt (%s)' %(name,),
-          fontweight='bold', fontsize=14, verticalalignment='top')
-
-
-# ==== dy/dt ====
-
-fig8, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-
-levels = np.linspace(-5, 5, 16)
-cmap = custom_div_cmap()
-
-cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
-                   domrho, cmap, levels)
-
-cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
-                   domrho, cmap, levels)
-
-cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,2], axes[1,2], 'right', lat, density, varInd,
-                   domrho, cmap, levels)
-
-
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-
-cb = plt.colorbar(cnplot8, ax=axes.ravel().tolist(), ticks=levels[::3])
-
-plt.suptitle('dy/dt (%s)' %(name,),
-          fontweight='bold', fontsize=14, verticalalignment='top')
-
-
-# ==== Density driven term ====
-
-fig5, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-
-levels = np.linspace(minmax[0], minmax[1], minmax[2])
-cmap = custom_div_cmap()
-
-cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
-                   domrho, cmap, levels)
-
-cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
-                   domrho, cmap, levels)
-
-cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,2], axes[1,2], 'right', lat, density, varInd,
-                   domrho, cmap, levels)
-
-
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-
-cb = plt.colorbar(cnplot5, ax=axes.ravel().tolist(), ticks=levels[::3])
-cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
-
-plt.suptitle('%s changes due to density-driven isopycnal migration (%s)' %(legVar, name),
-         fontweight='bold', fontsize=14, verticalalignment='top')
-
-
-# ==== Latitude driven term ====
-
-fig4, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-
-levels = np.linspace(minmax[0], minmax[1], minmax[2])
-cmap = custom_div_cmap()
-
-cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
-                   domrho, cmap, levels)
-
-cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
-                   domrho, cmap, levels)
-
-cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,2], axes[1,2], 'right', lat, density, varInd,
-                   domrho, cmap, levels)
-
-
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-
-cb = plt.colorbar(cnplot4, ax=axes.ravel().tolist(), ticks=levels[::3])
-cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
-
-plt.suptitle('%s changes due to latitude-driven isopycnal migration (%s)' %(legVar, name),
-          fontweight='bold', fontsize=14, verticalalignment='top')
+# fig7, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+#
+# levels = np.linspace(-0.5,0.5,16)
+# cmap = custom_div_cmap()
+#
+# cnplot7 = zonal_2D(plt, 'dsig_dt', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
+#                    domrho, cmap, levels)
+#
+# cnplot7 = zonal_2D(plt, 'dsig_dt', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
+#                    domrho, cmap, levels)
+#
+# cnplot7 = zonal_2D(plt, 'dsig_dt', axes[0,2], axes[1,2], 'right', lat, density, varInd,
+#                     domrho, cmap, levels)
+#
+#
+# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+#
+# cb = plt.colorbar(cnplot7, ax=axes.ravel().tolist(), ticks=levels[::3])
+#
+# plt.suptitle('dsigma/dt (%s)' %(name,),
+#           fontweight='bold', fontsize=14, verticalalignment='top')
+#
+#
+# # ==== dy/dt ====
+#
+# fig8, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+#
+# levels = np.linspace(-5, 5, 16)
+# cmap = custom_div_cmap()
+#
+# cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
+#                    domrho, cmap, levels)
+#
+# cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
+#                    domrho, cmap, levels)
+#
+# cnplot8 = zonal_2D(plt, 'dy_dt', axes[0,2], axes[1,2], 'right', lat, density, varInd,
+#                    domrho, cmap, levels)
+#
+#
+# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+#
+# cb = plt.colorbar(cnplot8, ax=axes.ravel().tolist(), ticks=levels[::3])
+#
+# plt.suptitle('dy/dt (%s)' %(name,),
+#           fontweight='bold', fontsize=14, verticalalignment='top')
+#
+#
+# # ==== Density driven term ====
+#
+# fig5, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+#
+# levels = np.linspace(minmax[0], minmax[1], minmax[2])
+# cmap = custom_div_cmap()
+#
+# cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
+#                    domrho, cmap, levels)
+#
+# cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
+#                    domrho, cmap, levels)
+#
+# cnplot5 = zonal_2D(plt, 'isopyc_mig_sig', axes[0,2], axes[1,2], 'right', lat, density, varInd,
+#                    domrho, cmap, levels)
+#
+#
+# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+#
+# cb = plt.colorbar(cnplot5, ax=axes.ravel().tolist(), ticks=levels[::3])
+# cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
+#
+# plt.suptitle('%s changes due to density-driven isopycnal migration (%s)' %(legVar, name),
+#          fontweight='bold', fontsize=14, verticalalignment='top')
+#
+#
+# # ==== Latitude driven term ====
+#
+# fig4, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+#
+# levels = np.linspace(minmax[0], minmax[1], minmax[2])
+# cmap = custom_div_cmap()
+#
+# cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
+#                    domrho, cmap, levels)
+#
+# cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
+#                    domrho, cmap, levels)
+#
+# cnplot4 = zonal_2D(plt, 'isopyc_mig_lat', axes[0,2], axes[1,2], 'right', lat, density, varInd,
+#                    domrho, cmap, levels)
+#
+#
+# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+#
+# cb = plt.colorbar(cnplot4, ax=axes.ravel().tolist(), ticks=levels[::3])
+# cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
+#
+# plt.suptitle('%s changes due to latitude-driven isopycnal migration (%s)' %(legVar, name),
+#           fontweight='bold', fontsize=14, verticalalignment='top')
 
 
 # ==== Isopycnal migration term ====
@@ -670,7 +671,7 @@ plt.suptitle('%s changes due to latitude-driven isopycnal migration (%s)' %(legV
 #           fontweight='bold', fontsize=14, verticalalignment='top')
 
 
-# ==== dz_dsigna ====
+# ==== z_mean ====
 
 # fig15, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 #
@@ -691,6 +692,30 @@ plt.suptitle('%s changes due to latitude-driven isopycnal migration (%s)' %(legV
 # cb = plt.colorbar(cnplot15, ax=axes.ravel().tolist())
 # cb.set_label('%s (%s)' % (depth['legVar'], depth['unit']), fontweight='bold')
 # plt.suptitle('Mean depth', fontweight='bold', fontsize=14, verticalalignment='top')
+
+
+# ==== z_change ====
+
+fig16, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+
+minmax_z = defVarmme('depth')['minmax']
+levels = np.linspace(minmax_z[0], minmax_z[1], minmax_z[2])
+cmap = custom_div_cmap(11)
+
+cnplot16 = zonal_2D(plt, 'z_change', axes[0,0], axes[1,0], 'left', lat, density, varAtl,
+                    domrho, cmap, levels, clevsm)
+
+cnplot16 = zonal_2D(plt, 'z_change', axes[0,1], axes[1,1], 'mid', lat, density, varPac,
+                    domrho, cmap, levels, clevsm)
+
+cnplot16 = zonal_2D(plt, 'z_change', axes[0,2], axes[1,2], 'right', lat, density, varInd,
+                    domrho, cmap, levels, clevsm)
+
+
+plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+cb = plt.colorbar(cnplot16, ax=axes.ravel().tolist(), ticks = levels[::3])
+cb.set_label('%s (%s)' % (depth['legVar'], depth['unit']), fontweight='bold')
+plt.suptitle('Depth change between 1950 and 2000 (mme_hist)', fontweight='bold', fontsize=14, verticalalignment='top')
 
 
 # ==== var_2000_hr ====

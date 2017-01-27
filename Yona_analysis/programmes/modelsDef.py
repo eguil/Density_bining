@@ -27,6 +27,15 @@ def defModels():
 
     return models
 
+# Models that have the 1pctCO2 runs :
+# CCSM4 (2)
+# CNRM-CM5 (4)
+# GFDL-CM3 (7)
+# GFDL-ESM2M (8)
+# MIROC-ESM (14)
+
+
+
 # models to check
 """
     models = [

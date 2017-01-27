@@ -111,6 +111,7 @@ def defVarmme(longName):
 
     depth = {'var_zonal':'isondepthBowl',
              'clevsm': np.arange(0, 2000, 100),
+             'minmax': [-30, 30, 16],
              'legVar': "Depth", 'unit': "m", 'longN': 'depth'}
 
     vars = [salinity,temp,depth]
