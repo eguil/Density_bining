@@ -47,7 +47,8 @@ testOneModel = False
 correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
-keepFiles = True
+# Use False for testing
+keepFiles = False
 
 oneD = False
 twoD = False
@@ -59,8 +60,8 @@ mme = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
-#exper = 'piControl'
-exper = '1pctCO2'
+exper = 'piControl'
+#exper = '1pctCO2'
 #exper = 'obs'
 
 
@@ -180,11 +181,13 @@ elif exper == 'historicalNat':
 elif exper == 'piControl':
     indir  = [piControlDir]
     outdir = picMMEOut
-    idxtime=[0,0] # TODO: work out
+    idxtime=[0,-140] # last 140 years are used for mme
+    selMME = '1pct' # select on runs that also have a 1pctCO2
 elif exper == '1pctCO2':
     indir  = [pctCO2Dir]
     outdir = pctMMEOut
     idxtime=[0,140]
+    selMME = 'piCtl' # select on runs that also have a piControl
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
@@ -262,6 +265,9 @@ for i in modelSel:
         nyears = models[i]['picontrol'][0]
         nens = 1
         years=[0,nyears]
+        if selMME == '1pct' and nyears < 140 and nyears > 0:
+            nens = 1
+            print ' TOO SHORT: IGNORE model', mod
         chartest = exper
     elif exper == '1pctCO2':
         nens = models[i]['props'][2]
@@ -317,9 +323,13 @@ for i in modelSel:
                         listens.append(outFile)
                         listens1.append(outFile1)
                         print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
-
                 if selMME == '1pct': # only select model if 1pctCO2 mm is present
                     if models[i]['props'][2] > 0:
+                        listens.append(outFile)
+                        listens1.append(outFile1)
+                        print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
+                if selMME == 'piCtl': # only select model if piCtl mm is present
+                    if models[i]['picontrol'][0] > 0:
                         listens.append(outFile)
                         listens1.append(outFile1)
                         print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'

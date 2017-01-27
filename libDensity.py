@@ -99,6 +99,13 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     # File dim and grid inits
     t1 = years[0]
     t2 = years[1]
+    if t2 <= 0:
+        useLastYears = True
+        t2 = -t2
+    else:
+        useLastYears = False
+    t10 = t1
+    t20 = t2
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
@@ -118,7 +125,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     outFile_f = cdm.open(outDir+'/'+outFile,'w')
 
     # Testing mme with less models
-    listFiles=listFiles[0:4]
+    #listFiles=listFiles[0:4]
 
     #timN = isond0.shape[0]
     timN = t2-t1
@@ -133,8 +140,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
     #minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
     varbowl  = npy.ma.ones([runN,timN,basN,latN], dtype='float32')*1.
-    varList = ['isondepth']
-    print ' !!! ### Testing one variable ###'
+    #varList = ['isondepth']
+    #print ' !!! ### Testing one variable ###'
     #varList = ['isonthetao']
 
     # init time axis
@@ -169,12 +176,18 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             else:
                 print 'ERROR:',file1d,'missing (if mme, run 1D first)'
                 sys.exit(1)
-            if i == 0:
-                tmax0 = timeax.shape[0]
             tmax = timeax.shape[0]
-            if tmax != tmax0:
-                print 'wrong time axis: exiting...'
-                return
+            if i == 0:
+                tmax0 = tmax
+            #adapt [t1,t2] time bounds to piControl last NN years
+            if useLastYears:
+                t1 = tmax-t20
+                t2 = tmax
+            else:
+                if tmax != tmax0:
+                    print 'wrong time axis: exiting...'
+                    return
+
             # read array
             # loop over time/density for memory management
             for it in range(timN):
@@ -782,6 +795,11 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     # File dim and grid inits
     t1 = years[0]
     t2 = years[1]
+    if t2 <= 0:
+        useLastYears = True
+        t2 = -t2
+    else:
+        useLastYears = False
     # Bound of period average to remove
     peri1 = timeInt[0]
     peri2 = timeInt[1]
@@ -808,6 +826,8 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         timN = ptopd0.shape[0]
         t1=0
         t2=timN
+    t10 = t1
+    t20 = t2
     # Get grid objects
     axesList = ptopd0.getAxisList()
     # Declare and open files for writing
@@ -868,15 +888,21 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         print ' Variable ',iv, var, varDim[iv]
         # loop over files to fill up array
         for ic,file in enumerate(listFiles):
+            #print ic,file
             ft      = cdm.open(inDir[0]+'/'+file)
             timeax  = ft.getAxis('time')
-            if ic == 0:
-                tmax0 = timeax.shape[0]
             tmax = timeax.shape[0]
-            if tmax != tmax0:
-                print "wrong time axis: exiting..."
-                print ' -> file:',ic, inDir[0]+'/'+file
-                return
+            if ic == 0:
+                tmax0 = tmax
+            #adapt [t1,t2] time bounds to piControl last NN years
+            if useLastYears:
+                t1 = tmax-t20
+                t2 = tmax
+            else:
+                if tmax != tmax0:
+                    print 'wrong time axis: exiting...'
+                    return
+            #print 'Time dims:',ic, t1,t2,tmax
             # read array
             computeVar = True
             allVars = ft.variables.keys()

@@ -36,7 +36,7 @@ def defModels():
         {'name':'GFDL-ESM2M'    ,'props':[1,1,1, 0,145], 'picontrol':[500],'correctFile':[0,0,0]}, # 24
         #{'name':'GISS-E2-H'     ,'props':[10,11,1,11,156],'picontrol':[780],'correctFile':[0,0,0]},# 25 BUG in Apr2015 binning
         {'name':'GISS-E2-H-CC'  ,'props':[1,0,0,11,156], 'picontrol':[251],'correctFile':[0,0,0]}, # 26
-        {'name':'GISS-E2-R'     ,'props':[16,11,1,11,156],'picontrol':[846],'correctFile':[179,180,180]},# 27
+        #{'name':'GISS-E2-R'     ,'props':[16,11,1,11,156],'picontrol':[846],'correctFile':[179,180,180]},# 27
         {'name':'GISS-E2-R-CC'  ,'props':[1,0,0,11,156], 'picontrol':[251],'correctFile':[0,0,0]}, # 28
         {'name':'HadCM3'        ,'props':[9,0,0, 1,146], 'picontrol':[0],'correctFile':[0,0,0]}, # 29
         {'name':'HadGEM2-CC'    ,'props':[1,0,0, 1,146], 'picontrol':[240],'correctFile':[0,0,0]}, # 30
@@ -45,7 +45,7 @@ def defModels():
         {'name':'IPSL-CM5A-MR'  ,'props':[3,3,1,11,156], 'picontrol':[300],'correctFile':[0,0,0]}, # 33
         {'name':'IPSL-CM5B-LR'  ,'props':[1,0,1,11,156], 'picontrol':[300],'correctFile':[0,0,0]}, # 34
         {'name':'MIROC-ESM-CHEM','props':[1,1,0,11,156], 'picontrol':[255],'correctFile':[179,180,180]}, # 35
-        {'name':'MIROC-ESM'     ,'props':[3,3,1,11,156], 'picontrol':[100],'correctFile':[179,180,180]}, # 36
+        #{'name':'MIROC-ESM'     ,'props':[3,3,1,11,156], 'picontrol':[100],'correctFile':[179,180,180]}, # 36
         {'name':'MPI-ESM-LR'    ,'props':[3,0,1,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 37
         {'name':'MPI-ESM-MR'    ,'props':[3,0,1,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 38
         {'name':'MPI-ESM-P'     ,'props':[2,0,1,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 39
