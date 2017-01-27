@@ -12,12 +12,26 @@ TODO: - add arguments for variable and output type
       - read variable unit from file
 
 """
-import numpy as np
+
+import os.path
+import sys
+from inspect import getsourcefile
+
 import matplotlib.pyplot as plt
-from netCDF4 import Dataset as open_ncfile
-from densit_matplot_lib import zon_2dom, defVar
-from libToE import findToE
+import numpy as np
 from matplotlib.ticker import MaxNLocator
+from netCDF4 import Dataset as open_ncfile
+
+from densit_matplot_lib import zon_2dom, defVar
+import colormaps as cmaps
+
+current_path = os.path.abspath(getsourcefile(lambda:0))
+current_dir = os.path.dirname(current_path)
+parent_dir = current_dir[:current_dir.rfind(os.path.sep)]
+
+sys.path.insert(0, parent_dir)
+
+from libToE import findToE
 
 #import matplotlib as mpl
 #from   mpl_toolkits.basemap import Basemap, cm
@@ -28,7 +42,7 @@ from matplotlib.ticker import MaxNLocator
 #                               Define work
 # -------------------------------------------------------------------------------
 
-indir = '/Users/ericg/Projets/Density_bining/'
+indir = '/data/ericglod/Density_binning/'
 workh = 'Prod_density_april15/mme_hist/'
 workhn = 'Prod_density_april15/mme_histNat/'
 indirh = indir + workh
@@ -41,13 +55,13 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
-varname = defVar('temp')
+#varname = defVar('temp')
 #varname = defVar('depth')
 #varname = defVar('volume')
 #varname = defVar('persist')
 #varname = defVar('heatcontent')
 
-ToE = True
+#ToE = True
 ToE = False
 multStd = 2. # detect ToE at multStd std dev of histNat
 # Define plot name
@@ -189,7 +203,9 @@ fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 # -- color map
 cmap = plt.get_cmap('bwr')  # red/white/blue difference map
 if ToE:
-    cmap = plt.get_cmap('viridis')
+    plt.register_cmap(name='viridis', cmap=cmaps.viridis)
+    cmap=cmaps.viridis
+    #cmap = plt.get_cmap('viridis')
     minmax = [1900, 2000, 20]
     unit = 'ToE'
 
