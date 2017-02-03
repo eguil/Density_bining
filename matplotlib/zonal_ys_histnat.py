@@ -61,8 +61,8 @@ varname = defVar('salinity')
 #varname = defVar('persist')
 #varname = defVar('heatcontent')
 
-#ToE = True
-ToE = False
+ToE = True
+#ToE = False
 multStd = 2. # detect ToE at multStd std dev of histNat
 # Define plot name
 plotName = 'cmip5_hist_vs_histNat_stddev_' + varname['var']

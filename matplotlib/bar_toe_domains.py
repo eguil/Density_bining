@@ -25,7 +25,7 @@ import numpy as np
 #                                Define work
 # -------------------------------------------------------------------------------
 
-inDir = '/Users/ericg/Projets/Density_bining/'
+inDir = '/data/ericglod/Density_binning/'
 workh = 'Prod_density_april15/toe_histNat'
 #workh = 'Prod_density_april15/mme_hist'
 inDirh = inDir + workh
