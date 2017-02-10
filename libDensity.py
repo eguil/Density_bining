@@ -41,7 +41,7 @@ def maskVal(field,valmask):
     field = mv.masked_where(field > valmask/10, field)
     return field
 
-def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType, debug=True):
+def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl, ToeType, debug=True):
     '''
     The mmeAveMsk2D() function averages rhon/lat density bined files with differing masks
     It ouputs
@@ -63,6 +63,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - outFile(str)           - output file
     - timeInt(2xindices)     - indices of init period to compare with (e.g. [1,20])
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
+    - timeBowl               - either time 'mean' or time 'max' bowl used to mask out bowl
     - ToeType(str)           - ToE type ('F': none, 'histnat')
                                -> requires running first mm+mme without ToE to compute Stddev
     - debug <optional>       - boolean value
@@ -76,6 +77,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - EG 19 Apr 2016   - ToE computation (just for 2D files)
     - EG 07 Oct 2016   - add 3D file support
     - EG 21 Nov 2016   - move 3D support to new function
+    - EG 10 jan 2017   - added timeBowl option
 
     - TODO :
                  - remove loops
@@ -318,7 +320,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
             isonVarStd  = isonVarAve*1. # start from variable
             if iv == 0:
                 siglimit = cdu.averager(varbowl, axis=0) # average accross members
-                siglimit = cdu.averager(siglimit, axis=0) - delta_rho # average in time
+                # if average bowl in time then
+                if timeBowl == 'mean':
+                    siglimit = cdu.averager(siglimit, axis=0) - delta_rho # average in time
+                # or take deepest over time
+                else:
+                    siglimit = cdu.max(siglimit, axis=0) - delta_rho
             # TODO: remove loop by building global array with 1/0
             for il in range(latN):
                 for ib in range(basN):

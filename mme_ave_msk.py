@@ -60,10 +60,12 @@ mme = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
-exper = 'piControl'
-#exper = '1pctCO2'
+#exper = 'piControl'
+exper = '1pctCO2'
 #exper = 'obs'
 
+# Time mean/max bowl calculation used to mask out bowl
+timeBowl = 'max'
 
 if twoD:
     correctF = False # already done for oneD
@@ -243,6 +245,7 @@ if ToE:
     print ' -> computing ToE for type = ',ToeType
 if mm:
         print ' -> Performing ensemble(s) for',exper
+        print ' -> Type of time selection on bowl (mean or max):',timeBowl
 if mme:
         print ' -> Performing MME for',selMME, 'models for', exper
 print
@@ -341,7 +344,7 @@ for i in modelSel:
                     else:
                         print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
                         if dim == 1:
-                            mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
+                            mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme,timeBowl,ToeType)
                         elif dim == 2:
                             mmeAveMsk3D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
                         print 'Wrote ',outdir+'/'+outFile
@@ -361,7 +364,7 @@ if mme:
             print ' -> IGNORE: mme of',outFile,'already in',outdir
         else:
             if dim == 1:
-                mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
+                mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme,timeBowl,ToeType)
             elif dim ==2:
                 mmeAveMsk3D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
             print 'Wrote ',outdir+'/'+outFile
