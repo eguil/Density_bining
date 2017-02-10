@@ -320,12 +320,12 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
             isonVarStd  = isonVarAve*1. # start from variable
             if iv == 0:
                 siglimit = cdu.averager(varbowl, axis=0) # average accross members
-                # if average bowl in time then
+                # Average bowl in time
                 if timeBowl == 'mean':
-                    siglimit = cdu.averager(siglimit, axis=0) - delta_rho # average in time
-                # or take deepest over time
+                    siglimit = cdu.averager(siglimit, axis=0) - delta_rho
+                # or take largest sigma over time
                 else:
-                    siglimit = cdu.max(siglimit, axis=0) - delta_rho
+                    siglimit = npy.ma.max(siglimit, axis=0) - delta_rho
             # TODO: remove loop by building global array with 1/0
             for il in range(latN):
                 for ib in range(basN):
