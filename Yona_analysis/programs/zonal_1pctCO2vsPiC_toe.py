@@ -12,23 +12,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import zonal_2D, defVarmme, custom_div_cmap
-from modelsDef import defModels
+from modelsDef import defModelsCO2piC
 from libToE import findToE
 import colormaps as cmaps
 
 # ----- Workspace ------
 
+#name = 'mme'
+name = 'ensemble_mean'
+
 indir_1pctCO2 = '/data/ericglod/Density_binning/Prod_density_april15/mme_1pctCO2/'
-file2d_1pctCO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
-file1d_1pctCO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
 indir_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piControl/'
-file2d_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
-file1d_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
+
+if name == 'mme':
+    file2d_1pctCO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
+    file1d_1pctCO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
+    file2d_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
+    file1d_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
+
+else :
+    models = defModelsCO2piC()
+    model = models[5] # Iterate
+
+    file2d_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
+    file1d_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon1D.nc'
+    file2d_piC = 'cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon2D.nc'
+    file1d_piC = 'cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon1D.nc'
 
 f2dCO2 = open_ncfile(indir_1pctCO2 + file2d_1pctCO2,'r')
 f1dCO2 = open_ncfile(indir_1pctCO2 + file1d_1pctCO2,'r')
 f2dpiC = open_ncfile(indir_piC + file2d_piC,'r')
 f1dpiC = open_ncfile(indir_piC + file1d_piC,'r')
+
 
 # ----- Work ------
 
@@ -44,7 +59,7 @@ valmask = 1.e20
 
 # Years for bowl : average around year 70 when CO2 has doubled
 y1 = 69
-y2 = 75
+y2 = 74
 
 # ----- Variables ------
 
@@ -72,22 +87,27 @@ varCO2_a = f2dCO2.variables[var][:,1,:,:].squeeze()
 varCO2_p = f2dCO2.variables[var][:,2,:,:].squeeze()
 varCO2_i = f2dCO2.variables[var][:,3,:,:].squeeze()
 # -- Read var piControl
-varpiC_a = f2dpiC.variables[var][:,1,:,:].squeeze()
-varpiC_p = f2dpiC.variables[var][:,2,:,:].squeeze()
-varpiC_i = f2dpiC.variables[var][:,3,:,:].squeeze()
+if name == 'mme':
+    varpiC_a = f2dpiC.variables[var][:,1,:,:].squeeze()
+    varpiC_p = f2dpiC.variables[var][:,2,:,:].squeeze()
+    varpiC_i = f2dpiC.variables[var][:,3,:,:].squeeze()
+else :
+    varpiC_a = f2dpiC.variables[var][-140:,1,:,:].squeeze()
+    varpiC_p = f2dpiC.variables[var][-140:,2,:,:].squeeze()
+    varpiC_i = f2dpiC.variables[var][-140:,3,:,:].squeeze()
 
 # -- Read lightest density of persistent ocean (ptopsigma)
-bowlCO2_a = f1dCO2.variables['ptopsigma'][y1:y2,1,:].squeeze()
-bowlCO2_p = f1dCO2.variables['ptopsigma'][y1:y2,2,:].squeeze()
-bowlCO2_i = f1dCO2.variables['ptopsigma'][y1:y2,3,:].squeeze()
+bowlCO2_a = f1dCO2.variables['ptopsigma'][0:5,1,:].squeeze()
+bowlCO2_p = f1dCO2.variables['ptopsigma'][0:5,2,:].squeeze()
+bowlCO2_i = f1dCO2.variables['ptopsigma'][0:5,3,:].squeeze()
 bowlpiC_a = f1dpiC.variables['ptopsigma'][y1:y2,1,:].squeeze()
 bowlpiC_p = f1dpiC.variables['ptopsigma'][y1:y2,2,:].squeeze()
 bowlpiC_i = f1dpiC.variables['ptopsigma'][y1:y2,3,:].squeeze()
 
 # -- Check mean fields
-varCO2mean_a = np.ma.average(varCO2_a, axis=0)
-varCO2mean_p = np.ma.average(varCO2_p, axis=0)
-varCO2mean_i = np.ma.average(varCO2_i, axis=0)
+varCO2mean_a = np.ma.average(varCO2_a[0:5,:,:], axis=0)
+varCO2mean_p = np.ma.average(varCO2_p[0:5,:,:], axis=0)
+varCO2mean_i = np.ma.average(varCO2_i[0:5,:,:], axis=0)
 
 # ----- Build plot variables ------
 
@@ -122,9 +142,9 @@ bowlpiC_i = np.ma.average(bowlpiC_i, axis=0)
 
 # -- Mask
 var_mask = np.ma.getmask(np.ma.average(f2dCO2.variables[var][:], axis=0))
-toe_a = np.ma.array(toe_a, mask=var_mask[1,:,:]) #np.ma.masked_greater_equal(toe_a,140)
-toe_p = np.ma.array(toe_p, mask=var_mask[2,:,:])# np.ma.masked_greater_equal(toe_p,140)
-toe_i = np.ma.array(toe_i, mask=var_mask[3,:,:]) #np.ma.masked_greater_equal(toe_i,140)
+toe_a = np.ma.array(toe_a, mask=var_mask[1,:,:])
+toe_p = np.ma.array(toe_p, mask=var_mask[2,:,:])
+toe_i = np.ma.array(toe_i, mask=var_mask[3,:,:])
 
 # -- Create variable bundles
 varAtl = {'name': 'Atlantic', 'ToE': toe_a, 'bowl_CO2': bowlCO2_a, 'bowl_piC': bowlpiC_a, 'labBowl': labBowl,
@@ -139,53 +159,60 @@ varInd = {'name': 'Indian', 'ToE': toe_i, 'bowl_CO2': bowlCO2_i, 'bowl_piC': bow
 #               Plot
 # ------------------------------------
 
-# # == Check mean fields ==
-#
-# fig0, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
-#
-# cmap = plt.get_cmap('jet')
-# levels = None
-#
-# cnplot = zonal_2D(plt, 'var_mean', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, domrho, cmap, levels, clevsm, clevsm_bold)
-#
-# cnplot = zonal_2D(plt, 'var_mean', axes[0, 1], axes[1, 1], 'mid', lat, density, varPac, domrho, cmap, levels, clevsm, clevsm_bold)
-#
-# cnplot = zonal_2D(plt, 'var_mean', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels, clevsm, clevsm_bold)
-#
-#
-# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-#
-# cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), fraction=0.015, shrink=2.0, pad=0.05)
-# cb.set_label('%s (%s)' % (legVar,unit), fontweight='bold')
-#
-# plotTitle = 'Mean ' + legVar + ' field (mme_1pctCO2)'
-#
-# plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+# == Check mean fields ==
 
+fig0, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 
-# == Plot ToE ==
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+cmap = plt.get_cmap('jet')
+levels = None
 
-minmax = [0, 141, 10]
-unit = 'ToE'
-cmap = cmaps.viridis
-levels = np.arange(minmax[0], minmax[1], minmax[2])
+cnplot = zonal_2D(plt, 'var_mean', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, domrho, cmap, levels, clevsm, clevsm_bold)
 
-cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, domrho, cmap, levels, clevsm, clevsm_bold)
+cnplot = zonal_2D(plt, 'var_mean', axes[0, 1], axes[1, 1], 'mid', lat, density, varPac, domrho, cmap, levels, clevsm, clevsm_bold)
 
-cnplot = zonal_2D(plt, 'ToE', axes[0, 1], axes[1, 1], 'mid', lat, density, varPac, domrho, cmap, levels, clevsm, clevsm_bold)
-
-cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels, clevsm, clevsm_bold)
+cnplot = zonal_2D(plt, 'var_mean', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels, clevsm, clevsm_bold)
 
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
-cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks = levels[::2], fraction=0.015, shrink=2.0, pad=0.05)
-cb.set_label('%s' % (unit,), fontweight='bold')
+cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), fraction=0.015, shrink=2.0, pad=0.05)
+cb.set_label('%s (%s)' % (legVar,unit), fontweight='bold')
 
-plotTitle = legVar + ' 1pctCO2 - piControl MME ToE [> ' + str(multStd) + ' std]'
+if name == 'ensemble_mean':
+    name = model['name']
+plotTitle = 'Mean ' + legVar + ' field (' + name + ' 1pctCO2, first 5 years)'
 
 plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
 
 
+# # == Plot ToE ==
+# fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+#
+# minmax = [0, 141, 10]
+# unit = 'ToE'
+# cmap = cmaps.viridis
+# levels = np.arange(minmax[0], minmax[1], minmax[2])
+#
+# cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, domrho, cmap, levels, clevsm, clevsm_bold)
+#
+# cnplot = zonal_2D(plt, 'ToE', axes[0, 1], axes[1, 1], 'mid', lat, density, varPac, domrho, cmap, levels, clevsm, clevsm_bold)
+#
+# cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels, clevsm, clevsm_bold)
+#
+#
+# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+#
+# cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks = levels[::2], fraction=0.015, shrink=2.0, pad=0.05)
+# cb.set_label('%s' % (unit,), fontweight='bold')
+#
+# if name == 'ensemble_mean':
+#     name = model['name']
+# plotTitle = name + ' ' + legVar + ' ToE 1pctCO2 vs. piControl [> ' + str(multStd) + ' std]'
+# plotName = name + '_ToE_' + legVar + '_1pctCO2vsPiC'
+#
+# plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+
+
 plt.show()
+
+#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/ToE/'+plotName+'.png', bbox_inches='tight')
