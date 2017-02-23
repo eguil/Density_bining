@@ -27,10 +27,13 @@ varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('temp'); v = 'T'
 #varname = defVarmme('depth'); v = 'Z'
 
+# -- Choose how to compute the domain average :
+#    same box for all models or to each model its own box (saved in libToE.py)
 #average = 'same_all'
 average = 'each_model'
 
-domain_name = 'Southern ST' #'SO'
+domain_name = 'North Pacific'
+# 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
 
 multStd = 2. # detect ToE at multStd std dev of piControl
 
@@ -61,10 +64,9 @@ var = varname['var_zonal']
 
 # Define variable properties
 minmax = varname['minmax_zonal']
-#clevsm = varname['clevsm_zonal']
-#clevsm_bold = varname['clevsm_bold']
 legVar = varname['legVar']
 unit = varname['unit']
+
 
 # ----- Compute ToE for each model ------
 
@@ -80,6 +82,9 @@ varToEI = np.ma.masked_all(len(models))
 
 for i, model in enumerate(models):
     print '- Computing ToE of',model['name']
+
+    if model['name'] == 'GISS-E2-H' :
+        indir_1pctCO2 = indir_1pctCO2 + 'zon2D_mean_bowl/'
 
     # -- Read 1pctCO2 file and piControl file
     file_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
@@ -126,17 +131,18 @@ for i, model in enumerate(models):
     if average == 'each_model' :
 
         # -- Select domain to average for each model
-        domain = ToEdomain(model['name'], domain_name)
+        domain = ToEdomain(model['name'], domain_name)[0]
+        domain_char = ToEdomain(model['name'], domain_name)[1]
 
         # -- Average toe
         if domain['Atlantic'] != None:
-            varToEA[i] = np.around(averageDom(toe_a[i,:,:], 2, domain['Atlantic'], lat, density))
+            varToEA[i] = np.ma.around(averageDom(toe_a[i,:,:], 2, domain['Atlantic'], lat, density))
             print 'ToE Atlantic:',varToEA[i]
         if domain['Pacific'] != None:
-            varToEP[i] = np.around(averageDom(toe_p[i,:,:], 2, domain['Pacific'], lat, density))
+            varToEP[i] = np.ma.around(averageDom(toe_p[i,:,:], 2, domain['Pacific'], lat, density))
             print 'ToE Pacific:',varToEP[i]
         if domain['Indian'] != None:
-            varToEI[i] = np.around(averageDom(toe_i[i,:,:], 2, domain['Indian'], lat, density))
+            varToEI[i] = np.ma.around(averageDom(toe_i[i,:,:], 2, domain['Indian'], lat, density))
             print 'ToE Indian:',varToEI[i]
 
 
@@ -145,6 +151,7 @@ if 'average' == 'same_all' :
     DomToEA = {'domain': [-40., -20, 25.75, 26.6], 'name': 'Southern ST'}
     DomToEP = {'domain': [-15, -10, 26, 26.3]   , 'name': 'Southern ST'}
     DomToEI = {'domain': [-40, -15, 25.6, 26.8] , 'name': 'Southern ST'}
+    domain_char = {'nb_basins': 3, 'Atlantic': True, 'Pacific': True, 'Indian': True}
 
     # -- Average toe
     varToEA = np.around(averageDom(toe_a, 3, DomToEA['domain'], lat, density))
@@ -156,11 +163,11 @@ if 'average' == 'same_all' :
 
 
 # -- Compute median ToE
-medToEA = np.around(np.ma.median(varToEA))
+medToEA = np.ma.around(np.ma.median(varToEA))
 print(medToEA)
-medToEP = np.around(np.ma.median(varToEP))
+medToEP = np.ma.around(np.ma.median(varToEP))
 print(medToEP)
-medToEI = np.around(np.ma.median(varToEI))
+medToEI = np.ma.around(np.ma.median(varToEI))
 print(medToEI)
 
 
@@ -240,40 +247,82 @@ def autolabel(rects, axis):
                     ha='center', va='bottom')
 
 
-fig, ax = plt.subplots(nrows=3, ncols=1, sharex=True, sharey=True)
+nb_basins = domain_char['nb_basins']
 
-rects1 = ax[0].bar(center-width, ToEA_bars, width, color ='#87cefa')
-rect1med = ax[0].bar(center, medToEA_bars, width, color ='#f08080')
-ax[0].set_xlim([30,140])
-ax[0].set_ylim([0,7])
-ax[0].set_xticks([30,40,50,60,70,80,90,100,110,120,130,140])
-ax[0].set_title('Atlantic', fontweight='bold', fontsize=13)
-plt.setp(ax[0].get_xticklabels(), visible=True)
-ax[0].xaxis.set_tick_params(width=2)
-ax[0].legend((rects1[0], rect1med[0]), ('Models', 'Median'), loc='upper left', fontsize=12)
-autolabel(rects1, ax[0])
+fig, ax = plt.subplots(nrows=nb_basins, ncols=1, sharex=True, sharey=True)
 
-rects2 = ax[1].bar(center-width, ToEP_bars, width, color='#87cefa')
-rect2med = ax[1].bar(center, medToEP_bars, width, color ='#f08080')
-ax[1].set_ylabel('Nb of models per decade', fontweight='bold')
-ax[1].set_title('Pacific', fontweight='bold', fontsize=13)
-plt.setp(ax[1].get_xticklabels(), visible=True)
-ax[1].xaxis.set_tick_params(width=2)
-autolabel(rects2, ax[1])
+# -- Plot according to number of basins for the chosen domain
+if nb_basins == 3:
 
-rects3 = ax[2].bar(center-width, ToEI_bars, width, color='#87cefa')
-rect3med = ax[2].bar(center, medToEI_bars, width, color ='#f08080')
-ax[2].set_xlabel('Years', fontweight='bold')
-ax[2].set_title('Indian', fontweight='bold', fontsize=13)
-ax[2].xaxis.set_tick_params(width=2)
-autolabel(rects3, ax[2])
+    rects1 = ax[0].bar(center-width, ToEA_bars, width, color ='#87cefa')
+    rect1med = ax[0].bar(center, medToEA_bars, width, color ='#f08080')
+    ax[0].set_title('Atlantic', fontweight='bold', fontsize=13)
+    autolabel(rects1, ax[0])
+
+    rects2 = ax[1].bar(center-width, ToEP_bars, width, color='#87cefa')
+    rect2med = ax[1].bar(center, medToEP_bars, width, color ='#f08080')
+    ax[1].set_title('Pacific', fontweight='bold', fontsize=13)
+    plt.setp(ax[1].get_xticklabels(), visible=True)
+    ax[1].xaxis.set_tick_params(width=2)
+    autolabel(rects2, ax[1])
+
+    rects3 = ax[2].bar(center-width, ToEI_bars, width, color='#87cefa')
+    rect3med = ax[2].bar(center, medToEI_bars, width, color ='#f08080')
+    ax[2].set_title('Indian', fontweight='bold', fontsize=13)
+    ax[2].xaxis.set_tick_params(width=2)
+    autolabel(rects3, ax[2])
+
+    ax = ax[0]
+
+elif nb_basins == 2:
+    rects1 = ax[0].bar(center-width, ToEP_bars, width, color ='#87cefa')
+    rect1med = ax[0].bar(center, medToEP_bars, width, color ='#f08080')
+    ax[0].set_title('Pacific', fontweight='bold', fontsize=13)
+    autolabel(rects1, ax[0])
+
+    rects2 = ax[1].bar(center-width, ToEI_bars, width, color='#87cefa')
+    rect2med = ax[1].bar(center, medToEI_bars, width, color ='#f08080')
+    ax[1].set_title('Indian', fontweight='bold', fontsize=13)
+    plt.setp(ax[1].get_xticklabels(), visible=True)
+    ax[1].xaxis.set_tick_params(width=2)
+    autolabel(rects2, ax[1])
+
+    ax = ax[0]
+
+else :
+    if domain_char['Atlantic'] == True:
+        rects1 = ax.bar(center-width, ToEA_bars, width, color ='#87cefa')
+        rect1med = ax.bar(center, medToEA_bars, width, color ='#f08080')
+    else:
+        rects1 = ax.bar(center-width, ToEP_bars, width, color ='#87cefa')
+        rect1med = ax.bar(center, medToEP_bars, width, color ='#f08080')
+    autolabel(rects1, ax)
+
+
+ax.set_xlim([30,140])
+ax.set_ylim([0,7])
+ax.set_xticks([30,40,50,60,70,80,90,100,110,120,130,140])
+plt.setp(ax.get_xticklabels(), visible=True)
+ax.xaxis.set_tick_params(width=2)
+ax.legend((rects1[0], rect1med[0]), ('Models', 'Median'), loc='upper left', fontsize=12)
+
+# add a big axes, hide frame, for common labels
+fig.add_subplot(111, frameon=False)
+# hide tick and tick label of the big axes
+plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+plt.xlabel('Years', fontweight='bold')
+plt.ylabel('Nb of models per decade', fontweight='bold')
 
 if 'average' == 'same_all':
-    method = 'same domain for all models'
+    method = 'same box for all models'
 else :
-    method = 'different domain for each model'
-plotTitle = 'ToE (' + legVar + ') in '+domain_name
-plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-plt.subplots_adjust(hspace=.5, wspace=5)
+    method = 'different box for each model'
 
-plt.show()
+plotTitle = 'ToE (' + legVar + ') in '+domain_name
+if nb_basins >1 :
+    plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    plt.subplots_adjust(hspace=.5, wspace=5)
+else:
+    plt.suptitle(plotTitle, fontweight='bold', fontsize=14)
+
+#plt.show()

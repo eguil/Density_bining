@@ -10,7 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarDurack, zonal_2D, custom_div_cmap
-from scipy import interpolate
 
 # ----- Workspace ------
 

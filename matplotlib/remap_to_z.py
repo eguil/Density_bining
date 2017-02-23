@@ -12,7 +12,7 @@ import numpy as np
 #                                Define work
 # -------------------------------------------------------------------------------
 
-inDir = '/Users/ericg/Projets/Density_bining/'
+inDir = '/data/ericglod/Density_binning/'
 work = 'Prod_density_april15/mme_hist'
 inDir = inDir + work
 
@@ -78,8 +78,8 @@ cnplot = zon_2domz(plt, axes[0], axes[1], lat, targetz, fieldz[0,0,:,:], 'Test r
 plt.subplots_adjust(hspace=.00001, wspace=0.05, left=0.04, right=0.86)
 
 # -- Add colorbar
-#cbar = fig.colorbar(cnplot, ax=axes.ravel().tolist(), fraction=0.015, shrink=2.0, pad=0.05)
-#cbar.set_label(unit)
+cbar = fig.colorbar(cnplot, ax=axes.ravel().tolist(), fraction=0.015, shrink=2.0, pad=0.05)
+cbar.set_label(unit)
 
 # add Title text
 #ttxt = fig.suptitle(legVar + ' for ' + work+'/ '+dow, fontsize=14, fontweight='bold')

@@ -3,8 +3,7 @@
 
 """
 Python matplotlib
-Plot density/latitude diff between 1pctCO2 and piControl
-Plot Time of Emergence for several variables
+Plot density/latitude Time of Emergence for several variables
 
 """
 
@@ -147,11 +146,11 @@ toe_p = np.ma.array(toe_p, mask=var_mask[2,:,:])
 toe_i = np.ma.array(toe_i, mask=var_mask[3,:,:])
 
 # -- Create variable bundles
-varAtl = {'name': 'Atlantic', 'ToE': toe_a, 'bowl_CO2': bowlCO2_a, 'bowl_piC': bowlpiC_a, 'labBowl': labBowl,
+varAtl = {'name': 'Atlantic', 'ToE': toe_a, 'bowl2': bowlCO2_a, 'bowl1': bowlpiC_a, 'labBowl': labBowl,
           'var_mean': varCO2mean_a, 'bowl': bowlCO2_a}
-varPac = {'name': 'Pacific', 'ToE': toe_p, 'bowl_CO2': bowlCO2_p, 'bowl_piC': bowlpiC_p, 'labBowl': labBowl,
+varPac = {'name': 'Pacific', 'ToE': toe_p, 'bowl2': bowlCO2_p, 'bowl1': bowlpiC_p, 'labBowl': labBowl,
           'var_mean': varCO2mean_p, 'bowl': bowlCO2_p}
-varInd = {'name': 'Indian', 'ToE': toe_i, 'bowl_CO2': bowlCO2_i, 'bowl_piC': bowlpiC_i, 'labBowl': labBowl,
+varInd = {'name': 'Indian', 'ToE': toe_i, 'bowl2': bowlCO2_i, 'bowl1': bowlpiC_i, 'labBowl': labBowl,
           'var_mean': varCO2mean_i, 'bowl': bowlCO2_i}
 
 

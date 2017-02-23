@@ -3,12 +3,15 @@
 
 """
 Python matplotlib
-Make longitude/density diagrams of temperature and salinity change between 2010 and 1945 (or 2000 and 1950), from observations
+Make longitude/density diagrams of temperature and salinity change between 2010 and 1945 (or 2000 and 1950),
+from observations or CMIP5 mme
 
 """
 
-# === COMMENTAIRES EN COURS ===
+# === COMMENTS ===
 
+# There seems to be an issue with the mme_hist file, the figure appeares all white, haven't figured out why
+# Works fine for Ishii and Durack&Wijffels data
 
 # =========
 
@@ -48,8 +51,8 @@ lon = f.variables['longitude'][:]
 # ------ Define variables ----------
 
 # -- Choose which variable to work on
-#varname = 'salinity'
-varname = 'temp'
+varname = 'salinity'
+#varname = 'temp'
 
 
 # -- Choose latitude (one specific lat or average a range of lats)
@@ -57,11 +60,11 @@ varname = 'temp'
 lat_choice = 'range'
 
 if lat_choice == 'one':
-    lat1 = 20
+    lat1 = -20
     lat1_idx = np.argmin(np.abs(lat - lat1))
 else:
-    latmin = 15
-    latmax = 25
+    latmin = -25
+    latmax = -15
     latmin_idx = np.argmin(np.abs(lat - latmin))
     latmax_idx = np.argmin(np.abs(lat - latmax))
     weights = np.cos(lat*np.pi/180)
@@ -93,6 +96,7 @@ elif name == 'mme_hist':
     # Difference
     var_diff = np.ma.average(var[-5:,:], axis=0) - np.ma.average(var[0:5,:], axis=0)
     density = f.variables['lev'][:]
+
 
 else:
     varname = defVar(varname)
@@ -131,11 +135,9 @@ else:
 lon2d, density2d = np.meshgrid(lon, density)
 
 # Levels for shade plot
-#levels = MaxNLocator(nbins=minmax[2]).tick_values(minmax[0], minmax[1])
 levels = np.linspace(minmax[0],minmax[1],minmax[2])
 
 # Colormap
-#cmap = plt.get_cmap('bwr')
 cmap = custom_div_cmap()
 
 # -------- Plot diagram ----------------

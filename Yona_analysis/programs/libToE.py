@@ -26,56 +26,141 @@ def findToE(signal, noise, mult):
 
 def ToEdomain(model_name, domain_name):
 
+    '''
+    Save domain boxes for 1pctCO2 runs of each model (salinity/temperature)
+
+    :param model_name: name of model
+    :param domain_name: Southern ST, Southern Ocean, etc...
+    :return: box(es) of the specified model and domain
+
+    '''
     if domain_name == 'Southern ST':
 
-        # Southern Subtropics
+        # Southern Subtropics (cooling/freshening in all three basins)
         domains = [
-            {'name':'ACCESS1-0'   , 'Atlantic': [-23,-10,26,26.7],    'Pacific': [-40,-23,25.1,26.4], 'Indian': [-40,-25,25.5,26.5]}, # 0
-            {'name':'ACCESS1-3'   , 'Atlantic': [-25,-10,25.75,26.6], 'Pacific': [-40,-20,25,26.3],   'Indian': [-40,-20,25.1,26.25]}, # 1
-            {'name':'BNU-ESM'     , 'Atlantic': [-18,-8,25,26],       'Pacific': [-35,-10,23,26],     'Indian': [-30,-20,24.8,25.5]}, # 2
-            {'name':'CCSM4'       , 'Atlantic': [-40,-15,24.8,25.8],  'Pacific': [-45,-15,24.75,26.3],'Indian': [-40,-20,25.5,26.25]}, # 3
-            {'name':'CESM1-BGC'   , 'Atlantic': [-42,-20,25.25,26],   'Pacific': [-45,-20,25,26.5],   'Indian': [-40,-20,25.5,26.3]}, # 4
-            {'name':'CESM1-CAM5'  , 'Atlantic': [-20,-5,24.8,26.5],   'Pacific': [-40,-15,25,26.3],   'Indian': [-40,-20,25.5,26.8]}, #5
-            {'name':'CNRM-CM5'    , 'Atlantic': [-35,-5,24.5,26.3],   'Pacific': [-35,-10,24.25,26],  'Indian': [-40,-10,25,26.3]}, # 6
-            {'name':'CNRM-CM5-2'  , 'Atlantic': [-35,-10,26.1,26.7],  'Pacific': [-40,-15,24.8,26.5], 'Indian': [-40,-15,25.5,26.6]}, # 7
-            {'name':'CSIRO-Mk3-6-0','Atlantic': [-20,-10,25.8,26.5],  'Pacific': [-42,-10,24.8,26.5], 'Indian': [-40,-20,25.8,267]}, # 8
-            {'name':'FGOALS-g2'   , 'Atlantic': [-53,-45,26.5,26.7],  'Pacific': [-35,-15,24.3,26],   'Indian': [-40,-18,25,26.5]}, # 9
-            {'name':'GFDL-ESM2G'  , 'Atlantic': [-65,-50,26.25,27.25],'Pacific': [-40,-20,25,26.3],   'Indian': [-30,-20,25,26]}, # 10
-            {'name':'GFDL-ESM2M'  , 'Atlantic': [-30,-20,25.2,26.2],  'Pacific': [-40,-15,25.5,26.5], 'Indian': [-40,-20,25.5,26.2]}, # 11
-            {'name':'GISS-E2-H'   , 'Atlantic': [-35,-20,25.5,26.3],  'Pacific': [-35,-15,25.1,26.5], 'Indian': [-40,-20,25.5,26.7]}, # 12
-            {'name':'HadGEM2-ES'  , 'Atlantic': [-40,-30,26,26.7],    'Pacific': [-35,-10,24.5,26],   'Indian': [-38,-15,25.2,26.1]}, # 13
-            {'name':'IPSL-CM5A-LR', 'Atlantic': [-45,-25,27.1,27.5],  'Pacific': [-40,-10,25.2,27.2], 'Indian': [-40,-20,26.25,27.3]}, # 14
-            {'name':'IPSL-CM5A-MR', 'Atlantic': [-35,-15,26.25,27.25],'Pacific': [-35,-10,24.7,27],   'Indian': [-40,-15,26,27.2]}, # 15
-            {'name':'IPSL-CM5B-LR', 'Atlantic': [-35,-20,25.8,27.2],  'Pacific': [-35,-10,24.7,26.6], 'Indian': [-40,-20,25.8,26.8]} # 16
+            {'name':'ACCESS1-0'   , 'Atlantic': [-20,-10,26,26.7],    'Pacific': [-37,-25,25.4,26.4], 'Indian': [-37,-25,25.8,26.5]}, # 0
+            {'name':'ACCESS1-3'   , 'Atlantic': [-20,-10,25.8,26.5],  'Pacific': [-35,-20,25.2,26.3], 'Indian': [-40,-20,25.4,26.2]}, # 1
+            {'name':'BNU-ESM'     , 'Atlantic': [-15,-7,24.8,25.8],   'Pacific': [-35,-20,25,25.8],   'Indian': [-30,-20,25,25.4]}, # 2
+            {'name':'CCSM4'       , 'Atlantic': [-35,-15,25,26],      'Pacific': [-40,-15,24.8,26.4], 'Indian': [-37,-20,25.6,26.2]}, # 3
+            {'name':'CESM1-BGC'   , 'Atlantic': [-40,-30,25.6,26.5],  'Pacific': [-40,-20,25.2,26.4], 'Indian': [-38,-20,25.6,26.3]}, # 4
+            {'name':'CESM1-CAM5'  , 'Atlantic': [-20,-7,25,26.4],     'Pacific': [-40,-20,25.2,26.25],'Indian': [-35,-20,25.6,26.2]}, #5
+            {'name':'CNRM-CM5'    , 'Atlantic': [-20,-10,24.4,26.2],  'Pacific': [-25,-10,24.6,25.6], 'Indian': [-35,-15,25.4,26.2]}, # 6
+            {'name':'CNRM-CM5-2'  , 'Atlantic': [-35,-20,26.2,26.6],  'Pacific': [-40,-20,25.2,26.3], 'Indian': [-40,-15,25.6,26.5]}, # 7
+            {'name':'CSIRO-Mk3-6-0','Atlantic': [-20,-12,26,26.3],    'Pacific': [-35,-15,25.2,26.3], 'Indian': [-40,-20,26,26.6]}, # 8
+            {'name':'FGOALS-g2'   , 'Atlantic': [-15,-10,26,26.6],    'Pacific': [-25,-15,24.6,25.6], 'Indian': [-35,-20,25.4,26.3]}, # 9
+            {'name':'GFDL-ESM2G'  , 'Atlantic': [-53,-48,26.6,27],    'Pacific': [-35,-20,25.4,26.3], 'Indian': [-25,-15,25.2,25.8]}, # 10
+            {'name':'GFDL-ESM2M'  , 'Atlantic': [-27,-20,25.6,26],    'Pacific': [-33,-20,25.8,26.3], 'Indian': [-35,-20,25.6,26.2]}, # 11
+            {'name':'GISS-E2-H'   , 'Atlantic': [-30,-20,25.6,26.1],  'Pacific': [-25,-17,25.4,26.2], 'Indian': [-40,-20,25.8,26.4]}, # 12
+            {'name':'HadGEM2-ES'  , 'Atlantic': [-38,-33,26,26.5],    'Pacific': [-35,-10,24.8,25.8], 'Indian': [-35,-15,25.4,26]}, # 13
+            {'name':'IPSL-CM5A-LR', 'Atlantic': [-43,-35,27.2,27.5],  'Pacific': [-25,-15,25.8,26.6], 'Indian': [-35,-20,26.5,26.9]}, # 14
+            {'name':'IPSL-CM5A-MR', 'Atlantic': [-30,-25,26.2,26.6],  'Pacific': [-30,-15,25.4,26.6], 'Indian': [-35,-20,26.3,26.8]}, # 15
+            {'name':'IPSL-CM5B-LR', 'Atlantic': [-37,-25,26.4,27.1],  'Pacific': [-25,-10,25.2,26.1], 'Indian': [-35,-20,26.1,26.5]} # 16
         ]
-
+        domain_char = {'nb_basins': 3, 'Atlantic': True, 'Pacific': True, 'Indian': True}
 
     if domain_name == 'SO':
 
-        # Southern Ocean
+        # Southern Ocean (warmer/saltier in all three basins)
         domains = [
-            {'name':'ACCESS1-0'   , 'Atlantic': [-57,-37,26.6,27.6],    'Pacific': [-62,-50,26.75,27.8], 'Indian': [-55,-45,26.25,27.7]}, # 0
-            {'name':'ACCESS1-3'   , 'Atlantic': [-57,-45,26.8,27.6],    'Pacific': [-62,-45,26.2,27.8], 'Indian': [-55,-45,26.2,27.8]}, # 1
-            {'name':'BNU-ESM'     , 'Atlantic': [-65,-30,26.25,27.1],    'Pacific': [-65,-45,26.2,27.5], 'Indian': [-70,-40,25.5,27.7]}, # 2
-            {'name':'CCSM4'       , 'Atlantic': [-60,-40,27,27.9],    'Pacific': [-62,-47,26.75,27.75], 'Indian': [-58,-45,26.3,27.75]}, # 3
-            {'name':'CESM1-BGC'   , 'Atlantic': [-60,-45,26.8,27.9],    'Pacific': [-62,-50,26.75,27.8], 'Indian': [-60,-45,26.3,27.9]}, # 4
-            {'name':'CESM1-CAM5'  , 'Atlantic': [-62,-45,26.7,27.75],    'Pacific': [-65,-45,26.6,27.75], 'Indian': [-67,-50,26.5,28]}, #5
-            {'name':'CNRM-CM5'    , 'Atlantic': [-60,-40,26.4,27.7],    'Pacific': [-65,-45,26,27.6], 'Indian': [-62,-45,26,27.7]}, # 6
-            {'name':'CNRM-CM5-2'  , 'Atlantic': [-50,-40,25.7,26.7],    'Pacific': [-62,-45,26.4,27.7], 'Indian': [-55,-45,26.1,27.5]}, # 7
-            {'name':'CSIRO-Mk3-6-0','Atlantic': [-50,-35,27,27.8],    'Pacific': [-65,-50,26.8,27.9], 'Indian': [-62,-45,27.2,28]}, # 8
-            {'name':'FGOALS-g2'   , 'Atlantic': [-42,-30,26.4,27.25],    'Pacific': [-68,-50,26.75,27.7], 'Indian': [-65,-45,26.7,27.7]}, # 9
-            {'name':'GFDL-ESM2G'  , 'Atlantic': [-58,-40,27.3,27.6],    'Pacific': [-58,-48,26.4,27.6], 'Indian': [-55,-40,26.9,27.7]}, # 10
-            {'name':'GFDL-ESM2M'  , 'Atlantic': [-55,-50,27.2,28],    'Pacific': [-70,-62,27.2,27.8], 'Indian': [-65,-40,27.1,27.6]}, # 11
-            {'name':'GISS-E2-H'   , 'Atlantic': [-65,-53,27.3,27.9],    'Pacific': [-65,-55,27.4,27.8], 'Indian': [-55,-45,26.7,27.75]}, # 12
-            {'name':'HadGEM2-ES'  , 'Atlantic': [-60,-40,26.6,27.5],    'Pacific': [-65,-57,26.2,27.7], 'Indian': [-60,-45,25.9,27.5]}, # 13
-            {'name':'IPSL-CM5A-LR', 'Atlantic': [-55,-45,27.1,27.8],    'Pacific': [-65,-55,27.5,28], 'Indian': None}, # 14
-            {'name':'IPSL-CM5A-MR', 'Atlantic': [-55,-50,27.3,28],    'Pacific': [-63,-55,27.4,28], 'Indian': [-70,-50,27.2,28]}, # 15
-            {'name':'IPSL-CM5B-LR', 'Atlantic': [-65,-50,27.2,27.9],    'Pacific': [-70,-53,27,27.8], 'Indian': [-68,-58,27.4,27.9]} # 16
+            {'name':'ACCESS1-0'   , 'Atlantic': [-55,-40,26.7,27.4],    'Pacific': [-62,-55,27.1,27.7], 'Indian': [-55,-45,26.7,27.6]}, # 0
+            {'name':'ACCESS1-3'   , 'Atlantic': [-55,-50,27,27.4],      'Pacific': [-60,-50,26.7,27.3], 'Indian': [-55,-45,26.6,27.4]}, # 1
+            {'name':'BNU-ESM'     , 'Atlantic': [-65,-50,27.4,27.8],    'Pacific': [-65,-55,26.9,27.5], 'Indian': [-65,-50,27.2,27.8]}, # 2
+            {'name':'CCSM4'       , 'Atlantic': [-57,-50,27.5,27.9],    'Pacific': [-57,-50,27,27.6],   'Indian': [-55,-45,27,27.6]}, # 3
+            {'name':'CESM1-BGC'   , 'Atlantic': [-55,-50,27.4,27.8],    'Pacific': [-60,-53,27,27.6],   'Indian': [-55,-45,26.9,27.6]}, # 4
+            {'name':'CESM1-CAM5'  , 'Atlantic': [-55,-47,26.9,27.7],    'Pacific': [-60,-50,26.8,27.5], 'Indian': [-55,-50,26.9,27.5]}, #5
+            {'name':'CNRM-CM5'    , 'Atlantic': [-52,-45,26.5,27.1],    'Pacific': [-55,-50,26.4,27.1], 'Indian': [-52,-47,26.5,27.1]}, # 6
+            {'name':'CNRM-CM5-2'  , 'Atlantic': [-50,-40,27.2,27.7],    'Pacific': [-55,-45,26.6,27.2], 'Indian': [-52,-45,26.6,27.3]}, # 7
+            {'name':'CSIRO-Mk3-6-0','Atlantic': [-45,-40,27.1,27.6],    'Pacific': [-60,-50,27.3,27.9], 'Indian': [-55,-50,27.3,27.9]}, # 8
+            {'name':'FGOALS-g2'   , 'Atlantic': [-40,-30,26.5,26.9],    'Pacific': [-70,-55,27.1,27.8], 'Indian': [-53,-45,27.1,27.6]}, # 9
+            {'name':'GFDL-ESM2G'  , 'Atlantic': [-55,-50,27.3,27.6],    'Pacific': [-60,-50,27,27.7],   'Indian': [-55,-45,27,27.5]}, # 10
+            {'name':'GFDL-ESM2M' ,  'Atlantic': [-55,-50,27.2,27.6],    'Pacific': [-70,-65,27.7,27.9], 'Indian': [-53,-45,27.2,27.5]}, # 11
+            {'name':'GISS-E2-H'   , 'Atlantic': [-65,-55,27.5,27.9],    'Pacific': [-65,-60,27.7,27.9], 'Indian': [-58,-50,27.6,27.9]}, # 12
+            {'name':'HadGEM2-ES'  , 'Atlantic': [-55,-45,26.8,27.2],    'Pacific': [-55,-45,26.3,26.9], 'Indian': [-55,-45,26.6,27.2]}, # 13
+            {'name':'IPSL-CM5A-LR', 'Atlantic': [-50,-40,27.7,27.9],    'Pacific': [-60,-55,27.7,27.9], 'Indian': None}, # 14
+            {'name':'IPSL-CM5A-MR', 'Atlantic': [-53,-50,27.6,27.9],    'Pacific': [-60,-55,27.6,27.9], 'Indian': [-55,-45,27.8,27.9]}, # 15
+            {'name':'IPSL-CM5B-LR', 'Atlantic': [-55,-50,27.3,27.7],    'Pacific': [-60,-55,27.4,27.7], 'Indian': [-60,-55,27.6,27.8]} # 16
         ]
+
+        domain_char = {'nb_basins': 3, 'Atlantic': True, 'Pacific': True, 'Indian': True}
+
+    if domain_name == 'North Atlantic':
+
+        # North Atlantic (warmer/saltier)
+        domains = [
+            {'name':'ACCESS1-0'   , 'Atlantic': [40,55,25.8,26.9], 'Pacific': None, 'Indian': None}, # 0
+            {'name':'ACCESS1-3'   , 'Atlantic': [30,50,26,26.5], 'Pacific': None, 'Indian': None}, # 1
+            {'name':'BNU-ESM'     , 'Atlantic': [30,45,26,27.2], 'Pacific': None, 'Indian': None}, # 2
+            {'name':'CCSM4'       , 'Atlantic': [25,40,26,27], 'Pacific': None, 'Indian': None}, # 3
+            {'name':'CESM1-BGC'   , 'Atlantic': [25,40,26,27.1], 'Pacific': None, 'Indian': None}, # 4
+            {'name':'CESM1-CAM5'  , 'Atlantic': [20,40,26,27], 'Pacific': None, 'Indian': None}, #5
+            {'name':'CNRM-CM5'    , 'Atlantic': [40,50,26.2,26.9], 'Pacific': None, 'Indian': None}, # 6
+            {'name':'CNRM-CM5-2'  , 'Atlantic': [30,45,26.4,27], 'Pacific': None, 'Indian': None}, # 7
+            {'name':'CSIRO-Mk3-6-0','Atlantic': [20,40,26,26.8], 'Pacific': None, 'Indian': None}, # 8
+            {'name':'FGOALS-g2'   , 'Atlantic': [25,35,26.1,27.2], 'Pacific': None, 'Indian': None}, # 9
+            {'name':'GFDL-ESM2G'  , 'Atlantic': [10,30,26,27], 'Pacific': None, 'Indian': None}, # 10
+            {'name':'GFDL-ESM2M'  , 'Atlantic': [20,35,26,27], 'Pacific': None, 'Indian': None}, # 11
+            {'name':'GISS-E2-H'   , 'Atlantic': [20,40,26,27], 'Pacific': None, 'Indian': None}, # 12
+            {'name':'HadGEM2-ES'  , 'Atlantic': [20,45,26,26.7], 'Pacific': None, 'Indian': None}, # 13
+            {'name':'IPSL-CM5A-LR', 'Atlantic': [30,45,26.6,27.4], 'Pacific': None, 'Indian': None}, # 14
+            {'name':'IPSL-CM5A-MR', 'Atlantic': [40,45,26.8,27.3], 'Pacific': None, 'Indian': None}, # 15
+            {'name':'IPSL-CM5B-LR', 'Atlantic': [40,50,26,26.9], 'Pacific': None, 'Indian': None} # 16
+        ]
+
+        domain_char = {'nb_basins': 1, 'Atlantic': True, 'Pacific': False, 'Indian': False}
+
+    if domain_name == 'Northern ST':
+
+        # Northern Subtropics (cooling/freshening in the Pacific and Indian oceans)
+        domains = [
+            {'name':'ACCESS1-0'   , 'Pacific': [25,32.5,24.6,25.4],'Indian': [5,15,25.6,26.5], 'Atlantic': None}, # 0
+            {'name':'ACCESS1-3'   , 'Pacific': [12,30,24.4,25.6],  'Indian': [20,25,26.2,26.7], 'Atlantic': None}, # 1
+            {'name':'BNU-ESM'     , 'Pacific': [15,30,24.2,25.4],  'Indian': [15,25,26,26.8], 'Atlantic': None}, # 2
+            {'name':'CCSM4'       , 'Pacific': [15,35,24.2,25.6],  'Indian': [20,25,25.8,26.3], 'Atlantic': None}, # 3
+            {'name':'CESM1-BGC'   , 'Pacific': [15,35,24.2,25.4],  'Indian': [20,25,25.4,26.2], 'Atlantic': None}, # 4
+            {'name':'CESM1-CAM5'  , 'Pacific': [15,30,24.2,25.2],  'Indian': [10,25,25.6,26.3], 'Atlantic': None}, #5
+            {'name':'CNRM-CM5'    , 'Pacific': [15,30,24.8,25.6],  'Indian': [10,25,25.8,26.5], 'Atlantic': None}, # 6
+            {'name':'CNRM-CM5-2'  , 'Pacific': [15,32,24.6,25.8],  'Indian': [15,25,26,26.6], 'Atlantic': None}, # 7
+            {'name':'CSIRO-Mk3-6-0','Pacific': [15,35,24.4,25.4],  'Indian': [15,25,26.2,26.9], 'Atlantic': None}, # 8
+            {'name':'FGOALS-g2'   , 'Pacific': [10,25,24,25.2],    'Indian': [5,20,26,26.5], 'Atlantic': None}, # 9
+            {'name':'GFDL-ESM2G'  , 'Pacific': [17,30,25.2,25.8],  'Indian': [20,25,25.4,26.4], 'Atlantic': None}, # 10
+            {'name':'GFDL-ESM2M'  , 'Pacific': [15,30,25.2,26.1],  'Indian': [20,25,25.8,27], 'Atlantic': None}, # 11
+            {'name':'GISS-E2-H'   , 'Pacific': [15,35,25.2,26.1],  'Indian': [15,25,26,27.2], 'Atlantic': None}, # 12
+            {'name':'HadGEM2-ES'  , 'Pacific': [20,35,24.6,25.4],  'Indian': [5,25,25.6,26.3], 'Atlantic': None}, # 13
+            {'name':'IPSL-CM5A-LR', 'Pacific': [15,35,24.8,26.2],  'Indian': [15,20,26,26.9], 'Atlantic': None}, # 14
+            {'name':'IPSL-CM5A-MR', 'Pacific': [20,35,25,26],      'Indian': [15,20,25.8,26.7], 'Atlantic': None}, # 15
+            {'name':'IPSL-CM5B-LR', 'Pacific': [15,30,25,25.8],    'Indian': [15,20,26.5,26.9], 'Atlantic': None} # 16
+        ]
+
+        domain_char = {'nb_basins': 2, 'Atlantic': False, 'Pacific': True, 'Indian': True}
+
+    if domain_name == 'North Pacific':
+
+        # North Pacific (warmer/saltier)
+        domains = [
+            {'name':'ACCESS1-0'   , 'Pacific': [43,60,26.2,27], 'Atlantic': None, 'Indian': None}, # 0
+            {'name':'ACCESS1-3'   , 'Pacific': [45,60,26.1,27], 'Atlantic': None, 'Indian': None}, # 1
+            {'name':'BNU-ESM'     , 'Pacific': [50,60,26.2,27.3], 'Atlantic': None, 'Indian': None}, # 2
+            {'name':'CCSM4'       , 'Pacific': [40,60,26,26.7], 'Atlantic': None, 'Indian': None}, # 3
+            {'name':'CESM1-BGC'   , 'Pacific': [40,60,26,26.8], 'Atlantic': None, 'Indian': None}, # 4
+            {'name':'CESM1-CAM5'  , 'Pacific': [45,60,26,26.8], 'Atlantic': None, 'Indian': None}, #5
+            {'name':'CNRM-CM5'    , 'Pacific': [45,60,26.5,26.9], 'Atlantic': None, 'Indian': None}, # 6
+            {'name':'CNRM-CM5-2'  , 'Pacific': [45,60,26.7,27.1], 'Atlantic': None, 'Indian': None}, # 7
+            {'name':'CSIRO-Mk3-6-0','Pacific': [40,60,26.1,26.6], 'Atlantic': None, 'Indian': None}, # 8
+            {'name':'FGOALS-g2'   , 'Pacific': [40,60,26.6,26.8], 'Atlantic': None, 'Indian': None}, # 9
+            {'name':'GFDL-ESM2G'  , 'Pacific': [45,60,26.4,26.7], 'Atlantic': None, 'Indian': None}, # 10
+            {'name':'GFDL-ESM2M'  , 'Pacific': [52,60,26.3,26.9], 'Atlantic': None, 'Indian': None}, # 11
+            {'name':'GISS-E2-H'   , 'Pacific': [55,65,27.5,27.8], 'Atlantic': None, 'Indian': None}, # 12
+            {'name':'HadGEM2-ES'  , 'Pacific': [45,65,26.5,27], 'Atlantic': None, 'Indian': None}, # 13
+            {'name':'IPSL-CM5A-LR', 'Pacific': [40,60,26.8,27.1], 'Atlantic': None, 'Indian': None}, # 14
+            {'name':'IPSL-CM5A-MR', 'Pacific': [40,60,26.7,27], 'Atlantic': None, 'Indian': None}, # 15
+            {'name':'IPSL-CM5B-LR', 'Pacific': [45,60,26.4,26.7], 'Atlantic': None, 'Indian': None} # 16
+        ]
+
+        domain_char = {'nb_basins': 1, 'Atlantic': False, 'Pacific': True, 'Indian': False}
 
 
     for imodel in range(len(domains)):
         if domains[imodel]['name'] == model_name :
             varout = domains[imodel]
 
-    return varout
+    return varout, domain_char
