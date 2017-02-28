@@ -14,7 +14,10 @@ def findToE(signal, noise, mult):
     toe_wrk = np.ma.ones(signal.shape)*1. # init toe_wrk array to 1
     signaltile = np.reshape(np.tile(noise,timN),signal.shape) # repeat noise timN
     toe_idx = np.argwhere(abs(signal) >= mult*signaltile) # find indices of points where signal > noise
-    toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
+    if signal.size > timN: # if there are at least 2 dimensions
+        toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
+    else: # if there is only the time dimension
+        toe_wrk[toe_idx[:,0]] = 0
     toe = timN-np.flipud(toe_wrk).argmax(axis=0) # compute ToE as last index when signal > noise
     #tcpu1 = timc.clock()
     # perf

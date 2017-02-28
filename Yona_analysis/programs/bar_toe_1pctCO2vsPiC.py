@@ -4,6 +4,7 @@
 """
 Python matplotlib
 Make time of emergence PDF bar plots from 1%CO2 vs. piControl
+Choose which variable and domain to work on
 
 """
 
@@ -12,7 +13,7 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarmme, averageDom
 from modelsDef import defModelsCO2piC
-from libToE import findToE, ToEdomain
+from libToE import findToE, ToEdomain1pctCO2vsPiC
 
 # ----- Workspace ------
 
@@ -27,13 +28,14 @@ varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('temp'); v = 'T'
 #varname = defVarmme('depth'); v = 'Z'
 
-# -- Choose how to compute the domain average :
-#    same box for all models or to each model its own box (saved in libToE.py)
-#average = 'same_all'
-average = 'each_model'
+# -- Choose method for computing ToE
+method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
+#method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
 
-domain_name = 'North Pacific'
+
+domain_name = 'Northern ST'
 # 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
+print domain_name
 
 multStd = 2. # detect ToE at multStd std dev of piControl
 
@@ -79,60 +81,56 @@ varToEA = np.ma.masked_all(len(models))
 varToEP = np.ma.masked_all(len(models))
 varToEI = np.ma.masked_all(len(models))
 
+if method == 'average_ToE' :
 
-for i, model in enumerate(models):
-    print '- Computing ToE of',model['name']
+    for i, model in enumerate(models):
+        print '- Computing ToE of',model['name']
 
-    if model['name'] == 'GISS-E2-H' :
-        indir_1pctCO2 = indir_1pctCO2 + 'zon2D_mean_bowl/'
+        # -- Read 1pctCO2 file and piControl file
+        file_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
+        file_piC = 'cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon2D.nc'
 
-    # -- Read 1pctCO2 file and piControl file
-    file_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
-    file_piC = 'cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon2D.nc'
+        fCO2 = open_ncfile(indir_1pctCO2 + file_1pctCO2,'r')
+        fpiC = open_ncfile(indir_piC + file_piC,'r')
 
-    fCO2 = open_ncfile(indir_1pctCO2 + file_1pctCO2,'r')
-    fpiC = open_ncfile(indir_piC + file_piC,'r')
+        # -- Read var 1pctCO2
+        varCO2_a = fCO2.variables[var][:,1,:,:].squeeze()
+        varCO2_p = fCO2.variables[var][:,2,:,:].squeeze()
+        varCO2_i = fCO2.variables[var][:,3,:,:].squeeze()
+        # -- Read var piControl
+        varpiC_a = fpiC.variables[var][-140:,1,:,:].squeeze()
+        varpiC_p = fpiC.variables[var][-140:,2,:,:].squeeze()
+        varpiC_i = fpiC.variables[var][-140:,3,:,:].squeeze()
 
-    # -- Read var 1pctCO2
-    varCO2_a = fCO2.variables[var][:,1,:,:].squeeze()
-    varCO2_p = fCO2.variables[var][:,2,:,:].squeeze()
-    varCO2_i = fCO2.variables[var][:,3,:,:].squeeze()
-    # -- Read var piControl
-    varpiC_a = fpiC.variables[var][-140:,1,:,:].squeeze()
-    varpiC_p = fpiC.variables[var][-140:,2,:,:].squeeze()
-    varpiC_i = fpiC.variables[var][-140:,3,:,:].squeeze()
+        # -- Compute significance of difference when diff within 1 stddev of piControl variability (in the MME sense)
+        varams = np.ma.std(varpiC_a, axis=0)
+        varpms = np.ma.std(varpiC_p, axis=0)
+        varims = np.ma.std(varpiC_i, axis=0)
 
-    # -- Compute significance of difference when diff within 1 stddev of piControl variability (in the MME sense)
-    varams = np.ma.std(varpiC_a, axis=0)
-    varpms = np.ma.std(varpiC_p, axis=0)
-    varims = np.ma.std(varpiC_i, axis=0)
+        # -- reorganise i,j dims in single dimension data (speeds up loops)
+        varCO2_a  = np.reshape(varCO2_a, (timN,levN*latN))
+        varpiC_a = np.reshape(varpiC_a,(timN,levN*latN))
+        varams  = np.reshape(varams, (levN*latN))
+        varCO2_p  = np.reshape(varCO2_p, (timN,levN*latN))
+        varpiC_p = np.reshape(varpiC_p,(timN,levN*latN))
+        varpms  = np.reshape(varpms, (levN*latN))
+        varCO2_i  = np.reshape(varCO2_i, (timN,levN*latN))
+        varpiC_i = np.reshape(varpiC_i,(timN,levN*latN))
+        varims  = np.reshape(varims, (levN*latN))
 
-    # -- reorganise i,j dims in single dimension data (speeds up loops)
-    varCO2_a  = np.reshape(varCO2_a, (timN,levN*latN))
-    varpiC_a = np.reshape(varpiC_a,(timN,levN*latN))
-    varams  = np.reshape(varams, (levN*latN))
-    varCO2_p  = np.reshape(varCO2_p, (timN,levN*latN))
-    varpiC_p = np.reshape(varpiC_p,(timN,levN*latN))
-    varpms  = np.reshape(varpms, (levN*latN))
-    varCO2_i  = np.reshape(varCO2_i, (timN,levN*latN))
-    varpiC_i = np.reshape(varpiC_i,(timN,levN*latN))
-    varims  = np.reshape(varims, (levN*latN))
+        # -- Compute ToE as last date when diff 1pctCO2 - piControl is larger than mult * stddev
+        toei_a = np.reshape(findToE(varCO2_a-varpiC_a, varams, multStd),(levN,latN))
+        toei_p = np.reshape(findToE(varCO2_p-varpiC_p, varpms, multStd),(levN,latN))
+        toei_i = np.reshape(findToE(varCO2_i-varpiC_i, varims, multStd),(levN,latN))
 
-    # -- Compute ToE as last date when diff 1pctCO2 - piControl is larger than mult * stddev
-    toei_a = np.reshape(findToE(varCO2_a-varpiC_a, varams, multStd),(levN,latN))
-    toei_p = np.reshape(findToE(varCO2_p-varpiC_p, varpms, multStd),(levN,latN))
-    toei_i = np.reshape(findToE(varCO2_i-varpiC_i, varims, multStd),(levN,latN))
-
-    # -- Save
-    toe_a[i,:,:] = toei_a
-    toe_p[i,:,:] = toei_p
-    toe_i[i,:,:] = toei_i
-
-    if average == 'each_model' :
+        # -- Save
+        toe_a[i,:,:] = toei_a
+        toe_p[i,:,:] = toei_p
+        toe_i[i,:,:] = toei_i
 
         # -- Select domain to average for each model
-        domain = ToEdomain(model['name'], domain_name)[0]
-        domain_char = ToEdomain(model['name'], domain_name)[1]
+        domain = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[0]
+        domain_char = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[1]
 
         # -- Average toe
         if domain['Atlantic'] != None:
@@ -146,20 +144,63 @@ for i, model in enumerate(models):
             print 'ToE Indian:',varToEI[i]
 
 
-if 'average' == 'same_all' :
+if method == 'average_signal':
 
-    DomToEA = {'domain': [-40., -20, 25.75, 26.6], 'name': 'Southern ST'}
-    DomToEP = {'domain': [-15, -10, 26, 26.3]   , 'name': 'Southern ST'}
-    DomToEI = {'domain': [-40, -15, 25.6, 26.8] , 'name': 'Southern ST'}
-    domain_char = {'nb_basins': 3, 'Atlantic': True, 'Pacific': True, 'Indian': True}
+    for i, model in enumerate(models):
+        print '- Computing ToE of',model['name']
 
-    # -- Average toe
-    varToEA = np.around(averageDom(toe_a, 3, DomToEA['domain'], lat, density))
-    print min(varToEA),max(varToEA), np.around(np.average(varToEA)), np.median(varToEA),np.std(varToEA)
-    varToEP = np.around(averageDom(toe_p, 3, DomToEP['domain'], lat, density))
-    print min(varToEP),max(varToEP), np.around(np.average(varToEP)), np.median(varToEP),np.std(varToEP)
-    varToEI = np.around(averageDom(toe_i, 3, DomToEI['domain'], lat, density))
-    print min(varToEI),max(varToEI), np.around(np.average(varToEI)), np.median(varToEI),np.std(varToEI)
+        # -- Read 1pctCO2 file and piControl file
+        file_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
+        file_piC = 'cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon2D.nc'
+
+        fCO2 = open_ncfile(indir_1pctCO2 + file_1pctCO2,'r')
+        fpiC = open_ncfile(indir_piC + file_piC,'r')
+
+        # -- Select domain to average for each model
+        domain = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[0]
+        domain_char = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[1]
+
+        # -- Read var 1pctCO2
+        varCO2_a = fCO2.variables[var][:,1,:,:].squeeze()
+        varCO2_p = fCO2.variables[var][:,2,:,:].squeeze()
+        varCO2_i = fCO2.variables[var][:,3,:,:].squeeze()
+        # -- Read var piControl
+        varpiC_a = fpiC.variables[var][-140:,1,:,:].squeeze()
+        varpiC_p = fpiC.variables[var][-140:,2,:,:].squeeze()
+        varpiC_i = fpiC.variables[var][-140:,3,:,:].squeeze()
+
+        # -- Compute significance of difference when diff within 1 stddev of piControl variability (in the MME sense)
+        varstda = np.ma.std(varpiC_a, axis=0)
+        varstdp = np.ma.std(varpiC_p, axis=0)
+        varstdi = np.ma.std(varpiC_i, axis=0)
+
+        # -- Take difference 1pctCO2 - PiControl
+        varsignal_a = varCO2_a - varpiC_a
+        varsignal_p = varCO2_p - varpiC_p
+        varsignal_i = varCO2_i - varpiC_i
+
+        # -- Average signal and noise
+        if domain['Atlantic'] != None:
+            varsignal_a = averageDom(varsignal_a, 3, domain['Atlantic'], lat, density)
+            varnoise_a = averageDom(varstda, 2, domain['Atlantic'], lat, density)
+        if domain['Pacific'] != None:
+            varsignal_p = averageDom(varsignal_p, 3, domain['Pacific'], lat, density)
+            varnoise_p = averageDom(varstdp, 2, domain['Pacific'], lat, density)
+        if domain['Indian'] != None:
+            varsignal_i = averageDom(varsignal_i, 3, domain['Indian'], lat, density)
+            varnoise_i = averageDom(varstdi, 2, domain['Indian'], lat, density)
+
+        # -- Compute ToE of averaged domain
+        if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a) == False:
+            toei_a = findToE(varsignal_a, varnoise_a, multStd)
+            varToEA[i] = toei_a
+        if domain['Pacific'] != None and np.ma.is_masked(varnoise_p) == False:
+            toei_p = findToE(varsignal_p, varnoise_p, multStd)
+            varToEP[i] = toei_p
+        if domain['Indian'] != None and np.ma.is_masked(varnoise_i) == False:
+            toei_i = findToE(varsignal_i, varnoise_i, multStd)
+            varToEI[i] = toei_i
+
 
 
 # -- Compute median ToE
@@ -249,7 +290,7 @@ def autolabel(rects, axis):
 
 nb_basins = domain_char['nb_basins']
 
-fig, ax = plt.subplots(nrows=nb_basins, ncols=1, sharex=True, sharey=True)
+fig, ax = plt.subplots(nrows=nb_basins, ncols=1, sharex=True, sharey=True, frameon=False)
 
 # -- Plot according to number of basins for the chosen domain
 if nb_basins == 3:
@@ -299,24 +340,27 @@ else :
     autolabel(rects1, ax)
 
 
-ax.set_xlim([30,140])
+ax.set_xlim([0,140])
 ax.set_ylim([0,7])
-ax.set_xticks([30,40,50,60,70,80,90,100,110,120,130,140])
+ax.set_xticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
 plt.setp(ax.get_xticklabels(), visible=True)
 ax.xaxis.set_tick_params(width=2)
 ax.legend((rects1[0], rect1med[0]), ('Models', 'Median'), loc='upper left', fontsize=12)
 
-# add a big axes, hide frame, for common labels
+# Keep bottom axis only
+for i, axis in enumerate(fig.axes):
+    axis.spines['top'].set_visible(False)
+    axis.xaxis.set_ticks_position('bottom')
+    axis.axes.get_yaxis().set_visible(False)
+    axis.spines['left'].set_visible(False); axis.spines['right'].set_visible(False)
+
+# Add a big axes, hide frame, for common labels
 fig.add_subplot(111, frameon=False)
 # hide tick and tick label of the big axes
 plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 plt.xlabel('Years', fontweight='bold')
 plt.ylabel('Nb of models per decade', fontweight='bold')
 
-if 'average' == 'same_all':
-    method = 'same box for all models'
-else :
-    method = 'different box for each model'
 
 plotTitle = 'ToE (' + legVar + ') in '+domain_name
 if nb_basins >1 :
@@ -325,4 +369,9 @@ if nb_basins >1 :
 else:
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14)
 
+plt.figtext(.8,.02,'Computed by : bar_toe_1pctCO2vsPiC.py',fontsize=9,ha='center')
+
 #plt.show()
+
+plotName = 'ToE_pdf_' + domain_name + '_' + legVar
+#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/Average_ToE/'+plotName+'.png', bbox_inches='tight')
