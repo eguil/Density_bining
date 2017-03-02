@@ -5,7 +5,7 @@
 Python matplotlib
 Make time of emergence PDF bar plots from historical vs. historicalNat
 Choose which variable and domain to work on
-
+Method: read ToE and average in the chosen domain
 """
 
 import numpy as np
@@ -29,10 +29,10 @@ varname = defVarmme('salinity'); v = 'S'
 
 # -- Choose method for computing ToE
 method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
-#method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
+##method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
 
 
-domain_name = 'SO'
+domain_name = 'North Pacific'
 # 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
 print domain_name
 
@@ -46,11 +46,6 @@ iniyear = 1860
 finalyear = 2005
 deltay = 10.
 
-# density domain
-rhomin = 21
-rhomid = 26
-rhomax = 28
-domrho = [rhomin, rhomid, rhomax]
 
 # ----- Variables ------
 
@@ -127,6 +122,14 @@ varToEA = varToEA[0:nruns]
 varToEP = varToEP[0:nruns]
 varToEI = varToEI[0:nruns]
 
+# Take out masked data
+varToEA = varToEA[np.ma.nonzero(varToEA)]
+varToEP = varToEP[np.ma.nonzero(varToEP)]
+varToEI = varToEI[np.ma.nonzero(varToEI)]
+medmodelsToEA = medmodelsToEA[np.ma.nonzero(medmodelsToEA)]
+medmodelsToEP = medmodelsToEP[np.ma.nonzero(medmodelsToEP)]
+medmodelsToEI = medmodelsToEI[np.ma.nonzero(medmodelsToEI)]
+
 # -- Determine the median ToE of median ToEs of models (from their different members)
 medmedmodelsToEA = np.ma.around(np.ma.median(medmodelsToEA))
 medmedmodelsToEP = np.ma.around(np.ma.median(medmodelsToEP))
@@ -197,7 +200,6 @@ for i, axis in enumerate(fig.axes):
     print i
     if nb_basins == 3:
         varBasin = bundles[i]
-
     elif nb_basins == 2:
         varBasin = bundles[i+1]
     elif nb_basins == 1 and domain_name == 'North Pacific':
@@ -212,15 +214,17 @@ for i, axis in enumerate(fig.axes):
 
     rects = axis.bar(center[:-2]-width*2, varBasin['ToE_bars'][:-2], width, color ='#87cefa')
     rectsbis = axis.bar(center[-2:]-width, varBasin['ToE_bars'][-2:], width, color ='#87cefa')
-    globalmed = axis.bar(center[:-2]+width*2, varBasin['globalmedToE_bar'][:-2], width, color ='#1fffaf')
+    globalmed = axis.bar(center[:-2], varBasin['globalmedToE_bar'][:-2], width, color ='#1fffaf')
     globalmedbis = axis.bar(center[-2:]-width/2, varBasin['globalmedToE_bar'][-2:], width, color ='#1fffaf')
-    medmed = axis.bar(center[:-2]+width*2, varBasin['medmedmodelsToE_bar'][:-2], width, color ='#fafa8c')
+    medmed = axis.bar(center[:-2]+width, varBasin['medmedmodelsToE_bar'][:-2], width, color ='#fafa8c')
     medmedbis = axis.bar(center[-2:], varBasin['medmedmodelsToE_bar'][-2:], width, color ='#fafa8c')
     med = axis.bar(center[:-2]-width, varBasin['medmodelsToE_bars'][:-2], width, color ='#f08080')
     medbis = axis.bar(center[-2:]+width/2, varBasin['medmodelsToE_bars'][-2:], width, color ='#f08080')
-    axis.set_title(varBasin['basin'], fontweight='bold', fontsize=13)
     autolabel(rects, axis); autolabel(rectsbis, axis)
     autolabel(med, axis); autolabel(medbis, axis)
+
+    if nb_basins != 1:
+        axis.set_title(varBasin['basin'], fontweight='bold', fontsize=13)
 
     # Set x axis limits, ticks, ticklabels
     axis.set_xlim([1930,2010])
@@ -257,11 +261,12 @@ else:
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14)
 
 plt.figtext(.8,.02,'Computed by : bar_toe_histvshistNat.py',fontsize=9,ha='center')
+plt.figtext(.2,.02,method,fontsize=9,ha='center')
 
 #plt.show()
 
-plotName = 'ToE_pdf_' + domain_name + '_' + legVar
-#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/histvshistNat/Average_ToE/'+plotName+'.png', bbox_inches='tight')
+plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/histvshistNat/'+method+'/'+plotName+'.png', bbox_inches='tight')
 
 
 

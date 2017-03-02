@@ -29,11 +29,11 @@ varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('depth'); v = 'Z'
 
 # -- Choose method for computing ToE
-#method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
-method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
+method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
+#method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
 
 
-domain_name = 'Northern ST'
+domain_name = 'North Pacific'
 # 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
 print domain_name
 
@@ -47,11 +47,6 @@ iniyear = 0
 finalyear = 140
 deltay = 10.
 
-# density domain
-rhomin = 21
-rhomid = 26
-rhomax = 28
-domrho = [rhomin, rhomid, rhomax]
 
 # ----- Variables ------
 
@@ -200,9 +195,6 @@ if method == 'average_signal':
 
 
 
-
-
-
 # -- Compute median ToE
 medToEA = np.ma.around(np.ma.median(varToEA))
 print(varToEA)
@@ -213,6 +205,12 @@ print(medToEP)
 medToEI = np.ma.around(np.ma.median(varToEI))
 print(varToEI)
 print(medToEI)
+
+
+# Take out masked data
+varToEA = varToEA[np.ma.nonzero(varToEA)]
+varToEP = varToEP[np.ma.nonzero(varToEP)]
+varToEI = varToEI[np.ma.nonzero(varToEI)]
 
 
 # # ----- Compute ToE for MME ------
@@ -266,6 +264,7 @@ print(medToEI)
 
 ndecades = int((finalyear - iniyear)/deltay)
 yearbins = np.arange(ndecades+1)*10+iniyear
+yearbins = np.append(yearbins, 150)
 width = 4
 
 ToEA_bars, bin_edges = np.histogram(varToEA, yearbins)
@@ -279,7 +278,7 @@ medToEI_bars, bin_edges = np.histogram(medToEI, yearbins)
 
 # -- Create variable bundles
 varAtl = {'basin': 'Atlantic', 'ToE_bars': ToEA_bars, 'medToE_bars': medToEA_bars}
-varPac = {'basin': 'Pacifc', 'ToE_bars': ToEP_bars, 'medToE_bars': medToEP_bars}
+varPac = {'basin': 'Pacific', 'ToE_bars': ToEP_bars, 'medToE_bars': medToEP_bars}
 varInd = {'basin': 'Indian', 'ToE_bars': ToEI_bars, 'medToE_bars': medToEI_bars}
 
 bundles = [varAtl, varPac, varInd]
@@ -303,66 +302,44 @@ nb_basins = domain_char['nb_basins']
 fig, ax = plt.subplots(nrows=nb_basins, ncols=1, sharex=True, sharey=True, frameon=False)
 
 # -- Plot according to number of basins for the chosen domain
-if nb_basins == 3:
 
-    rects1 = ax[0].bar(center-width, ToEA_bars, width, color ='#87cefa')
-    rect1med = ax[0].bar(center, medToEA_bars, width, color ='#f08080')
-    ax[0].set_title('Atlantic', fontweight='bold', fontsize=13)
-    autolabel(rects1, ax[0])
-
-    rects2 = ax[1].bar(center-width, ToEP_bars, width, color='#87cefa')
-    rect2med = ax[1].bar(center, medToEP_bars, width, color ='#f08080')
-    ax[1].set_title('Pacific', fontweight='bold', fontsize=13)
-    plt.setp(ax[1].get_xticklabels(), visible=True)
-    ax[1].xaxis.set_tick_params(width=2)
-    autolabel(rects2, ax[1])
-
-    rects3 = ax[2].bar(center-width, ToEI_bars, width, color='#87cefa')
-    rect3med = ax[2].bar(center, medToEI_bars, width, color ='#f08080')
-    ax[2].set_title('Indian', fontweight='bold', fontsize=13)
-    ax[2].xaxis.set_tick_params(width=2)
-    autolabel(rects3, ax[2])
-
-    ax = ax[0]
-
-elif nb_basins == 2:
-    rects1 = ax[0].bar(center-width, ToEP_bars, width, color ='#87cefa')
-    rect1med = ax[0].bar(center, medToEP_bars, width, color ='#f08080')
-    ax[0].set_title('Pacific', fontweight='bold', fontsize=13)
-    autolabel(rects1, ax[0])
-
-    rects2 = ax[1].bar(center-width, ToEI_bars, width, color='#87cefa')
-    rect2med = ax[1].bar(center, medToEI_bars, width, color ='#f08080')
-    ax[1].set_title('Indian', fontweight='bold', fontsize=13)
-    plt.setp(ax[1].get_xticklabels(), visible=True)
-    ax[1].xaxis.set_tick_params(width=2)
-    autolabel(rects2, ax[1])
-
-    ax = ax[0]
-
-else :
-    if domain_char['Atlantic'] == True:
-        rects1 = ax.bar(center-width, ToEA_bars, width, color ='#87cefa')
-        rect1med = ax.bar(center, medToEA_bars, width, color ='#f08080')
-    else:
-        rects1 = ax.bar(center-width, ToEP_bars, width, color ='#87cefa')
-        rect1med = ax.bar(center, medToEP_bars, width, color ='#f08080')
-    autolabel(rects1, ax)
-
-
-ax.set_xlim([0,140])
-ax.set_ylim([0,7])
-ax.set_xticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
-plt.setp(ax.get_xticklabels(), visible=True)
-ax.xaxis.set_tick_params(width=2)
-ax.legend((rects1[0], rect1med[0]), ('Models', 'Median'), loc='upper left', fontsize=12)
-
-# Keep bottom axis only
 for i, axis in enumerate(fig.axes):
+    print i
+    if nb_basins == 3:
+        varBasin = bundles[i]
+    elif nb_basins == 2:
+        varBasin = bundles[i+1]
+    elif nb_basins == 1 and domain_name == 'North Pacific':
+        varBasin = bundles[1]
+    else :
+        varBasin = bundles[0]
+
+    rects = axis.bar(center-width, varBasin['ToE_bars'], width, color ='#87cefa')
+    rectmed = axis.bar(center, varBasin['medToE_bars'], width, color ='#f08080')
+    autolabel(rects, axis)
+    autolabel(rectmed, axis)
+
+    if nb_basins != 1:
+        axis.set_title(varBasin['basin'], fontweight='bold', fontsize=13)
+
+    # Set x axis limits, ticks, ticklabels
+    axis.set_xlim([0,150])
+    axis.set_ylim([0,7])
+    axis.set_xticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
+    axis.xaxis.set_tick_params(width=2)
+    plt.setp(axis.get_xticklabels(), visible=True)
+
+    # Show bottom axis only
     axis.spines['top'].set_visible(False)
     axis.xaxis.set_ticks_position('bottom')
     axis.axes.get_yaxis().set_visible(False)
     axis.spines['left'].set_visible(False); axis.spines['right'].set_visible(False)
+
+    # Set legend
+    if i == 0:
+        axis.legend((rects[0], rectmed[0]), ('Nb of models', 'Median'), loc='upper left', fontsize=11)
+
+
 
 # Add a big axes, hide frame, for common labels
 fig.add_subplot(111, frameon=False)
@@ -372,7 +349,7 @@ plt.xlabel('Years', fontweight='bold')
 plt.ylabel('Nb of models per decade', fontweight='bold')
 
 
-plotTitle = 'ToE (' + legVar + ') in '+domain_name
+plotTitle = 'ToE (' + legVar + ') in '+domain_name+ ' (1%CO2 vs. PiC)'
 if nb_basins >1 :
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
     plt.subplots_adjust(hspace=.5, wspace=5)
@@ -380,8 +357,9 @@ else:
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14)
 
 plt.figtext(.8,.02,'Computed by : bar_toe_1pctCO2vsPiC.py',fontsize=9,ha='center')
+plt.figtext(.2,.02,method,fontsize=9,ha='center')
 
 #plt.show()
 
-plotName = 'ToE_pdf_' + domain_name + '_' + legVar
-#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/Average_ToE/'+plotName+'.png', bbox_inches='tight')
+plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/'+method+'/'+plotName+'.png', bbox_inches='tight')
