@@ -109,7 +109,7 @@ def ToEdomainhistvshistNat(model_name, domain_name):
 
         # Northern Subtropics (cooling/freshening in the Pacific and Indian oceans)
         domains = [
-            {'name':'bcc-csm1-1'    , 'Atlantic': None,    'Pacific': [30,35,25,25,25.2], 'Indian': [22,24,25.5,26.1]}, # 0
+            {'name':'bcc-csm1-1'    , 'Atlantic': None,    'Pacific': [30,35,25,25.2], 'Indian': [22,24,25.5,26.1]}, # 0
             {'name':'CanESM2'       , 'Atlantic': None,    'Pacific': [20,35,24.8,25.2],  'Indian': [20,25,25.4,26.5]}, # 1
             {'name':'CCSM4'         , 'Atlantic': None,    'Pacific': [15,30,24.2,25.2],  'Indian': [20,25,25.8,26.3]}, # 2
             {'name':'CESM1-CAM5'    , 'Atlantic': None,    'Pacific': None,               'Indian': [20,25,25.8,26.5]}, # 3

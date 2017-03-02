@@ -29,8 +29,8 @@ varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('depth'); v = 'Z'
 
 # -- Choose method for computing ToE
-method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
-#method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
+#method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
+method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
 
 
 domain_name = 'Northern ST'
@@ -65,10 +65,7 @@ time = f.variables['time'][:]; timN = time.size
 var = varname['var_zonal']
 
 # Define variable properties
-minmax = varname['minmax_zonal']
 legVar = varname['legVar']
-unit = varname['unit']
-
 
 # ----- Compute ToE for each model ------
 
@@ -203,12 +200,18 @@ if method == 'average_signal':
 
 
 
+
+
+
 # -- Compute median ToE
 medToEA = np.ma.around(np.ma.median(varToEA))
+print(varToEA)
 print(medToEA)
 medToEP = np.ma.around(np.ma.median(varToEP))
+print(varToEP)
 print(medToEP)
 medToEI = np.ma.around(np.ma.median(varToEI))
+print(varToEI)
 print(medToEI)
 
 
@@ -273,6 +276,13 @@ center = (bin_edges[:-1] + bin_edges[1:]) / 2
 medToEA_bars, bin_edges = np.histogram(medToEA, yearbins)
 medToEP_bars, bin_edges = np.histogram(medToEP, yearbins)
 medToEI_bars, bin_edges = np.histogram(medToEI, yearbins)
+
+# -- Create variable bundles
+varAtl = {'basin': 'Atlantic', 'ToE_bars': ToEA_bars, 'medToE_bars': medToEA_bars}
+varPac = {'basin': 'Pacifc', 'ToE_bars': ToEP_bars, 'medToE_bars': medToEP_bars}
+varInd = {'basin': 'Indian', 'ToE_bars': ToEI_bars, 'medToE_bars': medToEI_bars}
+
+bundles = [varAtl, varPac, varInd]
 
 
 # -- Function for attaching a label above each bar indicating the number of models

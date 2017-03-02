@@ -611,7 +611,7 @@ def averageDom(field, dim, domain, lat, rho):
 #          Remap to Depth coordinates
 # -----------------------------------------------
 
-def remapToZ(fieldr,depthr,volumr, valmask, targetz, bowlz, v):
+def remapToZ(fieldr,depthr,volumr, valmask, targetz, bowlz, v, bathy_p):
     '''
     The remaToZ() function remaps a density bined zonal field back to z
     It starts from the surface and computes the mean field for each z level, using the zonal volume of isopycnals for weighting
@@ -680,16 +680,21 @@ def remapToZ(fieldr,depthr,volumr, valmask, targetz, bowlz, v):
                     if bowlz[t,ibasin,j] >= targetz[k] and bowlz[t,ibasin,j] < targetz[k+1] :
                         kbowl = k
                 print 'lat index', j
-                print iz_notempty-1, z_notempty.shape
+                #print iz_notempty-1, z_notempty.shape
                 if np.ma.is_masked(bowlz[t,ibasin,j]) == False :
                     # Interpolate the data on the depth column
-                    if iz_notempty > 2:
+                    if iz_notempty > 3:
                         # print 'Interpolate'
                         spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
                         fieldz_new = spl(targetz)
                         fieldz[t,ibasin,:,j] = fieldz_new
                     # Mask field below the bowl
-                    #fieldz[t,0,0:kbowl,j] = np.ma.masked
+                    #fieldz[t,ibasin,0:kbowl,j] = np.ma.masked
+                # Mask bottom
+                if np.ma.is_mask(bathy_p[j]) == False and bathy_p[j] < targetz[-1]:
+                    bathy_mask = np.ma.nonzero(targetz>=bathy_p[j])[0]
+                    print targetz[bathy_mask[0]:]
+                    fieldz[t,ibasin,bathy_mask[0]:,j] = np.ma.masked
 
     else :
         #for t in range(timN):
@@ -806,7 +811,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, var, bowl, title, clevsm, cmap, leve
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
     ax1.set_xticklabels(xlabels)
     # -- Set y ticks
-    ax1.set_yticks([500,1000,1500,2000])
+    #ax1.set_yticks([500,1000,1500,2000])
     yminorLocator = AutoMinorLocator(4)
     ax1.yaxis.set_minor_locator(yminorLocator)
 
