@@ -219,4 +219,4 @@ for imodel in range(13,17):
 
     #plt.show()
 
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/ToE/'+plotName+'.png', bbox_inches='tight')
+    #plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/ToE/'+plotName+'.png', bbox_inches='tight')

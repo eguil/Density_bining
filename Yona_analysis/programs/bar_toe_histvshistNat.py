@@ -15,13 +15,9 @@ from maps_matplot_lib import defVarmme, averageDom
 from modelsDef import defModels
 from libToE import findToE, ToEdomainhistvshistNat
 
-# ----- Workspace ------
-
-indir_toe = '/data/ericglod/Density_binning/Prod_density_april15/toe_histNat/'
+# ----- Work ------
 
 models = defModels()
-
-# ----- Work ------
 
 varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('temp'); v = 'T'
@@ -29,12 +25,18 @@ varname = defVarmme('salinity'); v = 'S'
 
 # -- Choose method for computing ToE
 method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
-##method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
+# method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
-
-domain_name = 'North Pacific'
+# -- Choose domain
+domain_name = 'Southern ST'
 # 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
 print domain_name
+
+# -- Directory --
+if method == 'average_ToE':
+    indir_toe = '/data/ericglod/Density_binning/Prod_density_april15/toe_histNat/'
+else:
+    indir_toe = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal'
 
 multStd = 2. # detect ToE at multStd std dev of histNat
 
@@ -80,42 +82,49 @@ medmodelsToEP = np.ma.masked_all(len(models))
 medmodelsToEI = np.ma.masked_all(len(models))
 
 # -- Loop over models
-for i, model in enumerate(models):
 
-    file_toe = 'cmip5.' + models[i]['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + models[i]['file_end_hist'] + '_zon2D.nc'
+if method == 'average_ToE':
+    for i, model in enumerate(models):
 
-    ftoe = open_ncfile(indir_toe + file_toe, 'r')
+        file_toe = 'cmip5.' + models[i]['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + models[i]['file_end_hist'] + '_zon2D.nc'
 
-    # -- Read ToE (members, basin, density, latitude)
-    toe2read = ftoe.variables[var + 'ToE2'][:]
-    nMembers[i] = toe2read.shape[0]
-    print '- Computing ToE of',model['name'], 'with', nMembers[i], 'members'
+        ftoe = open_ncfile(indir_toe + file_toe, 'r')
 
-    nruns1 = nruns + nMembers[i]
-    toe_a[nruns:nruns1,:,:] = toe2read[:,1,:,:]
-    toe_p[nruns:nruns1,:,:] = toe2read[:,2,:,:]
-    toe_i[nruns:nruns1,:,:] = toe2read[:,3,:,:]
+        # -- Read ToE (members, basin, density, latitude)
+        toe2read = ftoe.variables[var + 'ToE2'][:]
+        nMembers[i] = toe2read.shape[0]
+        print '- Computing ToE of',model['name'], 'with', nMembers[i], 'members'
 
-    # -- Select domain to average for each model
-    domain = ToEdomainhistvshistNat(model['name'], domain_name)[0]
-    domain_char = ToEdomainhistvshistNat(model['name'], domain_name)[1]
+        nruns1 = nruns + nMembers[i]
+        toe_a[nruns:nruns1,:,:] = toe2read[:,1,:,:]
+        toe_p[nruns:nruns1,:,:] = toe2read[:,2,:,:]
+        toe_i[nruns:nruns1,:,:] = toe2read[:,3,:,:]
 
-    # -- Average toe and determine median of the model
-    if domain['Atlantic'] != None:
-        varToEA[nruns:nruns1] = np.ma.around(averageDom(toe_a[nruns:nruns1,:,:], 3, domain['Atlantic'], lat, density)) + iniyear
-        medmodelsToEA[i] = np.ma.around(np.ma.median(varToEA[nruns:nruns1]))
-        print 'Median ToE Atlantic:', medmodelsToEA[i]
-    if domain['Pacific'] != None:
-        varToEP[nruns:nruns1] = np.ma.around(averageDom(toe_p[nruns:nruns1,:,:], 3, domain['Pacific'], lat, density)) + iniyear
-        medmodelsToEP[i] = np.ma.around(np.ma.median(varToEP[nruns:nruns1]))
-        print 'Median ToE Pacific:', medmodelsToEP[i]
-    if domain['Indian'] != None:
-        varToEI[nruns:nruns1] = np.ma.around(averageDom(toe_i[nruns:nruns1,:,:], 3, domain['Indian'], lat, density)) + iniyear
-        medmodelsToEI[i] = np.ma.around(np.ma.median(varToEI[nruns:nruns1]))
-        print 'Median ToE Indian:', medmodelsToEI[i]
+        # -- Select domain to average for each model
+        domain = ToEdomainhistvshistNat(model['name'], domain_name)[0]
+        domain_char = ToEdomainhistvshistNat(model['name'], domain_name)[1]
 
+        # -- Average toe and determine median of the model
+        if domain['Atlantic'] != None:
+            varToEA[nruns:nruns1] = np.ma.around(averageDom(toe_a[nruns:nruns1,:,:], 3, domain['Atlantic'], lat, density)) + iniyear
+            medmodelsToEA[i] = np.ma.around(np.ma.median(varToEA[nruns:nruns1]))
+            print 'Median ToE Atlantic:', medmodelsToEA[i]
+        if domain['Pacific'] != None:
+            varToEP[nruns:nruns1] = np.ma.around(averageDom(toe_p[nruns:nruns1,:,:], 3, domain['Pacific'], lat, density)) + iniyear
+            medmodelsToEP[i] = np.ma.around(np.ma.median(varToEP[nruns:nruns1]))
+            print 'Median ToE Pacific:', medmodelsToEP[i]
+        if domain['Indian'] != None:
+            varToEI[nruns:nruns1] = np.ma.around(averageDom(toe_i[nruns:nruns1,:,:], 3, domain['Indian'], lat, density)) + iniyear
+            medmodelsToEI[i] = np.ma.around(np.ma.median(varToEI[nruns:nruns1]))
+            print 'Median ToE Indian:', medmodelsToEI[i]
 
-    nruns = nruns1
+        nruns = nruns1
+
+else:
+
+    for i, model in emumerate(models):
+
+        file_toe = 'cmpi5'
 
 print 'Total number of runs :', nruns
 varToEA = varToEA[0:nruns]
@@ -266,7 +275,7 @@ plt.figtext(.2,.02,method,fontsize=9,ha='center')
 #plt.show()
 
 plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method
-plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/histvshistNat/'+method+'/'+plotName+'.png', bbox_inches='tight')
+#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/histvshistNat/'+method+'/'+plotName+'.png', bbox_inches='tight')
 
 
 
