@@ -37,8 +37,6 @@ domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific'
 
 multStd = 2. # detect ToE at multStd std dev of histNat
 
-labBowl = ['histNat', 'hist']
-
 iniyear = 1860
 finalyear = 2005
 deltay = 10.
@@ -140,6 +138,8 @@ for i, model in enumerate(models):
             if domain['Indian'] != None:
                 varsignal_i[:,k,j] = averageDom(varh_i-varhn_i, 3, domain['Indian'], lat, density)
 
+            print '      varsignal shape:', varsignal_a.shape, varsignal_p.shape, varsignal_i.shape
+
             # Compute ToE of averaged domain for run k
             if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a[j]) == False:
                 toe_a[k,j] = findToE(varsignal_a[:,k,j], varnoise_a[j], multStd) + iniyear
@@ -148,16 +148,16 @@ for i, model in enumerate(models):
             if domain['Indian'] != None and np.ma.is_masked(varnoise_i[j]) == False:
                 toe_i[k,j] = findToE(varsignal_i[:,k,j], varnoise_i[j], multStd) + iniyear
 
-
     varToE[:,1,:] = toe_a
     varToE[:,2,:] = toe_p
     varToE[:,3,:] = toe_i
+    print '  varToE shape:', varToE.shape
     print '  ', np.ma.around(np.ma.median(varToE[:,1,0]))
     print ''
 
 
     # Save in output file
-    fileName = 'cmips5.'+model['name']+'.toe_histNat_method2.nc'
+    fileName = 'cmip5.'+model['name']+'.toe_histNat_method2.nc'
     dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal/'
     fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
     fout.description = 'ToE hist vs. histNat for each member, in 5 domains : Southern Subtropics (0), Southern Ocean (1),' \

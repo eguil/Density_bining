@@ -5,7 +5,8 @@
 Python matplotlib
 Make time of emergence PDF bar plots from historical vs. historicalNat
 Choose which variable and domain to work on
-Method: read ToE and average in the chosen domain
+Method1: read lat/rho ToE and average in the chosen domain
+Method2: read ToE computed from the already averaged signal and noise in the chosen domain
 """
 
 import numpy as np
@@ -24,19 +25,19 @@ varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('depth'); v = 'Z'
 
 # -- Choose method for computing ToE
-method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
-# method = 'average_signal' # Average signal and noise in the box, then compute ToE
+#method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
+method = 'average_signal' # Average signal and noise in the box, then compute ToE
+# Method 2 only has ToE for salinity for now
 
 # -- Choose domain
-domain_name = 'Southern ST'
-# 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
+domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
+idomain = 3
+domain_name = domains[idomain]
 print domain_name
 
 # -- Directory --
-if method == 'average_ToE':
-    indir_toe = '/data/ericglod/Density_binning/Prod_density_april15/toe_histNat/'
-else:
-    indir_toe = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal'
+indir_toe_1 = '/data/ericglod/Density_binning/Prod_density_april15/toe_histNat/'
+indir_toe_2 = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal/'
 
 multStd = 2. # detect ToE at multStd std dev of histNat
 
@@ -53,7 +54,7 @@ deltay = 10.
 
 # Choose random file to read only the basic variables and properties common to all files
 file = 'cmip5.' + models[0]['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + models[0]['file_end_hist'] + '_zon2D.nc'
-f = open_ncfile(indir_toe + file,'r')
+f = open_ncfile(indir_toe_1 + file,'r')
 
 lat = f.variables['latitude'][:]; latN = lat.size
 density = f.variables['lev'][:]; levN = density.size
@@ -83,12 +84,12 @@ medmodelsToEI = np.ma.masked_all(len(models))
 
 # -- Loop over models
 
+# Method 1
 if method == 'average_ToE':
     for i, model in enumerate(models):
 
-        file_toe = 'cmip5.' + models[i]['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + models[i]['file_end_hist'] + '_zon2D.nc'
-
-        ftoe = open_ncfile(indir_toe + file_toe, 'r')
+        file_toe = 'cmip5.' + model['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + model['file_end_hist'] + '_zon2D.nc'
+        ftoe = open_ncfile(indir_toe_1 + file_toe, 'r')
 
         # -- Read ToE (members, basin, density, latitude)
         toe2read = ftoe.variables[var + 'ToE2'][:]
@@ -120,16 +121,41 @@ if method == 'average_ToE':
 
         nruns = nruns1
 
+
+# Method 2
 else:
 
-    for i, model in emumerate(models):
+    for i, model in enumerate(models):
 
-        file_toe = 'cmpi5'
+        file_toe = 'cmip5.' + model['name'] + '.toe_histNat_method2.nc'
+        ftoe = open_ncfile(indir_toe_2 + file_toe, 'r')
+
+        domain_char = ToEdomainhistvshistNat(model['name'], domain_name)[1]
+
+        # Read ToE (members, basin, domain)
+        toe2read = ftoe.variables[var + 'ToE2'][:]
+        nMembers[i] = toe2read.shape[0]
+        print '- Reading ToE of',model['name'], 'with', nMembers[i], 'members'
+        nruns1 = nruns + nMembers[i]
+
+        # Save ToE and determine median
+        varToEA[nruns:nruns1] = toe2read[:,1,idomain]
+        medmodelsToEA[i] = np.ma.around(np.ma.median(varToEA[nruns:nruns1]))
+        varToEP[nruns:nruns1] = toe2read[:,2,idomain]
+        medmodelsToEP[i] = np.ma.around(np.ma.median(varToEP[nruns:nruns1]))
+        varToEI[nruns:nruns1] = toe2read[:,3,idomain]
+        medmodelsToEI[i] = np.ma.around(np.ma.median(varToEI[nruns:nruns1]))
+
+        nruns = nruns1
+
+
+
 
 print 'Total number of runs :', nruns
 varToEA = varToEA[0:nruns]
 varToEP = varToEP[0:nruns]
 varToEI = varToEI[0:nruns]
+print np.ma.min(varToEA), np.ma.min(varToEP), np.ma.min(varToEI)
 
 # Take out masked data
 varToEA = varToEA[np.ma.nonzero(varToEA)]
@@ -179,7 +205,7 @@ globalmedToEI_bar, bin_edges = np.histogram(globalmedToEI, yearbins)
 # -- Create variable bundles
 varAtl = {'basin': 'Atlantic', 'ToE_bars': ToEA_bars, 'medmodelsToE_bars': medmodelsToEA_bars,
           'medmedmodelsToE_bar': medmedmodelsToEA_bar, 'globalmedToE_bar': globalmedToEA_bar}
-varPac = {'basin': 'Pacifc', 'ToE_bars': ToEP_bars, 'medmodelsToE_bars': medmodelsToEP_bars,
+varPac = {'basin': 'Pacific', 'ToE_bars': ToEP_bars, 'medmodelsToE_bars': medmodelsToEP_bars,
           'medmedmodelsToE_bar': medmedmodelsToEP_bar, 'globalmedToE_bar': globalmedToEP_bar}
 varInd = {'basin': 'Indian', 'ToE_bars': ToEI_bars, 'medmodelsToE_bars': medmodelsToEI_bars,
           'medmedmodelsToE_bar': medmedmodelsToEI_bar, 'globalmedToE_bar': globalmedToEI_bar}
@@ -236,10 +262,14 @@ for i, axis in enumerate(fig.axes):
         axis.set_title(varBasin['basin'], fontweight='bold', fontsize=13)
 
     # Set x axis limits, ticks, ticklabels
-    axis.set_xlim([1930,2010])
-    axis.set_xticks([1930,1940,1950,1960,1970,1980,1990,2000,2005])
-    axis.xaxis.set_tick_params(width=2)
-    plt.setp(axis.get_xticklabels(), visible=True, rotation=20)
+    if method == 'average_toe':
+        axis.set_xlim([1930,2010])
+        axis.set_xticks([1930,1940,1950,1960,1970,1980,1990,2000,2005])
+    else :
+        axis.set_xlim([1860,2010])
+        axis.set_xticks([1860,1870,1880,1890,1900,1910,1920,1930,1940,1950,1960,1970,1980,1990,2000,2005])
+    axis.xaxis.set_tick_params(width=2, direction = 'inout', length=8, labelsize=10)
+    plt.setp(axis.get_xticklabels(), visible=True, rotation=20, fontweight = 'bold')
 
     # Show bottom axis only
     axis.spines['top'].set_visible(False)
@@ -250,17 +280,23 @@ for i, axis in enumerate(fig.axes):
     # Set legend
     if i == 0:
         axis.legend((rects[0], med[0], medmed, globalmed), ('Nb of members','Nb of model medians','Median of medians','Median of all members')
-                    , loc='upper left', fontsize=11)
+                    , loc='upper left', fontsize=10)
 
 
 
 # Add a big axes, hide frame, for common labels
-fig.add_subplot(111, frameon=False)
+ax1=fig.add_subplot(111, frameon=False)
 # hide tick and tick label of the big axes
 plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 plt.xlabel('Years', fontweight='bold')
 plt.ylabel('Nb per decade', fontweight='bold')
-
+ax1.set_yticks([])
+ax1.yaxis.labelpad = 20
+ax1.xaxis.labelpad = 15
+ax2 = ax1.twinx()
+plt.ylabel('After 2005: signal has not emerged', fontweight='bold')
+ax2.set_yticks([])
+ax2.yaxis.labelpad = 20
 
 plotTitle = 'ToE (' + legVar + ') in '+domain_name+ ' (hist vs. histNat)'
 if nb_basins >1 :
