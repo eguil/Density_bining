@@ -1,7 +1,7 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, glob
+import os
 from netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 from maps_matplot_lib import defVarmme, remapToZ, zon_2Dz, custom_div_cmap
@@ -13,8 +13,10 @@ import numpy as np
 # -------------------------------------------------------------------------------
 
 inDir = '/data/ericglod/Density_binning/'
-work = 'Prod_density_april15/mme_hist'
-inDir = inDir + work
+workh = 'Prod_density_april15/mme_hist'
+workhn = 'Prod_density_april15/mme_histNat'
+inDirh = inDir + workh
+inDirhn = inDir + workhn
 
 # output format
 outfmt = 'view'
@@ -22,7 +24,7 @@ outfmt = 'view'
 
 # Define variable
 varname = defVarmme('salinity'); v = 'S'
-#varname = defVarmme('temp'); v = 'T'
+varname = defVarmme('temp'); v = 'T'
 #varname = defVarmme('volume'); v = 'V'
 
 minmax = varname['minmax_zonal']
@@ -35,25 +37,36 @@ finalyear = 2005
 
 plotName = 'cmip5_remap_test' + varname['var_zonal']
 
-# -------------------------------------------------------------------------------
-# file inits
 
 os.chdir(inDir)
-file2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc' #'cmip5.GFDL-ESM2G.historical.ensm.an.ocn.Omon.density.ver-v20120820_zon2D.nc'
-file1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc' #'cmip5.GFDL-ESM2G.historical.ensm.an.ocn.Omon.density.ver-v20120820_zon1D.nc'
+fileh2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+fileh1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+filehn2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+filehn1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+
 var = varname['var_zonal_w/bowl']
 
 # find dimensions
-fi = open_ncfile(inDir+'/'+file2d)
-fi1d = open_ncfile(inDir+'/'+file1d)
+fh2d = open_ncfile(inDirh+'/'+fileh2d)
+fh1d = open_ncfile(inDirh+'/'+fileh1d)
+fhn2d = open_ncfile(inDirhn+'/'+filehn2d)
+fhn1d = open_ncfile(inDirhn+'/'+filehn1d)
 
-fieldr = fi.variables[var][88:,:,:,:]
-depthr = fi.variables['isondepth'][88:,:,:,:]
-volumr = fi.variables['isonvol'][:88:,:,:,:]
-lat = fi.variables['latitude'][:]
-bowlz = fi1d.variables['ptopdepth'][88:,:,:]
+# -- Read variables
+fieldhr = fh2d.variables[var][-5:,:,:,:]
+fieldhnr = fhn2d.variables[var][-5:,:,:]
+depthr = fh2d.variables['isondepth'][-5:,:,:,:]
+volumr = fh2d.variables['isonvol'][-5:,:,:,:]
+lat = fh2d.variables['latitude'][:]
+bowlhz = fh1d.variables['ptopdepth'][-5:,:,:]
+bowlhnz = fhn1d.variables['ptopdepth'][-5:,:,:]
 
 valmask = 1.e20
+basinN = 4
+
+# -------------------------------------------------------------------------------
+#                                Build variables
+# -------------------------------------------------------------------------------
 
 # -- Bathymetry
 # Read masks
@@ -64,7 +77,7 @@ depthmask = fmask.variables['depthmask'][:] #(latitude, longitude)
 mask_a = basinmask != 1
 mask_p = basinmask != 2
 mask_i = basinmask != 3
-# Take min value along lon for each latitude of each basin --> gives us the bathymetry
+# Take max value along lon for each latitude of each basin --> gives us the bathymetry
 depthmask_a = np.ma.array(depthmask, mask=mask_a)
 bathy_a = np.ma.max(depthmask_a, axis=1)
 depthmask_p = np.ma.array(depthmask, mask=mask_p)
@@ -72,7 +85,21 @@ bathy_p = np.ma.max(depthmask_p, axis=1)
 depthmask_i = np.ma.array(depthmask, mask=mask_i)
 bathy_i = np.ma.max(depthmask_i, axis=1)
 
-# Target grid
+bathy = np.ma.masked_all((basinN,len(lat)))
+bathy[1,:] = bathy_a
+bathy[2,:] = bathy_p
+bathy[3,:] = bathy_i
+
+# -- Compute signal hist - histNat
+vardiffr = np.ma.average(fieldhr, axis=0) - np.ma.average(fieldhnr, axis=0)
+# -- Average other variables
+depthr = np.ma.average(depthr, axis=0)
+volumr = np.ma.average(volumr, axis=0)
+bowlhz = np.ma.average(bowlhz, axis=0)
+bowlhnz = np.ma.average(bowlhnz, axis=0)
+
+
+# -- Target grid for remapping
 
 #targetz = [0.,5.,15.,25.,35.,45.,55.,65.,75.,85.,95.,105.,116.,128.,142.,158.,181.,216.,272.,364.,511.,732.,1033.,1405.,1830.,2289.,2768.,3257.,3752.,4350.,4749.,5250.]
 
@@ -92,15 +119,18 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
 
 
 # -- Remap
-fieldz = remapToZ(fieldr.data, depthr.data, volumr.data, targetz, bowlz, v, bathy_p, ibasin)
-#idx = np.argwhere(fieldz < valmask/10.)
-#print idx.shape
-
-# -- Compute diff
-#fieldz_diff = np.ma.average(fieldz[-5:,:,:,:], axis=0) - np.ma.average(fieldz[0:5,:,:,:], axis=0)
+fieldz = remapToZ(vardiffr.data, depthr.data, volumr.data, targetz, bowlhz, v, bathy)
 
 
-# === Plot ===
+# -- Make variable bundles for each basin
+varAtl = {'name': 'Atlantic', 'var_change': fieldz[1,:,:], 'bowl1': bowlhnz[1,:], 'bowl2': bowlhz[1,:]}
+varPac = {'name': 'Pacific', 'var_change': fieldz[2,:,:], 'bowl1': bowlhnz[2,:], 'bowl2': bowlhz[2,:]}
+varInd = {'name': 'Indian', 'var_change': fieldz[3,:,:], 'bowl1': bowlhnz[3,:], 'bowl2': bowlhz[3,:]}
+
+
+# -------------------------------------------------------------------------------
+#                                Plot
+# -------------------------------------------------------------------------------
 
 domzed = [0,500,2000]
 
@@ -108,33 +138,40 @@ domzed = [0,500,2000]
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 
 # -- color map
-cmap = plt.get_cmap('jet') #custom_div_cmap() #plt.get_cmap('jet') #plt.get_cmap('bwr')
+cmap = custom_div_cmap()
 
 # -- levels
-#np.linspace(minmax[0],minmax[1],minmax[2]) # Change
-levels = np.arange(33.5,35.5,0.2) # Mean salinity
-levels = np.arange(-2,30,2) # Mean temperature
+levels = np.linspace(minmax[0],minmax[1],minmax[2]) # Change
+#levels = np.arange(33.5,35.5,0.2) # Mean salinity
+#levels = np.arange(-2,30,2) # Mean temperature
 #levels = np.arange(0,701,50) # Mean volume
 
+# -- Contourf of signal
+cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtl,
+                 clevsm, cmap, levels, domzed)
+cnplot = zon_2Dz(plt, axes[0,1], axes[1,1], 'mid', lat, targetz, varPac,
+                 clevsm, cmap, levels, domzed)
+cnplot = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varInd,
+                 clevsm, cmap, levels, domzed)
 
-#print lat,targetz, fieldz[0,:]
-#print len(lat),len(targetz),fieldz_diff.shape
-cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, fieldz[0,2,:,:], bowlz[0,2,:],
-                 'Test remap Pac', clevsm, cmap, levels, domzed)
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
 # -- Add colorbar
-cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), fraction=0.015, shrink=2.0, pad=0.05)
-#cb.set_label(unit)
+cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
+cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
 # add Title text
-#ttxt = fig.suptitle(legVar + ' for ' + work+'/ '+dow, fontsize=14, fontweight='bold')
+fig.suptitle('Remapping %s changes hist-histNat (mme) from rho to z' %(legVar,), fontsize=14, fontweight='bold')
+
+plt.figtext(.5,.01,'Computed by : remap_to_z.py',fontsize=9,ha='center')
 
 # -- Output  # TODO read as argument
 
 if outfmt == 'view':
     plt.show()
+
 # else:
 #     print 'Save',plotName+'.pdf'
 #     plt.savefig(plotName+'.pdf', bbox_inches='tight')
+
