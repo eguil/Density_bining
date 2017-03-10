@@ -81,6 +81,13 @@ for i, model in enumerate(models):
     nruns_h = nruns1_h
     nruns_hn = nruns1_hn
 
+varnoise_ha = varnoise_ha[0:nruns_h,:]
+varnoise_hp = varnoise_hp[0:nruns_h,:]
+varnoise_hi = varnoise_hi[0:nruns_h,:]
+varnoise_hna = varnoise_hna[0:nruns_hn,:]
+varnoise_hnp = varnoise_hnp[0:nruns_hn,:]
+varnoise_hni = varnoise_hni[0:nruns_hn,:]
+
 
 # == Pi Control ==
 

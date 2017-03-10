@@ -29,12 +29,13 @@ varname = defVarmme('salinity'); v = 'S'
 #varname = defVarmme('depth'); v = 'Z'
 
 # -- Choose method for computing ToE
-method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
-#method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
+#method = 'average_ToE' # Determine 2D lat/rho ToE then average in the box
+method = 'average_signal' # Average signal and noise in the box, then compute ToE (much faster)
+print method
 
-
-domain_name = 'North Pacific'
-# 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
+domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
+idomain = 0
+domain_name = domains[idomain]
 print domain_name
 
 multStd = 2. # detect ToE at multStd std dev of piControl
@@ -215,44 +216,43 @@ varToEI = varToEI[np.ma.nonzero(varToEI)]
 
 # # ----- Compute ToE for MME ------
 #
-# if work_toe == 'mme' :
-#     print '- Computing MME ToE'
+# print '- Computing MME ToE'
 #
-#     file_1pctCO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
-#     file_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
+# file_1pctCO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
+# file_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
 #
-#     fCO2 = open_ncfile(indir_1pctCO2 + file_1pctCO2,'r')
-#     fpiC = open_ncfile(indir_piC + file_piC,'r')
+# fCO2 = open_ncfile(indir_1pctCO2 + file_1pctCO2,'r')
+# fpiC = open_ncfile(indir_piC + file_piC,'r')
 #
-#     # -- Read var 1pctCO2
-#     varCO2_a = fCO2.variables[var][:,1,:,:].squeeze()
-#     varCO2_p = fCO2.variables[var][:,2,:,:].squeeze()
-#     varCO2_i = fCO2.variables[var][:,3,:,:].squeeze()
-#     # -- Read var piControl
-#     varpiC_a = fpiC.variables[var][-140:,1,:,:].squeeze()
-#     varpiC_p = fpiC.variables[var][-140:,2,:,:].squeeze()
-#     varpiC_i = fpiC.variables[var][-140:,3,:,:].squeeze()
+# # -- Read var 1pctCO2
+# varCO2_a = fCO2.variables[var][:,1,:,:].squeeze()
+# varCO2_p = fCO2.variables[var][:,2,:,:].squeeze()
+# varCO2_i = fCO2.variables[var][:,3,:,:].squeeze()
+# # -- Read var piControl
+# varpiC_a = fpiC.variables[var][-140:,1,:,:].squeeze()
+# varpiC_p = fpiC.variables[var][-140:,2,:,:].squeeze()
+# varpiC_i = fpiC.variables[var][-140:,3,:,:].squeeze()
 #
-#     # -- Compute significance of difference when diff within 1 stddev of piControl variability (in the MME sense)
-#     varams = np.ma.std(varpiC_a, axis=0)
-#     varpms = np.ma.std(varpiC_p, axis=0)
-#     varims = np.ma.std(varpiC_i, axis=0)
+# # -- Compute significance of difference when diff within 1 stddev of piControl variability (in the MME sense)
+# varams = np.ma.std(varpiC_a, axis=0)
+# varpms = np.ma.std(varpiC_p, axis=0)
+# varims = np.ma.std(varpiC_i, axis=0)
 #
-#     # -- reorganise i,j dims in single dimension data (speeds up loops)
-#     varCO2_a  = np.reshape(varCO2_a, (timN,levN*latN))
-#     varpiC_a = np.reshape(varpiC_a,(timN,levN*latN))
-#     varams  = np.reshape(varams, (levN*latN))
-#     varCO2_p  = np.reshape(varCO2_p, (timN,levN*latN))
-#     varpiC_p = np.reshape(varpiC_p,(timN,levN*latN))
-#     varpms  = np.reshape(varpms, (levN*latN))
-#     varCO2_i  = np.reshape(varCO2_i, (timN,levN*latN))
-#     varpiC_i = np.reshape(varpiC_i,(timN,levN*latN))
-#     varims  = np.reshape(varims, (levN*latN))
+# # -- reorganise i,j dims in single dimension data (speeds up loops)
+# varCO2_a  = np.reshape(varCO2_a, (timN,levN*latN))
+# varpiC_a = np.reshape(varpiC_a,(timN,levN*latN))
+# varams  = np.reshape(varams, (levN*latN))
+# varCO2_p  = np.reshape(varCO2_p, (timN,levN*latN))
+# varpiC_p = np.reshape(varpiC_p,(timN,levN*latN))
+# varpms  = np.reshape(varpms, (levN*latN))
+# varCO2_i  = np.reshape(varCO2_i, (timN,levN*latN))
+# varpiC_i = np.reshape(varpiC_i,(timN,levN*latN))
+# varims  = np.reshape(varims, (levN*latN))
 #
-#     # -- Compute ToE as last date when diff 1pctCO2 - piControl is larger than mult * stddev
-#     toemme_a = np.reshape(findToE(varCO2_a-varpiC_a, varams, multStd),(levN,latN))
-#     toemme_p = np.reshape(findToE(varCO2_p-varpiC_p, varpms, multStd),(levN,latN))
-#     toemme_i = np.reshape(findToE(varCO2_i-varpiC_i, varims, multStd),(levN,latN))
+# # -- Compute ToE as last date when diff 1pctCO2 - piControl is larger than mult * stddev
+# toemme_a = np.reshape(findToE(varCO2_a-varpiC_a, varams, multStd),(levN,latN))
+# toemme_p = np.reshape(findToE(varCO2_p-varpiC_p, varpms, multStd),(levN,latN))
+# toemme_i = np.reshape(findToE(varCO2_i-varpiC_i, varims, multStd),(levN,latN))
 #
 #
 # varmmeToEA = np.around(averageDom(toemme_a, 2, DomToEA['domain'], lat, density))
@@ -362,4 +362,4 @@ plt.figtext(.2,.02,method,fontsize=9,ha='center')
 #plt.show()
 
 plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method
-plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/'+method+'/'+plotName+'.png', bbox_inches='tight')
+#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/'+method+'/'+plotName+'.png', bbox_inches='tight')

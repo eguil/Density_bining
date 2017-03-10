@@ -26,8 +26,8 @@ from modelsDef import defModels, defModelsCO2piC
 #name = 'mme_hist'
 #name = 'mme_hist_histNat'
 #name = 'ens_mean_hist'
-name = 'ens_mean_hist_histNat'
-#name = 'mme_1pctCO2vsPiC'
+#name = 'ens_mean_hist_histNat'
+name = 'mme_1pctCO2vsPiC'
 #name = 'mme_1pctCO2'
 #name = '1pctCO2'
 #name = '1pctCO2vsPiC'
@@ -110,7 +110,7 @@ if name == 'ens_mean_hist' or name == '1pctCO2' or name == 'ens_mean_hist_histNa
 
 if name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2':
     indir_1pctCO2 = '/data/ericglod/Density_binning/Prod_density_april15/mme_1pctCO2/'
-    file_2d = 'zon2D_mean_bowl/cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_2d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
     file_1d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
     data_2d = indir_1pctCO2 + file_2d
     data_1d = indir_1pctCO2 + file_1d
@@ -157,7 +157,7 @@ else:
     #varname = defVarmme('temp'); v = 'T'
     #varname= defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
-    var = varname['var_zonal_w/bowl']
+    var = varname['var_zonal']
 
     if name == 'mme_hist' or name == 'ens_mean_hist':
         var = fh2d.variables[var][88:,:,:,:] # Index 88 = year 1950

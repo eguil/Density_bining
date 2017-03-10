@@ -611,7 +611,7 @@ def averageDom(field, dim, domain, lat, rho):
 #          Remap to Depth coordinates
 # -----------------------------------------------
 
-def remapToZ(fieldr,depthr,volumr, valmask, targetz, bowlz, v, bathy_p):
+def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy_p, ibasin):
     '''
     The remaToZ() function remaps a density bined zonal field back to z
     It starts from the surface and computes the mean field for each z level, using the zonal volume of isopycnals for weighting

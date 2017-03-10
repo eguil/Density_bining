@@ -7,12 +7,11 @@ Save ToE in output files
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarmme, averageDom
 from modelsDef import defModels
 from libToE import findToE, ToEdomainhistvshistNat
-import os, glob
+import glob
 
 
 # ----- Workspace ------
@@ -33,7 +32,6 @@ method = 'average_signal' # Average signal and noise in the box, then compute To
 #domain_name = 'North Pacific'
 # 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
-
 
 multStd = 2. # detect ToE at multStd std dev of histNat
 
