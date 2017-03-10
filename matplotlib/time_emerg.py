@@ -21,7 +21,7 @@ import numpy as np
 #                                Define work
 # -------------------------------------------------------------------------------
 
-inDir = '/Users/ericg/Projets/Density_bining/'
+inDir = '/data/ericglod/Density_binning/'
 workh = 'Prod_density_april15/mme_hist/'
 workhn = 'Prod_density_april15/mme_histNat/'
 inDirh = inDir + workh
@@ -38,8 +38,8 @@ ToE_Method = 'usehistNat'
 
 # Define variable  TODO: read as argument
 varname = defVar('salinity')
-varname = defVar('temp')
-varname = defVar('depth')
+#varname = defVar('temp')
+#varname = defVar('depth')
 #varname = defVar('volume')
 # varname = defVar('persist')
 
@@ -238,5 +238,5 @@ plt.suptitle(figTitle, fontsize=14, fontweight='bold')
 
 # -- Output  # TODO read as argument
 
-#plt.show()
-plt.savefig(plotName + '.pdf', bbox_inches='tight')
+plt.show()
+#plt.savefig(plotName + '.pdf', bbox_inches='tight')
