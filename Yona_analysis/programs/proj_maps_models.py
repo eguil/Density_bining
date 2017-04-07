@@ -52,8 +52,8 @@ lon = fh.variables['longitude'][:]
 
 # ------ Define work and variables ---------
 
-#varname = defVarmme('salinity'); v = 'S'
-varname = defVarmme('temp'); v = 'T'
+varname = defVarmme('salinity'); v = 'S'
+#varname = defVarmme('temp'); v = 'T'
 
 density = np.array([19.0, 19.2, 19.4, 19.6, 19.8, 20.0, 20.2, 20.4, 20.6, 20.8, 21.0, 21.2,
     21.4, 21.6, 21.8, 22.0, 22.2, 22.4, 22.6, 22.8, 23.0, 23.2, 23.4, 23.6,
@@ -72,9 +72,9 @@ legVar = varname['legVar']
 unit = varname['unit']
 
 # Define isopycnal on which we want to project the temperature/salinity/other variable
-isopyc1 = 24.0
-isopyc2 = 25.0
-isopyc3 = 26.5
+isopyc1 = 23.5
+isopyc2 = 24.5
+isopyc3 = 25
 isopyc4 = 27.5
 isopyc1_idx = np.argmin(np.abs(density - isopyc1))
 isopyc4_idx = np.argmin(np.abs(density - isopyc4))

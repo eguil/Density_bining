@@ -34,7 +34,7 @@ method = 'average_signal' # Average signal and noise in the box, then compute To
 print method
 
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
-idomain = 0
+idomain = 3
 domain_name = domains[idomain]
 print domain_name
 
@@ -294,7 +294,7 @@ def autolabel(rects, axis):
         if height > 0:
             axis.text(rect.get_x() + rect.get_width()/2., 1.05*height,
                     '%d' % int(height),
-                    ha='center', va='bottom')
+                    ha='center', va='bottom', fontweight='bold', fontsize=13)
 
 
 nb_basins = domain_char['nb_basins']
@@ -326,8 +326,8 @@ for i, axis in enumerate(fig.axes):
     axis.set_xlim([0,150])
     axis.set_ylim([0,7])
     axis.set_xticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
-    axis.xaxis.set_tick_params(width=2)
-    plt.setp(axis.get_xticklabels(), visible=True)
+    axis.xaxis.set_tick_params(width=2, direction = 'inout', length=8, labelsize=12)
+    plt.setp(axis.get_xticklabels(), visible=True, fontweight='bold')
 
     # Show bottom axis only
     axis.spines['top'].set_visible(False)
@@ -361,5 +361,5 @@ plt.figtext(.2,.02,method,fontsize=9,ha='center')
 
 #plt.show()
 
-plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method
-#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/'+method+'/'+plotName+'.png', bbox_inches='tight')
+plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method + '_bold'
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/1pctCO2vsPiC/'+method+'/'+plotName+'.png', bbox_inches='tight')

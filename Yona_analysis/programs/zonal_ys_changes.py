@@ -157,7 +157,7 @@ else:
     #varname = defVarmme('temp'); v = 'T'
     #varname= defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
-    var = varname['var_zonal']
+    var = varname['var_zonal_w/bowl']
 
     if name == 'mme_hist' or name == 'ens_mean_hist':
         var = fh2d.variables[var][88:,:,:,:] # Index 88 = year 1950
@@ -234,6 +234,7 @@ rhomid = 26
 rhomax = 28
 domrho = [rhomin, rhomid, rhomax]
 
+valmask = 1e+20
 
 # == Build plot variables ==
 
@@ -275,6 +276,7 @@ if name == 'Durack & Wijffels':
               'bowl1': bowl_1950[:,3], 'bowl2': bowl_2000[:,3], 'labBowl': labBowl}
 
 
+
 if name == 'mme_hist' or name == 'ens_mean_hist':
     var_change_p = var_change[2,:,:].squeeze()
     var_change_a = var_change[1,:,:].squeeze()
@@ -302,6 +304,29 @@ if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pct
     bowl2_p = bowl2[2,:].squeeze(); bowl1_p = bowl1[2,:].squeeze()
     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
+
+    # In mme 1%CO2 vs. Pi Control problem below the bowl, so take variable with bowl, and masl the data above the bowl
+    if name == 'mme_1pctCO2vsPiC':
+        # Pb with masked values in the bottom
+        var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
+        var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
+        var_change_i[np.ma.nonzero(var_change_i>valmask/10)] = np.ma.masked
+        # Now mask points in the bowl
+        for ilat in range(len(lat)):
+            if np.ma.is_masked(bowl1_a[ilat]) == False :
+                # ja = bowl1_a[ilat]
+                inda = np.ma.nonzero(bowl1_a[ilat]>=density)
+                var_change_a[inda,ilat] = np.ma.masked
+            if np.ma.is_masked(bowl1_p[ilat]) == False :
+                # jp = bowl1_p[ilat]
+                indp = np.ma.nonzero(bowl1_p[ilat]>=density)
+                var_change_p[indp,ilat] = np.ma.masked
+            if np.ma.is_masked(bowl1_i[ilat]) == False :
+                # ji = bowl1_i[ilat]
+                indi = np.ma.nonzero(bowl1_i[ilat]>=density)
+                var_change_i[indi,ilat] = np.ma.masked
+
+
     # -- Create variable bundles
     varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': None,
               'bowl1': bowl1_p, 'bowl2': bowl2_p, 'labBowl': labBowl}
