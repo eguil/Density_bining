@@ -5,7 +5,8 @@
 Average signal (1pctCO2 - PiControl) and noise (2*std(PiControl)) in the specified domains,
 then compute ToE  1pctCO2 vs. Pi Control.
 Save ToE in output files
-
+(Method 2 = 'average_signal' compared to method 1 'average_toe' which first calculated the ToE everywhere 
+then averaged it in the specified domains, making the calculations much longer)
 """
 
 import numpy as np
@@ -26,6 +27,10 @@ models = defModelsCO2piC()
 varname = defVarmme('salinity'); v = 'S'
 
 method = 'average_signal'
+
+# Choose which 'noise' to use for the ToE calculation
+method_noise = 'average_std' # Average the standard deviation of PiC in the specified domains
+#method_noise = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
 
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
 
@@ -98,14 +103,25 @@ for i, model in enumerate(models):
         # Average signal and noise
         if domain['Atlantic'] != None:
             varsignal_a[:,j] = averageDom(varCO2[:,1,:,:]-varpiC[:,1,:,:], 3, domain['Atlantic'], lat, density)
-            varnoise_a[j] = averageDom(varstd[1,:,:], 2, domain['Atlantic'], lat, density)
+            if 'method_noise' == 'average_std':
+                varnoise_a[j] = averageDom(varstd[1,:,:], 2, domain['Atlantic'], lat, density)
+            else:
+                varnoise_a[j] = averageDom(varpiC[:,1,:,:], 3, domain['Atlantic'], lat, density)
+                varnoise_a[j] = np.ma.std(varnoise_a[j], axis=0)
         if domain['Pacific'] != None:
             varsignal_p[:,j] = averageDom(varCO2[:,2,:,:]-varpiC[:,2,:,:], 3, domain['Pacific'], lat, density)
-            varnoise_p[j] = averageDom(varstd[2,:,:], 2, domain['Pacific'], lat, density)
+            if 'method_noise' == 'average_std':
+                varnoise_p[j] = averageDom(varstd[2,:,:], 2, domain['Pacific'], lat, density)
+            else:
+                varnoise_p[j] = averageDom(varpiC[:,2,:,:], 3, domain['Pacific'], lat, density)
+                varnoise_p[j] = np.ma.std(varnoise_p[j], axis=0)
         if domain['Indian'] != None:
             varsignal_i[:,j] = averageDom(varCO2[:,3,:,:]-varpiC[:,3,:,:], 3, domain['Indian'], lat, density)
-            varnoise_i[j] = averageDom(varstd[3,:,:], 2, domain['Indian'], lat, density)
-
+            if 'method_noise' == 'average_std':                
+                varnoise_i[j] = averageDom(varstd[3,:,:], 2, domain['Indian'], lat, density)
+            else:
+                varnoise_i[j] = averageDom(varpiC[:,3,:,:], 3, domain['Indian'], lat, density)
+                varnoise_i[j] = np.ma.std(varnoise_i[j], axis=0)
         # Compute ToE of averaged domain
         if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a[j]) == False:
             toe_a[j] = findToE(varsignal_a[:,j], varnoise_a[j], multStd)
