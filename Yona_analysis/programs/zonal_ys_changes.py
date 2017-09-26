@@ -33,7 +33,7 @@ name = 'mme_1pctCO2vsPiC'
 #name = '1pctCO2vsPiC'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years)
-focus_1pctCO2 = '2*CO2' # 2 or 4*CO2
+focus_1pctCO2 = '2*CO2' # 1.4 or 2 or 4*CO2
 
 imodel = 7 # Choose model index in model list (modelsDef.py)
 #for imodel in range(16):
@@ -218,7 +218,15 @@ else:
             bowl2 = np.ma.average(bowl2, axis=0)
             bowl1 = np.ma.average(bowl1, axis=0)
             labBowl = ['PiControl', '4*CO2']
-
+        if focus_1pctCO2 == '1.4*CO2':
+            varCO2 = fh2d.variables[var][33:38,:,:,:]
+            varPiC = fhn2d.variables[var][-10:,:,:,:]
+            var_change = np.ma.average(varCO2, axis=0) - np.ma.average(varPiC, axis=0)
+            bowl2 = fh1d.variables['ptopsigma'][33:38,:,:]
+            bowl1 = fhn1d.variables['ptopsigma'][-10:,:,:]
+            bowl2 = np.ma.average(bowl2, axis=0)
+            bowl1 = np.ma.average(bowl1, axis=0)
+            labBowl = ['PiControl', '1.4*CO2']
 
 # == Define variable properties ==
 minmax = varname['minmax_zonal']
@@ -305,7 +313,7 @@ if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pct
     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
 
-    # In mme 1%CO2 vs. Pi Control problem below the bowl, so take variable with bowl, and masl the data above the bowl
+    # In mme 1%CO2 vs. Pi Control problem below the bowl, so take variable with bowl, and mask the data above the bowl
     if name == 'mme_1pctCO2vsPiC':
         # Pb with masked values in the bottom
         var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
