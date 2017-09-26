@@ -198,7 +198,16 @@ else:
             bowl2 = np.ma.average(bowl2, axis=0)
             bowl1 = np.ma.average(bowl1, axis=0)
             labBowl = ['Beginning', '4*CO2']
-
+        if focus_1pctCO2 == '1.4*CO2':
+            var_end = fh2d.variables[var][33:38,:,:,:]
+            var_start = fh2d.variables[var][0:5,:,:,:]
+            var_change = np.ma.average(var_end, axis=0) - np.ma.average(var_start, axis=0)
+            bowl2 = fh1d.variables['ptopsigma'][33:38,:,:]
+            bowl1 = fh1d.variables['ptopsigma'][0:5,:,:]
+            bowl2 = np.ma.average(bowl2, axis=0)
+            bowl1 = np.ma.average(bowl1, axis=0)
+            labBowl = ['Beginning', '1.4*CO2']
+            
     if name == 'mme_1pctCO2vsPiC' or name == '1pctCO2vsPiC':
         if focus_1pctCO2 == '2*CO2':
             varCO2 = fh2d.variables[var][69:74,:,:,:]
