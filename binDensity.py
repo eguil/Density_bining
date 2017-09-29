@@ -45,6 +45,7 @@ from scipy.interpolate._fitpack import _bspleval
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
 
+
 # Function definitions
 
 def maskVal(field,valmask):
