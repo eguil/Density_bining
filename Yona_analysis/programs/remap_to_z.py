@@ -171,7 +171,4 @@ plt.figtext(.5,.01,'Computed by : remap_to_z.py',fontsize=9,ha='center')
 if outfmt == 'view':
     plt.show()
 
-# else:
-#     print 'Save',plotName+'.pdf'
-#     plt.savefig(plotName+'.pdf', bbox_inches='tight')
 

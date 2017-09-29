@@ -637,6 +637,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
     Notes:
     -----
     - EG 18 Aug 2016   - Initial function write
+    - March 2017 Yona Silvy : updating script and adding an interpolation on each depth column
    '''
 
     latN = fieldr.shape[2]
