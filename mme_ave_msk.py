@@ -1,5 +1,5 @@
 import os,glob,sys,resource,socket
-from libDensity import mmeAveMsk1D,mmeAveMsk2D, mmeAveMsk3D
+from libDensityPostpro import mmeAveMsk1D,mmeAveMsk2D, mmeAveMsk3D
 from modelsDef import defModels
 from correctBinFiles import correctFile
 from string import replace

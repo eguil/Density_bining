@@ -56,7 +56,7 @@ agreelev = 0.6
 varname = defVar('salinity')
 #varname = defVar('temp')
 #varname = defVar('depth')
-#varname = defVar('volume')
+varname = defVar('volume')
 # varname = defVar('persist')
 
 # Define plot name, years for difference, bowl label and bowl and model agreement plot options
@@ -87,7 +87,7 @@ if dow == 'ishii': # 1945.01 - 2012.12 (68 time steps)
 #(ignore for now JAMSTEC: 2001.01 - 2014.12
 #(ignore for now UCSD: 2004.01 - 2015.03
 # SmithAndMurphy2007 # 1950.01 - 2013.02 (ignore last year)
-
+modelAgree = False
 # density domain
 domrho = [21., 26., 28.]  # min/mid/max
 delrho = [.5, .2]
