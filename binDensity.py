@@ -417,8 +417,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x2_content  = so.data[t]
             x3_content  = npy.array(vo.data[t]*lev_thickt) # x3 doit representer la vitesse integree sur l epaisseur de la grille. 
             #17/08/17 JM: help Nicolas: il faudrait faire passer lev_thick de la dimension [k,i*j] a [k,j,i] (reshape)
-            print "Sizes: x1_content=",x1_content.shape,",  vo.data[t]=", vo.data[t].shape,", x3_content=",x3_content.shape,", lev_thickt=", lev_thickt.shape
-
+            
             #if debug and t <= 0:
             #    i = ijtest
             #    print ' tc = ',tc
