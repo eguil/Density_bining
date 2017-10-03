@@ -47,9 +47,6 @@ from cdms2 import CdmsRegrid
 from durolib import fixVarUnits
 import seawater as sw
 
-#import argparse,string,sys,timeit,resource
-#from string import replace
-
 #
 # inits
 # -----
@@ -84,13 +81,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
 
     Usage:
     ------
-    >>> from binDensity import surfTransf
-    >>> surfTransf(file_fx, file_tos, file_sos, file_hef, file_wfo, ./output.nc, debug=True,timeint='all')
+    '>>> from binDensity import surfTransf
+    '>>> surfTransf(file_fx, file_tos, file_sos, file_hef, file_wfo, [var1,var2,var3,var4]./output.nc, debug=True,timeint='all')
 
     Notes:
     -----
     - EG   8 Oct 2014   - Initial function write and tests ok
     - PJD 22 Nov 2014   - Code cleanup
+    - EG   4 Oct 2017   - code on ciclad, more cleanup and options
 
     '''
     # Keep track of time (CPU and elapsed)
@@ -122,8 +120,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     fsos  = cdm.open(fileSos)
     fhef  = cdm.open(fileHef)
     fwfo  = cdm.open(fileWfo)
-    #timeax = ftos.getAxis('time')
-    timeax = ftos.getAxis('time_counter')
+    timeax = ftos.getAxis('time')
+    #timeax = ftos.getAxis('time_counter')
     print timeax
     #
     # Dates to read
@@ -165,14 +163,16 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         emp  = fwfo('wfos' , time = slice(tmin,tmax))
         print ' Reading concentration dillution fresh water flux'
         empsw = 0
-    tos_h = ftos['sosstsst']
-    #print tos_h
+    tos_h = ftos[tos_name]
+    if debugp:
+        print tos_h
     #
     # Read time and grid
-    time = tos_h.getTime()
-    lon  = tos_h.getLongitude()
-    lat  = tos_h.getLatitude()
-    ingrid = tos_h.getGrid()
+    #time = tos_h.getTime()
+    time = timeax
+    #lon  = tos_h.getLongitude()
+    #lat  = tos_h.getLatitude()
+    ingrid = tos.getGrid()
     #
     # Read cell area
     #ff = cdm.open(fileFx)
@@ -200,6 +200,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     s_axis.long_name = 'Neutral density'
     s_axis.units = 'kg m-3 (anomaly, minus 1000)'
     s_axis.designateLevel()
+    #
+    # Write 3D density flux ?
+    #
+    writedenflx = False
     #
     # Monthly transformation
     if os.path.exists(outFile):
@@ -301,8 +305,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
 
         gt.close
     else:
+        # Interpolate on WOA grid
         #fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
-        fileg = '/export/durack1/git/Density_bining/140807_WOD13_masks.nc'
+        #fileg = '/export/durack1/git/Density_bining/140807_WOD13_masks.nc'
+        fileg = '140807_WOD13_masks.nc'
         gt = cdm.open(fileg)
         maskg = gt('basinmask3')
         outgrid = maskg.getGrid()
@@ -335,7 +341,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     rhon    = tmp.copy() # surface density
     tmpi    = npy.ma.ones([Nji, Nii], dtype='float32')*valmask 
     tost    = tmpi.copy()
-    sost    = tmpi.copy() 
+    sost    = tmpi.copy()
     heft    = tmpi.copy()
     empt    = tmpi.copy()
     # Global
@@ -418,22 +424,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         hefta = heft*1.
         heftp = heft*1.
         hefti = heft*1.
-        #hefta.mask = maskAtl
-        #heftp.mask = maskPac
-        #hefti.mask = maskInd
-        #hefta = maskVal(hefta, valmask)
-        #heftp = maskVal(heftp, valmask)
-        #hefti = maskVal(hefti, valmask)
         #
         empta = empt*1.
         emptp = empt*1.
         empti = empt*1.
-        #empta.mask = maskAtl
-        #emptp.mask = maskPac
-        #empti.mask = maskInd
-        #empta = maskVal(empta, valmask)
-        #emptp = maskVal(emptp, valmask)
-        #empti = maskVal(empti, valmask)
         #
         # Compute density
         rhon[t,...] = eosNeutral(tost.data, sost.data) - 1000.
@@ -540,9 +534,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai, (Nji*Nii)), action='sum')*dt*convw
 
-#        if debugp:
-#            print '    integral Q flux ',t,intHeatFlx [t], intHeatFlxa[t], intHeatFlxp[t], intHeatFlxi[t]
-#            print '    integral W flux ',t,intWatFlx [t], intWatFlxa[t], intWatFlxp[t], intWatFlxi[t]
+        if debugp:
+            print '    integral Q flux ',t,intHeatFlx [t], intHeatFlxa[t], intHeatFlxp[t], intHeatFlxi[t]
+            print '    integral W flux ',t,intWatFlx [t], intWatFlxa[t], intWatFlxp[t], intWatFlxi[t]
       
     # Wash mask over variables
     maskt        = mv.masked_values(rhon, valmask).mask
@@ -591,18 +585,19 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     # Output files as netCDF
     # Density flux (3D: time, lon, lat)
     convw = 1.e6
-    #rhon    = cdm.createVariable(rhon          , axes = [time, lati, loni], id = 'densurf')
-    #denFlx  = cdm.createVariable(denflx*convw  , axes = [time, lati, loni], id = 'denflux')
-    #denFlxh = cdm.createVariable(denflxh*convw , axes = [time, lati, loni], id = 'hdenflx')
-    #denFlxw = cdm.createVariable(denflxw*convw , axes = [time, lati, loni], id = 'wdenflx')
-    #denFlx.long_name   = 'Surface density'
-    #denFlx.units       = 'kg.m-3 (anomaly, minus 1000)'
-    #denFlx.long_name   = 'Total density flux'
-    #denFlx.units       = '1.e-6 kg/m2/s'
-    #denFlxh.long_name  = 'Heat density flux'
-    #denFlxh.units      = '1.e-6 kg/m2/s'
-    #denFlxw.long_name  = 'Water density flux'
-    #denFlxw.units      = '1.e-6 kg/m2/s'
+    if writedenflx:
+        rhon    = cdm.createVariable(rhon          , axes = [time, lati, loni], id = 'densurf')
+        denFlx  = cdm.createVariable(denflx*convw  , axes = [time, lati, loni], id = 'denflux')
+        denFlxh = cdm.createVariable(denflxh*convw , axes = [time, lati, loni], id = 'hdenflx')
+        denFlxw = cdm.createVariable(denflxw*convw , axes = [time, lati, loni], id = 'wdenflx')
+        denFlx.long_name   = 'Surface density'
+        denFlx.units       = 'kg.m-3 (anomaly, minus 1000)'
+        denFlx.long_name   = 'Total density flux'
+        denFlx.units       = '1.e-6 kg/m2/s'
+        denFlxh.long_name  = 'Heat density flux'
+        denFlxh.units      = '1.e-6 kg/m2/s'
+        denFlxw.long_name  = 'Water density flux'
+        denFlxw.units      = '1.e-6 kg/m2/s'
     #
     # Transformation (2D: time, sigma)
     convw = 1.e-6
@@ -669,10 +664,11 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     intWFlxi.long_name  = 'Ind. Integral Surface E minus P'
     intWFlxi.units      = 'Sv'
 
-    #outFile_f.write(rhon)
-    #outFile_f.write(denFlx)
-    #outFile_f.write(denFlxh)
-    #outFile_f.write(denFlxw)
+    if writedenflx:
+        outFile_f.write(rhon)
+        outFile_f.write(denFlx)
+        outFile_f.write(denFlxh)
+        outFile_f.write(denFlxw)
     outFile_f.write(totTransf)
     outFile_f.write(hefTransf)
     outFile_f.write(wfoTransf)
