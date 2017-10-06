@@ -36,7 +36,7 @@ import MV2 as mv
 import os
 import numpy as npy
 import cdutil as cdu
-#import support_density as sd
+
 from binDensity import maskVal
 from binDensity import eosNeutral
 from binDensity import rhonGrid
@@ -534,7 +534,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai, (Nji*Nii)), action='sum')*dt*convw
 
-        if debugp:
+        if debugp and t == 0:
             print '    integral Q flux ',t,intHeatFlx [t], intHeatFlxa[t], intHeatFlxp[t], intHeatFlxi[t]
             print '    integral W flux ',t,intWatFlx [t], intWatFlxa[t], intWatFlxp[t], intWatFlxi[t]
       
