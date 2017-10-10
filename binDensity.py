@@ -496,6 +496,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
 
+            # JM: preparation of the integrated transport: in order to integrate this extensive variable, prepare the integrated transport as a function of depth (as the depth vs thickness)
+            # Note for NL: c3cumul_z should be initialized to the same size as c3_z please
+            c3cumul_z[N_s,:] = 0.
+            c3cumul_z[0:N_s - 1, :] = var = c3cumul_z[1:Ns, :] + c3m[0:Ns - 1, :]
+
+
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
             # TODO check that interp in linear or/and stabilise column as post-pro
@@ -505,6 +511,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+#                    c3cumul_s[0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], c3cumul_z[:,i], right = valmask) ; # hvo: follows same interpolation procedure as the depth
                     c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
@@ -518,6 +525,11 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             c2_s[inds[0],inds[1]] = c2_s[N_s-1,inds[1]]
             c3_s[inds[0],inds[1]] = c3_s[N_s-1,inds[1]]
             tcpu4 = timc.clock()
+
+            # JM: switch back from integrated transport to transport in each layer
+            c3_s [0,:] = 0.
+            c3_s [1:N_s,:] = c3cumul_s[1:N_s,:]-c3cumul_s[0:N_s-1,:]
+
             # Thickness of isopycnal
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
