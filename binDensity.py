@@ -511,8 +511,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
-#                    c3cumul_s[0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], c3cumul_z[:,i], right = valmask) ; # hvo: follows same interpolation procedure as the depth
-                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
+                    c3cumul_s[0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], c3cumul_z[:,i], right = valmask) ; # hvo: follows same interpolation procedure as the depth
+#                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
 
@@ -529,6 +529,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             # JM: switch back from integrated transport to transport in each layer
             c3_s [0,:] = 0.
             c3_s [1:N_s,:] = c3cumul_s[1:N_s,:]-c3cumul_s[0:N_s-1,:]
+            # JM from Gurvan: this field will probably need to be smoothed vertically .
+
 
             # Thickness of isopycnal
             t_s [0,:] = 0.
