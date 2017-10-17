@@ -29,11 +29,16 @@ varname = defVarmme('salinity'); v = 'S'
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 # Method 2 only has ToE for salinity for now
 
+# -- Choose which 'noise' to use for the ToE calculation (only with method 2 : average_signal)
+# method_noise = 'average_std' # Average the standard deviation of PiC in the specified domains
+method_noise = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
+
+
 # -- Choose domain
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
-idomain = 3
+idomain = 0
 domain_name = domains[idomain]
-print domain_name
+print(domain_name)
 
 # -- Directory --
 indir_toe_1 = '/data/ericglod/Density_binning/Prod_density_april15/toe_histNat/'
@@ -94,7 +99,7 @@ if method == 'average_ToE':
         # -- Read ToE (members, basin, density, latitude)
         toe2read = ftoe.variables[var + 'ToE2'][:]
         nMembers[i] = toe2read.shape[0]
-        print '- Computing ToE of',model['name'], 'with', nMembers[i], 'members'
+        print('- Computing ToE of',model['name'], 'with', nMembers[i], 'members')
 
         nruns1 = nruns + nMembers[i]
         toe_a[nruns:nruns1,:,:] = toe2read[:,1,:,:]
@@ -109,15 +114,15 @@ if method == 'average_ToE':
         if domain['Atlantic'] != None:
             varToEA[nruns:nruns1] = np.ma.around(averageDom(toe_a[nruns:nruns1,:,:], 3, domain['Atlantic'], lat, density)) + iniyear
             medmodelsToEA[i] = np.ma.around(np.ma.median(varToEA[nruns:nruns1]))
-            print 'Median ToE Atlantic:', medmodelsToEA[i]
+            print('Median ToE Atlantic:', medmodelsToEA[i])
         if domain['Pacific'] != None:
             varToEP[nruns:nruns1] = np.ma.around(averageDom(toe_p[nruns:nruns1,:,:], 3, domain['Pacific'], lat, density)) + iniyear
             medmodelsToEP[i] = np.ma.around(np.ma.median(varToEP[nruns:nruns1]))
-            print 'Median ToE Pacific:', medmodelsToEP[i]
+            print('Median ToE Pacific:', medmodelsToEP[i])
         if domain['Indian'] != None:
             varToEI[nruns:nruns1] = np.ma.around(averageDom(toe_i[nruns:nruns1,:,:], 3, domain['Indian'], lat, density)) + iniyear
             medmodelsToEI[i] = np.ma.around(np.ma.median(varToEI[nruns:nruns1]))
-            print 'Median ToE Indian:', medmodelsToEI[i]
+            print('Median ToE Indian:', medmodelsToEI[i])
 
         nruns = nruns1
 
@@ -127,15 +132,15 @@ else:
 
     for i, model in enumerate(models):
 
-        file_toe = 'cmip5.' + model['name'] + '.toe_histNat_method2.nc'
-        ftoe = open_ncfile(indir_toe_2 + file_toe, 'r')
+        file_toe = 'cmip5.' + model['name'] + '.toe_histNat_method2_'+method_noise+'.nc'
+        ftoe = open_ncfile(indir_toe_2 + method_noise + '/' + file_toe, 'r')
 
         domain_char = ToEdomainhistvshistNat(model['name'], domain_name)[1]
 
         # Read ToE (members, basin, domain)
         toe2read = ftoe.variables[var + 'ToE2'][:]
         nMembers[i] = toe2read.shape[0]
-        print '- Reading ToE of',model['name'], 'with', nMembers[i], 'members'
+        print('- Reading ToE of',model['name'], 'with', nMembers[i], 'members')
         nruns1 = nruns + nMembers[i]
 
         # Save ToE and determine median
@@ -150,12 +155,11 @@ else:
 
 
 
-
-print 'Total number of runs :', nruns
+print('Total number of runs :', nruns)
 varToEA = varToEA[0:nruns]
 varToEP = varToEP[0:nruns]
 varToEI = varToEI[0:nruns]
-print np.ma.min(varToEA), np.ma.min(varToEP), np.ma.min(varToEI)
+print(np.ma.min(varToEA), np.ma.min(varToEP), np.ma.min(varToEI))
 
 # Take out masked data
 varToEA = varToEA[np.ma.nonzero(varToEA)]
@@ -232,7 +236,7 @@ fig, ax = plt.subplots(nrows=nb_basins, ncols=1, sharex=True, sharey=True, frame
 # -- Plot according to number of basins for the chosen domain
 
 for i, axis in enumerate(fig.axes):
-    print i
+    print(i)
     if nb_basins == 3:
         varBasin = bundles[i]
     elif nb_basins == 2:
@@ -306,11 +310,11 @@ else:
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14)
 
 plt.figtext(.8,.02,'Computed by : bar_toe_histvshistNat.py',fontsize=9,ha='center')
-plt.figtext(.2,.02,method,fontsize=9,ha='center')
+plt.figtext(.2,.02,method+' '+method_noise,fontsize=9,ha='center')
 
-#plt.show()
+plt.show()
 
-plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method
+plotName = 'ToE_pdf_' + domain_name + '_' + legVar + '_' + method + '_' + method_noise
 #plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/histvshistNat/'+method+'/'+plotName+'.png', bbox_inches='tight')
 
 

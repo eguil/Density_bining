@@ -28,7 +28,12 @@ domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific'
 
 varname = defVarmme('salinity'); v = 'S'
 
-method = 'average_signal'
+method = 'average_signal' # Average signal and noise in the box, then compute ToE
+
+method_noise_hn = 'average_std' # Average the standard deviation of histNat in the specified domains
+method_noise_piC = 'average_std' # Average the standard deviation of PiC in the specified domains
+# method_noise_hn = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
+# method_noise_piC = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
 
 # ----- Variables ------
 var = varname['var_zonal_w/bowl']
@@ -52,13 +57,13 @@ varToEI = np.ma.masked_all((nrunmax, len(domains)))
 # -- Loop over models
 for i, model in enumerate(models):
 
-    file_toe = 'cmip5.' + model['name'] + '.toe_histNat_method2.nc'
-    ftoe = open_ncfile(indir_hhn + file_toe, 'r')
+    file_toe = 'cmip5.' + model['name'] + '.toe_histNat_method2_' + method_noise_hn + '.nc'
+    ftoe = open_ncfile(indir_hhn + method_noise_hn + '/' + file_toe, 'r')
 
     # Read ToE (members, basin, domain)
     toe2read = ftoe.variables[var + 'ToE2'][:]
     nMembers[i] = toe2read.shape[0]
-    print '- Reading ToE of',model['name'], 'with', nMembers[i], 'members'
+    print('- Reading ToE of',model['name'], 'with', nMembers[i], 'members')
     nruns1 = nruns + nMembers[i]
 
     # Save ToE
@@ -69,7 +74,7 @@ for i, model in enumerate(models):
     nruns = nruns1
 
 
-print 'Total number of runs:', nruns
+print('Total number of runs:', nruns)
 varToEA = varToEA[0:nruns,:]
 varToEP = varToEP[0:nruns,:]
 varToEI = varToEI[0:nruns,:]
@@ -86,11 +91,11 @@ varToEI_CO2 = np.ma.masked_all((len(modelspiC),len(domains)))
 
 for i, model in enumerate(modelspiC):
 
-    print '- Reading', model['name']
+    print('- Reading', model['name'])
 
     # Read file
-    file_CO2piC = 'cmip5.' + model['name'] + '.toe_1pctCO2vsPiControl_method2.nc'
-    fpiC = open_ncfile(indir_CO2piC + file_CO2piC, 'r')
+    file_CO2piC = 'cmip5.' + model['name'] + '.toe_1pctCO2vsPiControl_method2_' + method_noise_piC + '.nc'
+    fpiC = open_ncfile(indir_CO2piC + method_noise_piC + '/' + file_CO2piC, 'r')
 
     # Read ToE (basin, domain)
     toe2read = fpiC.variables[var + 'ToE2'][:]
@@ -198,9 +203,9 @@ ax2.text(0.5,1.065, '1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)', color=
 
 
 plt.figtext(.8,.01,'Computed by : boxplot_ToE.py', fontsize=8, ha='center')
-plt.figtext(.2,.01,'Method : %s' %(method,), fontsize=8, ha='center')
+plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise_hn, method_noise_piC), fontsize=8, ha='center')
 
-plotName = 'ToE_boxplot'
+plotName = 'ToE_boxplot_' + method_noise_hn + '_' + method_noise_piC
 
-plt.show()
-#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/'+plotName+'.png')
+#plt.show()
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/'+plotName+'.png')

@@ -8,7 +8,7 @@ Choose between :
 - Durack and Wijffels data
 - Historical simulations  (mme or ensemble means)
 - hist vs. histNat (mme or ensemble means)
-- 1%CO2 (mmme or single models)
+- 1%CO2 (mme or single models)
 - 1%CO2 vs. piControl (mme or single models)
 
 
@@ -24,19 +24,26 @@ from modelsDef import defModels, defModelsCO2piC
 
 #name = 'Durack & Wijffels'
 #name = 'mme_hist'
-#name = 'mme_hist_histNat'
+name = 'mme_hist_histNat'
 #name = 'ens_mean_hist'
 #name = 'ens_mean_hist_histNat'
-name = 'mme_1pctCO2vsPiC'
+#name = 'mme_1pctCO2vsPiC'
 #name = 'mme_1pctCO2'
 #name = '1pctCO2'
 #name = '1pctCO2vsPiC'
 
-# -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years)
-focus_1pctCO2 = '2*CO2' # 1.4 or 2 or 4*CO2
+# -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years0
+focus_1pctCO2 = '1.4*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
-imodel = 7 # Choose model index in model list (modelsDef.py)
-#for imodel in range(16):
+if focus_1pctCO2 == '1.4*CO2':
+    y1 = 33; y2 = 38
+elif focus_1pctCO2 == '2*CO2':
+    y1 = 69; y2 = 74
+else:
+    y1 = 134; y2 = 140
+
+imodel = 15 # Choose model index in model list (modelsDef.py)
+# for imodel in range(16):
 
 # -- Choose work files
 
@@ -127,7 +134,6 @@ if name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2':
         fhn1d = open_ncfile(data_1d,'r')
 
 
-
 # ----- Variables ------
 
 # == Read variables ==
@@ -136,7 +142,7 @@ lat = fh2d.variables['latitude'][:]
 if name == 'Durack & Wijffels':
     # -- Choose wich variable to work on
     varname = defVarDurack('salinity'); v = 'S'
-    #varname = defVarDurack('temp'); v = 'T'
+    # varname = defVarDurack('temp'); v = 'T'
 
     density = fh2d.variables['density'][:]
     var_mean = varname['var_mean_zonal']
@@ -154,17 +160,17 @@ if name == 'Durack & Wijffels':
 else:
     # -- Choose wich variable to work on
     varname = defVarmme('salinity'); v = 'S'
-    #varname = defVarmme('temp'); v = 'T'
-    #varname= defVarmme('depth'); v = 'Z'
+    # varname = defVarmme('temp'); v = 'T'
+    # varname= defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
     var = varname['var_zonal_w/bowl']
 
     if name == 'mme_hist' or name == 'ens_mean_hist':
-        var = fh2d.variables[var][88:,:,:,:] # Index 88 = year 1950
+        var = fh2d.variables[var][88:,:,:,:]  # Index 88 = year 1950
         var_mean = np.ma.average(var[0:,:,:,:], axis=0)
         var_change = np.ma.average(var[-5:,:,:,:], axis=0) - np.ma.average(var[0:5,:,:,:], axis=0)
         bowl2 = fh1d.variables['ptopsigma'][-5:,:,:]
-        bowl1 = fh1d.variables['ptopsigma'][88:93,:,]
+        bowl1 = fh1d.variables['ptopsigma'][88:93,:,:]
         bowl2 = np.ma.average(bowl2, axis=0)
         bowl1 = np.ma.average(bowl1, axis=0)
         labBowl = ['1950', '2010']
@@ -207,31 +213,37 @@ else:
             bowl2 = np.ma.average(bowl2, axis=0)
             bowl1 = np.ma.average(bowl1, axis=0)
             labBowl = ['Beginning', '1.4*CO2']
-            
+
     if name == 'mme_1pctCO2vsPiC' or name == '1pctCO2vsPiC':
+        if name == 'mme_1pctCO2vsPiC':
+            ypiC = -20
+        else:
+            ypiC = -50
+            y1 = y1-5
+        # TODO : Simplify code below (no need to have multiple cases since y1 and y2 are defined above)
         if focus_1pctCO2 == '2*CO2':
-            varCO2 = fh2d.variables[var][69:74,:,:,:]
-            varPiC = fhn2d.variables[var][-10:,:,:,:]
+            varCO2 = fh2d.variables[var][y1:y2,:,:,:]
+            varPiC = fhn2d.variables[var][ypiC:,:,:,:]
             var_change = np.ma.average(varCO2, axis=0) - np.ma.average(varPiC, axis=0)
-            bowl2 = fh1d.variables['ptopsigma'][69:74,:,:]
+            bowl2 = fh1d.variables['ptopsigma'][y1:y2,:,:]
             bowl1 = fhn1d.variables['ptopsigma'][-10:,:,:]
             bowl2 = np.ma.average(bowl2, axis=0)
             bowl1 = np.ma.average(bowl1, axis=0)
             labBowl = ['PiControl', '2*CO2']
         if focus_1pctCO2 == '4*CO2':
-            varCO2 = fh2d.variables[var][-5:,:,:,:]
-            varPiC = fhn2d.variables[var][-10:,:,:,:]
+            varCO2 = fh2d.variables[var][y1:y2,:,:,:]
+            varPiC = fhn2d.variables[var][ypiC:,:,:,:]
             var_change = np.ma.average(varCO2, axis=0) - np.ma.average(varPiC, axis=0)
-            bowl2 = fh1d.variables['ptopsigma'][-5:,:,:]
+            bowl2 = fh1d.variables['ptopsigma'][y1:y2,:,:]
             bowl1 = fhn1d.variables['ptopsigma'][-10:,:,:]
             bowl2 = np.ma.average(bowl2, axis=0)
             bowl1 = np.ma.average(bowl1, axis=0)
             labBowl = ['PiControl', '4*CO2']
         if focus_1pctCO2 == '1.4*CO2':
-            varCO2 = fh2d.variables[var][33:38,:,:,:]
-            varPiC = fhn2d.variables[var][-10:,:,:,:]
+            varCO2 = fh2d.variables[var][y1:y2,:,:,:]
+            varPiC = fhn2d.variables[var][ypiC:,:,:,:]
             var_change = np.ma.average(varCO2, axis=0) - np.ma.average(varPiC, axis=0)
-            bowl2 = fh1d.variables['ptopsigma'][33:38,:,:]
+            bowl2 = fh1d.variables['ptopsigma'][y1:y2,:,:]
             bowl1 = fhn1d.variables['ptopsigma'][-10:,:,:]
             bowl2 = np.ma.average(bowl2, axis=0)
             bowl1 = np.ma.average(bowl1, axis=0)
@@ -271,7 +283,7 @@ if name == 'Durack & Wijffels':
     bowl_2000 = np.ma.masked_all((len(lat),4))
     for ibasin in range (1,4):
         for ilat in range(len(lat)):
-            nomask_1950 = np.ma.flatnotmasked_edges(var_1950[:, ilat, ibasin]) #returns indices of the 1st and last unmasked values
+            nomask_1950 = np.ma.flatnotmasked_edges(var_1950[:, ilat, ibasin]) # returns indices of the 1st and last unmasked values
             nomask_2000 = np.ma.flatnotmasked_edges(var_2000[:, ilat, ibasin])
             if nomask_1950 != None:
                 bowl_1950[ilat, ibasin] = density[nomask_1950[0]]
@@ -322,26 +334,25 @@ if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pct
     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
 
-    # In mme 1%CO2 vs. Pi Control problem below the bowl, so take variable with bowl, and mask the data above the bowl
-    if name == 'mme_1pctCO2vsPiC':
-        # Pb with masked values in the bottom
-        var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
-        var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
-        var_change_i[np.ma.nonzero(var_change_i>valmask/10)] = np.ma.masked
-        # Now mask points in the bowl
-        for ilat in range(len(lat)):
-            if np.ma.is_masked(bowl1_a[ilat]) == False :
-                # ja = bowl1_a[ilat]
-                inda = np.ma.nonzero(bowl1_a[ilat]>=density)
-                var_change_a[inda,ilat] = np.ma.masked
-            if np.ma.is_masked(bowl1_p[ilat]) == False :
-                # jp = bowl1_p[ilat]
-                indp = np.ma.nonzero(bowl1_p[ilat]>=density)
-                var_change_p[indp,ilat] = np.ma.masked
-            if np.ma.is_masked(bowl1_i[ilat]) == False :
-                # ji = bowl1_i[ilat]
-                indi = np.ma.nonzero(bowl1_i[ilat]>=density)
-                var_change_i[indi,ilat] = np.ma.masked
+    # In mme 1%CO2 vs. Pi Control (qnd others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
+    # Pb with masked values in the bottom
+    var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
+    var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
+    var_change_i[np.ma.nonzero(var_change_i>valmask/10)] = np.ma.masked
+    # Now mask points in the bowl
+    for ilat in range(len(lat)):
+        if np.ma.is_masked(bowl1_a[ilat]) == False :
+            # ja = bowl1_a[ilat]
+            inda = np.ma.nonzero(bowl1_a[ilat]>=density)
+            var_change_a[inda,ilat] = np.ma.masked
+        if np.ma.is_masked(bowl1_p[ilat]) == False :
+            # jp = bowl1_p[ilat]
+            indp = np.ma.nonzero(bowl1_p[ilat]>=density)
+            var_change_p[indp,ilat] = np.ma.masked
+        if np.ma.is_masked(bowl1_i[ilat]) == False :
+            # ji = bowl1_i[ilat]
+            indi = np.ma.nonzero(bowl1_i[ilat]>=density)
+            var_change_i[indi,ilat] = np.ma.masked
 
 
     # -- Create variable bundles
@@ -371,7 +382,7 @@ if name == 'Durack & Wijffels':
 
 else:
     levels = np.linspace(minmax[0], minmax[1], minmax[2])
-    cmap = custom_div_cmap() #plt.get_cmap('bwr')
+    cmap = custom_div_cmap() # plt.get_cmap('bwr')
 
     cnplot = zonal_2D(plt, 'total_mme', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, domrho, cmap, levels, clevsm, clevsm_bold)
 
@@ -433,5 +444,5 @@ plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
 plt.figtext(.5,.02,'Computed by : zonal_ys_changes.py',fontsize=9,ha='center')
 
 
-plt.show()
-#plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+# plt.show()
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')

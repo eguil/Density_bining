@@ -661,23 +661,23 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                     field_int = 0.
                     volum_int = 0.
                     for r in range(rhoN):
-                        if volumr[ibasin,r,j] <> 0:
+                        if volumr[ibasin,r,j] != 0:
                             if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
                                 field_int = field_int + fieldr[ibasin,r,j]*volumr[ibasin,r,j]
                                 volum_int = volum_int + volumr[ibasin,r,j]
                                 depthr[ibasin,r,j] = -100. # to speed up search for next depths
-                    if volum_int <> 0.:
+                    if volum_int != 0.:
                         fieldz[ibasin,k,j] = field_int / volum_int
                         volumez[ibasin,k,j] = volum_int
                         # Save which levels are not missing data for extrapolating
                         z_notempty = np.append(z_notempty, targetz[k])
-                        fieldz_notempty = np.append(fieldz_notempty,fieldz[ibasin,k,j])
+                        fieldz_notempty = np.append(fieldz_notempty, fieldz[ibasin,k,j])
                         iz_notempty = iz_notempty + 1
                     # Search bowl index for masking data later
                     if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
-                        kbowl = k
-                print 'lat index', j
-                #print iz_notempty-1, z_notempty.shape
+                        kbowl = k+1
+                print('lat index', j)
+                # print(iz_notempty-1, z_notempty.shape)
                 if np.ma.is_masked(bowlz[ibasin,j]) == False :
                     # Interpolate the data on the depth column
                     if iz_notempty > 3:
@@ -686,11 +686,11 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                         fieldz_new = spl(targetz)
                         fieldz[ibasin,:,j] = fieldz_new
                     # Mask field above the bowl
-                    #fieldz[ibasin,0:kbowl,j] = np.ma.masked
+                    fieldz[ibasin,0:kbowl,j] = np.ma.masked
                 # Mask bottom
                 if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
                     bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
-                    print targetz[bathy_mask[0]:]
+                    # print(targetz[bathy_mask[0]:])
                     fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
 
 
@@ -706,7 +706,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                         if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
                             field_int = field_int + fieldr[ibasin,r,j]
                             depthr[ibasin,r,j] = -100. # to speed up search for next depths
-                    if field_int <> 0.:
+                    if field_int != 0.:
                         fieldz[ibasin,k,j] = field_int
                         # Save which levels are not missing data for extrapolating
                         z_notempty = np.append(z_notempty, targetz[k])
@@ -715,8 +715,8 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                     # Search bowl index for masking data later
                     if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
                         kbowl = k
-                print 'lat index', j
-                print iz_notempty-1, z_notempty.shape
+                print('lat index', j)
+                print(iz_notempty-1, z_notempty.shape)
                 if np.ma.is_masked(bowlz[ibasin,j]) == False :
                     # Interpolate the data on the depth column
                     if iz_notempty > 3:
@@ -729,7 +729,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                 # Mask bottom
                 if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
                     bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
-                    print targetz[bathy_mask[0]:]
+                    print(targetz[bathy_mask[0]:])
                     fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
 
     return fieldz
@@ -748,8 +748,8 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     bowl2 = varBasin['bowl2']
 
     # -- title and bowl labels
-    label1 = 'histNat'
-    label2 = 'hist'
+    label1 = varBasin['labBowl'][0]
+    label2 = varBasin['labBowl'][1]
 
     # -- contour levels
     zedmin = domzed[0]

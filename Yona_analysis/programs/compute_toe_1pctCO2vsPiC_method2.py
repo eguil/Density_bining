@@ -28,9 +28,9 @@ varname = defVarmme('salinity'); v = 'S'
 
 method = 'average_signal'
 
-# Choose which 'noise' to use for the ToE calculation
-method_noise = 'average_std' # Average the standard deviation of PiC in the specified domains
-#method_noise = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
+# -- Choose which 'noise' to use for the ToE calculation
+# method_noise = 'average_std' # Average the standard deviation of PiC in the specified domains
+method_noise = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
 
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
 
@@ -43,7 +43,7 @@ deltay = 10.
 
 # ----- Variables ------
 
-# Choose random file to read only the basic variables and properties common to all files
+# -- Choose random file to read only the basic variables and properties common to all files
 file = 'cmip5.' + models[0]['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + models[0]['file_end_CO2'] + '_zon2D.nc'
 f = open_ncfile(indir_1pctCO2 + file,'r')
 
@@ -53,7 +53,7 @@ time = f.variables['time'][:]; timN = time.size
 basinN = 4
 var = varname['var_zonal']
 
-# Define variable properties
+# -- Define variable properties
 legVar = varname['legVar']
 unit = varname['unit']
 
@@ -62,7 +62,7 @@ unit = varname['unit']
 
 for i, model in enumerate(models):
 
-    print 'Working on', model['name']
+    print('Working on', model['name'])
 
     # -- Read 1pctCO2 file and piControl file
     file_1pctCO2 = 'cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
@@ -95,7 +95,7 @@ for i, model in enumerate(models):
 
     # -- Loop over domains
     for j, domain_name in enumerate(domains):
-        print '- ', domain_name
+        print('- ' + domain_name)
 
         # Select domain to average
         domain = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[0]
@@ -103,25 +103,22 @@ for i, model in enumerate(models):
         # Average signal and noise
         if domain['Atlantic'] != None:
             varsignal_a[:,j] = averageDom(varCO2[:,1,:,:]-varpiC[:,1,:,:], 3, domain['Atlantic'], lat, density)
-            if 'method_noise' == 'average_std':
+            if method_noise == 'average_std':
                 varnoise_a[j] = averageDom(varstd[1,:,:], 2, domain['Atlantic'], lat, density)
             else:
-                varnoise_a[j] = averageDom(varpiC[:,1,:,:], 3, domain['Atlantic'], lat, density)
-                varnoise_a[j] = np.ma.std(varnoise_a[j], axis=0)
+                varnoise_a[j] = np.ma.std(averageDom(varpiC[:,1,:,:], 3, domain['Atlantic'], lat, density), axis=0)
         if domain['Pacific'] != None:
             varsignal_p[:,j] = averageDom(varCO2[:,2,:,:]-varpiC[:,2,:,:], 3, domain['Pacific'], lat, density)
-            if 'method_noise' == 'average_std':
+            if method_noise == 'average_std':
                 varnoise_p[j] = averageDom(varstd[2,:,:], 2, domain['Pacific'], lat, density)
             else:
-                varnoise_p[j] = averageDom(varpiC[:,2,:,:], 3, domain['Pacific'], lat, density)
-                varnoise_p[j] = np.ma.std(varnoise_p[j], axis=0)
+                varnoise_p[j] = np.ma.std(averageDom(varpiC[:,2,:,:], 3, domain['Pacific'], lat, density), axis=0)
         if domain['Indian'] != None:
             varsignal_i[:,j] = averageDom(varCO2[:,3,:,:]-varpiC[:,3,:,:], 3, domain['Indian'], lat, density)
-            if 'method_noise' == 'average_std':                
+            if method_noise == 'average_std':
                 varnoise_i[j] = averageDom(varstd[3,:,:], 2, domain['Indian'], lat, density)
             else:
-                varnoise_i[j] = averageDom(varpiC[:,3,:,:], 3, domain['Indian'], lat, density)
-                varnoise_i[j] = np.ma.std(varnoise_i[j], axis=0)
+                varnoise_i[j] = np.ma.std(averageDom(varpiC[:,3,:,:], 3, domain['Indian'], lat, density), axis=0)
         # Compute ToE of averaged domain
         if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a[j]) == False:
             toe_a[j] = findToE(varsignal_a[:,j], varnoise_a[j], multStd)
@@ -134,16 +131,26 @@ for i, model in enumerate(models):
     varToE[2,:] = toe_p
     varToE[3,:] = toe_i
 
-    print ''
+    print('')
 
 
     # Save in output file
-    fileName = 'cmip5.'+model['name']+'.toe_1pctCO2vsPiControl_method2.nc'
-    dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_1pctCO2vsPiC_average_signal/'
+    fileName = 'cmip5.'+model['name']+'.toe_1pctCO2vsPiControl_method2_'+method_noise+'.nc'
+    if method_noise == 'average_std':
+        dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_1pctCO2vsPiC_average_signal/average_std/'
+    else:
+        dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_1pctCO2vsPiC_average_signal/average_piC/'
     fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
+    if method_noise == 'average_std':
+        noise_description = 'Noise is computed by averaging the standard deviation of the pre-industrial control runs ' \
+                            'in the specified domains.'
+    else :
+        noise_description = 'Noise is computed by averaging the pre-industrial control runs in the specified domains,' \
+                            ' and then taking the standard deviation of the average.'
     fout.description = 'ToE 1%CO2 vs. PiControl, in 5 domains : Southern Subtropics (0), Southern Ocean (1),' \
-                        'Northern Subtropics (2), North Atlantic (3), North Pacific (4). Signal and noise are averaged first ' \
-                       'in those domains then ToE is computed.'
+                        ' Northern Subtropics (2), North Atlantic (3), North Pacific (4). Signal is computed by averaging ' \
+                       'the difference 1pctCO2 - PiControl in those domains. ' + noise_description + ' Then ToE is computed ' \
+                        'using twice the noise as the limit.'
 
     # dimensions
     fout.createDimension('basin', 4)

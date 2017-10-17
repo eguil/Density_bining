@@ -29,8 +29,10 @@ varname = defVarmme('salinity'); v = 'S'
 
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
-#domain_name = 'North Pacific'
-# 'Southern ST', 'SO', 'Northern ST', 'North Atlantic, 'North Pacific'
+# -- Choose which 'noise' to use for the ToE calculation
+# method_noise = 'average_std' # Average the standard deviation of PiC in the specified domains
+method_noise = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
+
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
 
 multStd = 2. # detect ToE at multStd std dev of histNat
@@ -62,7 +64,7 @@ nMembers = np.ma.empty(len(models)) # Initialize array for keeping nb of members
 
 for i, model in enumerate(models):
 
-    print 'Working on', model['name']
+    print('Working on', model['name'])
 
     # Read histNat ensemble mean
     filehn = 'cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' + model['file_end_histNat'] + '_zon2D.nc'
@@ -92,7 +94,7 @@ for i, model in enumerate(models):
     varsignal_a = np.ma.masked_all((timN,nruns,len(domains)))
     varsignal_p = np.ma.masked_all((timN,nruns,len(domains)))
     varsignal_i = np.ma.masked_all((timN,nruns,len(domains)))
-    # Initialize toe for each basin (domain, run)
+    # Initialize toe for each basin (run, domain)
     toe_a = np.ma.masked_all((nruns,len(domains)))
     toe_p = np.ma.masked_all((nruns,len(domains)))
     toe_i = np.ma.masked_all((nruns,len(domains)))
@@ -102,7 +104,7 @@ for i, model in enumerate(models):
 
     # Loop over 5 domains
     for j, domain_name in enumerate(domains):
-        print '- ', j, domains[j]
+        print('- ', j, domains[j])
 
         # Select domain to average
         domain = ToEdomainhistvshistNat(model['name'], domain_name)[0]
@@ -110,16 +112,24 @@ for i, model in enumerate(models):
 
         # Average noise
         if domain['Atlantic'] != None:
-            varnoise_a[j] = averageDom(varstda, 2, domain['Atlantic'], lat, density)
+            if method_noise == 'average_std':
+                varnoise_a[j] = averageDom(varstda, 2, domain['Atlantic'], lat, density)
+            else:
+                varnoise_a[j] = np.ma.std(averageDom(varhn_a, 3, domain['Atlantic'], lat, density), axis=0)
         if domain['Pacific'] != None:
-            varnoise_p[j] = averageDom(varstdp, 2, domain['Pacific'], lat, density)
+            if method_noise == 'average_std':
+                varnoise_p[j] = averageDom(varstdp, 2, domain['Pacific'], lat, density)
+            else:
+                varnoise_p[j] = np.ma.std(averageDom(varhn_p, 3, domain['Pacific'], lat, density), axis=0)
         if domain['Indian'] != None:
-            varnoise_i[j] = averageDom(varstdi, 2, domain['Indian'], lat, density)
-
+            if method_noise == 'average_std':
+                varnoise_i[j] = averageDom(varstdi, 2, domain['Indian'], lat, density)
+            else:
+                varnoise_i[j] = np.ma.std(averageDom(varhn_i, 3, domain['Indian'], lat, density), axis=0)
 
         # Loop over number of runs
         for k in range(nruns):
-            print '    . run number', k
+            print('    . run number', k)
 
             # Read file
             fh = open_ncfile(listruns[k],'r')
@@ -128,7 +138,7 @@ for i, model in enumerate(models):
             varh_p = fh.variables[var][tstart:tend,2,:,:].squeeze()
             varh_i = fh.variables[var][tstart:tend,3,:,:].squeeze()
 
-            # Average signal var hist - var histNat
+            # Average signal var hist - var histNat and noise if method_noise = 'average_histNat'
             if domain['Atlantic'] != None:
                 varsignal_a[:,k,j] = averageDom(varh_a-varhn_a, 3, domain['Atlantic'], lat, density)
             if domain['Pacific'] != None:
@@ -136,7 +146,7 @@ for i, model in enumerate(models):
             if domain['Indian'] != None:
                 varsignal_i[:,k,j] = averageDom(varh_i-varhn_i, 3, domain['Indian'], lat, density)
 
-            print '      varsignal shape:', varsignal_a.shape, varsignal_p.shape, varsignal_i.shape
+            print('      varsignal shape:', varsignal_a.shape, varsignal_p.shape, varsignal_i.shape)
 
             # Compute ToE of averaged domain for run k
             if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a[j]) == False:
@@ -149,18 +159,26 @@ for i, model in enumerate(models):
     varToE[:,1,:] = toe_a
     varToE[:,2,:] = toe_p
     varToE[:,3,:] = toe_i
-    print '  varToE shape:', varToE.shape
-    print '  ', np.ma.around(np.ma.median(varToE[:,1,0]))
-    print ''
+    print('  varToE shape:', varToE.shape)
+    print('  ', np.ma.around(np.ma.median(varToE[:,1,0])))
+    print('')
 
 
     # Save in output file
-    fileName = 'cmip5.'+model['name']+'.toe_histNat_method2.nc'
-    dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal/'
+    fileName = 'cmip5.'+model['name']+'.toe_histNat_method2_'+method_noise+'.nc'
+    dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal/'+method_noise+'/'
     fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
+    if method_noise == 'average_std':
+        noise_description = 'Noise is computed by averaging the standard deviation of the historical Nat ensemble mean runs ' \
+                            'in the specified domains.'
+    else :
+        noise_description = 'Noise is computed by averaging the historical Nat ensemble mean runs in the specified domains,' \
+                            ' and then taking the standard deviation of the average.'
     fout.description = 'ToE hist vs. histNat for each member, in 5 domains : Southern Subtropics (0), Southern Ocean (1),' \
-                        'Northern Subtropics (2), North Atlantic (3), North Pacific (4). Signal and noise are averaged first ' \
-                       'in those domains then ToE is computed.'
+                        'Northern Subtropics (2), North Atlantic (3), North Pacific (4). Signal is computed by averaging ' \
+                       'the difference historical - historicalNat in those domains. The ensemble mean historicalNat is ' \
+                       'used here for all the runs of each model ' + noise_description + ' Then ToE is computed ' \
+                        'using twice the noise as the limit.'
 
     # dimensions
     fout.createDimension('members', nruns)
