@@ -55,13 +55,13 @@ twoD = False
 
 #oneD = True
 twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
-#exper = 'piControl'
-exper = '1pctCO2'
+exper = 'piControl'
+#exper = '1pctCO2'
 #exper = 'obs'
 
 # Time mean/max bowl calculation used to mask out bowl
@@ -236,7 +236,7 @@ print '-------------------------------------------------------------------------
 if oneD:
     print ' -> work on 1D files'
 if twoD:
-    print ' -> work on 2D files'
+    print ' -> work on 2D files (using 1D files)'
 if raw:
     print ' -> work on raw 4D data'
     if correctF:

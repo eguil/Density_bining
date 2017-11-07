@@ -24,7 +24,7 @@ def defModels():
         {'name':'CMCC-CM'       ,'props':[1,0,0,11,156], 'picontrol':[330],'correctFile':[0,0,0]}, # 12
         {'name':'CMCC-CMS'      ,'props':[1,0,0,11,156], 'picontrol':[500],'correctFile':[0,0,0]}, # 13
         {'name':'CNRM-CM5-2'    ,'props':[1,0,1,11,156], 'picontrol':[410],'correctFile':[0,0,0]}, # 14
-        {'name':'CNRM-CM5'      ,'props':[9,6,1,11,156], 'picontrol':[850],'correctFile':[0,0,0]}, # 15
+        {'name':'CNRM-CM5'      ,'props':[9,6,0,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 15 # bug in salinity -> drift : remove for picontrol/1%co2
         {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,1,11,156], 'picontrol':[500],'correctFile':[178,179,180]}, # 16
         {'name':'CSIRO-Mk3L-1-2','props':[2,0,0,10,155], 'picontrol':[0],'correctFile':[0,0,0]}, # 17
         {'name':'EC-EARTH'      ,'props':[6,0,0,11,156], 'picontrol':[452],'correctFile':[0,0,0]}, # 18
