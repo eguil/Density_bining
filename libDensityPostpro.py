@@ -136,6 +136,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
     print ' Number of members:',len(listFiles)
 
     valmask = isond0.missing_value
+    print 'valmask ', valmask
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
     #varFill = [0.,0.,valmask,valmask,0.,0.]
     varFill = [valmask,valmask,valmask,valmask,valmask,valmask]
@@ -201,6 +202,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
                     isonvar[i,it,...] = isonRead.filled(varFill[iv])
                 else:
                     isonvar[i,it,...] = isonRead
+                    print 'no varfill'
             # compute percentage of non-masked points accros MME
             if iv == 0:
                 maskvar = mv.masked_values(isonRead.data,valmask).mask
@@ -274,6 +276,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
         # mask
         if varFill[iv] == valmask:
             isonVarAve = maskVal(isonVarAve, valmask)
+            print 'valmask 2',valmask, var
 
         isonVarAve.mask = percentw.mask
 
