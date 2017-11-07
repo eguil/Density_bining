@@ -135,7 +135,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
 
     print ' Number of members:',len(listFiles)
 
-    valmask = isond0.missing_value
+    valmask = isond0.missing_value[0]
     print 'valmask ', valmask
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
     #varFill = [0.,0.,valmask,valmask,0.,0.]
