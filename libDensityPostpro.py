@@ -137,7 +137,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
 
     valmask = isond0.missing_value
     varList = ['isondepth','isonpers','isonso','isonthetao','isonthick','isonvol']
-    varFill = [0.,0.,valmask,valmask,0.,0.]
+    #varFill = [0.,0.,valmask,valmask,0.,0.]
+    varFill = [valmask,valmask,valmask,valmask,valmask,valmask]
     # init arrays (2D rho/lat)
     percent  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*0.
     #minbowl  = npy.ma.ones([basN,latN], dtype='float32')*1000.
