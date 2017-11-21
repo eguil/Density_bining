@@ -29,17 +29,17 @@ basinN = 4
 # -- Choose work files
 
 if name == 'mme_hist_histNat':
-    indirh = '/data/ericglod/Density_binning/Prod_density_april15/historical/'
-    # fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    fileh_2d = 'cmip5.CCSM4.historical.r4i1p1.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
-    # fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
-    fileh_1d = 'cmip5.CCSM4.historical.r4i1p1.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
+    indirh = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
+    #fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    fileh_2d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
+    #fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    fileh_1d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     datah_2d = indirh + fileh_2d; datah_1d = indirh + fileh_1d
-    indirhn = '/data/ericglod/Density_binning/Prod_density_april15/historicalNat/'
+    indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
     # filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_2d = 'cmip5.CCSM4.historicalNat.r4i1p1.an.ocn.Omon.density.ver-v20120614_zon2D.nc'
-    # filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
-    filehn_1d = 'cmip5.CCSM4.historicalNat.r4i1p1.an.ocn.Omon.density.ver-v20120614_zon1D.nc'
+    filehn_2d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
+    #filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    filehn_1d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     datahn_2d = indirhn + filehn_2d; datahn_1d = indirhn + filehn_1d
     fh2d = open_ncfile(datah_2d,'r')
     fh1d = open_ncfile(datah_1d,'r')
@@ -48,20 +48,20 @@ if name == 'mme_hist_histNat':
 
 if name == 'mme_1pctCO2vsPiC':
     indir_1pctCO2 = '/data/ericglod/Density_binning/Prod_density_april15/mme_1pctCO2/'
-    file_2d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
-    # file_2d = 'cmip5.GFDL-ESM2G.1pctCO2.ensm.an.ocn.Omon.density.ver-v20120820_zon2D.nc'
-    file_1d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
-    # file_1d = 'cmip5.GFDL-ESM2G.1pctCO2.ensm.an.ocn.Omon.density.ver-v20120820_zon1D.nc'
+    # file_2d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_2d = 'cmip5.CCSM4.1pctCO2.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
+    # file_1d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
+    file_1d = 'cmip5.CCSM4.1pctCO2.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     data_2d = indir_1pctCO2 + file_2d
     data_1d = indir_1pctCO2 + file_1d
     fh2d = open_ncfile(data_2d,'r')
     fh1d = open_ncfile(data_1d,'r')
 
     indir_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piControl/'
-    file_2d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
-    # file_2d = 'cmip5.GFDL-ESM2G.piControl.ensm.an.ocn.Omon.density.ver-v20110601_zon2D.nc'
-    file_1d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
-    # file_1d = 'cmip5.GFDL-ESM2G.piControl.ensm.an.ocn.Omon.density.ver-v20110601_zon1D.nc'
+    # file_2d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_2d = 'cmip5.CCSM4.piControl.ensm.an.ocn.Omon.density.ver-v20130513_zon2D.nc'
+    # file_1d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
+    file_1d = 'cmip5.CCSM4.piControl.ensm.an.ocn.Omon.density.ver-v20130513_zon1D.nc'
     data_2d = indir_piC + file_2d
     data_1d = indir_piC + file_1d
     fhn2d = open_ncfile(data_2d,'r')
@@ -114,9 +114,9 @@ if name == 'mme_1pctCO2vsPiC':
     bowl1z = fhn1d.variables['ptopdepth'][-10:,:,:]
     labBowl = ['PiControl', focus_1pctCO2]
 
-# if v != 'V':
-#     field2r[np.ma.nonzero(field2r>60)] = np.ma.masked
-#     field1r[np.ma.nonzero(field1r>60)] = np.ma.masked
+if v != 'V':
+    field2r[np.ma.nonzero(field2r>50)] = np.ma.masked
+    field1r[np.ma.nonzero(field1r>50)] = np.ma.masked
 
 # == Compute signal hist - histNat or 1pctCO2 - PiControl ==
 vardiffr = np.ma.average(field2r, axis=0) - np.ma.average(field1r, axis=0)

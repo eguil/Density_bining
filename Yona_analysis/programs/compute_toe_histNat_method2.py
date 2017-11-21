@@ -90,7 +90,7 @@ for i, model in enumerate(models):
     varnoise_a = np.ma.masked_all(len(domains))
     varnoise_p = np.ma.masked_all(len(domains))
     varnoise_i = np.ma.masked_all(len(domains))
-    # Initialize varsignal for each basin, containing averaged signal for each domain and each runs
+    # Initialize varsignal for each basin, containing averaged signal for each domain and each run
     varsignal_a = np.ma.masked_all((timN,nruns,len(domains)))
     varsignal_p = np.ma.masked_all((timN,nruns,len(domains)))
     varsignal_i = np.ma.masked_all((timN,nruns,len(domains)))
@@ -138,7 +138,7 @@ for i, model in enumerate(models):
             varh_p = fh.variables[var][tstart:tend,2,:,:].squeeze()
             varh_i = fh.variables[var][tstart:tend,3,:,:].squeeze()
 
-            # Average signal var hist - var histNat and noise if method_noise = 'average_histNat'
+            # Average signal var hist - var histNat
             if domain['Atlantic'] != None:
                 varsignal_a[:,k,j] = averageDom(varh_a-varhn_a, 3, domain['Atlantic'], lat, density)
             if domain['Pacific'] != None:

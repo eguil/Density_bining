@@ -16,28 +16,28 @@ def defModels():
           'file_end_hist':'v20121128', 'file_end_histNat':'v20121128'}, #2
          {'name':'CESM1-CAM5'    ,'props':[3,2,11,156], 'picontrol':[319],'correctFile':[139,140,145],
           'file_end_hist':'v20130302', 'file_end_histNat':'v20131122'}, #3
-         {'name':'CNRM-CM5'      ,'props':[9,6,11,156], 'picontrol':[850],'correctFile':[0,0,0],
-          'file_end_hist':'v20130101', 'file_end_histNat':'v20130101'}, #4
+         # {'name':'CNRM-CM5'      ,'props':[9,6,11,156], 'picontrol':[850],'correctFile':[0,0,0],
+         # 'file_end_hist':'v20130101', 'file_end_histNat':'v20130101'}, #4
          {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,11,156], 'picontrol':[500],'correctFile':[178,179,180],
-          'file_end_hist':'1',         'file_end_histNat':'1'}, #5
+          'file_end_hist':'1',         'file_end_histNat':'1'}, #4
          {'name':'FGOALS-g2'     ,'props':[4,3,11,156], 'picontrol':[700],'correctFile':[0,0,0],
-          'file_end_hist':'v1',        'file_end_histNat':'v1'}, #6
+          'file_end_hist':'v1',        'file_end_histNat':'v1'}, #5
          {'name':'GFDL-CM3'      ,'props':[4,3, 1,146], 'picontrol':[0],'correctFile':[0,0,0],
-          'file_end_hist':'v20110601', 'file_end_histNat':'v20110601'}, #7
+          'file_end_hist':'v20110601', 'file_end_histNat':'v20110601'}, #6
          {'name':'GFDL-ESM2M'    ,'props':[1,1, 0,145], 'picontrol':[500],'correctFile':[0,0,0],
-          'file_end_hist':'v20130226', 'file_end_histNat':'v20110601'}, #8
+          'file_end_hist':'v20130226', 'file_end_histNat':'v20110601'}, #7
          {'name':'GISS-E2-R'     ,'props':[16,11,11,156],'picontrol':[846],'correctFile':[179,180,180],
-          'file_end_hist':'v20121015', 'file_end_histNat':'1'}, #9
+          'file_end_hist':'v20121015', 'file_end_histNat':'1'}, #8
          {'name':'HadGEM2-ES'    ,'props':[3,3, 1,146], 'picontrol':[576],'correctFile':[179,179,180],
-          'file_end_hist':'v20110916', 'file_end_histNat':'1'}, #10
+          'file_end_hist':'v20110916', 'file_end_histNat':'1'}, #9
          {'name':'IPSL-CM5A-LR'  ,'props':[6,3,11,156], 'picontrol':[1000],'correctFile':[0,0,0],
-          'file_end_hist':'v20111119', 'file_end_histNat':'v20120430'}, #11
+          'file_end_hist':'v20111119', 'file_end_histNat':'v20120430'}, #10
          {'name':'IPSL-CM5A-MR'  ,'props':[3,3,11,156], 'picontrol':[300],'correctFile':[0,0,0],
-          'file_end_hist':'v20111119', 'file_end_histNat':'v20120804'}, #12
+          'file_end_hist':'v20111119', 'file_end_histNat':'v20120804'}, #11
          {'name':'MIROC-ESM-CHEM','props':[1,1,11,156], 'picontrol':[255],'correctFile':[179,180,180],
-          'file_end_hist':'1',         'file_end_histNat':'1'}, #13
+          'file_end_hist':'1',         'file_end_histNat':'1'}, #12
          {'name':'MIROC-ESM'     ,'props':[3,3,11,156], 'picontrol':[100],'correctFile':[179,180,180],
-          'file_end_hist':'1',         'file_end_histNat':'1'}, #14
+          'file_end_hist':'1',         'file_end_histNat':'1'}, #13
         ]
 
     return models
@@ -57,8 +57,8 @@ def defModelsCO2piC():
          'file_end_piC':'v20140822'}, # 4
         {'name':'CESM1-CAM5'    , 'picontrol':[319],'correctFile':[139,140,145], 'file_end_CO2':'v20121129',
          'file_end_piC':'v20140822'}, #5
-        {'name':'CNRM-CM5'      , 'picontrol':[850],'correctFile':[0,0,0], 'file_end_CO2':'v20130101',
-         'file_end_piC':'v20121001'}, # 6
+        # {'name':'CNRM-CM5'      , 'picontrol':[850],'correctFile':[0,0,0], 'file_end_CO2':'v20130101',
+        # 'file_end_piC':'v20121001'}, # 6
         {'name':'CNRM-CM5-2'    , 'picontrol':[410],'correctFile':[0,0,0], 'file_end_CO2':'v20130401',
          'file_end_piC':'v20130402'}, # 7
         {'name':'CSIRO-Mk3-6-0' , 'picontrol':[500],'correctFile':[178,179,180], 'file_end_CO2':'v20111221',
@@ -80,9 +80,3 @@ def defModelsCO2piC():
     ]
 
     return models
-
-# models to check
-"""
-    models = [
-        ]
-"""
