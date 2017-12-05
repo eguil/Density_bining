@@ -55,13 +55,14 @@ twoD = False
 
 #oneD = True
 twoD = True
-mm  = False
-mme = True
+mme  = False
+mm = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
 exper = 'piControl'
 #exper = '1pctCO2'
+#exper = 'rcp85'
 #exper = 'obs'
 
 # Time mean/max bowl calculation used to mask out bowl
@@ -82,11 +83,14 @@ if not ToE:
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/Density_binning/'
-elif 'waippo.local' in hostname or 'canalip.upmc.fr' in hostname:
+    baseDir = '/Volumes/hciclad2/data/Density_binning/'
+elif 'waippo.local' in hostname or 'canalip.upmc.fr' in hostname or 'waippo-3.local' in hostname:
     if raw:
         baseDir = '/Volumes/hciclad/data/Density_binning/'
+        baseDir = '/Volumes/hciclad2/data/Density_binning/'
     else:
         baseDir ='/Users/ericg/Projets/Density_bining/'
+        baseDir = '/Volumes/hciclad2/data/Density_binning/'
 elif 'private.ipsl.fr' in hostname:
     baseDir = '/data/ericglod/Density_binning/'
 elif 'crunchy.llnl.gov' in hostname:
@@ -157,11 +161,11 @@ modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
 #modelSel = [22,23]
 if testOneModel:
-    modelSel = [0]
+    modelSel = [19]
 
 # Select range of MME
 selMME = 'All' # select all models for MME
-#selMME = 'Nat' # select only models for which there are hist AND histNat simulations
+selMME = 'Nat' # select only models for which there are hist AND histNat simulations
 #selMME = '1pct' # select only models for which there are piControl AND 1pctCO2 simulations
 
 if mme:
@@ -250,7 +254,7 @@ if mme:
         print ' -> Performing MME for',selMME, 'models for', exper
 print
 print '  --> indir = ',indir
-print '  --> outdir = ',outdir
+print '  --> outdir =  ',outdir
 print '-----------------------------------------------------------------------------------------------'
 print
 

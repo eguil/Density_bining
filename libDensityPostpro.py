@@ -895,19 +895,24 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         print ' Variable ',iv, var, varDim[iv]
         # loop over files to fill up array
         for ic,file in enumerate(listFiles):
-            #print ic,file
             ft      = cdm.open(inDir[0]+'/'+file)
             timeax  = ft.getAxis('time')
-            tmax = timeax.shape[0]
+            try:
+                tmax = timeax.shape[0]
+            except:
+                print ic,file, timeax
             if ic == 0:
                 tmax0 = tmax
+                #print ic,file, tmax
             #adapt [t1,t2] time bounds to piControl last NN years
             if useLastYears:
                 t1 = tmax-t20
                 t2 = tmax
             else:
                 if tmax != tmax0:
+                    print 'tmax <> tmax0',tmax,tmax0
                     print 'wrong time axis: exiting...'
+
                     return
             #print 'Time dims:',ic, t1,t2,tmax
             # read array
@@ -1052,7 +1057,7 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
         outFile_f.write(isonave.astype('float32'))
         outFile_f.write(isonavediff.astype('float32'))
         tf = timc.clock()
-        print '   time var',tf-ti0
+        #print '   time var',tf-ti0
     # <--- end of loop on variables
 
     outFile_f.close()

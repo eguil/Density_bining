@@ -28,11 +28,11 @@ def defModels():
         {'name':'CSIRO-Mk3-6-0' ,'props':[9,5,1,11,156], 'picontrol':[500],'correctFile':[178,179,180]}, # 16
         {'name':'CSIRO-Mk3L-1-2','props':[2,0,0,10,155], 'picontrol':[0],'correctFile':[0,0,0]}, # 17
         {'name':'EC-EARTH'      ,'props':[6,0,0,11,156], 'picontrol':[452],'correctFile':[0,0,0]}, # 18
-        {'name':'FGOALS-g2'     ,'props':[4,3,1,11,156], 'picontrol':[700],'correctFile':[0,0,0]}, # 19
+        #{'name':'FGOALS-g2'     ,'props':[4,3,1,11,156], 'picontrol':[700],'correctFile':[0,0,0]}, # 19
         #{'name':'FGOALS-s2'     ,'props':[3,0,1,11,156], 'picontrol':[501],'correctFile':[0,0,0]}, # 20
         {'name':'GFDL-CM2p1'    ,'props':[9,0,0,11,156], 'picontrol':[0],'correctFile':[0,0,0]}, # 21
         {'name':'GFDL-CM3'      ,'props':[4,3,1, 1,146], 'picontrol':[0],'correctFile':[0,0,0]}, # 22
-        {'name':'GFDL-ESM2G'    ,'props':[1,0,1, 1,146], 'picontrol':[500],'correctFile':[0,0,0]}, # 23
+        #{'name':'GFDL-ESM2G'    ,'props':[1,0,1, 1,146], 'picontrol':[500],'correctFile':[0,0,0]}, # 23
         {'name':'GFDL-ESM2M'    ,'props':[1,1,1, 0,145], 'picontrol':[500],'correctFile':[0,0,0]}, # 24
         #{'name':'GISS-E2-H'     ,'props':[10,11,1,11,156],'picontrol':[780],'correctFile':[0,0,0]},# 25 BUG in Apr2015 binning
         {'name':'GISS-E2-H-CC'  ,'props':[1,0,0,11,156], 'picontrol':[251],'correctFile':[0,0,0]}, # 26
