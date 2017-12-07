@@ -25,11 +25,19 @@ indir_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piControl/'
 models = defModels()
 modelspiC = defModelsCO2piC()
 
+# method_noise = 'average_std' # Compute std of the time series then average in the domains
+method_noise = 'std_of_average' # Average time series in the domains then compute std
+
+if method_noise == 'average_std':
+    noise_description = 'The standard deviation is computed and then averaged in the domains.'
+else:
+    noise_description = 'The variables are averaged in the domains, then the standard deviation is computed over those domains.'
+
+
 # ----- Work ------
 
 varname = defVarmme('salinity'); v = 'S'
-#varname = defVarmme('temp'); v = 'T'
-#varname = defVarmme('depth'); v = 'Z'
+# varname = defVarmme('temp'); v = 'T'
 
 iniyear = 1860
 finalyear = 2005
@@ -61,7 +69,7 @@ nMembers_hn = np.ma.empty(len(models))
 
 for i, model in enumerate(models):
 
-    print 'Working on', model['name']
+    print('Working on', model['name'])
 
     # Index of common time interval
     tstart = model['props'][2]
@@ -90,7 +98,7 @@ for i, model in enumerate(models):
 
     for j, domain_name in enumerate(domains):
 
-        print '- ', domain_name
+        print('- ', domain_name)
 
         # Select domain to average
         domain = ToEdomainhistvshistNat(model['name'], domain_name)[0]
@@ -98,7 +106,7 @@ for i, model in enumerate(models):
 
         # Loop over number of histNat runs
         for khn in range(nruns_hn):
-            print '      . histNat run number', khn
+            print('      . histNat run number', khn)
 
             # Read file
             fhn = open_ncfile(listruns_hn[khn],'r')
@@ -108,16 +116,25 @@ for i, model in enumerate(models):
             varstdhn = np.ma.std(varhn, axis=0)
             # Average std
             if domain['Atlantic'] != None:
-                varnoise_hna[khn,j] = averageDom(varstdhn[1,:,:], 2, domain['Atlantic'], lat, density)
+                if method_noise == 'average_std':
+                    varnoise_hna[khn,j] = averageDom(varstdhn[1,:,:], 2, domain['Atlantic'], lat, density)
+                else:
+                    varnoise_hna[khn,j] = np.ma.std(averageDom(varhn[:,1,:,:], 3, domain['Atlantic'], lat, density), axis=0)
             if domain['Pacific'] != None:
-                varnoise_hnp[khn,j] = averageDom(varstdhn[2,:,:], 2, domain['Pacific'], lat, density)
+                if method_noise == 'average_std':
+                    varnoise_hnp[khn,j] = averageDom(varstdhn[2,:,:], 2, domain['Pacific'], lat, density)
+                else:
+                    varnoise_hnp[khn,j] = np.ma.std(averageDom(varhn[:,2,:,:], 3, domain['Pacific'], lat, density), axis=0)
             if domain['Indian'] != None:
-                varnoise_hni[khn,j] = averageDom(varstdhn[3,:,:], 2, domain['Indian'], lat, density)
+                if method_noise == 'average_std':
+                    varnoise_hni[khn,j] = averageDom(varstdhn[3,:,:], 2, domain['Indian'], lat, density)
+                else:
+                    varnoise_hni[khn,j] = np.ma.std(averageDom(varhn[:,3,:,:], 3, domain['Indian'], lat, density), axis=0)
 
 
         # Loop over number of hist runs
         for kh in range(nruns_h):
-            print '      . hist run number', kh
+            print('      . hist run number', kh)
 
             # Read file
             fh = open_ncfile(listruns_h[kh],'r')
@@ -125,13 +142,22 @@ for i, model in enumerate(models):
             varh = fh.variables[var][tstart:tend,:,:,:]
             # Compute std of hist
             varstdh = np.ma.std(varh, axis=0)
-            # Average std
+            # Average
             if domain['Atlantic'] != None:
-                varnoise_ha[kh,j] = averageDom(varstdh[1,:,:], 2, domain['Atlantic'], lat, density)
+                if method_noise == 'average_std':
+                    varnoise_ha[kh,j] = averageDom(varstdh[1,:,:], 2, domain['Atlantic'], lat, density)
+                else:
+                    varnoise_ha[kh,j] = np.ma.std(averageDom(varh[:,1,:,:], 3, domain['Atlantic'], lat, density), axis=0)
             if domain['Pacific'] != None:
-                varnoise_hp[kh,j] = averageDom(varstdh[2,:,:], 2, domain['Pacific'], lat, density)
+                if method_noise == 'average_std':
+                    varnoise_hp[kh,j] = averageDom(varstdh[2,:,:], 2, domain['Pacific'], lat, density)
+                else:
+                    varnoise_hp[kh,j] = np.ma.std(averageDom(varh[:,2,:,:], 2, domain['Pacific'], lat, density), axis=0)
             if domain['Indian'] != None:
-                varnoise_hi[kh,j] = averageDom(varstdh[3,:,:], 2, domain['Indian'], lat, density)
+                if method_noise == 'average_std':
+                    varnoise_hi[kh,j] = averageDom(varstdh[3,:,:], 2, domain['Indian'], lat, density)
+                else:
+                    varnoise_hi[kh,j] = np.ma.std(averageDom(varh[:,3,:,:], 3, domain['Indian'], lat, density), axis=0)
 
 
     varnoise_hn[:,1,:] = varnoise_hna
@@ -140,16 +166,16 @@ for i, model in enumerate(models):
     varnoise_h[:,1,:] = varnoise_ha
     varnoise_h[:,2,:] = varnoise_hp
     varnoise_h[:,3,:] = varnoise_hi
-    print '  varnoise_hn shape:', varnoise_hn.shape
-    print '  varnoise_h shape:', varnoise_h.shape
+    print('  varnoise_hn shape:', varnoise_hn.shape)
+    print('  varnoise_h shape:', varnoise_h.shape)
 
 
     # Save in output file
-    fileName = 'cmip5.'+model['name']+'.noise_domains_hist_histNat.nc'
+    fileName = 'cmip5.'+model['name']+'.noise_domains_hist_histNat.' + method_noise + '.nc'
     dir = '/home/ysilvy/Density_bining/Yona_analysis/data/noise_estimate/'
     fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
     fout.description = 'Standard deviation of historical and historicalNat for each member, in 5 domains : Southern Subtropics (0), ' \
-                       'Southern Ocean (1), Northern Subtropics (2), North Atlantic (3), North Pacific (4).'
+                       'Southern Ocean (1), Northern Subtropics (2), North Atlantic (3), North Pacific (4) .' + noise_description
 
     # dimensions
     fout.createDimension('members_hist', nruns_h)
@@ -190,7 +216,7 @@ for i, model in enumerate(models):
 
 for i, model in enumerate(modelspiC):
 
-    print 'Working on', model['name']
+    print('Working on', model['name'])
 
     # Read PiC file
     file_piC = 'cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon2D.nc'
@@ -210,33 +236,42 @@ for i, model in enumerate(modelspiC):
 
     for j, domain_name in enumerate(domains):
 
-        print '- ', domain_name
+        print('- ', domain_name)
 
         # Select domain to average
         domain = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[0]
         domain_char = ToEdomain1pctCO2vsPiC(model['name'], domain_name)[1]
 
-        # Average std
+        # Average
         if domain['Atlantic'] != None:
-            varnoise_piCa[j] = averageDom(varstdpiC[1,:,:], 2, domain['Atlantic'], lat, density)
+            if method_noise == 'average_std':
+                varnoise_piCa[j] = averageDom(varstdpiC[1,:,:], 2, domain['Atlantic'], lat, density)
+            else :
+                varnoise_piCa[j] = np.ma.std(averageDom(varpiC[:,1,:,:], 3, domain['Atlantic'], lat, density), axis=0)
         if domain['Pacific'] != None:
-            varnoise_piCp[j] = averageDom(varstdpiC[2,:,:], 2, domain['Pacific'], lat, density)
+            if method_noise == 'average_std':
+                varnoise_piCp[j] = averageDom(varstdpiC[2,:,:], 2, domain['Pacific'], lat, density)
+            else:
+                varnoise_piCp[j] = np.ma.std(averageDom(varpiC[:,2,:,:], 3, domain['Pacific'], lat, density), axis=0)
         if domain['Indian'] != None:
-            varnoise_piCi[j] = averageDom(varstdpiC[3,:,:], 2, domain['Indian'], lat, density)
+            if method_noise == 'average_std':
+                varnoise_piCi[j] = averageDom(varstdpiC[3,:,:], 2, domain['Indian'], lat, density)
+            else:
+                varnoise_piCi[j] = np.ma.std(averageDom(varpiC[:,3,:,:], 3, domain['Indian'], lat, density), axis=0)
 
 
     varnoise_piC[1,:] = varnoise_piCa
     varnoise_piC[2,:] = varnoise_piCp
     varnoise_piC[3,:] = varnoise_piCi
-    print '  varnoise_piC shape:', varnoise_piC.shape
+    print('  varnoise_piC shape:', varnoise_piC.shape)
 
 
     # Save in output file
-    fileName = 'cmip5.'+model['name']+'.noise_domains_PiControl.nc'
+    fileName = 'cmip5.'+model['name']+'.noise_domains_PiControl.' + method_noise + '.nc'
     dir = '/home/ysilvy/Density_bining/Yona_analysis/data/noise_estimate/'
     fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
     fout.description = 'Standard deviation of pre-industrial control run in 5 domains : Southern Subtropics (0), ' \
-                       'Southern Ocean (1), Northern Subtropics (2), North Atlantic (3), North Pacific (4).'
+                       'Southern Ocean (1), Northern Subtropics (2), North Atlantic (3), North Pacific (4) .' + noise_description
 
     # dimensions
     fout.createDimension('basin', 4)

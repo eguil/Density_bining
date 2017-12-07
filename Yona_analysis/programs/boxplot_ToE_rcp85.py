@@ -11,16 +11,16 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarmme
 from modelsDef import defModels, defModelsCO2piC
-from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter, MultipleLocator
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 import glob
 import os
 
 # ----- Work -----
 
 # Directory
-indir_hhn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_histNat_average_signal/'
 indir_CO2piC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_1pctCO2vsPiC_average_signal/'
 indir_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_rcp85_histNat_average_signal/'
+indir_rcppiC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_rcp85_PiControl_average_signal/'
 
 models = defModels()
 modelspiC = defModelsCO2piC()
@@ -36,6 +36,9 @@ method = 'average_signal' # Average signal and noise in the box, then compute To
 method_noise_rcphn = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
 method_noise_piC = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
 
+use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
+# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+
 # ----- Variables ------
 var = varname['var_zonal_w/bowl']
 legVar = varname['legVar']
@@ -44,7 +47,7 @@ unit = varname['unit']
 
 # ----- Read ToE for each model ------
 
-# == Historical+RCP8.5 vs. historicalNat ==
+# == Historical vs historicalNat + RCP8.5 vs. historicalNat or RCP8.5 vs. historicalNat ==
 
 nruns = 0 # Initialize total number of runs
 nrunmax = 100
@@ -56,7 +59,11 @@ varToEP = np.ma.masked_all((nrunmax, len(domains)))
 varToEI = np.ma.masked_all((nrunmax, len(domains)))
 
 # -- Loop over models
-listfiles = glob.glob(indir_rcphn + method_noise_rcphn + '/*.nc')
+if use_piC == True:
+    indir = indir_rcppiC
+else:
+    indir = indir_rcphn
+listfiles = glob.glob(indir + method_noise_rcphn + '/*.nc')
 nmodels = len(listfiles)
 
 for i in range(nmodels):
@@ -123,7 +130,7 @@ varToEI_CO2[np.ma.getmask(varToEI_CO2)] = np.nan
 
 maskdata  = np.nan
 
-# ToE hist+rcp8.5 vs. histNat
+# ToE hist+rcp8.5 vs. histNat (or vs. PiControl)
 data1 = [varToEA[:,0], varToEP[:,0], varToEI[:,0], maskdata, varToEP[:,2], varToEI[:,2], maskdata,
           varToEA[:,1], varToEP[:,1], varToEI[:,1], maskdata, varToEA[:,3], maskdata, varToEP[:,4]]
 data1 = data1[::-1]
@@ -143,8 +150,10 @@ width = 0.25
 
 fig, ax = plt.subplots(figsize=(10,12))
 
-# ToE Hist+rcp8.5 vs. HistNat boxes
-boxes1 = ax.boxplot(data1, vert=0, positions=ind-width, widths=width)
+ax.axvline(x=2005, color='black', ls=':')
+
+# ToE Hist+rcp8.5 vs. HistNat (or vs. PiControl) boxes
+boxes1 = ax.boxplot(data1, vert=0, positions=ind-width, widths=width, whis=0)
 for box in boxes1['boxes']:
     box.set(color='#663366', linewidth=2)
 for whisker in boxes1['whiskers']:
@@ -152,7 +161,7 @@ for whisker in boxes1['whiskers']:
 for cap in boxes1['caps']:
     cap.set(color='#663366', linewidth=1)
 for flier in boxes1['fliers']:
-    flier.set(marker=None)
+    flier.set(color='#663366')
 for median in boxes1['medians']:
     median.set(color='#663366', linewidth=2) #666699
 
@@ -169,7 +178,7 @@ ax.xaxis.set_minor_locator(xminorLocator)
 
 ax2 = ax.twiny()
 # ToE 1%CO2 vs. PiControl
-boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width)
+boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width, whis=0)
 for box in boxes2['boxes']:
     box.set(color='#0072bb', linewidth=2)
 for whisker in boxes2['whiskers']:
@@ -177,7 +186,7 @@ for whisker in boxes2['whiskers']:
 for cap in boxes2['caps']:
     cap.set(color='#0072bb', linewidth=1)
 for flier in boxes2['fliers']:
-    flier.set(marker=None)
+    flier.set(color='#0072bb')
 for median in boxes2['medians']:
     median.set(color='#0072bb', linewidth=2) #a1caf1
 
@@ -208,16 +217,25 @@ ax2.text(-17,ind[12], 'Southern \n ST', ha='center', va='center', fontweight='bo
 
 # Legend
 # legendlabel = 'Hist + RCP8.5 vs. HistNat ('+str(nruns)+' runs) \n 1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)'
-ax2.text(0.5,1.045, 'Hist + RCP8.5 vs. HistNat ('+str(nruns)+' runs)', color='#663366',
+if use_piC == True:
+    title = 'Hist vs. HistNat + RCP8.5 vs. PiControl'
+    end_name = 'use_piC'
+    end_noise = 'RCP8.5 vs. PiControl'
+else :
+    title = 'Hist + RCP8.5 vs. HistNat'
+    end_name = 'use_histNat'
+    end_noise = 'RCP8.5 vs. HistNat'
+ax2.text(0.5,1.045, title + ' ('+str(nruns)+' runs)', color='#663366',
          va='center', ha='center',transform=ax2.transAxes, fontweight='bold')
 ax2.text(0.5,1.065, '1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)', color='#0072bb',
          va='center', ha='center',transform=ax2.transAxes, fontweight='bold')
 
 
 plt.figtext(.8,.01,'Computed by : boxplot_ToE_rcp85.py', fontsize=8, ha='center')
-plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise_rcphn, method_noise_piC), fontsize=8, ha='center')
+plt.figtext(.2,.01,'Method: %s  Noise: %s %s %s' %(method, method_noise_rcphn, method_noise_piC, end_noise),
+            fontsize=8, ha='center')
 
-plotName = 'ToE_boxplot_' + method_noise_rcphn + '_' + method_noise_piC
+plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcphn + '_' + method_noise_piC + '_' + end_name
 
-plt.show()
-# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/'+plotName+'.png')
+# plt.show()
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'+plotName+'.png')

@@ -13,10 +13,10 @@ import numpy as np
 # -------------------------------------------------------------------------------
 
 # -- Choose what to compute
-name = 'mme_hist_histNat'
-# name = 'mme_1pctCO2vsPiC'
+# name = 'mme_hist_histNat'
+name = 'mme_1pctCO2vsPiC'
 
-# -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years0
+# -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 # output format
@@ -30,16 +30,16 @@ basinN = 4
 
 if name == 'mme_hist_histNat':
     indirh = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
-    #fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    fileh_2d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
-    #fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
-    fileh_1d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
+    fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc_old'
+    # fileh_2d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
+    fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc_old'
+    # fileh_1d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     datah_2d = indirh + fileh_2d; datah_1d = indirh + fileh_1d
     indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    # filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_2d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
-    #filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
-    filehn_1d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
+    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    # filehn_2d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    # filehn_1d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     datahn_2d = indirhn + filehn_2d; datahn_1d = indirhn + filehn_1d
     fh2d = open_ncfile(datah_2d,'r')
     fh1d = open_ncfile(datah_1d,'r')
@@ -48,20 +48,20 @@ if name == 'mme_hist_histNat':
 
 if name == 'mme_1pctCO2vsPiC':
     indir_1pctCO2 = '/data/ericglod/Density_binning/Prod_density_april15/mme_1pctCO2/'
-    # file_2d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
-    file_2d = 'cmip5.CCSM4.1pctCO2.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
-    # file_1d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
-    file_1d = 'cmip5.CCSM4.1pctCO2.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
+    file_2d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
+    # file_2d = 'cmip5.CCSM4.1pctCO2.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
+    file_1d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
+    # file_1d = 'cmip5.CCSM4.1pctCO2.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     data_2d = indir_1pctCO2 + file_2d
     data_1d = indir_1pctCO2 + file_1d
     fh2d = open_ncfile(data_2d,'r')
     fh1d = open_ncfile(data_1d,'r')
 
     indir_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piControl/'
-    # file_2d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
-    file_2d = 'cmip5.CCSM4.piControl.ensm.an.ocn.Omon.density.ver-v20130513_zon2D.nc'
-    # file_1d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
-    file_1d = 'cmip5.CCSM4.piControl.ensm.an.ocn.Omon.density.ver-v20130513_zon1D.nc'
+    file_2d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon2D.nc'
+    # file_2d = 'cmip5.CCSM4.piControl.ensm.an.ocn.Omon.density.ver-v20130513_zon2D.nc'
+    file_1d = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
+    # file_1d = 'cmip5.CCSM4.piControl.ensm.an.ocn.Omon.density.ver-v20130513_zon1D.nc'
     data_2d = indir_piC + file_2d
     data_1d = indir_piC + file_1d
     fhn2d = open_ncfile(data_2d,'r')

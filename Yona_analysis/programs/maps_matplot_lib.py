@@ -676,7 +676,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                     # Search bowl index for masking data later
                     if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
                         kbowl = k+1
-                print('lat index', j)
+                # print('lat index', j)
                 # print(iz_notempty-1, z_notempty.shape)
                 if np.ma.is_masked(bowlz[ibasin,j]) == False :
                     # Interpolate the data on the depth column

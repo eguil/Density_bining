@@ -13,8 +13,8 @@ from subprocess import call
 
 # ----- Work -----
 
-# work = 'hist-rcp85' # Concatenate historical runs with rcp8.5 runs for each model
-work = 'histNat' # Duplicate historicalNat ensemble mean for each model
+work = 'hist-rcp85' # Concatenate historical runs with rcp8.5 runs for each model
+# work = 'histNat' # Duplicate historicalNat ensemble mean for each model
 
 # ----------------
 
@@ -59,8 +59,8 @@ if work == 'hist-rcp85':
                     s = '.'
                     outfile2D = outdir + s.join(fragments)
                     # print('        '+outfile2D)
-                    fragments = np.delete(fragments,-2)
-                    fragments = np.insert(fragments, -1, os.path.basename(listruns1D_rcp85[k]).split('.')[-2])
+                    file_end = fragments[-2].split('_')
+                    fragments[-2] = file_end[0]+'_zon1D'
                     outfile1D = outdir + s.join(fragments)
                     # print('        '+outfile1D)
         # print('\n')

@@ -35,6 +35,9 @@ method = 'average_signal' # Average signal and noise in the box, then compute To
 method_noise_hn = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
 method_noise_piC = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
 
+runs = 'all' # Use all historical runs
+# runs = '35'  # Use the same 35 runs as the ones used for the historical + RCP8.5 ToE
+
 # ----- Variables ------
 var = varname['var_zonal_w/bowl']
 legVar = varname['legVar']
@@ -47,7 +50,7 @@ unit = varname['unit']
 
 nruns = 0 # Initialize total number of runs
 nrunmax = 100
-nMembers = np.ma.empty(len(models)) # Initialize array for keeping number of members per model
+nMembers = np.ma.zeros(len(models)) # Initialize array for keeping number of members per model
 
 # -- Initialize varToE containing ToE of all runs
 varToEA = np.ma.masked_all((nrunmax, len(domains)))
@@ -62,16 +65,40 @@ for i, model in enumerate(models):
 
     # Read ToE (members, basin, domain)
     toe2read = ftoe.variables[var + 'ToE2'][:]
-    nMembers[i] = toe2read.shape[0]
-    print('- Reading ToE of',model['name'], 'with', nMembers[i], 'members')
-    nruns1 = nruns + nMembers[i]
 
-    # Save ToE
-    varToEA[nruns:nruns1,:] = toe2read[:,1,:]
-    varToEP[nruns:nruns1,:] = toe2read[:,2,:]
-    varToEI[nruns:nruns1,:] = toe2read[:,3,:]
+    if runs == 'all':
+        nMembers[i] = toe2read.shape[0]
+        print('- Reading ToE of',model['name'], 'with', nMembers[i], 'members')
+        nruns1 = nruns + nMembers[i]
 
-    nruns = nruns1
+        # Save ToE
+        varToEA[nruns:nruns1,:] = toe2read[:,1,:]
+        varToEP[nruns:nruns1,:] = toe2read[:,2,:]
+        varToEI[nruns:nruns1,:] = toe2read[:,3,:]
+
+        nruns = nruns1
+
+    else:
+        print('- Reading ToE of', model['name'])
+        listruns = model['hist-rcp85'] # Read run names we want to use
+        print(listruns)
+        if len(listruns) != 0:
+            run_names = ftoe.variables['run_name'][:] # Read all run names
+            print(run_names)
+            test_run_names = np.in1d(run_names,listruns) # Compare the two arrays
+            for j in range(len(run_names)):
+                if test_run_names[j] == True:
+                    print(run_names[j])
+                    # Save ToE
+                    varToEA[nruns+nMembers[i]] = toe2read[j,1,:]
+                    varToEP[nruns+nMembers[i]] = toe2read[j,2,:]
+                    varToEI[nruns+nMembers[i]] = toe2read[j,3,:]
+                    nMembers[i] = nMembers[i] + 1
+            nruns = nruns + nMembers[i]
+
+
+
+    print(nruns)
 
 
 print('Total number of runs:', nruns)
@@ -123,6 +150,10 @@ maskdata  = np.nan
 data1 = [varToEA[:,0], varToEP[:,0], varToEI[:,0], maskdata, varToEP[:,2], varToEI[:,2], maskdata,
           varToEA[:,1], varToEP[:,1], varToEI[:,1], maskdata, varToEA[:,3], maskdata, varToEP[:,4]]
 data1 = data1[::-1]
+# Remove nan values
+data1[5] = data1[5][~np.isnan(data1[5])]
+data1[8] = data1[8][~np.isnan(data1[8])]
+
 # ToE 1%CO2 vs. PiControl
 data2 = [varToEA_CO2[:,0], varToEP_CO2[:,0], varToEI_CO2[:,0], maskdata, varToEP_CO2[:,2], varToEI_CO2[:,2], maskdata,
           varToEA_CO2[:,1], varToEP_CO2[:,1], varToEI_CO2[:,1], maskdata, varToEA_CO2[:,3], maskdata, varToEP_CO2[:,4]]
@@ -136,7 +167,7 @@ width = 0.25
 fig, ax = plt.subplots(figsize=(10,12))
 
 # ToE Hist vs. HistNat boxes
-boxes1 = ax.boxplot(data1, vert=0, positions=ind-width, widths=width)
+boxes1 = ax.boxplot(data1, vert=0, positions=ind-width, widths=width, whis=0)
 for box in boxes1['boxes']:
     box.set(color='#c90016', linewidth=2)
 for whisker in boxes1['whiskers']:
@@ -144,9 +175,9 @@ for whisker in boxes1['whiskers']:
 for cap in boxes1['caps']:
     cap.set(color='#c90016', linewidth=1)
 for flier in boxes1['fliers']:
-    flier.set(marker=None)
+    flier.set(color='#c90016')
 for median in boxes1['medians']:
-    median.set(color='#ff2052', linewidth=2)
+    median.set(color='#c90016', linewidth=2) #ff2052
 
 
 ax.set_xlim([1860,2010])
@@ -159,7 +190,7 @@ ax.xaxis.set_minor_locator(xminorLocator)
 
 ax2 = ax.twiny()
 # ToE 1%CO2 vs. PiControl
-boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width)
+boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width, whis=0)
 for box in boxes2['boxes']:
     box.set(color='#0072bb', linewidth=2)
 for whisker in boxes2['whiskers']:
@@ -167,9 +198,9 @@ for whisker in boxes2['whiskers']:
 for cap in boxes2['caps']:
     cap.set(color='#0072bb', linewidth=1)
 for flier in boxes2['fliers']:
-    flier.set(marker=None)
+    flier.set(color='#0072bb')
 for median in boxes2['medians']:
-    median.set(color='#a1caf1', linewidth=2)
+    median.set(color='#0072bb', linewidth=2) #a1caf1
 
 
 ax2.set_xlim([0,150])
@@ -205,7 +236,7 @@ ax2.text(0.5,1.065, '1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)', color=
 plt.figtext(.8,.01,'Computed by : boxplot_ToE.py', fontsize=8, ha='center')
 plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise_hn, method_noise_piC), fontsize=8, ha='center')
 
-plotName = 'ToE_boxplot_' + method_noise_hn + '_' + method_noise_piC
+plotName = 'ToE_boxplot_' + method_noise_hn + '_' + method_noise_piC + '_' + runs + 'histruns'
 
 plt.show()
-# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/'+plotName+'.png')
+# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'+plotName+'.png')

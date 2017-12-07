@@ -26,6 +26,31 @@ def findToE(signal, noise, mult):
 
     return toe
 
+def findToE_2thresholds(signal, noise1, noise2, tidx, mult):
+    '''
+    define Time of Emergence (ToE) from last time index at which signal is larger than mult*noise
+        signal is [time]
+        noise1 and noise2 are single-values
+        mult is float
+        tidx is an integer
+        use noise1 over first part of the signal (until tidx), noise2 over second part
+    1D case for now
+    '''
+    timN = signal.shape[0]
+    toe_wrk = np.ma.ones(signal.shape)*1. # init toe_wrk array to 1
+    signaltile1 = np.tile(noise1,tidx) # repeat noise1
+    signaltile2 = np.tile(noise2,timN-tidx)
+    signaltile = np.concatenate((signaltile1, signaltile2))
+    toe_idx = np.argwhere(abs(signal) >= mult*signaltile) # find indices of points where signal > noise
+    # if signal.size > timN: # if there are at least 2 dimensions
+    #     toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
+    # else: # if there is only the time dimension
+    toe_wrk[toe_idx[:,0]] = 0
+    toe = timN-np.flipud(toe_wrk).argmax(axis=0) # compute ToE as last index when signal > noise
+
+    return toe
+
+
 
 def ToEdomainhistvshistNat(model_name, domain_name):
 
