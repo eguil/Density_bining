@@ -30,15 +30,16 @@ varname = defVarmme('salinity'); v = 'S'
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
 # -- Choose which 'noise' to use for the ToE calculation
-# method_noise = 'average_std' # Average the standard deviation of PiC in the specified domains
-method_noise = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
+# method_noise = 'average_std' # Average the standard deviation of histNat or PiC in the specified domains
+method_noise = 'average_histNat' # Average histNat (or piC) in the specified domains then determine the std
+# of this averaged value
 
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
 
 multStd = 2. # detect ToE at multStd std dev of histNat
 
-# use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
+# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
 
 iniyear = 1860
 finalyear = 2100

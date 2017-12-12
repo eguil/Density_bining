@@ -47,7 +47,7 @@ unit = varname['unit']
 
 # ----- Read ToE for each model ------
 
-# == Historical vs historicalNat + RCP8.5 vs. historicalNat or RCP8.5 vs. historicalNat ==
+# == Historical vs historicalNat + RCP8.5 vs. historicalNat or RCP8.5 vs. PiControl ==
 
 nruns = 0 # Initialize total number of runs
 nrunmax = 100
@@ -237,5 +237,5 @@ plt.figtext(.2,.01,'Method: %s  Noise: %s %s %s' %(method, method_noise_rcphn, m
 
 plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcphn + '_' + method_noise_piC + '_' + end_name
 
-# plt.show()
-plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'+plotName+'.png')
+plt.show()
+# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'+plotName+'.png')

@@ -226,7 +226,7 @@ fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
 
 plt.figtext(.5,.01,'Computed by : remap_to_z.py',fontsize=9,ha='center')
 
-# -- Output  # TODO read as argument
+# -- Output
 if outfmt == 'view':
     plt.show()
 
