@@ -35,11 +35,12 @@ method_noise = 'average_histNat' # Average histNat (or piC) in the specified dom
 # of this averaged value
 
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
+signal_domains = ['fresher','saltier','fresher','saltier','saltier']
 
 multStd = 2. # detect ToE at multStd std dev of histNat
 
-use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+# use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
+use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
 
 iniyear = 1860
 finalyear = 2100
@@ -185,9 +186,9 @@ for i, model in enumerate(models):
                     varh_a = fhrcp.variables[var][tstart:tend,1,:,:].squeeze()
                     varh_p = fhrcp.variables[var][tstart:tend,2,:,:].squeeze()
                     varh_i = fhrcp.variables[var][tstart:tend,3,:,:].squeeze()
-                    varrcp_a = fhrcp.variables[var][-95:,1,:,:].squeeze()
-                    varrcp_p = fhrcp.variables[var][-95:,2,:,:].squeeze()
-                    varrcp_i = fhrcp.variables[var][-95:,3,:,:].squeeze()
+                    varrcp_a = fhrcp.variables[var][tend:tend+95,1,:,:].squeeze()
+                    varrcp_p = fhrcp.variables[var][tend:tend+95,2,:,:].squeeze()
+                    varrcp_i = fhrcp.variables[var][tend:tend+95,3,:,:].squeeze()
 
                     # Average signal hist - histNat over historical period,
                     # rcp85 - mean(histNat) or rcp85 - mean(PiC) over projection period
@@ -230,6 +231,30 @@ for i, model in enumerate(models):
                         if domain['Indian'] != None and np.ma.is_masked(varnoise_i[j]) == False \
                                 and np.ma.is_masked(varnoise2_i[j]) == False:
                             toe_i[k,j] = findToE_2thresholds(varsignal_i[:,k,j], varnoise_i[j], varnoise2_i[j], 145, multStd) + iniyear
+
+                    # Take out runs where the signal is of opposite sign than expected
+                    if signal_domains[j] == 'fresher':
+                        if np.ma.mean(varsignal_a[-5:,k,j],axis=0) > 2*varnoise_a[j]:
+                            toe_a[k,j] = np.ma.masked
+                        if np.ma.mean(varsignal_p[-5:,k,j],axis=0) > 2*varnoise_p[j]:
+                            toe_p[k,j] = np.ma.masked
+                        if np.ma.mean(varsignal_i[-5:,k,j],axis=0) > 2*varnoise_i[j]:
+                            toe_i[k,j] = np.ma.masked
+                    else:
+                        if np.ma.mean(varsignal_a[-5:,k,j],axis=0) < -2*varnoise_a[j]:
+                            toe_a[k,j] = np.ma.masked
+                        if np.ma.mean(varsignal_p[-5:,k,j],axis=0) < -2*varnoise_p[j]:
+                            toe_p[k,j] = np.ma.masked
+                        if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -2*varnoise_i[j]:
+                            toe_i[k,j] = np.ma.masked
+
+                    # # Take out runs that are wrongly concatenated (i.e. which have a jump between 2005 and 2006)
+                    # if np.ma.abs(varsignal_a[145,k,j]-varsignal_a[144,k,j])>0.2:  # Jump in salinity difference
+                    #     toe_a[k,j] = np.ma.masked
+                    # if np.ma.abs(varsignal_p[145,k,j]-varsignal_p[144,k,j])>0.2:  # Jump in salinity difference
+                    #     toe_p[k,j] = np.ma.masked
+                    # if np.ma.abs(varsignal_i[145,k,j]-varsignal_i[144,k,j])>0.2:  # Jump in salinity difference
+                    #     toe_i[k,j] = np.ma.masked
 
             varToE[:,1,:] = toe_a
             varToE[:,2,:] = toe_p

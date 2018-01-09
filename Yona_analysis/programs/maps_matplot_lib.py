@@ -94,7 +94,7 @@ def defVarmme(longName):
     salinity = {'var_zonal': 'isonsoBowl', 'var_zonal_w/bowl': 'isonso',
                 'var_global': 'sogBowl', 'var_global_std':'sogBowlStd',
                 'minmax': [-0.3, 0.3, 16],
-                'minmax_zonal': [-0.2, 0.2, 16],
+                'minmax_zonal': [-0.2, 0.2, 16], 'minmax_zonal_rcp85': [-0.6,0.6,16],
                 'clevsm': np.arange(30, 40, .25),
                 'clevsm_zonal': np.arange(30, 40, .1),
                 'clevsm_bold': np.arange(30, 40, .5),

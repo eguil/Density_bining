@@ -19,21 +19,24 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarDurack, zonal_2D, defVarmme, custom_div_cmap
 from modelsDef import defModels, defModelsCO2piC
+import glob
 
 # ----- Workspace ------
 
-#name = 'Durack & Wijffels'
-#name = 'mme_hist'
+# name = 'Durack & Wijffels'
+# name = 'mme_hist'
 name = 'mme_hist_histNat'
-#name = 'ens_mean_hist'
-#name = 'ens_mean_hist_histNat'
-#name = 'mme_1pctCO2vsPiC'
-#name = 'mme_1pctCO2'
-#name = '1pctCO2'
-#name = '1pctCO2vsPiC'
+# name = 'ens_mean_hist'
+# name = 'ens_mean_hist_histNat'
+# name = 'mme_1pctCO2vsPiC'
+# name = 'mme_1pctCO2'
+# name = '1pctCO2'
+# name = '1pctCO2vsPiC'
+# name = 'mme_rcp85_histNat'
+# name = 'ens_mean_rcp85_histNat'
 
-# -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years0
-focus_1pctCO2 = '1.4*CO2'  # 1.4 or 2*CO2 or 4*CO2
+# -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
+focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 if focus_1pctCO2 == '1.4*CO2':
     y1 = 33; y2 = 38
@@ -42,7 +45,7 @@ elif focus_1pctCO2 == '2*CO2':
 else:
     y1 = 134; y2 = 140
 
-imodel = 15 # Choose model index in model list (modelsDef.py)
+imodel = 13 # Choose model index in model list (modelsDef.py)
 # for imodel in range(16):
 
 # -- Choose work files
@@ -56,8 +59,8 @@ if name == 'Durack & Wijffels':
 
 if name == 'mme_hist':
     indir = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
-    file_2d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    file_1d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    file_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
     data_2d = indir + file_2d
     data_1d = indir + file_1d
     fh2d = open_ncfile(data_2d, 'r')
@@ -71,8 +74,8 @@ if name == 'mme_hist_histNat':
     datah_2d = indirh + fileh_2d
     datah_1d = indirh + fileh_1d
     indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    filehn_2d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
     datahn_2d = indirhn + filehn_2d
     datahn_1d = indirhn + filehn_1d
     fh2d = open_ncfile(datah_2d,'r')
@@ -81,30 +84,35 @@ if name == 'mme_hist_histNat':
     fhn1d = open_ncfile(datahn_1d,'r')
 
 
-if name == 'ens_mean_hist' or name == '1pctCO2' or name == 'ens_mean_hist_histNat' or name == '1pctCO2vsPiC':
-    if name == 'ens_mean_hist' or name == 'ens_mean_hist_histNat':
+if name == 'ens_mean_hist' or name == '1pctCO2' or name == 'ens_mean_hist_histNat' or name == '1pctCO2vsPiC'\
+        or name == 'ens_mean_rcp85_histNat':
+    if name == 'ens_mean_hist' or name == 'ens_mean_hist_histNat' or name == 'ens_mean_rcp85_histNat':
         models = defModels()
         model = models[imodel]
-        nb_members = model['props'][0]
+        if name == 'ens_mean_rcp85_histNat':
+            nb_members = len(model['hist-rcp85'])
+        else:
+            nb_members = model['props'][0]
     else :
         models = defModelsCO2piC()
         model = models[imodel]
 
     indir = '/data/ericglod/Density_binning/Prod_density_april15/'
-    if name == 'ens_mean_hist' or name == 'ens_mean_hist_histNat':
-        file_2d = 'historical/cmip5.GFDL-CM3.historical.r5i1p1.an.ocn.Omon.density.ver-v20110601_zon2D.nc' #'mme_hist/cmip5.' + model['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + model['file_end_hist'] + '_zon2D.nc'
-        file_1d = 'historical/cmip5.GFDL-CM3.historical.r5i1p1.an.ocn.Omon.density.ver-v20110601_zon1D.nc' #'mme_hist/cmip5.' + model['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + model['file_end_hist'] + '_zon1D.nc'
-    else:
-        file_2d = 'mme_1pctCO2/cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
-        file_1d = 'mme_1pctCO2/cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon1D.nc'
-    data_2d = indir + file_2d
-    data_1d = indir + file_1d
-    fh2d = open_ncfile(data_2d, 'r')
-    fh1d = open_ncfile(data_1d, 'r')
+    if name !='ens_mean_rcp85_histNat':
+        if name == 'ens_mean_hist' or name == 'ens_mean_hist_histNat':
+            file_2d = 'mme_hist/cmip5.' + model['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + model['file_end_hist'] + '_zon2D.nc'
+            file_1d = 'mme_hist/cmip5.' + model['name'] + '.historical.ensm.an.ocn.Omon.density.ver-' + model['file_end_hist'] + '_zon1D.nc'
+        elif name == '1pctCO2' or name == '1pctCO2vsPiC':
+            file_2d = 'mme_1pctCO2/cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon2D.nc'
+            file_1d = 'mme_1pctCO2/cmip5.' + model['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' + model['file_end_CO2'] + '_zon1D.nc'
+        data_2d = indir + file_2d
+        data_1d = indir + file_1d
+        fh2d = open_ncfile(data_2d, 'r')
+        fh1d = open_ncfile(data_1d, 'r')
 
-    if name == 'ens_mean_hist_histNat':
-        filehn_2d = 'historicalNat/cmip5.GFDL-CM3.historicalNat.r5i1p1.an.ocn.Omon.density.ver-v20110601_zon2D.nc' #'mme_histNat/cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' + model['file_end_histNat'] + '_zon2D.nc'
-        filehn_1d = 'historicalNat/cmip5.GFDL-CM3.historicalNat.r5i1p1.an.ocn.Omon.density.ver-v20110601_zon1D.nc' #'mme_histNat/cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' + model['file_end_histNat'] + '_zon1D.nc'
+    if name == 'ens_mean_hist_histNat' or name == 'ens_mean_rcp85_histNat':
+        filehn_2d = 'mme_histNat/cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' + model['file_end_histNat'] + '_zon2D.nc'
+        filehn_1d = 'mme_histNat/cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' + model['file_end_histNat'] + '_zon1D.nc'
         fhn2d = open_ncfile(indir + filehn_2d, 'r')
         fhn1d = open_ncfile(indir + filehn_1d, 'r')
 
@@ -113,6 +121,12 @@ if name == 'ens_mean_hist' or name == '1pctCO2' or name == 'ens_mean_hist_histNa
         filehn_1d = 'mme_piControl/cmip5.' + model['name'] + '.piControl.ensm.an.ocn.Omon.density.ver-' + model['file_end_piC'] + '_zon1D.nc'
         fhn2d = open_ncfile(indir + filehn_2d, 'r')
         fhn1d = open_ncfile(indir + filehn_1d, 'r')
+
+    if name == 'ens_mean_rcp85_histNat':
+        filercp85_2d = glob.glob(indir+'mme_rcp85/cmip5.' + model['name'] + '.' + '*zon2D.nc')[0]
+        filercp85_1d = glob.glob(indir+'mme_rcp85/cmip5.' + model['name'] + '.' + '*zon1D.nc')[0]
+        fh2d = open_ncfile(filercp85_2d,'r')
+        fh1d = open_ncfile(filercp85_1d,'r')
 
 
 if name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2':
@@ -133,6 +147,17 @@ if name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2':
         fhn2d = open_ncfile(data_2d,'r')
         fhn1d = open_ncfile(data_1d,'r')
 
+if name == 'mme_rcp85_histNat':
+    indir_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
+    filercp85_2d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon2D.nc'
+    filercp85_1d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
+    indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
+    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    fh2d = open_ncfile(indir_rcp85 + filercp85_2d, 'r')
+    fh1d = open_ncfile(indir_rcp85 + filercp85_1d, 'r')
+    fhn2d = open_ncfile(indirhn + filehn_2d, 'r')
+    fhn1d = open_ncfile(indirhn + filehn_1d, 'r')
 
 # ----- Variables ------
 
@@ -161,7 +186,6 @@ else:
     # -- Choose wich variable to work on
     varname = defVarmme('salinity'); v = 'S'
     # varname = defVarmme('temp'); v = 'T'
-    # varname= defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
     var = varname['var_zonal_w/bowl']
 
@@ -175,7 +199,8 @@ else:
         bowl1 = np.ma.average(bowl1, axis=0)
         labBowl = ['1950', '2010']
 
-    if name == 'mme_hist_histNat' or name == 'ens_mean_hist_histNat':
+    if name == 'mme_hist_histNat' or name == 'ens_mean_hist_histNat' or name == 'mme_rcp85_histNat' \
+            or name == 'ens_mean_rcp85_histNat':
         varh = fh2d.variables[var][-5:, :, :, :]
         varhn = fhn2d.variables[var][-5:, :, :, :]
         var_change = np.ma.average(varh, axis=0) - np.ma.average(varhn, axis=0)
@@ -183,7 +208,10 @@ else:
         bowl1 = fhn1d.variables['ptopsigma'][-5:,:,:]
         bowl2 = np.ma.average(bowl2, axis=0)
         bowl1 = np.ma.average(bowl1, axis=0)
-        labBowl = ['histNat', 'hist']
+        if name == 'mme_rcp85_histNat' or name == 'ens_mean_rcp85_histNat':
+            labBowl = ['histNat', 'RCP8.5']
+        else :
+            labBowl = ['histNat', 'hist']
 
     if name == 'mme_1pctCO2' or name == '1pctCO2':
         if focus_1pctCO2 == '2*CO2':
@@ -255,7 +283,8 @@ clevsm = varname['clevsm_zonal']
 clevsm_bold = varname['clevsm_bold']
 legVar = varname['legVar']
 unit = varname['unit']
-
+if name == 'mme_rcp85_histNat' or name == 'ens_mean_rcp85_histNat':
+    minmax = varname['minmax_zonal_rcp85']
 
 # == density domain ==
 rhomin = 21
@@ -305,7 +334,6 @@ if name == 'Durack & Wijffels':
               'bowl1': bowl_1950[:,3], 'bowl2': bowl_2000[:,3], 'labBowl': labBowl}
 
 
-
 if name == 'mme_hist' or name == 'ens_mean_hist':
     var_change_p = var_change[2,:,:].squeeze()
     var_change_a = var_change[1,:,:].squeeze()
@@ -326,7 +354,8 @@ if name == 'mme_hist' or name == 'ens_mean_hist':
 
 
 if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2' or name == '1pctCO2' \
-        or name == 'ens_mean_hist_histNat' or name == '1pctCO2vsPiC':
+        or name == 'ens_mean_hist_histNat' or name == '1pctCO2vsPiC' or name == 'mme_rcp85_histNat' \
+        or name == 'ens_mean_rcp85_histNat':
     var_change_p = var_change[2, :, :].squeeze()
     var_change_a = var_change[1, :, :].squeeze()
     var_change_i = var_change[3, :, :].squeeze()
@@ -334,7 +363,7 @@ if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pct
     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
 
-    # In mme 1%CO2 vs. Pi Control (qnd others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
+    # In mme 1%CO2 vs. Pi Control (and others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
     # Pb with masked values in the bottom
     var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
     var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
@@ -406,9 +435,14 @@ if name == 'mme_hist' or name == 'Durack & Wijffels':
         figureDir = 'obs/zonal_ys/'
 
 elif name == 'mme_hist_histNat':
-    plotTitle = '%s changes %s (last 5 years)' %(legVar, name)
+    plotTitle = '%s changes %s' %(legVar, name)
     plotName = name + '_' + legVar
     figureDir = 'models/zonal_ys/hist-histNat/'
+
+elif name == 'mme_rcp85_histNat':
+    plotTitle = '%s changes %s' %(legVar, name)
+    plotName = name + '_' + legVar
+    figureDir = 'models/zonal_ys/rcp85-histNat/'
 
 elif name == 'mme_1pctCO2vsPiC':
     plotTitle = '%s changes %s (%s)' %(legVar, name, focus_1pctCO2)
@@ -435,6 +469,15 @@ elif name == 'ens_mean_hist_histNat':
     plotName = model['name'] + '_hist_histNat' + legVar
     figureDir = 'models/zonal_ys/hist-histNat/'
 
+elif name == 'ens_mean_rcp85_histNat':
+    if nb_members>1:
+        nb = '%d members'%(nb_members,)
+    else:
+        nb = '%d member'%(nb_members,)
+    plotTitle = '%s changes RCP8.5 - histNat, %s ensemble mean (%s)' %(legVar, model['name'], nb)
+    plotName = model['name'] + '_rcp85_histNat' + legVar
+    figureDir = 'models/zonal_ys/rcp85-histNat/'
+
 else:
     plotTitle = '%s changes (2000-1950), %s ensemble mean (%d members)' %(legVar, model['name'], nb_members)
     plotName = model['name'] + '_' + v + 'changes'
@@ -444,5 +487,5 @@ plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
 plt.figtext(.5,.02,'Computed by : zonal_ys_changes.py',fontsize=9,ha='center')
 
 
-# plt.show()
-plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+plt.show()
+# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')

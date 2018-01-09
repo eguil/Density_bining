@@ -40,9 +40,10 @@ method_noise = 'average_histNat' # Average histNat or PiC in the specified domai
 domains = ['Southern ST', 'SO', 'Northern ST', 'North Atlantic', 'North Pacific']
 domain_name = 'Southern ST'
 idomain = 0
+signal_domain = 'fresher'
 
-# ibasin = 1 ; basin_name = 'Atlantic' # Atlantic southern ST
-ibasin = 2 ; basin_name = 'Pacific' # Pacific southern ST
+ibasin = 1 ; basin_name = 'Atlantic' # Atlantic southern ST
+# ibasin = 2 ; basin_name = 'Pacific' # Pacific southern ST
 
 use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
 # use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
@@ -150,7 +151,7 @@ for i, model in enumerate(models):
                 fhrcp = open_ncfile(listruns[k],'r')
                 # Read var hist + rcp85
                 varh = fhrcp.variables[var][tstart:tend,ibasin,:,:].squeeze()
-                varrcp = fhrcp.variables[var][-95:,ibasin,:,:].squeeze()
+                varrcp = fhrcp.variables[var][tend:tend+95,ibasin,:,:].squeeze()
 
                 # Average signal hist - histNat over historical period,
                 # rcp85 - mean(histNat) or rcp85 - mean(PiC) over projection period
@@ -159,6 +160,9 @@ for i, model in enumerate(models):
                     varsignal[145:,k] = averageDom(varrcp-meanvarhn, 3, domain[basin_name], lat, density)
                 else:
                     varsignal[145:,k] = averageDom(varrcp-meanvarpiC, 3, domain[basin_name], lat, density)
+
+                # # Don't plot runs where the signal is of opposite sign than expected
+                # if np.ma.mean(varsignal[-5:,k],axis=0) <= 2*varnoise:
 
                 # Plot run k
                 ax.plot(time_label,varsignal[:,k])
@@ -230,5 +234,5 @@ plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise, end_noise)
 
 plotName = 'Salinitychange_SouthernST_'+basin_name+'_'+end_title
 
-plt.show()
-# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/time_series/'+plotName+'.png')
+# plt.show()
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/time_series/'+plotName+'.png')

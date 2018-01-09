@@ -36,8 +36,8 @@ method = 'average_signal' # Average signal and noise in the box, then compute To
 method_noise_rcphn = 'average_histNat' # Average histNat in the specified domains then determine the std of this averaged value
 method_noise_piC = 'average_piC' # Average PiC in the specified domains then determine the std of this averaged value
 
-use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+# use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
+use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
 
 # ----- Variables ------
 var = varname['var_zonal_w/bowl']
@@ -137,6 +137,8 @@ data1 = data1[::-1]
 # Remove nan values
 data1[5] = data1[5][~np.isnan(data1[5])]
 data1[8] = data1[8][~np.isnan(data1[8])]
+data1[0] = data1[0][~np.isnan(data1[0])]
+data1[-1] = data1[-1][~np.isnan(data1[-1])]
 
 # ToE 1%CO2 vs. PiControl
 data2 = [varToEA_CO2[:,0], varToEP_CO2[:,0], varToEI_CO2[:,0], maskdata, varToEP_CO2[:,2], varToEI_CO2[:,2], maskdata,
@@ -237,5 +239,5 @@ plt.figtext(.2,.01,'Method: %s  Noise: %s %s %s' %(method, method_noise_rcphn, m
 
 plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcphn + '_' + method_noise_piC + '_' + end_name
 
-plt.show()
-# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'+plotName+'.png')
+# plt.show()
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'+plotName+'.png')

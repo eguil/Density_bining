@@ -14,7 +14,9 @@ import numpy as np
 
 # -- Choose what to compute
 # name = 'mme_hist_histNat'
-name = 'mme_1pctCO2vsPiC'
+# name = 'mme_1pctCO2vsPiC'
+name = 'mme_rcp85_histNat'
+
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
@@ -30,15 +32,15 @@ basinN = 4
 
 if name == 'mme_hist_histNat':
     indirh = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
-    fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc_old'
+    fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
     # fileh_2d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
-    fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc_old'
+    fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
     # fileh_1d = 'cmip5.CCSM4.historical.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     datah_2d = indirh + fileh_2d; datah_1d = indirh + fileh_1d
     indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_2d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
     # filehn_2d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon2D.nc'
-    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    filehn_1d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
     # filehn_1d = 'cmip5.CCSM4.historicalNat.ensm.an.ocn.Omon.density.ver-v20121128_zon1D.nc'
     datahn_2d = indirhn + filehn_2d; datahn_1d = indirhn + filehn_1d
     fh2d = open_ncfile(datah_2d,'r')
@@ -67,6 +69,17 @@ if name == 'mme_1pctCO2vsPiC':
     fhn2d = open_ncfile(data_2d,'r')
     fhn1d = open_ncfile(data_1d,'r')
 
+if name == 'mme_rcp85_histNat':
+    indir_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
+    filercp85_2d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon2D.nc'
+    filercp85_1d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
+    indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
+    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    fh2d = open_ncfile(indir_rcp85 + filercp85_2d, 'r')
+    fh1d = open_ncfile(indir_rcp85 + filercp85_1d, 'r')
+    fhn2d = open_ncfile(indirhn + filehn_2d, 'r')
+    fhn1d = open_ncfile(indirhn + filehn_1d, 'r')
 
 # -------------------------------------------------------------------------------
 #                                Build variables
@@ -77,7 +90,10 @@ varname = defVarmme('salinity'); v = 'S'
 # varname = defVarmme('temp'); v = 'T'
 # varname = defVarmme('volume'); v = 'V'
 
-minmax = varname['minmax_zonal']
+if name == 'mme_rcp85_histNat':
+    minmax = varname['minmax_zonal_rcp85']
+else:
+    minmax = varname['minmax_zonal']
 clevsm = varname['clevsm_zonal']
 legVar = varname['legVar']
 unit = varname['unit']
@@ -87,14 +103,17 @@ var = varname['var_zonal_w/bowl']
 # == Read variables ==
 lat = fh2d.variables['latitude'][:]
 
-if name == 'mme_hist_histNat':
-    field2r = fh2d.variables[var][-10:,:,:,:] # historical
-    field1r = fhn2d.variables[var][-10:,:,:] # historicalNat
-    depthr = fh2d.variables['isondepth'][-10:,:,:,:]
-    volumr = fh2d.variables['isonvol'][-10:,:,:,:]
+if name == 'mme_hist_histNat' or name == 'mme_rcp85_histNat':
+    field2r = fh2d.variables[var][-5:,:,:,:] # historical or RCP8.5
+    field1r = fhn2d.variables[var][-5:,:,:] # historicalNat
+    depthr = fh2d.variables['isondepth'][-5:,:,:,:]
+    volumr = fh2d.variables['isonvol'][-5:,:,:,:]
     bowl2z = fh1d.variables['ptopdepth'][-5:,:,:]
     bowl1z = fhn1d.variables['ptopdepth'][-5:,:,:]
-    labBowl = ['histNat', 'hist']
+    if name == 'mme_rcp85_histNat':
+        labBowl = ['histNat', 'RCP8.5']
+    else:
+        labBowl = ['histNat', 'hist']
 
 if name == 'mme_1pctCO2vsPiC':
     if focus_1pctCO2 == '4*CO2':
@@ -118,18 +137,13 @@ if v != 'V':
     field2r[np.ma.nonzero(field2r>50)] = np.ma.masked
     field1r[np.ma.nonzero(field1r>50)] = np.ma.masked
 
-# == Compute signal hist - histNat or 1pctCO2 - PiControl ==
+# == Compute signal hist - histNat or 1pctCO2 - PiControl or rcp8.5 - histNat ==
 vardiffr = np.ma.average(field2r, axis=0) - np.ma.average(field1r, axis=0)
 # == Average other variables ==
 depthr = np.ma.average(depthr, axis=0)
 volumr = np.ma.average(volumr, axis=0)
 bowl2z = np.ma.average(bowl2z, axis=0)
 bowl1z = np.ma.average(bowl1z, axis=0)
-
-# # Mask data
-# depthr[np.ma.nonzero(depthr>valmask/2)] = np.ma.masked
-# volumr[np.ma.nonzero(volumr>valmask/2)] = np.ma.masked
-# vardiffr[np.ma.nonzero(np.abs(vardiffr)>valmask/2)] = np.ma.masked
 
 # == Bathymetry ==
 # Read masks
@@ -177,6 +191,9 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
 # == Remap ==
 fieldz = remapToZ(vardiffr.data, depthr.data, volumr.data, targetz, bowl1z, v, bathy)
 
+# Mask bad values
+if v=='S':
+    fieldz[np.ma.nonzero(fieldz>1.2)] = np.ma.masked
 
 # -- Make variable bundles for each basin
 varAtl = {'name': 'Atlantic', 'var_change': fieldz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:], 'labBowl': labBowl}
@@ -219,15 +236,24 @@ cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
 # -- Add Title text
 if name == 'mme_hist_histNat':
-    plotTitle = 'Remapping %s changes %s from rho to z' %(legVar,name)
+    plotTitle = '%s changes %s (pseudo-depth coordinate)' %(legVar,name)
+    plotName = 'remapping_' + name + '_' + legVar
+    figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_1pctCO2vsPiC':
-    plotTitle  = 'Remapping %s changes %s (%s) from rho to z' %(legVar,name,focus_1pctCO2)
+    plotTitle  = '%s changes %s, %s (pseudo-depth coordinate)' %(legVar,name,focus_1pctCO2)
+    plotName = 'remapping_' + name + '_' + focus_1pctCO2 + '_' + legVar
+    figureDir = 'models/zonal_remaptoz/'
+if name == 'mme_rcp85_histNat':
+    plotTitle = '%s changes %s (pseudo-depth coordinate)' %(legVar,name)
+    plotName = 'remapping_' + name + '_' + legVar
+    figureDir = 'models/zonal_remaptoz/'
+
 fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
 
 plt.figtext(.5,.01,'Computed by : remap_to_z.py',fontsize=9,ha='center')
 
-# -- Output
+
 if outfmt == 'view':
     plt.show()
-
-
+else:
+    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
