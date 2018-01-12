@@ -30,7 +30,7 @@ tcpu0 = timc.clock()
 #   0.3) raw, oneD, mm, fullTS = F, correctF = T
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
-# 3) run twoD + ToE mm for historical
+# 3) run twoD + ToE mm for historical (or better use Yona's calculation)
 # 4) run twoD mme for historical (still to implement for ToE)
 #
 # ===============================================================================================================
@@ -48,21 +48,21 @@ correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
 # Use False for testing
-keepFiles = False
+keepFiles = True
 
 oneD = False
 twoD = False
 
 #oneD = True
 twoD = True
-mme  = False
-mm = True
+mm  = False
+mme = True
 # experiment
 #exper = 'historical'
 #exper = 'historicalNat'
-exper = 'piControl'
+#exper = 'piControl'
 #exper = '1pctCO2'
-#exper = 'rcp85'
+exper = 'rcp85'
 #exper = 'obs'
 
 # Time mean/max bowl calculation used to mask out bowl
@@ -78,19 +78,26 @@ ToeType = 'histnat'    # working from hist and histnat
 if not ToE:
     ToeType ='F'
 
+# Select range of MME
+#selMME = 'All' # select all models for MME
+#selMME = 'Hist' # select only models for which there are rcp85 and hist and simulations
+selMME = 'Nat' # select only models for which there are hist AND histNat simulations
+#selMME = '1pct' # select only models for which there are piControl AND 1pctCO2 simulations
+
+
 # ===============================================================================================================
 
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/Density_binning/'
-    baseDir = '/Volumes/hciclad2/data/Density_binning/'
+    #baseDir = '/Volumes/hciclad2/data/Density_binning/'
 elif 'waippo.local' in hostname or 'canalip.upmc.fr' in hostname or 'waippo-3.local' in hostname:
     if raw:
         baseDir = '/Volumes/hciclad/data/Density_binning/'
-        baseDir = '/Volumes/hciclad2/data/Density_binning/'
+        baseDir = '/Volumes/hciclad/data/Density_binning/'
     else:
         baseDir ='/Users/ericg/Projets/Density_bining/'
-        baseDir = '/Volumes/hciclad2/data/Density_binning/'
+        baseDir = '/Volumes/hciclad/data/Density_binning/'
 elif 'private.ipsl.fr' in hostname:
     baseDir = '/data/ericglod/Density_binning/'
 elif 'crunchy.llnl.gov' in hostname:
@@ -121,10 +128,12 @@ if exper <> 'obs':
     histNatDir = rootDir+'historicalNat'
     piControlDir = rootDir+'piControl'
     pctCO2Dir = rootDir+'1pctCO2'
+    rcp85Dir = rootDir+'rcp85'
     histMMEOut = rootDir+'mme_hist'
     histNatMMEOut = rootDir+'mme_histNat'
     picMMEOut = rootDir+'mme_piControl'
     pctMMEOut = rootDir+'mme_1pctCO2'
+    rcp85MMEOut = rootDir+'mme_rcp85'
     ToeNatOut = rootDir+'toe_histNat'
 
     # output name
@@ -163,11 +172,6 @@ modelSel = range(nmodels)
 if testOneModel:
     modelSel = [19]
 
-# Select range of MME
-selMME = 'All' # select all models for MME
-selMME = 'Nat' # select only models for which there are hist AND histNat simulations
-#selMME = '1pct' # select only models for which there are piControl AND 1pctCO2 simulations
-
 if mme:
     fullTS = False
     correctF = False
@@ -194,6 +198,10 @@ elif exper == '1pctCO2':
     outdir = pctMMEOut
     idxtime=[0,140]
     selMME = 'piCtl' # select on runs that also have a piControl
+elif exper == 'rcp85':
+    indir = [rcp85Dir]
+    outdir = rcp85MMEOut
+    idxtime=[0,95]
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
@@ -252,6 +260,8 @@ if mm:
         print ' -> Type of time selection on bowl (mean or max):',timeBowl
 if mme:
         print ' -> Performing MME for',selMME, 'models for', exper
+if exper == 'piControl':
+        print ' -> USing'
 print
 print '  --> indir = ',indir
 print '  --> outdir =  ',outdir
@@ -280,6 +290,10 @@ for i in modelSel:
         nens = models[i]['props'][2]
         years=[0,140]
         chartest = exper
+    elif exper == 'rcp85':
+        nens = models[i]['props'][5]
+        years=[0,95]
+        chartest = exper
     elif exper == 'obs':
         nens = models[i]['props'][0]
         chartest = 'historical'
@@ -294,8 +308,8 @@ for i in modelSel:
             else:
                 listf  = glob.glob(inroot+'.'+mod+'.*zon2D*')
                 listf1 = glob.glob(inroot+'.'+mod+'.*zon1D*')
-
             if len(listf) == 0:
+                print i, mod
                 sys.exit('### no such file !')
             start = listf[0].find(chartest)+len(chartest)
             end = listf[0].find('.an.')
@@ -337,6 +351,11 @@ for i in modelSel:
                         print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
                 if selMME == 'piCtl': # only select model if piCtl mm is present
                     if models[i]['picontrol'][0] > 0:
+                        listens.append(outFile)
+                        listens1.append(outFile1)
+                        print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
+                if selMME == 'Hist': # only select model if hist mm is present
+                    if models[i]['props'][0] > 0:
                         listens.append(outFile)
                         listens1.append(outFile1)
                         print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
