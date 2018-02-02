@@ -31,7 +31,7 @@ test
 """
 
 import ESMP
-import gc,os,resource,timeit ; #argparse,sys
+import gc,os,resource,timeit ;
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu
@@ -40,9 +40,7 @@ import MV2 as mv
 import numpy as npy
 from string import replace
 import time as timc
-from libDensity import * #maskVal,computeArea,eosNeutral,rhonGrid
-#from scipy.interpolate import interp1d
-#from scipy.interpolate._fitpack import _bspleval
+from libDensity import *
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
@@ -66,11 +64,7 @@ DEL_S1  = 0.2
 DEL_S2  = 0.1
 
 
-
-#def initDensityBin():
-
-
-def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=False):
+def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,debugLev=2,timeint='all',mthout=False):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -87,6 +81,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     - fileFx(lat,lon)           - 2D array containing the cell area values
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
+    - debugLev <optional>       - int value to define level of debug outputs
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
     - mthout <optional>         - write annual data (False) or all monthly data (True)
 
@@ -158,6 +153,9 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         debug = True
         # CPU analysis
         cpuan = True
+        if debugLev > 1:
+            cumuloFile = replace(outFile,'.nc','_cumul.nc')
+            cumulFileMon_f = cdm.open(cumuloFile,'w') ; # g
     else:
         debug = False
         cpuan = False
@@ -203,7 +201,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     # Read masking value
     try:
         valmask = so_h.missing_value
-        if valmask == None:
+        if valmask is None:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
     except Exception,err:
@@ -230,7 +228,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     # Compute level thickness
     lev_thick     = npy.roll(z_zw,-1)-z_zw
     lev_thick[-1] = lev_thick[-2]*.5
-    lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
+    lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1) #TODO: print profile! 15/01/2018
+    print "lev_thickt:(",len(lev_thickt),") "
+    for ll in lev_thickt:
+        print ll
     
     # Dates to read
     if timeint == 'all':
@@ -263,15 +264,19 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     basinTimeList           = [axesList[0],basinAxis] ; # time, basin
     basinAxesList           = [axesList[0],basinAxis,axesList[2]] ; # time, basin, lat
     basinRhoAxesList        = [axesList[0],basinAxis,rhoAxis,axesList[2]] ; # time, basin, rho, lat
-
+    print 'RHOOOOOO= ',str([axesList[0], axesList[1], axesList[2], axesList[3]])
+    
     tinit     = timc.clock()
     # ---------------------
     #  Init density bining
     # ---------------------
     # test point (for debug only)
     itest = 80
-    jtest = 30
-    ijtest = jtest*lonN + itest
+    jtest = 60 #30
+    itest2 = 130
+    jtest2 = 116
+    ijtest = jtest*lonN + itest # Middle Pacif S tropic
+    ijtest2 = jtest2*lonN + itest2 # Middle North Atl
 
     # Define time read interval (as function of 3D array size)
     # TODO: review to optimize
@@ -343,6 +348,11 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         x1_bin      = tmp.copy() ; x1_bin      = maskVal(x1_bin, valmask)
         x2_bin      = tmp.copy() ; x2_bin      = maskVal(x2_bin, valmask)
         x3_bin      = tmp.copy() ; x3_bin      = maskVal(x3_bin, valmask) #x3 is added for the meridional transport
+        if debug and debugLev > 1:
+            s3cumul = tmp.copy()
+            s3cumul = maskVal(s3cumul, valmask) #cumul of meridional transport
+            z3cumul = npy.ma.ones([tcdel, depthN, latN*lonN], dtype='float32')*valmask
+            z3cumul = maskVal(z3cumul, valmask) #cumul of meridional transport
         del(tmp) ; gc.collect()
         # read tcdel month by tcdel month to optimise memory
         trmin   = tmin + tc*tcdel ; # define as function of tc and tcdel
@@ -397,7 +407,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             print ' vo     :',vo[0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin,x3_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(5)]
-
+        if debug and debugLev > 1:
+            s3cumul = npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask
+            z3cumul = npy.ma.ones([tcdel, depthN, latN*lonN])*valmask
+        
         #print '1'
         tucz0     = timc.clock()
         if cpuan:
@@ -460,7 +473,20 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             s_z     = rhon.data[t]
             c1_z    = x1_content
             c2_z    = x2_content
-            c3_z    = x3_content
+            #c3_z    = x3_content #TODO: Faire le cumul Ici ! 15/01/2018
+            # store directly speed cumul
+            #c3_z = npy.ma.ones((depthN, lonN*latN))
+            c3_z = npy.ma.zeros(x3_content.shape)
+            c3_z[depthN-1, :] = x3_content[depthN-1, :]
+            print "C3_Z INIT"
+            for i in range(depthN-1,0,-1):
+                curi = i-1
+                c3_z[curi,:] = c3_z[i,:] + x3_content[curi,:]
+                #for j in range(len(c3m[0,:])):
+                #    c3cumul_z[curi, j] = c3cumul_z[i, j]+abs(c3m[curi, j])
+                #    if(npy.isnan(c3m[curi, j])):
+                #        print "NAAAAAANNNN: c3m[",curi,", ",j,"] = ",c3m[curi, j]
+            print "END OF C3_Z CUMUL"
             # Extract a strictly increasing sub-profile
             i_min[nomask]           = s_z.argmin(axis=0)[nomask]
             i_max[nomask]           = s_z.argmax(axis=0)[nomask]-1 # why -1 ?
@@ -498,10 +524,25 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
 
             # JM: preparation of the integrated transport: in order to integrate this extensive variable, prepare the integrated transport as a function of depth (as the depth vs thickness)
             # Note for NL: c3cumul_z should be initialized to the same size as c3_z please
-            c3cumul_z[N_s,:] = 0.
-            c3cumul_z[0:N_s - 1, :] = var = c3cumul_z[1:Ns, :] + c3m[0:Ns - 1, :]
+            #c3cumul_z = npy.zeros([depthN, lonN*latN]) # TODO: supprimer le cumul_z car fait avant! 15/01/2018
+#            c3cumul_z[depthN,:] = 0.
+#            c3cumul_z[0:depthN, :] = npy.cumsum(c3m[0:depthN, :], axis=0)
+##            c3cumul_z[depthN-1,:] = abs(c3m[depthN-1, :])
+            #for i in range(depthN-1,0,-1):
+            #    curi = i-1
+            #    for j in range(len(c3m[0,:])):
+            #        c3cumul_z[curi, j] = c3cumul_z[i, j]+abs(c3m[curi, j])
+            #        if(npy.isnan(c3m[curi, j])):
+            #            print "NAAAAAANNNN: c3m[",curi,", ",j,"] = ",c3m[curi, j]
+#                    c3cumul_z[curi, j] = c3cumul_z[i, j]+abs(c3m[curi, j]) # Test to cumul abs val
+#                    if(c3m[curi, j] < 1e20):
+#                        print 'i= ',i,', curi= ',curi,', c3m= ',c3m[i, j], ', abs= ',abs(c3m[i, j]), ', c3cumul_z[curi, j]= ',c3cumul_z[curi, j],', cum+1= ',c3cumul_z[curi+1, j]
+                #c3cumul_z[curi, :] = abs(c3m[curi, :])+c3cumul_z[curi+1, :]
 
-
+            c3cumul_z = c3m
+            print 'C3CUMUL creation'
+            c3cumul_s = npy.zeros(c1_s.shape)
+            c3cumul_s = npy.ones(c1_s.shape)*valmask
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
             # TODO check that interp in linear or/and stabilise column as post-pro
@@ -515,7 +556,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
 #                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
-
+            print 'END OF C3MUMUL_S FILL'
+            
             # if level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             # TODO:  add half level to depth to ensure thickness integral conservation
@@ -542,7 +584,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
             c3_s[inds[0],inds[1]] = valmask
-            if debug and t < 0: #t == 0:
+            if t == 0:
                 i = ijtest
                 print
                 print ' density target array s_s[i]'
@@ -558,12 +600,26 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print t_s[:,i]
                 print ' bined temperature profile on rhon grid c1_s[i]'
                 print c1_s[:,i]
+                print ' Cumul in Z c3cumul_z[:,ijtest]'
+                print c3cumul_z[:,i]
+                print ' Cumul in Z c3cumul_z[:,ijtest2]'
+                print c3cumul_z[:,ijtest2]
+                print ' Cumul in S c3cumul_s[:,i]'
+                print c3cumul_s[:,i]
+                print ' Cumul before k_ind in Z c3_z[:,ijtest]'
+                print c3_z[:,i]
+                print ' Cumul before k_ind in Z c3_z[:,ijtest2]'
+                print c3_z[:,ijtest2]
+                
             # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
             x1_bin[t,:,:]    = c1_s
             x2_bin[t,:,:]    = c2_s
             x3_bin[t,:,:]    = c3_s
+            if debug and debugLev > 1:
+                s3cumul[t,:,:]   = c3cumul_s
+                z3cumul[t,:,:]   = c3cumul_z
             # CPU analysis
             tcpu5 = timc.clock()
             if cpuan:
@@ -604,7 +660,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         x1_bin         = maskVal(x1_bin, valmask)
         x2_bin         = maskVal(x2_bin, valmask)
         x3_bin         = maskVal(x3_bin, valmask)
-
+        if debug and debugLev > 1:
+            s3cumul.mask = maskb
+            s3cumul = maskVal(s3cumul, valmask)
+            s3cumul = npy.ma.reshape(s3cumul, (tcdel, N_s+1, latN, lonN))
+            z3cumul.mask = maskb
+#            z3cumul = maskVal(z3cumul, valmask)
+            z3cumul = npy.ma.reshape(z3cumul, (tcdel, depthN, latN, lonN))
+        
         # 17/08/17: JM:  specificity of vmask to be checked.
         #                1st approx: v on T-points.
         
@@ -655,6 +718,22 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         x1Bin    = cdm.createVariable(x1_bin   , axes = rhoAxesList, id = 'thetao')
         x2Bin    = cdm.createVariable(x2_bin   , axes = rhoAxesList, id = 'so')
         x3Bin    = cdm.createVariable(x3_bin   , axes = rhoAxesList, id = 'hvo')
+        if debug and debugLev > 1:
+            x3cumulS    = cdm.createVariable(s3cumul   , axes = rhoAxesList, id = 'hvocumuls')
+            x3cumulS.long_name = 'Cumulative speed along sigma axis'
+            x3cumulS.units = 'm/s * m'
+            
+            axesList[1].id = 'lev_z'
+            x3cumulZ    = cdm.createVariable(z3cumul   , axes = [rhoAxesList[0], axesList[1], axesList[2], axesList[3]], id = 'hvocumulz')
+            x3cumulZ.long_name = 'Cumulative speed along Z axis'
+            x3cumulZ.units = 'm/s * m'
+            
+            cumulFileMon_f.write(area.area.astype('float32')) ; # Added area so isonvol can be computed
+            cumulFileMon_f.write(x3cumulS.astype('float32'),    extend = 1, index = trmin-tmin)
+            cumulFileMon_f.write(x3cumulZ.astype('float32'),    extend = 1, index = trmin-tmin)
+            del(x3cumulZ,x3cumulS) ; gc.collect()
+            cumulFileMon_f.sync()
+        
         #
         del (depth_bin,thick_bin,x1_bin,x2_bin,x3_bin) ; gc.collect()
         if mthout:
@@ -1388,6 +1467,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         print ' Wrote file: ',outFileMon
     if tcdel >= 12:
         print ' Wrote file: ',outFile
+    
+    if debug and debugLev > 1:
+        # Global attributes
+        globalAttWrite(cumulFileMon_f,options=None) ; # Use function to write standard global atts
+        # Write binDensity version
+        cumulFileMon_f.binDensity_version = ' '.join(getGitInfo(eosNeutralPath)[0:3])
+        cumulFileMon_f.close()
+        print ' Wrote file: ',cumuloFile
 
     # Cleanup variables
         del(timeBasinAxesList,timeBasinRhoAxesList) ; gc.collect()

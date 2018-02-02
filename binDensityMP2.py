@@ -30,19 +30,33 @@ test
 @author: durack1
 """
 
+#from multiprocessing.dummy import Pool
+from mpi4py import MPI
+COMM = MPI.COMM_WORLD
+RANK = COMM.Get_rank()
+
 import numpy as npy
 from string import replace
 import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
 import gc,os,resource,timeit
+print 'CHECK POINT 0!'
+#from ESMP import ESMP_INIT
 import cdms2 as cdm
+print 'CHECK POINT 001!'
+from cdms2 import CdmsRegrid, mvCdmsRegrid
+print 'CHECK POINT 002!'
 import cdutil as cdu
 import MV2 as mv
-from cdms2 import CdmsRegrid, mvCdmsRegrid
 from durolib import fixVarUnits,getGitInfo,globalAttWrite
-import ESMP
 from libDensity import *
+#import ESMP
+#ESMP_INIT = ESMP.ESMP_INIT
+
+COMM.barrier()
+print 'CHECK POINT 00!'
+
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
@@ -65,16 +79,71 @@ RHO_MAX = 28.5
 DEL_S1  = 0.2
 DEL_S2  = 0.1
 
+TUR = -1 # clock
+
+# Define var for density binning (to parallel)
+z_s,c1_s,c2_s,c3_s,s_s  = [npy.ma.ones(1) for _ in range(5)]
+szm,zzm,c1m,c2m,c3m     = [npy.ma.ones(1) for _ in range(5)]
+nomask                  = [npy.ma.ones(1)]
+N_s                     = -111
+valmask                 = -1111
+
+print 'CHECK POINT 1!'
+
+# Init threads
+#pool = Pool(4)
+
+'''
+    Interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
+    
+    Author:    Nicolas Lebas : nicolas.lebas@locean-ipsl.upmc.fr
+    
+    Created on Oct 02 11:13:30 2017
+    
+    Input:
+    ------
+    - i          - current grid index to compute
+'''
+def interpDensity(i):
+    global nomask, z_s, c1_s, c2_s, c3_s, s_s, N_s
+    global szm,zzm,c1m,c2m,c3m,valmask
+    
+    # TODO: use ESMF ? # TODO check that interp in linear or/and stabilise column as post-pro
+    '''
+    print "INSIDE interpDensity: i: ",str(i),", nomask i: ",str(nomask[i])
+    print "N_s,i: ",str(N_s),str(i)
+    print "len(z_s [0:N_s,i]): ",str(len(z_s))
+    print "len(s_s[:,i]): ",str(len(s_s[:,i]))
+    print "len(szm[:,i]): ",str(len(szm[:,i]))
+    print "len(zzm[:,i]): ",str(len(zzm[:,i]))
+    print "valmask: ",str(valmask)
+    print "len(npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask)): ",str(len(npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask)))
+    '''
+    
+    if nomask[i]:
+#        print "0 INSIDE interpDensity: CHECK POINT 00"
+        z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
+#        print "1 INSIDE interpDensity: CHECK POINT 1"
+        c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
+#        print "2 INSIDE interpDensity: CHECK POINT 2"
+        c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+#        print "3 INSIDE interpDensity: CHECK POINT 3"
+        c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
+#        print "4 INSIDE interpDensity: CHECK POINT 4"
+        
+    # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
+    
 
 
-def initDensityBin():
-    print ''
-
-def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=False):
-    # Keep track of time (CPU and elapsed)
-    ti0 = timc.clock()
-    te0 = timeit.default_timer()
-
+def initDensityBin(fileT):
+    print 'initDensityBin'
+    global nomask, z_s, c1_s, c2_s, c3_s, s_s, N_s
+    global szm,zzm,c1m,c2m,c3m,valmask
+    
+    #modeln = fileT.split('/')[-1].split('.')[1]
+    modeln = fileT.split('/')[-1].split('_')[2]
+    print 'MODELN== ',modeln
+    
     # CDMS initialisation - netCDF compression
     comp = 1 ; # 0 for no compression
     cdm.setNetcdfShuffleFlag(comp)
@@ -83,10 +152,89 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     cdm.setAutoBounds('on')
     # Numpy initialisation
     npy.set_printoptions(precision=2)
+    
+    # temporary fix to read grid from CMIP5 IPSL file
+    ft2 = cdm.open(GRIDFILE_THETAO)
+    fs2 = cdm.open(GRIDFILE_SO)
+    fv2 = cdm.open(GRIDFILE_V)
+    # Define temperature and salinity arrays
+    thetao_h    = ft2['thetao'] ; # Create variable handle
+    so_h        = fs2['so'] ; # Create variable handle
+    vo_h        = fv2['vo'] ; # Create variable handle
+    TUR = timc.clock()
+    # Test to ensure thetao and so are equivalent sized (times equal)
+    if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
+        or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
+        print '**ERROR: Input variables have different dimensions (problem in so), exiting..'
+        exit(1)
+    # Test to ensure thetao and vo are equivalent sized (times equal)
+    if vo_h.shape[3] != thetao_h.shape[3] or vo_h.shape[2] != thetao_h.shape[2] \
+        or vo_h.shape[1] != thetao_h.shape[1] or vo_h.shape[0] != thetao_h.shape[0]:
+        print '**ERROR: Input variables have different dimensions (problem in vo), exiting..'
+        exit(1)
+    
+    # Extract common grid specs
+    ncInSpec = NCInSpec(thetao_h, modeln)
+    
+    # Read time and grid
+    lon     = thetao_h.getLongitude()
+    lat     = thetao_h.getLatitude()
+    depth   = thetao_h.getLevel()
+    
+    # depth profiles:
+    ncInSpec.z_zt = depth[:]
+    try:
+        bounds  = ft2('lev_bnds')
+        ncInSpec.z_zw = bounds.data[:,0]
+    except Exception,err:
+        print 'Exception: ',err
+        bounds  = depth.getBounds() ; # Work around for BNU-ESM
+        ncInSpec.z_zw = bounds[:,0]
+    #
+    ncInSpec.thetaoLongName = thetao_h.long_name
+    ncInSpec.thetaoUnits = 'degrees_C'
+    ncInSpec.soLongName = so_h.long_name
+    ncInSpec.soUnits = so_h.units
+    ncInSpec.voLongName = 'Oceanic meridional transport h*vo'
+    ncInSpec.soUnits         = 'm/s * m'
+    
+    del(thetao_h,so_h,vo_h); gc.collect()
+    #ft2.close()
+    fs2.close()
+    fv2.close()
+    
+    # Compute level thickness
+    lev_thick     = npy.roll(ncInSpec.z_zw, -1) - ncInSpec.z_zw
+    lev_thick[-1] = lev_thick[-2]*.5
+    lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,ncInSpec.lon*ncInSpec.lat),(ncInSpec.lon*ncInSpec.lat,ncInSpec.depth)),0,1)
+    
+    return (ncInSpec, lev_thickt, modeln)
+    
 
-    # Determine file name from inputs
-    modeln = fileT.split('/')[-1].split('.')[1]
+def densityBinMP(fileT,fileS,fileV,fileFx,outFile,inSpec,lev_thickt,debug=True,timeint='all',mthout=False):
+    global nomask, z_s, c1_s, c2_s, c3_s, s_s, N_s
+    global szm,zzm,c1m,c2m,c3m,valmask
+    
+    # Keep track of time (CPU and elapsed)
+    ti0 = timc.clock()
+    te0 = timeit.default_timer()
+    
+    print 'densityBinMP'
+    print cdm.getNetcdfShuffleFlag()
+    print cdm.getNetcdfShuffleFlag()
+    print cdm.getNetcdfDeflateFlag()
+    print cdm.getNetcdfDeflateLevelFlag()
+    print cdm.getAutoBounds()
 
+    # Store grid specs
+    modeln = inSpec.model
+    lonN = inSpec.lon
+    latN = inSpec.lat
+    depthN = inSpec.depth
+    valmask = inSpec.valmask
+    axesList = inSpec.axesList
+    ingrid = inSpec.ingrid
+    
     # Declare and open files for writing too
     #/work/durack1/Shared/data_density/140915/cmip5.ACCESS1-0.historical.r1i1p1.mo.ocn.Omon.density.ver-1.nc
     outFile = replace(outFile,'.mo.','.an.')
@@ -121,69 +269,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     ft = cdm.open(fileT)
     fs = cdm.open(fileS)
     fv = cdm.open(fileV)
-    # temporary fix to read grid from CMIP5 IPSL file
-    ft2 = cdm.open(GRIDFILE_THETAO)
-    fs2 = cdm.open(GRIDFILE_SO)
-    fv2 = cdm.open(GRIDFILE_V)
+    
     timeax  = ft.getAxis('time')
-    # Define temperature and salinity arrays
-    thetao_h    = ft2['thetao'] ; # Create variable handle
-    so_h        = fs2['so'] ; # Create variable handle
-    vo_h        = fv2['vo'] ; # Create variable handle
-    tur = timc.clock()
-    # Read time and grid
-    lon     = thetao_h.getLongitude()
-    lat     = thetao_h.getLatitude()
-    depth   = thetao_h.getLevel()
-    # depth profiles:
-    z_zt = depth[:]
-    try:
-        bounds  = ft2('lev_bnds')
-        z_zw = bounds.data[:,0]
-    except Exception,err:
-        print 'Exception: ',err
-        bounds  = depth.getBounds() ; # Work around for BNU-ESM
-        z_zw = bounds[:,0]
-    max_depth_ocean = MAX_DEPTH_OCE # maximum depth of ocean
-    # Horizontal grid
-    ingrid  = thetao_h.getGrid()
-    # Get grid objects
-    axesList = thetao_h.getAxisList()
-    # Define dimensions
-    lonN    = so_h.shape[3]
-    latN    = so_h.shape[2]
-    depthN  = so_h.shape[1]
-    # Read masking value
-    try:
-        valmask = so_h.missing_value
-        if valmask == None:
-            print 'EC-EARTH missing_value fix'
-            valmask = 1.e20
-    except Exception,err:
-        print 'Exception: ',err
-        if 'EC-EARTH' == modeln:
-            print 'EC-EARTH missing_value fix'
-            valmask = 1.e20
-    # Test to ensure thetao and so are equivalent sized (times equal)
-    if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
-        or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
-        print '** Input variables have different dimensions, exiting..'
-        return
-    # Test to ensure thetao and vo are equivalent sized (times equal)
-    if vo_h.shape[3] != thetao_h.shape[3] or vo_h.shape[2] != thetao_h.shape[2] \
-        or vo_h.shape[1] != thetao_h.shape[1] or vo_h.shape[0] != thetao_h.shape[0]:
-        print '** Input variables have different dimensions (problem in vo), exiting..'
-        return
-    #
-    thetaoLongName = thetao_h.long_name
-    soLongName = so_h.long_name
-    soUnits = so_h.units
-    del(thetao_h,so_h); gc.collect()
-
-    # Compute level thickness
-    lev_thick     = npy.roll(z_zw,-1)-z_zw
-    lev_thick[-1] = lev_thick[-2]*.5
-    lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
     
     # Dates to read
     if timeint == 'all':
@@ -200,15 +287,18 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     lati    = msk.latI
     Nii     = len(loni)
     Nji     = len(lati)
-
+    
     # Read cell area and create associated variables
     area = Area(fileFx, loni, lati, {'glob':msk.maski, 'Atl':msk.maskAtl, 'Pac':msk.maskPac, 'Ind':msk.maskInd})
     tarea = timc.clock()
-
+    
     # Define rho grid with zoom on higher densities
     s_s, s_sax, del_s, N_s = rhonGrid(RHO_MIN, RHO_INT, RHO_MAX, DEL_S1, DEL_S2)
     s_s = npy.tile(s_s, lonN*latN).reshape(lonN*latN,N_s).transpose() # make 3D for matrix computation
     rhoAxis, basinAxis = createAxisRhoBassin(s_sax)
+    print 'TYPE s_s= ',str(type(s_s)),', N_s= ',str(type(N_s))
+    print 'SHAPE s_s= ',str(s_s.shape),', N_s= ',str(N_s)
+    
     del(s_sax) ; gc.collect()
     # Create rho axis list
     rhoAxesList             = [axesList[0],rhoAxis,axesList[2],axesList[3]] ; # time, rho, lat, lon
@@ -216,7 +306,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     basinTimeList           = [axesList[0],basinAxis] ; # time, basin
     basinAxesList           = [axesList[0],basinAxis,axesList[2]] ; # time, basin, lat
     basinRhoAxesList        = [axesList[0],basinAxis,rhoAxis,axesList[2]] ; # time, basin, rho, lat
-
+    
     tinit     = timc.clock()
     # ---------------------
     #  Init density bining
@@ -244,6 +334,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     print ' ==> time interval: ', tmin, tmax - 1
     print ' ==> size of time chunk, number of time chunks (memory optimization) :', tcdel, tcmax
 
+    ######################################### START CHUNK #########################################
     # Preallocate masked arrays on target grid
     # Global arrays on target grid
     depthBini   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
@@ -267,11 +358,13 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
       salpersist,salpersista,salpersistp,salpersisti, \
       hvmpersist,hvmpersista,hvmpersistp,hvmpersisti  = [npy.ma.ones(npy.shape(volpersist)) for _ in range(15)]
 
-    ######################################### START CHUNK #########################################
     # Interpolation init (regrid)
-    ESMP.ESMP_Initialize()
+    #ESMP.ESMP_Initialize()
+    print 'YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+    print ingrid, ', ',msk.outgrid,', ',depthBini.dtype,', ',valmask
     regridObj = CdmsRegrid(ingrid,msk.outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
     tintrp     = timc.clock()
+    print 'YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO'
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
     temtotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
@@ -386,7 +479,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             tcpu1 = timc.clock()
             # find bottom level at each lat/lon point
             i_bottom                = vmask_3D.argmax(axis=0)-1
-            z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+            z_s [N_s, nomask]   = inSpec.z_zw[i_bottom[nomask]+1] ; # Cell depth limit
             c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
             c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom tempi_profilerature/salinity
             c3_s[N_s, nomask]   = x3_content[depthN-1,nomask] ; # Cell bottom meridional transport
@@ -427,17 +520,24 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 c3m[k,k_ind] = c3_z[k,k_ind]
-                zzm[k,k_ind] = z_zt[k]
+                zzm[k,k_ind] = inSpec.z_zt[k]
 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ? # TODO check that interp in linear or/and stabilise column as post-pro
             tcpu3 = timc.clock()
+            #print 'RANGE== ',str(lonN*latN)
+            #pool = Pool(4)
+            #pool.map(interpDensity,range(lonN*latN))
             for i in range(lonN*latN):
-                if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
-                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
+                interpDensity(i)
+            #pool.close()
+            #pool.join()
+#            for i in range(lonN*latN):
+#                if nomask[i]:
+#                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
+#                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
+#                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+#                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # hvo
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
 
@@ -454,7 +554,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
             # Use thickness of isopycnal (less than zero) to create masked point for all bined arrays
-            inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
+            inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= MAX_DEPTH_OCE)).transpose()
             t_s [inds[0],inds[1]] = valmask
             z_s [inds[0],inds[1]] = valmask
             c1_s[inds[0],inds[1]] = valmask
@@ -579,12 +679,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 depthBin.units      = 'm'
                 thickBin.long_name  = 'Thickness of isopycnal'
                 thickBin.units      = 'm'
-                x1Bin.long_name     = thetaoLongName
-                x1Bin.units         = 'C'
-                x2Bin.long_name     = soLongName
-                x2Bin.units         = soUnits
-                x3Bin.long_name     = 'Oceanic meridional transport h*vo'
-                x3Bin.units         = 'm/s * m'
+                x1Bin.long_name     = inSpec.thetaoLongName
+                x1Bin.units         = inSpec.thetaoUnits
+                x2Bin.long_name     = inSpec.soLongName
+                x2Bin.units         = inSpec.soUnits
+                x3Bin.long_name     = inSpec.voLongName
+                x3Bin.units         = inSpec.voUnits
                 
                 outFileMon_f.write(area.area.astype('float32')) ; # Added area so isonvol can be computed
 
@@ -710,12 +810,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 depthbini.units      = 'm'
                 thickbini.long_name  = 'Thickness of isopycnal'
                 thickbini.units      = 'm'
-                x1bini.long_name     = thetaoLongName
-                x1bini.units         = 'C'
-                x2bini.long_name     = soLongName
-                x2bini.units         = soUnits
-                x3bini.long_name     = 'Meridional Oceanic Transport'
-                x3bini.units         = 'm/s * m'
+                x1bini.long_name     = inSpec.thetaoLongName
+                x1bini.units         = inSpec.thetaoUnits
+                x2bini.long_name     = inSpec.soLongName
+                x2bini.units         = inSpec.soUnits
+                x3bini.long_name     = inSpec.voLongName
+                x3bini.units         = inSpec.voUnits
 
             tozi = timc.clock()
 
@@ -1117,7 +1217,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 ptopt.long_name     = 'Temp. of shallowest persistent ocean on ison'
                 ptopt.units         = 'degrees_C'
                 ptops.long_name     = 'Salinity of shallowest persistent ocean on ison'
-                ptops.units         = soUnits
+                ptops.units         = inSpec.soUnits
                 ptopsig.long_name     = 'Density of shallowest persistent ocean on ison'
                 ptopsig.units         = 'sigma_n'
                 #
@@ -1128,14 +1228,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 dbptz.long_name     = 'Zonal Temp. of shallowest persistent ocean on ison'
                 dbptz.units         = 'degrees_C'
                 dbpsz.long_name     = 'Zonal Salinity of shallowest persistent ocean on ison'
-                dbpsz.units         = soUnits
+                dbpsz.units         = inSpec.soUnits
                 #
                 volper.long_name    = 'Volume of persistent ocean'
                 volper.units        = '1.e12 m^3'
                 temper.long_name    = 'Temperature of persistent ocean'
                 temper.units        = 'degrees_C'
                 salper.long_name    = 'Salinity of persistent ocean'
-                salper.units        = soUnits
+                salper.units        = inSpec.soUnits
                 hvmper.long_name    = 'meridional transport of persistent ocean'
                 hvmper.units        = 'm/s * m'
             # Write & append
@@ -1219,12 +1319,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 tbz.units       = 'm'
                 vbz.long_name   = 'Volume of isopycnal'
                 vbz.units       = '1.e12 m^3'
-                x1bz.long_name  = thetaoLongName
-                x1bz.units      = 'degrees_C'
-                x2bz.long_name  = soLongName
-                x2bz.units      = soUnits
-                x3bz.long_name  = 'Merdional ocean transport'
-                x3bz.units      = 'm/s * m'
+                x1bz.long_name  = inSpec.thetaoLongName
+                x1bz.units      = inSpec.thetaoUnits
+                x2bz.long_name  = inSpec.soLongName
+                x2bz.units      = inSpec.soUnits
+                x3bz.long_name  = inSpec.voLongName
+                x3bz.units      = inSpec.voUnits
                 
                 # Cleanup
             # Write & append
@@ -1261,7 +1361,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     ######################################### END CHUNK #########################################
     # end loop on tc <===
     print '   CPU of inits       =', tin1-ti0
-    print '     CPU inits detail =', tur-ti0, tmsk-tur, tarea-tmsk, tinit-tarea, tintrp-tinit, tin1-tintrp
+    print '     CPU inits detail =', TUR-ti0, tmsk-TUR, tarea-tmsk, tinit-tarea, tintrp-tinit, tin1-tintrp
     print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
     print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
     ratio =  12.*float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)/float(grdsize*tmax)
@@ -1303,6 +1403,29 @@ if __name__ == "__main__":
     modelVo = '/data/nillod/Density_bining/vo_Omon_IPSL-CM5A-LR_historical_r1i1p1_185001-185412.nc'
     modelAreacello = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5A-LR/piControl/fx/ocean/fx/r0i0p0/latest/areacello/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
     outfileDensity = '/data/nillod/Density_bining/out/cmip5.IPSL-VLR0.historical.rip.mon.ocean.Omon.density.MP2.nc'
-    
+
+#        pool = Pool(10)
+#        pool.map(changeGrid,lf)
+#        pool.close()
+#        pool.join()
     # Start Binning
-    densityBin(modelThetao,modelSo,modelVo,modelAreacello,outfileDensity,timeint='1,12')
+    modeln = '' # init
+    if(RANK == 0):
+        print 'Rank= ',str(RANK)
+        inSpec, lev_thickt, modeln = initDensityBin(modelThetao)
+    modeln = COMM.bcast(modeln, root = 0)
+    COMM.barrier()
+    print 'Rank ',str(RANK),', modeln: ',str(modeln)
+    if(RANK == 0):
+        densityBinMP(
+            modelThetao,
+            modelSo,
+            modelVo,
+            modelAreacello,
+            outfileDensity,
+            inSpec,
+            lev_thickt,timeint='1,12')
+
+# close and kill threads
+#pool.close()
+#pool.join()

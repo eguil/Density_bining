@@ -1,3 +1,8 @@
+'''
+ libDensity.py contains all the functions needed by binDensity.py
+'''
+
+
 import os,sys,gc,glob
 import cdms2 as cdm
 import cdutil as cdu
@@ -9,6 +14,59 @@ from libToE import findToE
 import time as timc
 
 
+'''
+    Define class with all info about input specifications (grid, varname...)
+    
+    Author:    Nicolas Lebas : nicolas.lebas@locean-ipsl.upmc.fr
+    
+    Created on Oct 02 11:13:30 2017
+    
+    Input:
+    ------
+    - varGrid    - variable with grid infos
+    - modeln     - model name
+'''
+class NCInSpec:
+    def __init__(self, varGrid, modeln):
+        ## Model
+        self.model = modeln
+        
+        ## Grid
+        # Horizontal grid
+        self.ingrid  = varGrid.getGrid()
+        # Get grid objects
+        self.axesList = varGrid.getAxisList()
+        # Define dimensions
+        self.lon    = varGrid.shape[3]
+        self.lat    = varGrid.shape[2]
+        self.depth  = varGrid.shape[1]
+        # Depth profiles
+        z_zt = []
+        z_zw = []
+        # Read masking value
+        try:
+            self.valmask = varGrid.missing_value
+            if self.valmask is None:
+                print 'EC-EARTH missing_value fix'
+                self.valmask = 1.e20
+        except Exception,err:
+            print 'Exception: ',err
+            if 'EC-EARTH' == self.model:
+                print 'EC-EARTH missing_value fix'
+                self.valmask = 1.e20
+
+        ## Variables
+        self.thetaoLongName = ''
+        self.thetaoUnits = ''
+        self.soLongName = ''
+        self.soUnits = ''
+        self.voLongName = ''
+        self.voUnits = ''
+
+
+'''
+Define class with all info about mask for density treatments and outputs
+'''
 class Mask:
     def __init__(self, gridFile, tgVname):
         gridFile_f  = cdm.open(gridFile)
@@ -34,6 +92,9 @@ class Mask:
         gridFile_f.close()
 
 
+'''
+Define class with all info about area for density treatments and outputs
+'''
 class Area:
     def __init__(self, fileArea, loni, lati, masks):
         ff = cdm.open(fileArea)
@@ -114,6 +175,8 @@ def maskVal(field,valmask):
     field = mv.masked_where(field > valmask/10, field)
     return field
 
+<<<<<<< .merge_file_m5aOXy
+<<<<<<< .merge_file_cQr21u
 
 # Compute area of grid cells on earth
 def computeArea(lon,lat):

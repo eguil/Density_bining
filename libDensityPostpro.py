@@ -10,6 +10,38 @@ import time as timc
 from libDensity import maskVal
 
 
+
+def maskVal(field,valmask):
+    '''
+    The maskVal() function applies a mask to an array provided
+
+    Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+    Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
+
+    Created on Sun Sep 14 21:13:30 2014
+
+    Inputs:
+    ------
+    - field     - 1D/2D/3D array
+    - valmask    - 1D scalar of mask value
+
+    Output:
+    - field     - 1D/2D/3D masked array
+
+    Usage:
+    ------
+    >>> from binDensity import maskVal
+    >>> maskedVariable = maskVal(unMaskedVariable,valmask)
+
+    Notes:
+    -----
+    - PJD 15 Sep 2014 -
+    '''
+    field [npy.isnan(field.data)] = valmask
+    field._FillValue = valmask
+    field = mv.masked_where(field > valmask/10, field)
+    return field
+
 def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl, ToeType, debug=True):
     '''
     The mmeAveMsk2D() function averages rhon/lat density bined files with differing masks
@@ -18,8 +50,11 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
      - a percentage of non-masked bins
      - the sign agreement of period2-period1 differences
      - ToE per run and for MME
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+
     Created on Tue Nov 25 13:56:20 CET 2014
+
     Inputs:
     -------
     - listFiles(str)         - the list of files to be averaged
@@ -33,6 +68,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
     - ToeType(str)           - ToE type ('F': none, 'histnat')
                                -> requires running first mm+mme without ToE to compute Stddev
     - debug <optional>       - boolean value
+
     Notes:
     -----
     - EG 25 Nov 2014   - Initial function write
@@ -43,6 +79,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
     - EG 07 Oct 2016   - add 3D file support
     - EG 21 Nov 2016   - move 3D support to new function
     - EG 10 jan 2017   - added timeBowl option
+
     - TODO :
                  - remove loops
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
@@ -359,8 +396,11 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
      - a percentage of non-masked bins
      - the sign agreement of period2-period1 differences
      - ToE per run and for MME
+
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+
     Created on Tue Nov 21 2016
+
     Inputs:
     -------
     - listFiles(str)         - the list of files to be averaged
@@ -373,9 +413,11 @@ def mmeAveMsk3D(listFiles, years, inDir, outDir, outFile, timeInt, mme, ToeType,
     - ToeType(str)           - ToE type ('F': none, 'histnat')
                                -> requires running first mm+mme without ToE to compute Stddev
     - debug <optional>       - boolean value
+
     Notes:
     -----
     - EG 21 Nov 2016   - Initial function write
+
     - TODO :
                  - add computation of ToE per model (toe 1 and toe 2) see ticket #50
                  - add isonhtc (see ticket #48)
@@ -718,7 +760,9 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     '''
     The mmeAveMsk1D() function averages rhon or scalar density bined files with differing masks
     It ouputs the MME and a percentage of non-masked bins
+
     Created on Tue Nov 25 13:56:20 CET 2014
+
     Inputs:
     -------
     - listFiles(str)         - the list of files to be averaged
@@ -731,13 +775,16 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     - mme(bool)              - multi-model mean (will read in single model ensemble stats)
     - FfllTS                 - 0/1: if 1, uses full time serie (ignores years(t1,t2))
     - debug <optional>       - boolean value
+
     Notes:
     -----
     - EG 25 Nov 2014   - Initial function write
     - EG  9 Dec 2014   - Add agreement on difference with init period - save as <var>Agree
     - EG 04 Oct 2016   - Add 3D files support
+
     TODO:
     ------
+
     '''
 
     # CDMS initialisation - netCDF compression
@@ -1010,4 +1057,3 @@ def mmeAveMsk1D(listFiles, sw2d, years, inDir, outDir, outFile, timeInt, mme, To
     # <--- end of loop on variables
 
     outFile_f.close()
-fi.close()
