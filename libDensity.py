@@ -175,9 +175,6 @@ def maskVal(field,valmask):
     field = mv.masked_where(field > valmask/10, field)
     return field
 
-<<<<<<< .merge_file_m5aOXy
-<<<<<<< .merge_file_cQr21u
-
 # Compute area of grid cells on earth
 def computeArea(lon,lat):
     '''
