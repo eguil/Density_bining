@@ -665,7 +665,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,debugLev=2,timeint='a
             s3cumul = maskVal(s3cumul, valmask)
             s3cumul = npy.ma.reshape(s3cumul, (tcdel, N_s+1, latN, lonN))
             z3cumul.mask = maskb
-#            z3cumul = maskVal(z3cumul, valmask)
+#            z3cumul = maskVal(z3cumul, valmask) # 12/02/2018 TODO: check why results are better without valmask applied!
             z3cumul = npy.ma.reshape(z3cumul, (tcdel, depthN, latN, lonN))
         
         # 17/08/17: JM:  specificity of vmask to be checked.
