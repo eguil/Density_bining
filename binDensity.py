@@ -576,7 +576,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print ' so     :',so.data    [0,:,ijtest]
             #print ' so     :',so[0,:,ijtest]
         # Reset output arrays to missing for binned fields
-        depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
+        depth_Bin,thick_bin,x1_bin,x2_bin,x3_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(5)]
 
         #print '1'
         tucz0     = timc.clock()
@@ -592,8 +592,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             tcpu0 = timc.clock()
             # find bottom level at each lat/lon point
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
-            x1_content  = thetao.data[t]
-            x2_content  = so.data[t]
+            x1_content = thetao.data[t]
+            x2_content = so.data[t]
+            x3_content = x1_content
+            x3_content[:,:] = 1 # testing
             #if debug and t <= 0:
             #    i = ijtest
             #    print ' tc = ',tc
@@ -621,7 +623,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print '  Mean Temp./Salinity in z coordinates source grid            : ', temtot, saltot
 
             # init arrays for this time chunk
-            z_s,c1_s,c2_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(4)]
+            z_s,c1_s,c2_s,c3_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(5)]
             szmin,szmax,delta_rho   = [npy.ma.ones(lonN*latN)*valmask for _ in range(3)]
             i_min,i_max             = [npy.ma.zeros(lonN*latN) for _ in range(2)]
             tcpu1 = timc.clock()
@@ -629,11 +631,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             i_bottom                = vmask_3D.argmax(axis=0)-1
             z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
             c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
-            c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom tempi_profilerature/salinity
+            c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
+            c3_s[N_s, nomask]   = x3_content[depthN-1,nomask] ;
             # init arrays as a function of depth = f(z)
             s_z     = rhon.data[t]
             c1_z    = x1_content
             c2_z    = x2_content
+            c3_z    = x3_content
             # Extract a strictly increasing sub-profile
             i_min[nomask]           = s_z.argmin(axis=0)[nomask]
             i_max[nomask]           = s_z.argmax(axis=0)[nomask]-1 # why -1 ?
@@ -658,7 +662,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt
-            szm,zzm,c1m,c2m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(4)]
+            szm,zzm,c1m,c2m,c3m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(5)]
 
             for k in range(depthN):
                 k_ind = i_min*1.; k_ind[:] = valmask
@@ -666,6 +670,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 szm[k,k_ind] = s_z [k,k_ind]
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
+                c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
@@ -677,6 +682,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
+                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # integral
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
 
@@ -687,6 +693,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = z_s[N_s-1,inds[1]]
             c1_s[inds[0],inds[1]] = c1_s[N_s-1,inds[1]]
             c2_s[inds[0],inds[1]] = c2_s[N_s-1,inds[1]]
+            c3_s[inds[0],inds[1]] = c3_s[N_s-1,inds[1]]
             tcpu4 = timc.clock()
             # Thickness of isopycnal
             t_s [0,:] = 0.
@@ -697,6 +704,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = valmask
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
+            c3_s[inds[0],inds[1]] = valmask
             if debug and t == 0: #t == 0:
                 i = ijtest
                 print
@@ -713,11 +721,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print t_s[:,i]
                 print ' bined temperature profile on rhon grid c1_s[i]'
                 print c1_s[:,i]
+                print ' bined salinity profile on rhon grid c2_s[i]'
+                print c2_s[:,i]
+                print ' bined integral profile on rhon grid c3_s[i]'
+                print c3_s[:,i]
             # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
             x1_bin[t,:,:]    = c1_s
             x2_bin[t,:,:]    = c2_s
+            x3_bin[t,:,:]    = c3_s
             # CPU analysis
             tcpu5 = timc.clock()
             if cpuan:
@@ -744,23 +757,26 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
         ticz0 = timc.clock()
         # Free memory
-        del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, z_s, c1_s, c2_s, t_s, inds, c1_z, c2_z) ; gc.collect()
+        del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, c3m, z_s, c1_s, c2_s, c3_s, t_s, inds, c1_z, c2_z) ; gc.collect()
         # Wash mask (from temp) over variables
         maskb          = mv.masked_values(x1_bin, valmask).mask
         depth_bin.mask = maskb
         x1_bin.mask    = maskb
         x2_bin.mask    = maskb
+        x3_bin.mask    = maskb
         maskt          = mv.masked_values(thick_bin, valmask).mask
         thick_bin.mask = maskt
         depth_bin      = maskVal(depth_bin, valmask)
         thick_bin      = maskVal(thick_bin, valmask)
         x1_bin         = maskVal(x1_bin, valmask)
         x2_bin         = maskVal(x2_bin, valmask)
+        x3_bin         = maskVal(x3_bin, valmask)
         # Reshape i*j back to i,j
         depth_bin = npy.ma.reshape(depth_bin, (tcdel, N_s+1, latN, lonN))
         thick_bin = npy.ma.reshape(thick_bin, (tcdel, N_s+1, latN, lonN))
         x1_bin    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
         x2_bin    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
+        x3_bin    = npy.ma.reshape(x3_bin,    (tcdel, N_s+1, latN, lonN))
 
         if debug and (tc == 0):
             # test write
@@ -776,6 +792,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'thick_bin', thick_bin[0,:,j,i]
             print 'x1_bin', x1_bin[0,:,j,i]
             print 'x2_bin', x2_bin[0,:,j,i]
+            print 'x3_bin', x3_bin[0,:,j,i]
         if debug and tc == 0:
             # Check integrals/mean on source density grid
             print '  voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest] ',voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
