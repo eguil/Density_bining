@@ -465,7 +465,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # ---------------------
     # test point
     itest = 80
-    jtest = 30
+    jtest = 80
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
