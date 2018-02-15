@@ -464,8 +464,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 80
-    jtest = 30
+    itest = 100
+    jtest = 100
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -570,7 +570,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
         rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         #print 'thetao.shape:',thetao.shape
-        if debug and tc < 0 :
+        if debug and tc == 0 :
             print ' thetao :',thetao.data[0,:,ijtest]
             print ' thetao :',thetao[0,:,ijtest]
             print ' so     :',so.data    [0,:,ijtest]
@@ -697,7 +697,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             z_s [inds[0],inds[1]] = valmask
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
-            if debug and t < 0: #t == 0:
+            if debug and t == 0: #t == 0:
                 i = ijtest
                 print
                 print ' density target array s_s[i]'
@@ -762,7 +762,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x1_bin    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
         x2_bin    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
 
-        if debug and (tc < 0):
+        if debug and (tc == 0):
             # test write
             i = itest
             j = jtest
