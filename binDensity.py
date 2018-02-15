@@ -572,9 +572,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         #print 'thetao.shape:',thetao.shape
         if debug and tc == 0 :
             print ' thetao :',thetao.data[0,:,ijtest]
-            print ' thetao :',thetao[0,:,ijtest]
+            #print ' thetao :',thetao[0,:,ijtest]
             print ' so     :',so.data    [0,:,ijtest]
-            print ' so     :',so[0,:,ijtest]
+            #print ' so     :',so[0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
 
@@ -762,7 +762,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x1_bin    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
         x2_bin    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
 
-        if debug and (tc < 0):
+        if debug and (tc == 0):
             # test write
             i = itest
             j = jtest
