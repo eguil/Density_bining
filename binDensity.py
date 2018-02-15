@@ -762,7 +762,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x1_bin    = npy.ma.reshape(x1_bin,    (tcdel, N_s+1, latN, lonN))
         x2_bin    = npy.ma.reshape(x2_bin,    (tcdel, N_s+1, latN, lonN))
 
-        if debug and (tc == 0):
+        if debug and (tc < 0):
             # test write
             i = itest
             j = jtest
@@ -778,7 +778,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print 'x2_bin', x2_bin[0,:,j,i]
         if debug and tc == 0:
             # Check integrals/mean on source density grid
-            print voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
+            print '  voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest] ',voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
             #print thick_bin.data[tc,:,ijtest]
             #print thick_bin.data[tc,:,ijtest]*(1-thick_bin.mask[tc,:,ijtest])
             voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
