@@ -594,8 +594,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content = thetao.data[t]
             x2_content = so.data[t]
-            x3_content = x1_content
-            x3_content[:,:] = 1 # testing
+            x3_content = x1_content*1.
+            x3_content[:,:] = 1. # testing
             #if debug and t <= 0:
             #    i = ijtest
             #    print ' tc = ',tc
