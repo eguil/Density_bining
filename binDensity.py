@@ -700,6 +700,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             inds = npy.argwhere(s_s > szmax).transpose()
             inds_bottom = npy.argwhere( (s_s <= szmax) & (npy.roll(s_s,1) > szmax)).transpose()
             if debug and t == 0: #t == 0:
+                print s_s, npy.roll(s_s,1), szmax[ijtest]
                 print 'inds_bottom',inds_bottom[ijtest]
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             z_s [inds[0],inds[1]] = z_s[inds_bottom,inds[1]]
