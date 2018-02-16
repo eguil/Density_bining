@@ -675,6 +675,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
             if debug and t == 0: #t == 0:
+                print ' szm just before interp', szm[:,ijtest]
                 print ' c3m just before interp', c3m[:,ijtest]
 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
