@@ -658,7 +658,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmax[i] = rho_max+10.
             tcpu2 = timc.clock()
             if debug and t == 0: #t == 0:
-                print ' i_bottom, szmin, szmax, i_min, i_max',i_bottom, szmin[ijtest],szmax[ijtest], i_min[ijtest],i_max[ijtest]
+                print ' i_bottom, szmin, szmax, i_min, i_max',i_bottom[ijtest], szmin[ijtest],szmax[ijtest], i_min[ijtest],i_max[ijtest]
             #
             #  Find indices between density min and density max
             #
@@ -674,6 +674,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,k_ind] = z_zt[k]
+            if debug and t == 0: #t == 0:
+                print ' c3m just before interp', c3m[:,ijtest]
 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
