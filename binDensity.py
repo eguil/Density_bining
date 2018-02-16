@@ -698,11 +698,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
-            inds_bottom = npy.argwhere( (szmax > npy.roll(s_s,1)) & (szmax <= s_s)).transpose()
-            if debug and t == 0: #t == 0:
-                print s_s, npy.roll(s_s,1), szmax[ijtest]
-                print inds.shape
-                print 'inds_bottom',inds_bottom.shape, inds_bottom
+            inds_bottom = inds[0]-1
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             z_s [inds[0],inds[1]] = z_s[inds_bottom,inds[1]]
             c1_s[inds[0],inds[1]] = c1_s[inds_bottom,inds[1]]
