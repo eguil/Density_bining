@@ -709,7 +709,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [inds_bottom[1]] = inds_bottom[0]
-            btind = [npy.arrange[lonN*latN],bottom_ind]
+            btind = [npy.arange[lonN*latN],bottom_ind]
             print btind.shape
             # TODO take care of -1
             print btind[:,ijtest]
