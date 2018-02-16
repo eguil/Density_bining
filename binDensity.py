@@ -606,7 +606,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
-            print nomask.shape
+            print npy.argwhere(nomask == True).shape # for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
                 lev_thick     = npy.roll(z_zw,-1)-z_zw
