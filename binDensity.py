@@ -434,6 +434,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     del_s1  = 0.2
     del_s2  = 0.1
     s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
+    # Extend last density to not miss points denser
+    s_s[N_s-1] = 40
+    print s_s
     s_s = npy.tile(s_s, lonN*latN).reshape(lonN*latN,N_s).transpose() # make 3D for matrix computation
     # Define rho output axis
     rhoAxis                 = cdm.createAxis(s_sax,bounds=None,id='lev')
@@ -464,8 +467,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 148
-    jtest = 123
+    itest = 51
+    jtest = 2
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -701,7 +704,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
             ssr = npy.roll(s_s, 1, axis=0)
-            ssr[0,:] = ssr[1,:]
+            ssr[0,:] = ssr[1,:]-del_s1
             #print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
             bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1
