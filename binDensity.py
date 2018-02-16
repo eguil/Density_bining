@@ -703,13 +703,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             ssr[0,:] = ssr[1,:]
             #print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
-            bottom_ind = npy.zeros(lonN*latN, dtype='int8')*-1
+            bottom_ind = npy.zeros((2,lonN*latN), dtype='int8')*-1
             print bottom_ind.shape
             print  inds_bottom.shape, inds.shape
             print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
-            bottom_ind [inds_bottom[1]] = inds_bottom[0]
-            btind = [npy.arange[lonN*latN],bottom_ind]
+            bottom_ind [1,inds_bottom[1]] = inds_bottom[0]
+            bottom_ind [0,:] = npy.arange[lonN*latN]
             print btind.shape
             # TODO take care of -1
             print btind[:,ijtest]
