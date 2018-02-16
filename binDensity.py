@@ -709,6 +709,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
+            print bottom_ind [1,ijtest]
+            print bottom_ind [1,:]
             # TODO take care of -1
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             print ijtest
