@@ -746,11 +746,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Thickness of isopycnal
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            # fine tuning of volume conservation
-            diff = npy.ma.sum(lev_thickt*(szm < valmask/10), axis=0) - npy.ma.sum(t_s*(t_s < valmask/10), axis=0)
-            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+diff*nomask
-            t_s [0,:] = 0.
-            t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
 
             # Use thickness of isopycnal (less than zero) to create masked point for all bined arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
