@@ -719,14 +719,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)[:,ijtest]
             #print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(lonN*latN, N_s+1).transpose()[:,ijtest]
             zst = npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c1t = npy.tile(c1_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c2t = npy.tile(c2_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c3t = npy.tile(c3_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             print z_s.shape, zst.shape
             print z_s[:,ijtest]
             print zst[:,ijtest]
-            z_s [inds[0],inds[1]] = zst [inds[0],inds[1]]
-            #z_s [inds[0],inds[1]] = z_s[inds_bottom[0],inds[1]]
-            c1_s[inds[0],inds[1]] = c1_s[inds_bottom[0],inds[1]]
-            c2_s[inds[0],inds[1]] = c2_s[inds_bottom[0],inds[1]]
-            c3_s[inds[0],inds[1]] = c3_s[inds_bottom[0],inds[1]]
+            z_s [inds[0],inds[1]] = zst[inds[0],inds[1]]
+            c1_s[inds[0],inds[1]] = c1t[inds[0],inds[1]]
+            c2_s[inds[0],inds[1]] = c2t[inds[0],inds[1]]
+            c3_s[inds[0],inds[1]] = c3t[inds[0],inds[1]]
             tcpu4 = timc.clock()
 
             if debug and t == 0: #t == 0:
