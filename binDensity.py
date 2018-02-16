@@ -696,10 +696,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
-            z_s [inds[0],inds[1]] = z_s[N_s-1,inds[1]]
-            c1_s[inds[0],inds[1]] = c1_s[N_s-1,inds[1]]
-            c2_s[inds[0],inds[1]] = c2_s[N_s-1,inds[1]]
-            c3_s[inds[0],inds[1]] = c3_s[N_s-1,inds[1]]
+            inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
+            z_s [inds[0],inds[1]] = z_s[inds_bottom,inds[1]]
+            c1_s[inds[0],inds[1]] = c1_s[inds_bottom,inds[1]]
+            c2_s[inds[0],inds[1]] = c2_s[inds_bottom,inds[1]]
+            c3_s[inds[0],inds[1]] = c3_s[inds_bottom,inds[1]]
             tcpu4 = timc.clock()
             if debug and t == 0: #t == 0:
                 print ' z_s  after inds test', z_s[:,ijtest]
