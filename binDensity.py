@@ -755,7 +755,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c2_s[inds[0],inds[1]] = valmask
             c3_s[inds[0],inds[1]] = valmask
             # fine tuning of volume conservation
-            diff = npy.ma.sum(lev_thickt*(szm < valmask/10)) - npy.ma.sum(t_s*(t_s < valmask/10))
+            diff = npy.ma.sum(lev_thickt*(szm < valmask/10), axis=0) - npy.ma.sum(t_s*(t_s < valmask/10), axis=0)
             z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+diff
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
