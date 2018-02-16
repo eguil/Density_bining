@@ -435,8 +435,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     del_s2  = 0.1
     s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
     # Extend grid to not miss points
-    s_s[0] = 10
-    s_s[N_s-1] = 40
+    s_s[0] = 0
+    s_s[N_s-1] = 50
     print s_s
     s_s = npy.tile(s_s, lonN*latN).reshape(lonN*latN,N_s).transpose() # make 3D for matrix computation
     # Define rho output axis
