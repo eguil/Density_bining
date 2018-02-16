@@ -657,8 +657,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     szmin[i] = 0.
                     szmax[i] = rho_max+10.
             tcpu2 = timc.clock()
-            #print ' min, imax [ijtest]',szmin[ijtest],szmax[ijtest], i_min[ijtest],i_max[ijtest]
-            # Find indices between density min and density max
+            if debug and t == 0: #t == 0:
+                print ' i_bottom, szmin, szmax, i_min, i_max',i_bottom, szmin[ijtest],szmax[ijtest], i_min[ijtest],i_max[ijtest]
+            #
+            #  Find indices between density min and density max
             #
             # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt
@@ -685,7 +687,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # integral
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
-
+            if debug and t == 0: #t == 0:
+                print ' c3_s just after interp', c3_s[:,ijtest]
             # if level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             # TODO:  add half level to depth to ensure thickness integral conservation
@@ -714,7 +717,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print szm[:,i]
                 print ' depth profile on Z grid zzm[i]'
                 print zzm[:,i]
-                print ' ibottom, i_min, i_max ',i_bottom[i], i_min[i], i_max[i]
                 print ' depth profile on rhon target grid z_s[i]'
                 print z_s[:,i]
                 print 'tc = ',tc
