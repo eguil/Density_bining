@@ -629,10 +629,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             tcpu1 = timc.clock()
             # find bottom level at each lat/lon point
             i_bottom                = vmask_3D.argmax(axis=0)-1
-            z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
-            c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
-            c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
-            c3_s[N_s, nomask]   = x3_content[depthN-1,nomask] ;
+            #z_s [N_s, nomask]   = z_zw[i_bottom[nomask]+1] ; # Cell depth limit
+            #c1_s[N_s, nomask]   = x1_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
+            #c2_s[N_s, nomask]   = x2_content[depthN-1,nomask] ; # Cell bottom temperature/salinity
+            #c3_s[N_s, nomask]   = x3_content[depthN-1,nomask] ;
             # init arrays as a function of depth = f(z)
             s_z     = rhon.data[t]
             c1_z    = x1_content
@@ -698,7 +698,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
-            inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
+            inds_bottom = npy.argwhere( (s_s <= szmax) & (npy.roll(s_s,1) > szmax)).transpose()
+            if debug and t == 0: #t == 0:
+                print 'inds_bottom',inds_bottom[ijtest]
+            #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             z_s [inds[0],inds[1]] = z_s[inds_bottom,inds[1]]
             c1_s[inds[0],inds[1]] = c1_s[inds_bottom,inds[1]]
             c2_s[inds[0],inds[1]] = c2_s[inds_bottom,inds[1]]
