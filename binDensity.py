@@ -468,8 +468,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 18
-    jtest = 65
+    itest = 134
+    jtest = 126
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -610,7 +610,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
-            print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
+            #print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
                 lev_thick     = npy.roll(z_zw,-1)-z_zw
@@ -709,31 +709,30 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
             bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1
-            print  inds_bottom.shape, inds.shape
-            print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
-            print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
+            #print  inds_bottom.shape, inds.shape
+            #print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
+            #print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
-            print bottom_ind [1,ijtest]
-            # TODO take care of -1
-            indpb = npy.argwhere((bottom_ind [0] == -1) & nomask)
-            print 'Nb points with pb ',indpb.shape
-            for il in range(len(indpb[:,0])):
-                iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
-                jloc = indpb[il,0]/lonN
-                print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc], iloc,jloc
+            #print bottom_ind [1,ijtest]
+            #indpb = npy.argwhere((bottom_ind [0] == -1) & nomask)
+            #print 'Nb points with pb ',indpb.shape
+            #for il in range(len(indpb[:,0])):
+            #    iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
+            #    jloc = indpb[il,0]/lonN
+            #    print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc], iloc,jloc
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
-            print ijtest
-            print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
-            print z_s[bottom_ind[0,:],bottom_ind[1,:]].shape, z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN).shape
-            print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)[:,ijtest]
+            #print ijtest
+            #print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
+            #print z_s[bottom_ind[0,:],bottom_ind[1,:]].shape, z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN).shape
+            #print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)[:,ijtest]
             zst = npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c1t = npy.tile(c1_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c2t = npy.tile(c2_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c3t = npy.tile(c3_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
-            print z_s.shape, zst.shape
-            print z_s[:,ijtest]
-            print zst[:,ijtest]
+            #print z_s.shape, zst.shape
+            #print z_s[:,ijtest]
+            #print zst[:,ijtest]
             z_s [inds[0],inds[1]] = zst[inds[0],inds[1]]
             c1_s[inds[0],inds[1]] = c1t[inds[0],inds[1]]
             c2_s[inds[0],inds[1]] = c2t[inds[0],inds[1]]
@@ -1058,7 +1057,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopdepth   = cdu.averager(depthBintmp*maskp,axis=0,action='sum')
                 ptoptemp    = cdu.averager(x1Bintmp*maskp,axis=0,action='sum')
                 ptopsalt    = cdu.averager(x2Bintmp*maskp,axis=0,action='sum')
-
+                if debug and (t == 0):
+                    print '====> ptop diags'
+                    print 'ptopdepth', ptopdepth[ijtest]
+                    print 'ptoptemp', ptoptemp[ijtest]
+                    print 'ptopsalt', ptopsalt[ijtest]
+                    print 'maskp', maskp[ijtest]
                 del (depthBintmp,x1Bintmp,x2Bintmp); gc.collect()
                 tpe2 = timc.clock()
 
