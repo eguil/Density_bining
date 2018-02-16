@@ -464,8 +464,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 160
-    jtest = 100
+    itest = 116
+    jtest = 101
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -705,7 +705,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
             bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1
-            #print  inds_bottom.shape, inds.shape
+            print  inds_bottom.shape, inds.shape
             print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
@@ -713,6 +713,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print bottom_ind [1,ijtest]
             # TODO take care of -1
             indpb = npy.argwhere((bottom_ind [0] == -1))
+            print 'Nb points with pb ',indpb.shape
             for il in range(20):
                 if nomask[indpb[il]]:
                     iloc = indpb[il]-((indpb[il]/lonN)*lonN)
