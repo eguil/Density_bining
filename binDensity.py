@@ -740,10 +740,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             if debug and t == 0: #t == 0:
                 print ' z_s  after inds test', z_s[:,ijtest]
                 print ' c3_s after inds test', c3_s[:,ijtest]
-            # Add half level to depth to ensure thickness integral conservation
-            print lev_thickt.shape, i_max.shape
-            print lev_thickt[i_max[0],:].shape
-            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thickt[i_max[0],:]/2
+            # Add half level to depth to ensure thickness integral conservation at bottom
+            print lev_thick(i_bottom[ijtest])
+            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick(i_bottom)/2.
             # Thickness of isopycnal
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
