@@ -854,10 +854,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             temtotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             saltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
-            voltot = npy.sum(voltotij0*npy.ma.reshape(area,lonN*latN))
-            temtot = npy.sum(temtotij0*npy.ma.reshape(area,lonN*latN))/voltot
-            saltot = npy.sum(saltotij0*npy.ma.reshape(area,lonN*latN))/voltot
-            #print voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
+            voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
+            temtot = npy.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
+            saltot = npy.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
+            print voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
         #
