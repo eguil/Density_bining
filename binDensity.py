@@ -614,7 +614,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Check integrals on source z coordinate grid
             if debug and t == 0:
                 lev_thick     = npy.roll(z_zw,-1)-z_zw
-                lev_thick[-1] = lev_thick[-2]*.5
+                lev_thick[-1] = lev_thick[-2]
                 print 'lev_thick,z_zw ',lev_thick,z_zw
                 print 'lev_thick*mask[ijtest] ',lev_thick*(1-vmask_3D[:,ijtest])
                 lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
