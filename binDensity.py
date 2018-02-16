@@ -832,7 +832,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x3_bin    = npy.ma.reshape(x3_bin,    (tcdel, N_s+1, latN, lonN))
 
         if debug and (tc == 0):
-            indpb = npy.argwhere((x1_bin > valmask/10.) & x1_bin.mask == 0)
+            indpb = npy.argwhere((x1_bin > valmask/10.) & (x1_bin.mask == 1))
             print 'Nb points with pb ',indpb.shape
             #for il in range(len(indpb[:,0])):
             #    iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
