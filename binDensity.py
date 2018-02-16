@@ -741,13 +741,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' z_s  after inds test', z_s[:,ijtest]
                 print ' c3_s after inds test', c3_s[:,ijtest]
             # Add half level to depth to ensure thickness integral conservation at bottom
-            print lev_thick[i_bottom[ijtest]]
             z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom]/2.
             # Thickness of isopycnal
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
 
-            # Use thickness of isopycnal (less than zero) to create masked point for all bined arrays
+            # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
             z_s [inds[0],inds[1]] = valmask
@@ -832,12 +831,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         x3_bin    = npy.ma.reshape(x3_bin,    (tcdel, N_s+1, latN, lonN))
 
         if debug and (tc == 0):
-            indpb = npy.argwhere((x1_bin > valmask/10.) & (x1_bin.mask == 1))
-            print 'Nb points with pb ',indpb.shape
-            #for il in range(len(indpb[:,0])):
-            #    iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
-            #    jloc = indpb[il,0]/lonN
-            #    print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc], iloc,jloc
 
             # test write
             i = itest
@@ -862,8 +855,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             temtotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             saltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
-            temtot = npy.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
-            saltot = npy.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
+            temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
+            saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             print voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
