@@ -710,12 +710,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [1,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [0,:] = npy.arange(lonN*latN)
-            print btind.shape
             # TODO take care of -1
-            print btind[:,ijtest]
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
-            print z_s[btind[0],btind[1]].shape
-            zst = npy.tile(z_s[btind[0],btind[1]].reshape(lonN*latN), N_s).reshape(lonN*latN,N_s).transpose()
+            print z_s[bottom_ind[0],bottom_ind[1]].shape
+            zst = npy.tile(z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s).reshape(lonN*latN,N_s).transpose()
             z_s [inds[0],inds[1]] = zst [inds[0],inds[1]]
             #z_s [inds[0],inds[1]] = z_s[inds_bottom[0],inds[1]]
             c1_s[inds[0],inds[1]] = c1_s[inds_bottom[0],inds[1]]
