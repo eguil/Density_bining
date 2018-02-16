@@ -701,7 +701,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             inds = npy.argwhere(s_s > szmax).transpose()
             ssr = npy.roll(s_s, 1, axis=0)
             ssr[0,:] = ssr[1,:]
-            print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
+            #print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
             print  inds_bottom.shape, inds.shape
             print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
