@@ -773,8 +773,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' bined integral profile on rhon grid c3_s[i]'
                 print c3_s[:,i]
                 print ' vertical integral on z and sigma (volume)'
-                print z_zt, nomask[i]
-                print npy.ma.sum(z_zt*nomask[i]), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
+                print npy.ma.sum(z_zt*(szm[:,i] < valmask/10), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
 
             # assign to final arrays
             depth_bin[t,:,:] = z_s
