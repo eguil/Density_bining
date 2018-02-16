@@ -714,6 +714,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print szm[:,i]
                 print ' depth profile on Z grid zzm[i]'
                 print zzm[:,i]
+                print ' ibottom, i_min, i_max ',i_bottom, i_min, i_max
                 print ' depth profile on rhon target grid z_s[i]'
                 print z_s[:,i]
                 print 'tc = ',tc
