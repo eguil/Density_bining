@@ -464,8 +464,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 116
-    jtest = 101
+    itest = 140
+    jtest = 140
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -715,9 +715,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             indpb = npy.argwhere((bottom_ind [0] == -1))
             print 'Nb points with pb ',indpb.shape
             for il in range(20):
-                if nomask[indpb[il]]:
-                    iloc = indpb[il]-((indpb[il]/lonN)*lonN)
-                    jloc = indpb[il]/lonN
+                if nomask[indpb[il,0]]:
+                    iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
+                    jloc = indpb[il,0]/lonN
                     print lon[jloc,iloc],lat[jloc,iloc]
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             print ijtest
