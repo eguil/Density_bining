@@ -712,13 +712,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             bottom_ind [1,:] = npy.arange(lonN*latN)
             print bottom_ind [1,ijtest]
             # TODO take care of -1
-            indpb = npy.argwhere((bottom_ind [0] == -1))
+            indpb = npy.argwhere((bottom_ind [0] == -1) & nomask)
             print 'Nb points with pb ',indpb.shape
             for il in range(20):
-                if nomask[indpb[il,0]]:
-                    iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
-                    jloc = indpb[il,0]/lonN
-                    print lon[jloc,iloc],lat[jloc,iloc]
+                iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
+                jloc = indpb[il,0]/lonN
+                print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc]
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             print ijtest
             print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
