@@ -1057,16 +1057,21 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptopdepth   = cdu.averager(depthBintmp*maskp,axis=0,action='sum')
                 ptoptemp    = cdu.averager(x1Bintmp*maskp,axis=0,action='sum')
                 ptopsalt    = cdu.averager(x2Bintmp*maskp,axis=0,action='sum')
+
                 if debug and (t == 0):
+                    indpb = npy.argwhere((ptopdepth == valmask) & nomask)
+                    print 'Nb points with pb ',indpb.shape
+                    for il in range(len(indpb[:,0])):
+                        iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
+                        jloc = indpb[il,0]/lonN
+                        print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc], iloc,jloc
                     # test point
-                    itst = 134
-                    jtst = 126
-                    ijtst = jtst*Nii + itst
                     print '====> ptop diags'
-                    print 'ptopdepth', ptopdepth[ijtst]
-                    print 'ptoptemp', ptoptemp[ijtst]
-                    print 'ptopsalt', ptopsalt[ijtst]
-                    print 'maskp', maskp[ijtst]
+                    print 'ptop ',ptop[ijtest]
+                    print 'maskp ', maskp[ijtest]
+                    print 'ptopdepth ', ptopdepth[ijtest]
+                    print 'ptoptemp  ', ptoptemp[ijtest]
+                    print 'ptopsalt  ', ptopsalt[ijtest]
                 del (depthBintmp,x1Bintmp,x2Bintmp); gc.collect()
                 tpe2 = timc.clock()
 
