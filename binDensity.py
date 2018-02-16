@@ -663,8 +663,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             #  Find indices between density min and density max
             #
-            # Construct arrays of szm/c1m/c2m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
+            # Construct arrays of szm/c1m/c2m/c3m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt
+            # For smooth bottom interpolation: for first masked point extend depth by half level
+            # extrapolate T,S + do something special for integral/extensive
             szm,zzm,c1m,c2m,c3m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(5)]
 
             for k in range(depthN):
@@ -674,11 +676,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 c3m[k,k_ind] = c3_z[k,k_ind]
-                zzm[k,k_ind] = z_zt[k]
+                #zzm[k,k_ind] = z_zt[k]
+                zzm[k,:] = z_zt[k]
             if debug and t == 0: #t == 0:
                 print ' szm just before interp', szm[:,ijtest]
                 print ' c3m just before interp', c3m[:,ijtest]
                 print ' zzm just before interp', zzm[:,ijtest]
+
 
             # interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
             # TODO: use ESMF ?
@@ -704,13 +708,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #print 's_s,ssr',s_s[:,ijtest],ssr[:,ijtest]
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
             bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1
-            print  inds_bottom.shape, inds.shape
+            #print  inds_bottom.shape, inds.shape
             print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
             print bottom_ind [1,ijtest]
-            print bottom_ind [1,:]
             # TODO take care of -1
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             print ijtest
