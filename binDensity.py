@@ -702,7 +702,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # if level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
-            # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
             ssr = npy.roll(s_s, 1, axis=0)
             ssr[0,:] = ssr[1,:]-del_s1
@@ -726,10 +725,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
             #print z_s[bottom_ind[0,:],bottom_ind[1,:]].shape, z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN).shape
             #print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)[:,ijtest]
-            zst = npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
-            c1t = npy.tile(c1_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
-            c2t = npy.tile(c2_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
-            c3t = npy.tile(c3_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            zst = npy.tile(z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c1t = npy.tile(c1_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c2t = npy.tile(c2_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c3t = npy.tile(c3_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             #print z_s.shape, zst.shape
             #print z_s[:,ijtest]
             #print zst[:,ijtest]
@@ -738,13 +737,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c2_s[inds[0],inds[1]] = c2t[inds[0],inds[1]]
             c3_s[inds[0],inds[1]] = c3t[inds[0],inds[1]]
             tcpu4 = timc.clock()
-
+            # Add half level to depth to ensure thickness integral conservation
+            print lev_thickt.shape, lev_thickt(i_max).shape
+            z_s [bottom_ind[0],bottom_ind[1]] = zst[bottom_ind[0],bottom_ind[1]]+lev_thickt(i_max)/2
             if debug and t == 0: #t == 0:
                 print ' z_s  after inds test', z_s[:,ijtest]
                 print ' c3_s after inds test', c3_s[:,ijtest]
             # Thickness of isopycnal
             t_s [0,:] = 0.
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+
             # Use thickness of isopycnal (less than zero) to create masked point for all bined arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
