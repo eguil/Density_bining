@@ -468,8 +468,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 134
-    jtest = 126
+    itest = 80
+    jtest = 80
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -615,8 +615,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             if debug and t == 0:
                 lev_thick     = npy.roll(z_zw,-1)-z_zw
                 lev_thick[-1] = lev_thick[-2]*.5
-                #print 'lev_thick,z_zw ',lev_thick,z_zw
-                #print 'lev_thick*mask[ijtest] ',lev_thick*(1-vmask_3D[:,ijtest])
+                print 'lev_thick,z_zw ',lev_thick,z_zw
+                print 'lev_thick*mask[ijtest] ',lev_thick*(1-vmask_3D[:,ijtest])
                 lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
                 voltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
                 temtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
@@ -772,12 +772,23 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print c2_s[:,i]
                 print ' bined integral profile on rhon grid c3_s[i]'
                 print c3_s[:,i]
+
             # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
             x1_bin[t,:,:]    = c1_s
             x2_bin[t,:,:]    = c2_s
             x3_bin[t,:,:]    = c3_s
+
+            # Check integrals/mean on source density grid
+            print thick_bin.data[t,:,ijtest]
+            print thick_bin.data[t,:,ijtest]*(1-thick_bin.mask[t,:,ijtest])
+            voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(t, N_s+1, latN*lonN)).data[t,:,:]*(1-npy.ma.reshape(thick_bin,(t, N_s+1, latN*lonN)).mask[t,:,:]), axis=0)
+            print '  voltotij0[ijtest]',voltotij0[ijtest]
+            voltot = npy.sum(voltotij0*npy.ma.reshape(area,lonN*latN))
+            print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
+
+
             # CPU analysis
             tcpu5 = timc.clock()
             if cpuan:
@@ -843,8 +854,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if debug and tc == 0:
             # Check integrals/mean on source density grid
             print '  voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest] ',voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
-            #print thick_bin.data[tc,:,ijtest]
-            #print thick_bin.data[tc,:,ijtest]*(1-thick_bin.mask[tc,:,ijtest])
+            print thick_bin.data[tc,:,ijtest]
+            print thick_bin.data[tc,:,ijtest]*(1-thick_bin.mask[tc,:,ijtest])
             voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             temtotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             saltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
@@ -1058,20 +1069,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 ptoptemp    = cdu.averager(x1Bintmp*maskp,axis=0,action='sum')
                 ptopsalt    = cdu.averager(x2Bintmp*maskp,axis=0,action='sum')
 
-                if debug and (t == 0):
-                    indpb = npy.argwhere((ptopdepth == valmask) & nomask)
-                    print 'Nb points with pb ',indpb.shape
-                    for il in range(len(indpb[:,0])):
-                        iloc = indpb[il,0]-((indpb[il,0]/lonN)*lonN)
-                        jloc = indpb[il,0]/lonN
-                        print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc], iloc,jloc
-                    # test point
-                    print '====> ptop diags'
-                    print 'ptop ',ptop[ijtest]
-                    print 'maskp ', maskp[ijtest]
-                    print 'ptopdepth ', ptopdepth[ijtest]
-                    print 'ptoptemp  ', ptoptemp[ijtest]
-                    print 'ptopsalt  ', ptopsalt[ijtest]
                 del (depthBintmp,x1Bintmp,x2Bintmp); gc.collect()
                 tpe2 = timc.clock()
 
