@@ -1061,7 +1061,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     # test point
                     itst = 134
                     jtst = 126
-                    ijtst = jtst*loni + itst
+                    ijtst = jtst*Nii + itst
                     print '====> ptop diags'
                     print 'ptopdepth', ptopdepth[ijtst]
                     print 'ptoptemp', ptoptemp[ijtst]
