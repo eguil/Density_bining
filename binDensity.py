@@ -772,6 +772,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print c2_s[:,i]
                 print ' bined integral profile on rhon grid c3_s[i]'
                 print c3_s[:,i]
+                print ' vertical integral on z and sigma (volume)'
+                print npy.sum(z_zt*nomask[ijtest]), npy.sum(t_s*(t_s == valmask))
 
             # assign to final arrays
             depth_bin[t,:,:] = z_s
@@ -779,15 +781,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x1_bin[t,:,:]    = c1_s
             x2_bin[t,:,:]    = c2_s
             x3_bin[t,:,:]    = c3_s
-
-            # Check integrals/mean on source density grid
-            print thick_bin.data[t,:,ijtest]
-            print thick_bin.data[t,:,ijtest]*(1-thick_bin.mask[t,:,ijtest])
-            voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(t, N_s+1, latN*lonN)).data[t,:,:]*(1-npy.ma.reshape(thick_bin,(t, N_s+1, latN*lonN)).mask[t,:,:]), axis=0)
-            print '  voltotij0[ijtest]',voltotij0[ijtest]
-            voltot = npy.sum(voltotij0*npy.ma.reshape(area,lonN*latN))
-            print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
-
 
             # CPU analysis
             tcpu5 = timc.clock()
