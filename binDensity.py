@@ -716,9 +716,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print ijtest
             print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
             print z_s[bottom_ind[0,:],bottom_ind[1,:]].shape, z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN).shape
-            print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(lonN*latN, N_s+1)[ijtest,:]
-            print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(lonN*latN, N_s+1).transpose()[:,ijtest]
-            zst = npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(lonN*latN, N_s+1).transpose()
+            print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)[:,ijtest]
+            #print npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(lonN*latN, N_s+1).transpose()[:,ijtest]
+            zst = npy.tile(z_s[bottom_ind[0,:],bottom_ind[1,:]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             print z_s.shape, zst.shape
             print z_s[:,ijtest]
             print zst[:,ijtest]
