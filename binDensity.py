@@ -706,6 +706,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c2_s[inds[0],inds[1]] = c2_s[inds_bottom,inds[1]]
             c3_s[inds[0],inds[1]] = c3_s[inds_bottom,inds[1]]
             tcpu4 = timc.clock()
+
             if debug and t == 0: #t == 0:
                 print ' z_s  after inds test', z_s[:,ijtest]
                 print ' c3_s after inds test', c3_s[:,ijtest]
