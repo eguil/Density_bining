@@ -690,7 +690,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # if level in s_s has lower density than surface, isopycnal is put at surface (z_s = 0)
             tcpu40 = timc.clock()
             if debug and t == 0: #t == 0:
-                print ' z_s just after interp', z_s[:,ijtest], z_s[0:N_s,ijtest]
+                print ' z_s just after interp', z_s[:,ijtest]
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # if level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
@@ -702,6 +702,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c3_s[inds[0],inds[1]] = c3_s[N_s-1,inds[1]]
             tcpu4 = timc.clock()
             if debug and t == 0: #t == 0:
+                print ' z_s  after inds test', z_s[:,ijtest]
                 print ' c3_s after inds test', c3_s[:,ijtest]
             # Thickness of isopycnal
             t_s [0,:] = 0.
