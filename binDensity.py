@@ -699,7 +699,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # TODO:  add half level to depth to ensure thickness integral conservation
             inds = npy.argwhere(s_s > szmax).transpose()
             inds_bottom = min(inds[0])
-            print s_s[ijtest,inds[0][npy.argwhere (inds[1] == ijtest)]], inds[0][npy.argwhere (inds[1] == ijtest)]
+            print s_s[min(inds[0][npy.argwhere (inds[1] == ijtest)])]
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             z_s [inds[0],inds[1]] = z_s[inds_bottom,inds[1]]
             c1_s[inds[0],inds[1]] = c1_s[inds_bottom,inds[1]]
