@@ -857,7 +857,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
-            print voltotij0[ijtest], temtotij0[ijtest],saltotij0[ijtest]
+            print voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
         #
