@@ -464,8 +464,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     #  Init density bining
     # ---------------------
     # test point
-    itest = 80
-    jtest = 80
+    itest = 130
+    jtest = 120
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -665,8 +665,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Construct arrays of szm/c1m/c2m/c3m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt
-            # For smooth bottom interpolation: for first masked point extend depth by half level
-            # extrapolate T,S + do something special for integral/extensive
             szm,zzm,c1m,c2m,c3m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(5)]
 
             for k in range(depthN):
@@ -676,8 +674,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 c3m[k,k_ind] = c3_z[k,k_ind]
-                #zzm[k,k_ind] = z_zt[k]
-                zzm[k,:] = z_zt[k]
+                zzm[k,:] = z_zt[k] # For smooth bottom interpolation
             if debug and t == 0: #t == 0:
                 print ' szm just before interp', szm[:,ijtest]
                 print ' c3m just before interp', c3m[:,ijtest]
@@ -715,6 +712,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             bottom_ind [1,:] = npy.arange(lonN*latN)
             print bottom_ind [1,ijtest]
             # TODO take care of -1
+            indpb = npy.argwhere(bottom_ind [0] == -1)
+            print indpb[0:20]-((indpb[0:20]/lonN)*lonN), indpb[0:20]/lonN
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
             print ijtest
             print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
