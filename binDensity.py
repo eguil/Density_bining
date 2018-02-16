@@ -606,7 +606,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
-            print npy.argwhere(nomask == True).shape # for ORCA2/IPSL-CM5A-LR
+            print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
                 lev_thick     = npy.roll(z_zw,-1)-z_zw
@@ -707,7 +707,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print s_s[inds[0][npy.argwhere (inds[1] == ijtest)],ijtest]
             print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             #inds_bottom = N_s # was N_s -1 with bottom bug Feb 2018
-            z_s [inds[0],inds[1]] = z_s[inds_bottom[0],inds[1]]
+            zst = npy.tile(z_s[inds_bottom[0],inds_bottom[1]].reshape(lonN*latN), N_s).reshape(lonN*latN,N_s).transpose()
+            z_s [inds[0],inds[1]] = zst [inds[0],inds[1]]
+            #z_s [inds[0],inds[1]] = z_s[inds_bottom[0],inds[1]]
             c1_s[inds[0],inds[1]] = c1_s[inds_bottom[0],inds[1]]
             c2_s[inds[0],inds[1]] = c2_s[inds_bottom[0],inds[1]]
             c3_s[inds[0],inds[1]] = c3_s[inds_bottom[0],inds[1]]
