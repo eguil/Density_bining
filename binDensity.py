@@ -614,6 +614,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x3cumulz = npy.ma.ones([depthN, latN*lonN])*valmask
             for k in range(depthN-1,0,-1):
                 indc = npy.arange(k,depthN)
+                print x3cumulz [k,ijtest]
                 x3cumulz [k,:] = npy.cumsum(x3_content[indc,:], axis=0)
             print ' x3_content after        :',x3cumulz[:,ijtest]
             #
