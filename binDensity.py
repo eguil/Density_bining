@@ -437,7 +437,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Extend grid to not miss points
     s_s[0] = 0
     s_s[N_s-1] = 50
-    print s_s
+    if debug:
+        print "Density grid s_s", s_s
     s_s = npy.tile(s_s, lonN*latN).reshape(lonN*latN,N_s).transpose() # make 3D for matrix computation
     # Define rho output axis
     rhoAxis                 = cdm.createAxis(s_sax,bounds=None,id='lev')
@@ -521,7 +522,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     lev_thick     = npy.roll(z_zw,-1)-z_zw
     lev_thick[-1] = lev_thick[-2]
     print 'lev_thick,z_zw ',lev_thick,z_zw
-    print 'lev_thick[ijtest] ',lev_thick
     lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
 
     # testing
@@ -608,8 +608,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x3_content = x1_content*1.
             x3_content = lev_thickt # testing
             #
-            # Vertical integral of x3_content from bottom
-            x3_content = npy.cumsum(npy.flip(x3_content, axis=0), axis=0)
+            # Vertical integral of x3_content from bottom #
+            # TODO from bottom requires new numpy > 1.10
+            x3_content = npy.cumsum(x3_content, axis=0)
             print ' x3_content     :',x3_content[0,ijtest]
             # Find indexes of masked points
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
