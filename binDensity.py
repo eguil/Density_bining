@@ -616,7 +616,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             for k in range(depthN-1,0,-1):
                 print k
                 print npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:].shape
-                print npy.ma.cumsum(x3_content[k:depthN,ijtest], axis=0)[-1,:]
+                print npy.ma.cumsum(x3_content[k:depthN,ijtest], axis=0)[-1]
                 x3cumulz[k,:] = npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:]
             print ' x3_content after        :',x3cumulz[:,ijtest]
             #
