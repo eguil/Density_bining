@@ -605,16 +605,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content = thetao.data[t]
             x2_content = so.data[t]
-            x3_content = x1_content*1.
-            x3_content = lev_thickt # testing
-            # TODO WARNING add time axis after testing
-            print ' x3_content before cumul :',x3_content[:,ijtest]
+            #x3_content = x1_content*1.
+            x3_content = lev_thickt*1. # testing
+            print ' x3_content before cumul :', x3_content.shape
+            print x3_content[:,ijtest]
             #
             # Vertical integral of x3_content from bottom
             x3cumulz = npy.ma.ones([tcdel, depthN, latN*lonN])*valmask
             for k in range(depthN-1,0,-1):
                 indc = npy.arange(k,depthN)
-                x3cumulz [k,:] = npy.cumsum(x3_content[indc[:],:], axis=0) # TODO change axis to 1
+                x3cumulz [k,:] = npy.cumsum(x3_content[indc[:],:], axis=0)
             print ' x3_content after        :',x3cumulz[:,ijtest]
             #
             #  Find indexes of masked points
