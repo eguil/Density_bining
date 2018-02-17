@@ -607,11 +607,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             x2_content = so.data[t]
             x3_content = x1_content*1.
             x3_content = lev_thickt # testing
+            print ' x3_content before cumul :',x3_content[0,:,ijtest]
             #
-            # Vertical integral of x3_content from bottom #
-            # TODO from bottom requires new numpy > 1.10
-            x3_content = npy.cumsum(x3_content, axis=0)
-            print ' x3_content     :',x3_content[0,ijtest]
+            # Vertical integral of x3_content from bottom
+            #
+            x3cumulz = npy.ma.ones([tcdel, depthN, latN*lonN])*valmask
+            for k in range(depthN-1,0,-1):
+                x3cumulz [:,k,:] = npy.cumsum(x3_content[:,[k,depthN],:], axis=1)
+            print ' x3_content after        :',x3cumulz[0,:,ijtest]
             # Find indexes of masked points
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
