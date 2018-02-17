@@ -521,7 +521,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     lev_thick     = npy.roll(z_zw,-1)-z_zw
     lev_thick[-1] = lev_thick[-2]
     print 'lev_thick,z_zw ',lev_thick,z_zw
-    print 'lev_thick[ijtest] ',lev_thick[:,ijtest]
+    print 'lev_thick[ijtest] ',lev_thick
     lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
 
     # testing
