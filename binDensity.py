@@ -612,9 +612,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #
             # Vertical integral of x3_content from bottom
             x3cumulz = npy.ma.ones([depthN, latN*lonN])*valmask
+            indc = npy.ones((1,depthN), dtype='int')
             for k in range(depthN-1,0,-1):
                 indc = npy.arange(k,depthN)
-                print x3cumulz [k,ijtest]
                 print indc, indc[0]
                 print x3_content[30,ijtest]
                 x3cumulz [k,:] = npy.cumsum(x3_content[indc[0],:], axis=0)
