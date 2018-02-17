@@ -613,8 +613,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Vertical integral of x3_content from bottom
             x3cumulz = npy.ma.ones([tcdel, depthN, latN*lonN])*valmask
             for k in range(depthN-1,0,-1):
-                indc=npy.arange(k,depthN-1)
-                x3cumulz [k,:] = npy.cumsum(x3_content[indc,:], axis=0) # TODO change axis to 1
+                indc = npy.arange(k,depthN)
+                x3cumulz [k,:] = npy.cumsum(x3_content[indc[:],:], axis=0) # TODO change axis to 1
             print ' x3_content after        :',x3cumulz[:,ijtest]
             #
             #  Find indexes of masked points
