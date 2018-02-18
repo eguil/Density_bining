@@ -612,7 +612,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
 
             #x3_content = x1_content*1.
-            x3_content = lev_thickt*(1-vmask_3D) # testing
+            x3_content = lev_thickt*1. # testing
+            x3_content[vmask_3D] = valmask
 
             print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
             print x3_content[:,ijtest]
@@ -622,10 +623,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Vertical integral of x3_content from bottom
             x3cumulz = npy.ma.ones([depthN, latN*lonN])*valmask
             for k in range(depthN-1,-1,-1):
-                print k
-                if k == 0:
-                    print k, x3_content[k:depthN,:]
-                    print npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:]
                 x3cumulz[k,:] = npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:]
             print ' x3_content after        :'
             print x3cumulz[:,ijtest]
