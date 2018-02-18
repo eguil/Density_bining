@@ -610,7 +610,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
-
+            x3_content = so.data[t]
             #x3_content = x1_content*lev_thickt*(1.-vmask_3D) # testing
             x3_content = lev_thickt*(1.-vmask_3D) # testing
 
