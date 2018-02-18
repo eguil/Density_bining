@@ -611,7 +611,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
 
-            x3_content = x1_content*1.
+            #x3_content = x1_content*1.
             x3_content = lev_thickt*vmask_3D # testing
 
             print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
