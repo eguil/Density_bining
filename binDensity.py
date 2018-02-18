@@ -601,12 +601,19 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         # Loop on time within chunk tc
         for t in range(trmax-trmin):
             tcpu0 = timc.clock()
-            # find bottom level at each lat/lon point
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content = thetao.data[t]
             x2_content = so.data[t]
-            #x3_content = x1_content*1.
-            x3_content = lev_thickt*1. # testing
+            #
+            #  Find indexes of masked points
+            vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
+            #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
+            # find surface non-masked points
+            nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+
+            x3_content = x1_content*1.
+            x3_content = lev_thickt*vmask_3D # testing
+
             print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
             print x3_content[:,ijtest]
             print z_zt
@@ -618,12 +625,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 x3cumulz[k,:] = npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:]
             print ' x3_content after        :'
             print x3cumulz[:,ijtest]
-            #
-            #  Find indexes of masked points
-            vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
-            #cdu.averager(so.data[t]*(1-vmask_3D),axis=123)
-            # find surface non-masked points
-            nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             #print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
