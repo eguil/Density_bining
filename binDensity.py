@@ -678,7 +678,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Construct arrays of szm/c1m/c2m/c3m = s_z[i_min[i]:i_max[i],i] and valmask otherwise
             # same for zzm from z_zt
             szm,zzm,c1m,c2m,c3m  = [npy.ma.ones(s_z.shape)*valmask for _ in range(5)]
-            print c1_z.shape, c2_z.shape,c3_z.shape
             for k in range(depthN):
                 k_ind = i_min*1.; k_ind[:] = valmask
                 k_ind = npy.argwhere( (k >= i_min) & (k <= i_max))
@@ -709,10 +708,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' z_s just after interp', z_s[:,ijtest]
                 print ' c3_s just after interp', c3_s[:,ijtest]
 
+            # Derivative of integral field
+            x3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
+            x3ders = c3_s - npy.roll(c3_s,-1)
+            if debug and t == 0:
+                print ' c3_s after derivative :'
+                print c3_s[:,ijtest]
             # Where level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             inds = npy.argwhere(s_s > szmax).transpose()
-            # Create 3D tiled array with bottom value at all levels (to avoid loop)
+            # Find indices of densest point in column on s grid
             ssr = npy.roll(s_s, 1, axis=0)
             ssr[0,:] = ssr[1,:]-del_s1
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
@@ -728,6 +733,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #    jloc = indpb[il,0]/lonN
             #    print nomask[indpb[il,0]],lon[jloc,iloc],lat[jloc,iloc], iloc,jloc
             #print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
+
+            # Densest value of derivative on s grid x3ders should be equal to c3_s
+            x3ders[bottom_ind[0],bottom_ind[1]] = c3_s[bottom_ind[0],bottom_ind[1]]
+            c3_s = x3ders
+            # Create 3D tiled array with bottom value at all levels (to avoid loop)
             zst = npy.tile(z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c1t = npy.tile(c1_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c2t = npy.tile(c2_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
@@ -737,6 +747,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c1_s[inds[0],inds[1]] = c1t[inds[0],inds[1]]
             c2_s[inds[0],inds[1]] = c2t[inds[0],inds[1]]
             c3_s[inds[0],inds[1]] = c3t[inds[0],inds[1]]
+            print c3_s[:,ijtest]
+
             tcpu4 = timc.clock()
             if debug and t == 0: #t == 0:
                 print ' z_s  after inds test', z_s[:,ijtest]
