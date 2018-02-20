@@ -698,10 +698,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask) ; # depth - consider spline
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask) ; # thetao
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask) ; # so
-                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask) ; # integral
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask, left = valmask) ; # depth - consider spline
+                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask, left = valmask) ; # thetao
+                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask, left = valmask) ; # so
+                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = valmask) ; # integral
             tcpu40 = timc.clock()
 
             if debug and t == 0: #t == 0:
@@ -711,7 +711,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
             print c3_s[:,ijtest]
             print npy.roll(c3_s,-1)[:,ijtest]
-            c3ders = c3_s - npy.roll(c3_s,-1)
+            c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
             if debug and t == 0:
                 print ' c3_s after derivative :'
                 print c3ders[:,ijtest]
