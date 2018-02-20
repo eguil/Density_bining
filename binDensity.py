@@ -712,9 +712,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print c3_s[:,ijtest]
             print npy.roll(c3_s,-1)[:,ijtest]
             c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
+            #c3ders = -npy.ma.diff(c3_s, axis=0)
             if debug and t == 0:
                 print ' c3_s after derivative :'
                 print c3ders[:,ijtest]
+                print 'technic 2'
+                print -npy.ma.diff(c3_s, axis=0)[:,ijtest]
             # Where level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             inds = npy.argwhere(s_s > szmax).transpose()
@@ -742,8 +745,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s after bottom correction :'
                 print c3ders[:,ijtest]
             # Compute thickness of isopycnal from depth
-            t_s [0,:] = 0. # TODO dangerous assumption - remove use roll and value for smin
+            t_s [0,:] = 0. # TODO dangerous assumption - remove & use roll + value for smin
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            if debug and t == 0:
+                print ' t_s ', t_s[:,ijtest]
             # TODO check t_s == 0 vs. non-masked values for c1_s
 
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
