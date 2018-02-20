@@ -747,7 +747,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Compute thickness of isopycnal from depth
             #t_s [0,:] = 0. # TODO dangerous assumption - remove & use roll + value for smin
             #t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            t_s = z_s - npy.roll(z_s,-1,axis=0)
+            t_s = npy.roll(z_s,1,axis=0) - z_s
             t_s[indsm[0], indsm[1]] = -10
             if debug and t == 0:
                 print ' t_s: '
