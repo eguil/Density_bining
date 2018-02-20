@@ -698,7 +698,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = valmask, left = valmask) ; # depth - consider spline
+                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = 0., left = 0.) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask, left = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask, left = valmask) ; # so
                     c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = valmask) ; # integral
@@ -711,8 +711,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # Derive back integral of field c3_s
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
-            print c3_s[:,ijtest]
-            print npy.roll(c3_s,-1)[:,ijtest]
             c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
             c3ders[indsm[0], indsm[1]] = valmask
             if debug and t == 0:
@@ -747,13 +745,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Compute thickness of isopycnal from depth
             #t_s [0,:] = 0. # TODO dangerous assumption - remove & use roll + value for smin
             #t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
-            t_s = npy.roll(z_s,1,axis=0) - z_s
-            t_s[indsm[0], indsm[1]] = -10
+            t_s = z_s - npy.roll(z_s,1,axis=0)
+            t_s[indsm[0], indsm[1]] = -10.
             if debug and t == 0:
                 print ' t_s: '
                 print t_s[:,ijtest]
             # TODO check t_s == 0 vs. non-masked values for c1_s
-
+            indtst = npy.argwhere( (t_s <= 0.) & (c1_s > valmask/10) )
+            print 'Nb points with t_s vs. c1_s pb ',indtst.shape
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
             zst = npy.tile(z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c1t = npy.tile(c1_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
