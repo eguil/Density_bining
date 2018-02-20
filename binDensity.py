@@ -711,6 +711,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # Derive back integral of field c3_s
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
+            print 'npy.roll(c3_s,-1,axis=0)'
+            print npy.roll(c3_s,-1,axis=0)[:,ijtest]
+            print c3_s[18:20,ijtest], npy.roll(c3_s,-1,axis=0)[18:20,ijtest]
             c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
             c3ders[indsm[0], indsm[1]] = valmask
             if debug and t == 0:
