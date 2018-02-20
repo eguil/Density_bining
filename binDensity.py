@@ -711,8 +711,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
             print c3_s[:,ijtest]
             print npy.roll(c3_s,-1)[:,ijtest]
-            #c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
-            c3ders = -npy.ma.diff(c3_s, axis=0)
+            c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
+            #c3ders = -npy.ma.diff(c3_s, axis=0)
             indm = npy.argwhere (c3_s > valmask/10).transpose()
             c3ders[indm[0], indm[1]] = valmask
             if debug and t == 0:
