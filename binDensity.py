@@ -704,6 +704,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                     c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = valmask) ; # integral
             tcpu40 = timc.clock()
 
+            indsm = npy.argwhere (c1_s > valmask/10).transpose()
+
             if debug and t == 0: #t == 0:
                 print ' z_s just after interp', z_s[:,ijtest]
                 print ' c3_s just after interp', c3_s[:,ijtest]
@@ -712,9 +714,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             print c3_s[:,ijtest]
             print npy.roll(c3_s,-1)[:,ijtest]
             c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
-            #c3ders = -npy.ma.diff(c3_s, axis=0)
-            indm = npy.argwhere (c3_s > valmask/10).transpose()
-            c3ders[indm[0], indm[1]] = valmask
+            c3ders[indsm[0], indsm[1]] = valmask
             if debug and t == 0:
                 print ' c3_s after derivative :'
                 print c3ders[:,ijtest]
@@ -745,8 +745,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s after bottom correction :'
                 print c3ders[:,ijtest]
             # Compute thickness of isopycnal from depth
-            t_s [0,:] = 0. # TODO dangerous assumption - remove & use roll + value for smin
-            t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            #t_s [0,:] = 0. # TODO dangerous assumption - remove & use roll + value for smin
+            #t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            t_s = z_s - npy.roll(z_s,-1,axis=0)
+            t_s[indsm[0], indsm[1]] = -10
             if debug and t == 0:
                 print ' t_s ', t_s[:,ijtest]
             # TODO check t_s == 0 vs. non-masked values for c1_s
