@@ -262,9 +262,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     - PJD 16 Oct 2014   - Updated to deal with non lat/lon grids
     - PJD 23 Oct 2014   - Runs over full CMIP5 archive
     - EG  28 Oct 2014   - Merge with current EG version: added integral volume/thetao/so of persistent ocean
+    - EG  19 Feb 2018   - Solved bottom interp issue + half level missing
+    - EG  19 Feb 2018   - added integral before interpolation and derivative afterwards
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
-            - Collapse all basin results into single variable, rather than 3 variables for each basin property
               consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and
               http://helene.llnl.gov/cf/documents/cf-conventions/1.7-draft1/cf-conventions.html#geographic-regions
             - Rewrite all computation in pure numpy, only writes should be cdms2
@@ -288,7 +289,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     modeln = fileT.split('/')[-1].split('.')[1]
 
     # Declare and open files for writing too
-    #/work/durack1/Shared/data_density/140915/cmip5.ACCESS1-0.historical.r1i1p1.mo.ocn.Omon.density.ver-1.nc
     outFile = replace(outFile,'.mo.','.an.')
     if os.path.isfile(outFile):
         os.remove(outFile)
@@ -320,7 +320,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Open files to read
     ft = cdm.open(fileT)
     fs = cdm.open(fileS)
-    # temporary fix to read grid from CMIP5 IPSL file
+    # TODO remove: temporary fix to read grid from CMIP5 IPSL file (transform into optional input)
     ft2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
     fs2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
     timeax  = ft.getAxis('time')
@@ -364,18 +364,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         if 'EC-EARTH' == modeln:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
-    #print 'valmask = ',valmask
+    if debug:
+        print 'valmask = ',valmask
     # Test to ensure thetao and so are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
         print '** Input variables have different dimensions, exiting..'
         return
-    #
+
     thetaoLongName = thetao_h.long_name
     soLongName = so_h.long_name
     soUnits = so_h.units
     del(thetao_h,so_h); gc.collect()
-
     # Dates to read
     if timeint == 'all':
         tmin = 0
@@ -383,7 +383,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     else:
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
-
     # Read cell area
     ff      = cdm.open(fileFx)
     area    = ff('areacello')
@@ -434,7 +433,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     del_s1  = 0.2
     del_s2  = 0.1
     s_s, s_sax, del_s, N_s = rhonGrid(rho_min, rho_int, rho_max, del_s1, del_s2)
-    # Extend grid to not miss points
+    # Extend grid to avoid missing points
     s_s[0] = 0
     s_s[N_s-1] = 50
     if debug:
@@ -613,20 +612,20 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #x3_content = so.data[t]
             #x3_content = x1_content*lev_thickt*(1.-vmask_3D) # testing
             x3_content = lev_thickt*(1.-vmask_3D) # testing
-
-            print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
-            print x3_content[:,ijtest]
-            print z_zt
-            print z_zw
+            if debug and t == 0:
+                print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
+                print x3_content[:,ijtest]
+                print z_zt
+                print z_zw
             #
             # Vertical integral of x3_content from bottom
-            x3cumulz = npy.ma.ones([depthN, latN*lonN])*valmask
+            x3intz = npy.ma.ones([depthN, latN*lonN])*valmask
             for k in range(depthN-1,-1,-1):
-                x3cumulz[k,:] = npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:]
-            x3cumulz[vmask_3D] = valmask
+                x3intz[k,:] = npy.ma.cumsum(x3_content[k:depthN,:], axis=0)[-1,:]
+            x3intz[vmask_3D] = valmask
             print ' x3_content after        :'
-            print x3cumulz[:,ijtest]
-            x3_content = x3cumulz
+            print x3intz[:,ijtest]
+            x3_content = x3intz
             #print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
@@ -692,9 +691,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3m just before interp', c3m[:,ijtest]
                 print ' zzm just before interp', zzm[:,ijtest]
 
-            # Interpolate depth(z) (=z_zt) to depth(s) at s_s densities (=z_s) using density(z) (=s_z)
+            # Interpolate depth(z) (= zzm) to depth(s) at s_s densities (= z_s) using density(z) (= szm)
+            # Use z_s to interpolate other fields
             # TODO: use ESMF ? outsource to fortran program ?
-            # TODO check that interp in linear or/and stabilise column as post-pro
+            # TODO check that interp is linear or/and stabilise column as post-pro
             tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
@@ -707,10 +707,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             if debug and t == 0: #t == 0:
                 print ' z_s just after interp', z_s[:,ijtest]
                 print ' c3_s just after interp', c3_s[:,ijtest]
-
-            # Derivative of integral field
-            x3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
-            x3ders = c3_s - npy.roll(c3_s,-1)
+            # Derive back integral of field c3_s
+            c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
+            c3ders = c3_s - npy.roll(c3_s,-1)
             if debug and t == 0:
                 print ' c3_s after derivative :'
                 print c3_s[:,ijtest]
@@ -735,8 +734,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #print bottom_ind[:,ijtest], z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN)[ijtest]
 
             # Densest value of derivative on s grid x3ders should be equal to c3_s
-            x3ders[bottom_ind[0],bottom_ind[1]] = c3_s[bottom_ind[0],bottom_ind[1]]
-            c3_s = x3ders
+            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[bottom_ind[0],bottom_ind[1]]
+            c3_s = c3ders
+            # Compute thickness of isopycnal from depth
+            t_s [0,:] = 0. # TODO dangerous assumption - remove use roll and value for smin
+            t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
+            # TODO check t_s == 0 vs. non-masked values for c1_s
+
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
             zst = npy.tile(z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c1t = npy.tile(c1_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
@@ -747,7 +751,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             c1_s[inds[0],inds[1]] = c1t[inds[0],inds[1]]
             c2_s[inds[0],inds[1]] = c2t[inds[0],inds[1]]
             c3_s[inds[0],inds[1]] = c3t[inds[0],inds[1]]
-            print c3_s[:,ijtest]
 
             tcpu4 = timc.clock()
             if debug and t == 0: #t == 0:
@@ -755,9 +758,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s after inds test', c3_s[:,ijtest]
             # Add half level to depth to ensure thickness integral conservation at bottom
             z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom]/2.
-            # Thickness of isopycnal
-            t_s [0,:] = 0.
-            t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
             # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
@@ -821,7 +821,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
         ticz0 = timc.clock()
         # Free memory
-        del(rhon, x1_content, x2_content, vmask_3D, szm, zzm, c1m, c2m, c3m, z_s, c1_s, c2_s, c3_s, t_s, inds, c1_z, c2_z) ; gc.collect()
+        del(rhon, x1_content, x2_content, x3_content, vmask_3D, szm, zzm, c1m, c2m, c3m, \
+            z_s, c1_s, c2_s, c3_s, t_s, inds, c1_z, c2_z, c3_z, x3intz, c3ders ) ; gc.collect()
         # Wash mask (from temp) over variables
         maskb          = mv.masked_values(x1_bin, valmask).mask
         depth_bin.mask = maskb
@@ -865,7 +866,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
-            print voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
+            print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
         #
@@ -903,8 +904,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #ty  = cdu.averager(tym, axis=1)
             #x1y = cdu.averager(x1ym, axis=1)
             #x2y = cdu.averager(x2ym, axis=1)
+            # Removing these cdms calls divided the CPU by 5 for annual mean
 
-            # this divided the CPU by 5 for annual mean
             validPoints = dym/dym
             validMonths = npy.ma.sum(validPoints , axis=1)
             dy  = npy.ma.sum(dym , axis=1)/validMonths
@@ -1033,7 +1034,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
 
-            # Free memory (!! to be removed if we store these at some point)
+            # Free memory (!! to be uncommented if we store these 4D fields at some point)
             #del(depthBini, x1Bini, x2Bini)
             #del(depthBinia, thickBinia, x1Binia, x2Binia)
             #del(depthBinip, thickBinip, x1Binip, x2Binip)
@@ -1481,6 +1482,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             outFileMon_f.sync()
         outFile_f.sync()
         tozf = timc.clock()
+
         print '   CPU of chunk inits         =', tucz0-tuc
         print '   CPU of density bining      =', ticz0-tucz0
         print '   CPU of masking and var def =', ticz-ticz0
@@ -1493,6 +1495,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
         print '   Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
 
     # end loop on tc <===
+
     print '   CPU of inits       =', tin1-ti0
     print '     CPU inits detail =', tur-ti0, tmsk-tur, tarea-tmsk, tinit-tarea, tintrp-tinit, tin1-tintrp
     print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
@@ -1524,5 +1527,5 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
 
     # Cleanup variables
         del(timeBasinAxesList,timeBasinRhoAxesList) ; gc.collect()
-    #for a in locals().iterkeys():
-        #print a
+
+    # That's all folks !
