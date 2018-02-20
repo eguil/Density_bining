@@ -750,7 +750,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             t_s = z_s - npy.roll(z_s,-1,axis=0)
             t_s[indsm[0], indsm[1]] = -10
             if debug and t == 0:
-                print ' t_s ', t_s[:,ijtest]
+                print ' t_s: '
+                print t_s[:,ijtest]
             # TODO check t_s == 0 vs. non-masked values for c1_s
 
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
