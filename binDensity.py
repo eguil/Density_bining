@@ -709,10 +709,12 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # Derive back integral of field c3_s
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
+            print c3_s[:,ijtest]
+            print npy.roll(c3_s,-1)[:,ijtest]
             c3ders = c3_s - npy.roll(c3_s,-1)
             if debug and t == 0:
                 print ' c3_s after derivative :'
-                print c3_s[:,ijtest]
+                print c3ders[:,ijtest]
             # Where level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             inds = npy.argwhere(s_s > szmax).transpose()
@@ -736,6 +738,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Densest value of derivative on s grid x3ders should be equal to c3_s
             c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[bottom_ind[0],bottom_ind[1]]
             c3_s = c3ders
+            if debug and t == 0:
+                print ' c3_s after bottom correction :'
+                print c3ders[:,ijtest]
             # Compute thickness of isopycnal from depth
             t_s [0,:] = 0. # TODO dangerous assumption - remove use roll and value for smin
             t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
