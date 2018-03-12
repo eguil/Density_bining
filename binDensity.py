@@ -710,13 +710,16 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # Derive back integral of field c3_s
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
-            print 'npy.roll(c3_s,-1,axis=0)'
-            print npy.roll(c3_s,1,axis=0)[:,ijtest]
-            print c3_s[17:21,ijtest], npy.roll(c3_s,1,axis=0)[17:21,ijtest]
-            c3ders = npy.roll(c3_s,1,axis=0) - c3_s
-            c3ders[indsm[0], indsm[1]] = valmask
+            print 'npy.roll(c3_s,1,axis=0)'
+            print npy.roll(c3_s,-1,axis=0)[:,ijtest]
+            print c3_s[17:21,ijtest], npy.roll(c3_s,-1,axis=0)[17:21,ijtest]
+            c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
             if debug and t == 0:
                 print ' c3_s after derivative :'
+                print c3ders[:,ijtest]
+            c3ders[indsm[0], indsm[1]] = valmask
+            if debug and t == 0:
+                print ' c3_s after masking :'
                 print c3ders[:,ijtest]
             # Where level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
