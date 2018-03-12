@@ -731,6 +731,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             #print s_s[inds_bottom[0][npy.argwhere (inds_bottom[1] == ijtest)],ijtest]
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
+
             #indpb = npy.argwhere((bottom_ind [0] == -1) & nomask)
             #print 'Nb points with pb ',indpb.shape
             #for il in range(len(indpb[:,0])):
