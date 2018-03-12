@@ -750,8 +750,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s after bottom correction :'
                 print c3ders[:,ijtest]
             # Compute thickness of isopycnal from depth
-            #t_s [0,:] = 0. # TODO dangerous assumption - remove & use roll + value for smin
-            #t_s [1:N_s,:] = z_s[1:N_s,:]-z_s[0:N_s-1,:]
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
             if debug and t == 0:
@@ -777,10 +775,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' c3_s after inds test', c3_s[:,ijtest]
             # Add half level to depth to ensure thickness integral conservation at bottom
             if debug and t ==0:
-                print ' add half level:'
+                print ' before add half level:'
                 print z_s [bottom_ind[0],bottom_ind[1]][ijtest]
-                print lev_thick[i_bottom[ijtest]+1]/2.
-            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom[:]+1]/2.
+                print lev_thick[i_bottom[ijtest]]/2.
+            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom[:]]/2.
+            if debug and t ==0:
+                print ' after add half level:'
+                print z_s [bottom_ind[0],bottom_ind[1]][ijtest]
             # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
