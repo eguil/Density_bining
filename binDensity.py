@@ -778,8 +778,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Add half level to depth to ensure thickness integral conservation at bottom
             if debug and t ==0:
                 print ' add half level:'
-                print z_s [bottom_ind[0],bottom_ind[1]][:,ijtest], lev_thick[i_bottom][ijtest]/2.
-            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom]/2.
+                print z_s [bottom_ind[0],bottom_ind[1]][:,ijtest]
+                print lev_thick.shape
+                print lev_thick[i_bottom[ijtest]]/2.
+            z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom[:]]/2.
             # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
             t_s [inds[0],inds[1]] = valmask
