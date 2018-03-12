@@ -758,7 +758,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print ' t_s: '
                 print t_s[:,ijtest]
             # TODO check t_s == 0 vs. non-masked values for c1_s
-            indtst = npy.argwhere( (t_s <= 0.) & (c1_s > valmask/10) )
+            indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
             print 'Nb points with t_s vs. c1_s pb ',indtst.shape
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
             zst = npy.tile(z_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
@@ -778,7 +778,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Add half level to depth to ensure thickness integral conservation at bottom
             if debug and t ==0:
                 print ' add half level:'
-                print z_s [bottom_ind[0],bottom_ind[1]][:,ijtest], lev_thick[i_bottom][:ijtest]/2.
+                print z_s [bottom_ind[0],bottom_ind[1]][:,ijtest], lev_thick[i_bottom][ijtest]/2.
             z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom]/2.
             # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
             inds = npy.argwhere( (t_s <= 0.) ^ (t_s >= max_depth_ocean)).transpose()
