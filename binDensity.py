@@ -26,7 +26,6 @@ PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to ou
 EG  03 Feb 2015     - Code optimisation (removing loop in persistence)
                     - TODO:
 test
-
 @author: durack1
 """
 
