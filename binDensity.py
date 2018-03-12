@@ -782,6 +782,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
             # Correct thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
+
             if debug and t ==0:
                 print ' corrected thickness:'
                 print t_s[:,ijtest]
@@ -819,7 +820,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
                 print c3_s[:,i]
                 print ' vertical integral on z and sigma (volume)'
                 print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
-                print lev_thick*(szm[:,i] < valmask/10)[:,ijtest]
+                print lev_thick*(szm[:,i] < valmask/10)[ijtest]
                 print t_s[:,i]*(t_s[:,i] < valmask/10)[:,ijtest]
 
             # assign to final arrays
