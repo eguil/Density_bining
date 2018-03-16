@@ -224,7 +224,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     return s_s, s_sax, del_s, N_s
 
 
-def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False):
+def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False, gridfT='none', gridfS='none'):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -269,6 +269,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
               http://helene.llnl.gov/cf/documents/cf-conventions/1.7-draft1/cf-conventions.html#geographic-regions
             - Rewrite all computation in pure numpy, only writes should be cdms2
             - Deal with MIROC4h, 24mo requires 128Gb - chase down memory bloat
+            - add no interpolation option
+            - add optional grid file info (see TODO below)
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -319,15 +321,17 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     # Open files to read
     ft = cdm.open(fileT)
     fs = cdm.open(fileS)
-    # TODO remove: temporary fix to read grid from CMIP5 IPSL file (transform into optional input)
-    ft2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
-    fs2 = cdm.open('/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc')
+    # Use alternate file to read grid
+    if gridfT != 'none':
+        ft2 = cdm.open(gridfT)
+        fs2 = cdm.open(gridfS)
+        thetao_h    = ft2['thetao'] ; # Create variable handle
+        so_h        = fs2['so'] ; # Create variable handle
+    else:
+        thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
+        so_h        = fs('so'    , time = slice(1,10)) ; #
     timeax  = ft.getAxis('time')
     # Define temperature and salinity arrays
-    thetao_h    = ft2['thetao'] ; # Create variable handle
-    so_h        = fs2['so'] ; # Create variable handle
-    #thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
-    #so_h        = fs('so'    , time = slice(1,10)) ; #
     tur = timc.clock()
     # Read time and grid
     lon     = thetao_h.getLongitude()
@@ -335,13 +339,23 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     depth   = thetao_h.getLevel()
     # depth profiles:
     z_zt = depth[:]
-    try:
-        bounds  = ft2('lev_bnds')
-        z_zw = bounds.data[:,0]
-    except Exception,err:
-        print 'Exception: ',err
-        bounds  = depth.getBounds() ; # Work around for BNU-ESM
-        z_zw = bounds[:,0]
+    if gridfT != 'none':
+        try:
+            bounds  = ft2('lev_bnds')
+            z_zw = bounds.data[:,0]
+        except Exception,err:
+            print 'Exception: ',err
+            bounds  = depth.getBounds() ; # Work around for BNU-ESM
+            z_zw = bounds[:,0]
+    else:
+        try:
+            bounds  = ft('lev_bnds')
+            z_zw = bounds.data[:,0]
+        except Exception,err:
+            print 'Exception: ',err
+            bounds  = depth.getBounds() ; # Work around for BNU-ESM
+            z_zw = bounds[:,0]
+
     max_depth_ocean = 6000. # maximum depth of ocean
     # Horizontal grid
     ingrid  = thetao_h.getGrid()
@@ -472,9 +486,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False)
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
-    # TODO: review to optimize
+    # TODO: review chunk calculation to optimize
     grdsize = lonN * latN * depthN
-    print 'grdsize:',grdsize
 
     # define number of months in each chunk
     if grdsize > 5.e7:
