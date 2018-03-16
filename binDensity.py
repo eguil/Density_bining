@@ -224,7 +224,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     return s_s, s_sax, del_s, N_s
 
 
-def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False, gridfT='none', gridfS='none'):
+def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none'):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -291,6 +291,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
 
     # Declare and open files for writing too
     outFile = replace(outFile,'.mo.','.an.')
+    print outFile
     if os.path.isfile(outFile):
         os.remove(outFile)
     if not os.path.exists(os.path.join(*outFile.split('/')[0:-2])):
