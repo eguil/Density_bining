@@ -242,6 +242,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     - debug <optional>          - boolean value
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
     - mthout <optional>         - write annual data (False) or all monthly data (True)
+    - gridfT <optional>         - file to get T grid info from
+    - gridfS <optional>         - file to get S grid info from
 
     Usage:
     ------
@@ -263,6 +265,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     - EG  28 Oct 2014   - Merge with current EG version: added integral volume/thetao/so of persistent ocean
     - EG  19 Feb 2018   - Solved bottom interp issue + half level missing
     - EG  19 Feb 2018   - added integral before interpolation and derivative afterwards
+    - EG  16 Mar 2018   - added optional grid file info gridfT and gridfS
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
               consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and
@@ -270,7 +273,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             - Rewrite all computation in pure numpy, only writes should be cdms2
             - Deal with MIROC4h, 24mo requires 128Gb - chase down memory bloat
             - add no interpolation option
-            - add optional grid file info (see TODO below)
+
     '''
 
     # Keep track of time (CPU and elapsed)
@@ -291,11 +294,6 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
 
     # Declare and open files for writing too
     outFile = replace(outFile,'.mo.','.an.')
-    print
-    print outFile
-    print gridfT
-    print gridfS
-    print
     if os.path.isfile(outFile):
         os.remove(outFile)
     if not os.path.exists(os.path.join(*outFile.split('/')[0:-2])):
