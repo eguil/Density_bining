@@ -291,7 +291,11 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
 
     # Declare and open files for writing too
     outFile = replace(outFile,'.mo.','.an.')
+    print
     print outFile
+    print gridfT
+    print gridfS
+    print
     if os.path.isfile(outFile):
         os.remove(outFile)
     if not os.path.exists(os.path.join(*outFile.split('/')[0:-2])):
