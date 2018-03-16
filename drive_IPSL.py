@@ -32,4 +32,4 @@ print 'areacello: ',modelAreacello
 # Call densityBin
 #densityBin(modelThetao,modelSo,modelAreacello,outfileDensity, debug=False)
 #densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,24')
-densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,12', gridfT = grid_T_file, gridfS = grid_S_file)
+densityBin(modelThetao,modelSo,modelAreacello,outfileDensity,timeint='1,12', gridfT=grid_T_file, gridfS=grid_S_file)
