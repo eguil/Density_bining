@@ -14,7 +14,7 @@ PJD  1 Oct 2014     - Updated using timeint
 
 @author: durack1
 """
-
+from cdms2 import CdmsRegrid
 from binDensity import densityBin
 
 modelSo = '/work/cmip5/historical/ocn/mo/so/cmip5.IPSL-CM5A-LR.historical.r1i1p1.mo.ocn.Omon.so.ver-v20111119.latestX.xml'
