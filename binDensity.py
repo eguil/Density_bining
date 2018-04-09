@@ -296,7 +296,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     outFile = replace(outFile,'.mo.','.an.')
     if os.path.isfile(outFile):
         os.remove(outFile)
-    if not os.path.exists(os.path.join(*outFile.split('/')[0:-2])):
+    if len(outFile.split('/')) > 2 and not os.path.exists(os.path.join(*outFile.split('/')[0:-2])):
         os.makedirs(os.path.join(*outFile.split('/')[0:-2]))
     if not os.path.exists(os.path.join(*outFile.split('/')[0:-1])):
         os.makedirs(os.path.join(*outFile.split('/')[0:-1]))
@@ -372,7 +372,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     try:
         #valmask = so_h._FillValue
         valmask = so_h.missing_value
-        if valmask == None:
+        if valmask is None:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
     except Exception,err:
@@ -675,8 +675,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             # find min/max of density for each z profile
             for i in range(lonN*latN):
                 if nomask[i]:
-                    szmin[i] = s_z[i_min[i],i]
-                    szmax[i] = s_z[i_max[i],i]
+                    szmin[i] = s_z[int(i_min[i]),i]
+                    szmax[i] = s_z[int(i_max[i]),i]
                 else:
                     szmin[i] = 0.
                     szmax[i] = rho_max+10.
