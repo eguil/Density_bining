@@ -3,7 +3,7 @@
 
 """
 Average signal and noise for each run of each model in the specified domains, then compute ToE hist + RCP85
-Over the 2005-2100 period, use either RCP85-average(histNat) or RCP85-average(PiControl) as the noise
+Over the 2005-2100 period, use either RCP85-average(histNat) or RCP85-average(PiControl) as the signal
 Save ToE in output files
 """
 

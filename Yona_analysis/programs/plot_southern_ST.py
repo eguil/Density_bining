@@ -45,8 +45,8 @@ signal_domain = 'fresher'
 ibasin = 1 ; basin_name = 'Atlantic' # Atlantic southern ST
 # ibasin = 2 ; basin_name = 'Pacific' # Pacific southern ST
 
-use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+# use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
+use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
 
 # Choose random file to read only the basic variables and properties common to all files
 file = 'cmip5.' + models[1]['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' + \
