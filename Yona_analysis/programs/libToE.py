@@ -26,6 +26,31 @@ def findToE(signal, noise, mult):
 
     return toe
 
+def findToE_2thresholds(signal, noise1, noise2, tidx, mult):
+    '''
+    define Time of Emergence (ToE) from last time index at which signal is larger than mult*noise
+        signal is [time]
+        noise1 and noise2 are single-values
+        mult is float
+        tidx is an integer
+        use noise1 over first part of the signal (until tidx), noise2 over second part
+    1D case for now
+    '''
+    timN = signal.shape[0]
+    toe_wrk = np.ma.ones(signal.shape)*1. # init toe_wrk array to 1
+    signaltile1 = np.tile(noise1,tidx) # repeat noise1
+    signaltile2 = np.tile(noise2,timN-tidx)
+    signaltile = np.concatenate((signaltile1, signaltile2))
+    toe_idx = np.argwhere(abs(signal) >= mult*signaltile) # find indices of points where signal > noise
+    # if signal.size > timN: # if there are at least 2 dimensions
+    #     toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
+    # else: # if there is only the time dimension
+    toe_wrk[toe_idx[:,0]] = 0
+    toe = timN-np.flipud(toe_wrk).argmax(axis=0) # compute ToE as last index when signal > noise
+
+    return toe
+
+
 
 def ToEdomainhistvshistNat(model_name, domain_name):
 
@@ -56,6 +81,7 @@ def ToEdomainhistvshistNat(model_name, domain_name):
             {'name':'IPSL-CM5A-MR'  , 'Atlantic': [-40,-30,26.9,27.2],  'Pacific': [-30,-15,25.4,26.6], 'Indian': [-40,-25,26.6,26.9]}, # 12
             {'name':'MIROC-ESM-CHEM', 'Atlantic': [-25,-10,25.2,26.1],  'Pacific': [-20,-8,24.6,26],    'Indian': [-37,-20,25.6,26.3]}, # 13
             {'name':'MIROC-ESM'     , 'Atlantic': [-35,-20,25.8,26.4],  'Pacific': [-35,-25,25.8,26.2], 'Indian': [-35,-20,25.6,26.4]}, # 14
+            {'name':'MME'     ,       'Atlantic': [-30,-10,25.8,26.5],  'Pacific': [-25,-10,24.6,26.2], 'Indian': [-40,-15,25.8,26.5]}, # 15
         ]
         domain_char = {'nb_basins': 3, 'Atlantic': True, 'Pacific': True, 'Indian': True}
 
@@ -77,7 +103,8 @@ def ToEdomainhistvshistNat(model_name, domain_name):
             {'name':'IPSL-CM5A-LR'  , 'Atlantic': [-60,-50,27.7,27.9],  'Pacific': [-65,-60,27.7,27.9],  'Indian': [-55,-50,27.7,27.8]}, # 11
             {'name':'IPSL-CM5A-MR'  , 'Atlantic': [-55,-50,27.6,27.9],  'Pacific': [-65,-60,27.5,27.8],  'Indian': [-55,-50,27.6,27.8]}, # 12
             {'name':'MIROC-ESM-CHEM', 'Atlantic': [-55,-50,27.2,27.8],  'Pacific': [-60,-55,27.4,27.6],  'Indian': [-55,-50,27.3,27.7]}, # 13
-            {'name':'MIROC-ESM'     , 'Atlantic': [-55,-50,27.4,27.9],  'Pacific': None,                 'Indian': [-55,-50,27.3,27.8]} # 14
+            {'name':'MIROC-ESM'     , 'Atlantic': [-55,-50,27.4,27.9],  'Pacific': None,                 'Indian': [-55,-50,27.3,27.8]}, # 14
+            {'name':'MME'           , 'Atlantic': [-55,-45,27,27.5],    'Pacific': [-70,-60,27.7,27.9],  'Indian': [-70,-55,27.6,27.9]} # 15
         ]
 
         domain_char = {'nb_basins': 3, 'Atlantic': True, 'Pacific': True, 'Indian': True}
@@ -101,6 +128,7 @@ def ToEdomainhistvshistNat(model_name, domain_name):
             {'name':'IPSL-CM5A-MR'  , 'Atlantic': [30,45,26.5,27.1],    'Pacific': None, 'Indian': None}, # 12
             {'name':'MIROC-ESM-CHEM', 'Atlantic': [35,45,26.4,27.2],    'Pacific': None, 'Indian': None}, # 13
             {'name':'MIROC-ESM'     , 'Atlantic': [45,60,26.6,27.6],    'Pacific': None, 'Indian': None}, # 14
+            {'name':'MME'           , 'Atlantic': [35,70,26.3,27],    'Pacific': None, 'Indian': None}, # 15
         ]
 
         domain_char = {'nb_basins': 1, 'Atlantic': True, 'Pacific': False, 'Indian': False}
@@ -109,7 +137,7 @@ def ToEdomainhistvshistNat(model_name, domain_name):
 
         # Northern Subtropics (cooling/freshening in the Pacific and Indian oceans)
         domains = [
-            {'name':'bcc-csm1-1'    , 'Atlantic': None,    'Pacific': [30,35,25,25.2], 'Indian': [22,24,25.5,26.1]}, # 0
+            {'name':'bcc-csm1-1'    , 'Atlantic': None,    'Pacific': [30,35,25,25.2],    'Indian': [22,24,25.5,26.1]}, # 0
             {'name':'CanESM2'       , 'Atlantic': None,    'Pacific': [20,35,24.8,25.2],  'Indian': [20,25,25.4,26.5]}, # 1
             {'name':'CCSM4'         , 'Atlantic': None,    'Pacific': [15,30,24.2,25.2],  'Indian': [20,25,25.8,26.3]}, # 2
             {'name':'CESM1-CAM5'    , 'Atlantic': None,    'Pacific': None,               'Indian': [20,25,25.8,26.5]}, # 3
@@ -124,6 +152,7 @@ def ToEdomainhistvshistNat(model_name, domain_name):
             {'name':'IPSL-CM5A-MR'  , 'Atlantic': None,    'Pacific': [20,35,25,26],      'Indian': [15,20,25.8,26.7]}, # 12
             {'name':'MIROC-ESM-CHEM', 'Atlantic': None,    'Pacific': [25,35,25.2,25.8],  'Indian': [15,25,26,26.7]}, # 13
             {'name':'MIROC-ESM'     , 'Atlantic': None,    'Pacific': [15,25,26,26.3],    'Indian': [15,20,22.8,24]}, # 14
+            {'name':'MME'           , 'Atlantic': None,    'Pacific': [20,30,24.8,25.8],  'Indian': [20,25,25.8,26.9]}, # 15
         ]
 
         domain_char = {'nb_basins': 2, 'Atlantic': False, 'Pacific': True, 'Indian': True}
@@ -147,6 +176,7 @@ def ToEdomainhistvshistNat(model_name, domain_name):
             {'name':'IPSL-CM5A-MR'  , 'Atlantic': None,    'Pacific': [45,60,26.8,27],   'Indian': None}, # 12
             {'name':'MIROC-ESM-CHEM', 'Atlantic': None,    'Pacific': [45,60,27,27.4],   'Indian': None}, # 13
             {'name':'MIROC-ESM'     , 'Atlantic': None,    'Pacific': [50,62,27,27.3],   'Indian': None}, # 14
+            {'name':'MME'           , 'Atlantic': None,    'Pacific': [55,65,25.8,26.7],   'Indian': None}, # 15
         ]
 
         domain_char = {'nb_basins': 1, 'Atlantic': False, 'Pacific': True, 'Indian': False}
