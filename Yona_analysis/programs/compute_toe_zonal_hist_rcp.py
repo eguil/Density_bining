@@ -42,7 +42,6 @@ f = open_ncfile(indir_histNat + file,'r')
 
 lat = f.variables['latitude'][:]; latN = lat.size
 density = f.variables['lev'][:]; levN = density.size
-print(density)
 timN = 240
 var = varname['var_zonal_w/bowl']
 basinN = 4

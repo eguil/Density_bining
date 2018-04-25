@@ -260,12 +260,12 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax0.plot(lat, bowl, color='black')
 
-    if action == 'ToE' or action == 'total_mme':
-        ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-        ax0.plot(lat, bowl1, linewidth=2, color='black',label=label1)
-        # -- Add legend for bowl position
-        if varBasin['name'] == 'Indian':
-            ax0.legend(loc='upper right', title='Bowl', fontsize=12)
+    # if action == 'ToE' or action == 'total_mme':
+    #     ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
+    #     ax0.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    #     # -- Add legend for bowl position
+    #     if varBasin['name'] == 'Indian':
+    #         ax0.legend(loc='upper right', title='Bowl', fontsize=12)
 
     ax0.set_ylim([domrho[0], domrho[1]])
     ax0.set_xlim([domlat[0], domlat[1]])
@@ -326,9 +326,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax1.plot(lat, bowl, color='black')
 
-    if action == 'ToE' or action == 'total_mme':
-        ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-        ax1.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    # if action == 'ToE' or action == 'total_mme':
+    #     ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
+    #     ax1.plot(lat, bowl1, linewidth=2, color='black',label=label1)
 
 
     ax1.set_ylim([domrho[1], domrho[2]])
