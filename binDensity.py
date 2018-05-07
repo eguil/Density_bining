@@ -452,6 +452,11 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     areaitp = npy.ma.sum(npy.reshape(areaip,(Nji*Nii)))
     areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
+    # Compute scale factors in meter for each point of target grid
+    # TODO e1ti,e2ti = compute_scale_factors(loni, lati)
+
+    e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
+    e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
 
     # Define rho grid with zoom on higher densities
     rho_min = 19.
@@ -946,6 +951,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         thickBin = cdm.createVariable(thick_bin, axes = rhoAxesList, id = 'isonthick')
         x1Bin    = cdm.createVariable(x1_bin   , axes = rhoAxesList, id = 'thetao')
         x2Bin    = cdm.createVariable(x2_bin   , axes = rhoAxesList, id = 'so')
+        x3Bin    = cdm.createVariable(x3_bin   , axes = rhoAxesList, id = 'hvm')
         #
         del (depth_bin,thick_bin,x1_bin,x2_bin) ; gc.collect()
         if mthout:
@@ -958,6 +964,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 x1Bin.units         = 'C'
                 x2Bin.long_name     = soLongName
                 x2Bin.units         = soUnits
+                x3Bin.long_name     = 'Volume flux'
+                x3Bin.units         = 'm2/s'
                 outFileMon_f.write(area.astype('float32')) ; # Added area so isonvol can be computed
 
         # -------------------------------------------------------------
@@ -970,6 +978,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             tym  = npy.ma.reshape(thickBin, (nyrtc, 12, N_s+1, latN, lonN))
             x1ym = npy.ma.reshape(x1Bin,    (nyrtc, 12, N_s+1, latN, lonN))
             x2ym = npy.ma.reshape(x2Bin,    (nyrtc, 12, N_s+1, latN, lonN))
+            x3ym = npy.ma.reshape(x3Bin,    (nyrtc, 12, N_s+1, latN, lonN))
             #dy  = cdu.averager(dym, axis=1)
             #ty  = cdu.averager(tym, axis=1)
             #x1y = cdu.averager(x1ym, axis=1)
@@ -982,8 +991,9 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             ty  = npy.ma.sum(tym , axis=1)/validMonths
             x1y = npy.ma.sum(x1ym, axis=1)/validMonths
             x2y = npy.ma.sum(x2ym, axis=1)/validMonths
+            x3y = npy.ma.sum(x3ym, axis=1)/validMonths
 
-            del (dym,tym,x1ym,x2ym) ; gc.collect()
+            del (dym,tym,x1ym,x2ym,x3ym) ; gc.collect()
             # create annual time axis
             timeyr          = cdm.createAxis(dy.getAxis(0))
             timeyr.id       = 'time'
@@ -995,6 +1005,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             ty   = cdm.createVariable(ty , axes = rhoAxesList, id = 'isonty')
             x1y  = cdm.createVariable(x1y, axes = rhoAxesList, id = 'isonx1y')
             x2y  = cdm.createVariable(x2y, axes = rhoAxesList, id = 'isonx2y')
+            x3y  = cdm.createVariable(x3y, axes = rhoAxesList, id = 'isonx2y')
 
             toz = timc.clock()
 
@@ -1006,65 +1017,78 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                     thickBini[t,ks,:,:]         = regridObj(ty [t,ks,:,:])
                     x1Bini[t,ks,:,:]            = regridObj(x1y[t,ks,:,:])
                     x2Bini[t,ks,:,:]            = regridObj(x2y[t,ks,:,:])
+                    x3Bini[t,ks,:,:]            = regridObj(x3y[t,ks,:,:])
                     depthBini[t,ks,:,:].mask    = maski
                     thickBini[t,ks,:,:].mask    = maski
                     x1Bini[t,ks,:,:].mask       = maski
                     x2Bini[t,ks,:,:].mask       = maski
+                    x3Bini[t,ks,:,:].mask       = maski
                     # Atl
                     depthBinia[t,ks,:,:]        = depthBini[t,ks,:,:]*1.
                     thickBinia[t,ks,:,:]        = thickBini[t,ks,:,:]*1.
                     x1Binia[t,ks,:,:]           = x1Bini[t,ks,:,:]*1.
                     x2Binia[t,ks,:,:]           = x2Bini[t,ks,:,:]*1.
+                    x3Binia[t,ks,:,:]           = x3Bini[t,ks,:,:]*1.
                     depthBinia[t,ks,:,:].mask   = maskAtl
                     thickBinia[t,ks,:,:].mask   = maskAtl
                     x1Binia[t,ks,:,:].mask      = maskAtl
                     x2Binia[t,ks,:,:].mask      = maskAtl
+                    x3Binia[t,ks,:,:].mask      = maskAtl
                     # Pac
                     depthBinip[t,ks,:,:]        = depthBini[t,ks,:,:]*1.
                     thickBinip[t,ks,:,:]        = thickBini[t,ks,:,:]*1.
                     x1Binip[t,ks,:,:]           = x1Bini[t,ks,:,:]*1.
                     x2Binip[t,ks,:,:]           = x2Bini[t,ks,:,:]*1.
+                    x3Binip[t,ks,:,:]           = x3Bini[t,ks,:,:]*1.
                     depthBinip[t,ks,:,:].mask   = maskPac
                     thickBinip[t,ks,:,:].mask   = maskPac
                     x1Binip[t,ks,:,:].mask      = maskPac
                     x2Binip[t,ks,:,:].mask      = maskPac
+                    x3Binip[t,ks,:,:].mask      = maskPac
                     # Ind
                     depthBinii[t,ks,:,:]        = depthBini[t,ks,:,:]*1.
                     thickBinii[t,ks,:,:]        = thickBini[t,ks,:,:]*1.
                     x1Binii[t,ks,:,:]           = x1Bini[t,ks,:,:]*1.
                     x2Binii[t,ks,:,:]           = x2Bini[t,ks,:,:]*1.
+                    x3Binii[t,ks,:,:]           = x3Bini[t,ks,:,:]*1.
                     depthBinii[t,ks,:,:].mask   = maskInd
                     thickBinii[t,ks,:,:].mask   = maskInd
                     x1Binii[t,ks,:,:].mask      = maskInd
                     x2Binii[t,ks,:,:].mask      = maskInd
+                    x3Binii[t,ks,:,:].mask      = maskInd
             # Free memory
-            del(dy, ty, x1y, x2y); gc.collect()
+            del(dy, ty, x1y, x2y, x3y); gc.collect()
 
             # Global
             depthBini   = maskVal(depthBini, valmask)
             thickBini   = maskVal(thickBini, valmask)
             x1Bini      = maskVal(x1Bini, valmask)
             x2Bini      = maskVal(x2Bini, valmask)
+            x3Bini      = maskVal(x3Bini, valmask)
             # Atl
             depthBinia  = maskVal(depthBinia, valmask)
             thickBinia  = maskVal(thickBinia, valmask)
             x1Binia     = maskVal(x1Binia, valmask)
             x2Binia     = maskVal(x2Binia, valmask)
+            x3Binia     = maskVal(x3Binia, valmask)
             # Pac
             depthBinip  = maskVal(depthBinip, valmask)
             thickBinip  = maskVal(thickBinip, valmask)
             x1Binip     = maskVal(x1Binip, valmask)
             x2Binip     = maskVal(x2Binip, valmask)
+            x3Binip     = maskVal(x3Binip, valmask)
             # Ind
             depthBinii  = maskVal(depthBinii, valmask)
             thickBinii  = maskVal(thickBinii, valmask)
             x1Binii     = maskVal(x1Binii, valmask)
             x2Binii     = maskVal(x2Binii, valmask)
+            x3Binii     = maskVal(x3Binii, valmask)
 
             depthbini  = cdm.createVariable(depthBini,  axes = [timeyr, rhoAxis, lati, loni], id = 'isondepthg')
             thickbini  = cdm.createVariable(thickBini,  axes = [timeyr, rhoAxis, lati, loni], id = 'isonthickg')
             x1bini     = cdm.createVariable(x1Bini   ,  axes = [timeyr, rhoAxis, lati, loni], id = 'thetaog')
             x2bini     = cdm.createVariable(x2Bini   ,  axes = [timeyr, rhoAxis, lati, loni], id = 'sog')
+            x3bini     = cdm.createVariable(x3Bini   ,  axes = [timeyr, rhoAxis, lati, loni], id = 'hvmg')
             if tc == 0:
                 depthbini.long_name  = 'Depth of isopycnal'
                 depthbini.units      = 'm'
@@ -1074,30 +1098,36 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 x1bini.units         = 'C'
                 x2bini.long_name     = soLongName
                 x2bini.units         = soUnits
+                x3bini.long_name     = 'Volume flux'
+                x3bini.units         = 'm2/s'
 
             tozi = timc.clock()
 
-            # Compute zonal mean
+            # Compute zonal mean (or integral for volume flux)
             # Global
             depthBinz   = cdu.averager(depthBini,   axis = 3)
             thickBinz   = cdu.averager(thickBini,   axis = 3)
             x1Binz      = cdu.averager(x1Bini,      axis = 3)
             x2Binz      = cdu.averager(x2Bini,      axis = 3)
+            x3Binz      = cdu.averager(x3Bini*e1ti, axis = 3, action='sum')
             # Atl
             depthBinza  = cdu.averager(depthBinia,  axis = 3)
             thickBinza  = cdu.averager(thickBinia,  axis = 3)
             x1Binza     = cdu.averager(x1Binia,     axis = 3)
             x2Binza     = cdu.averager(x2Binia,     axis = 3)
+            x3Binza     = cdu.averager(x3Binia*e1ti*maskAtl, axis = 3, action='sum')
             # Pac
             depthBinzp  = cdu.averager(depthBinip,  axis = 3)
             thickBinzp  = cdu.averager(thickBinip,  axis = 3)
             x1Binzp     = cdu.averager(x1Binip,     axis = 3)
             x2Binzp     = cdu.averager(x2Binip,     axis = 3)
+            x3Binzp     = cdu.averager(x3Binip*e1ti*maskPac, axis = 3, action='sum')
             # Ind
             depthBinzi  = cdu.averager(depthBinii,  axis = 3)
             thickBinzi  = cdu.averager(thickBinii,  axis = 3)
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
+            x3Binzi     = cdu.averager(x3Binii*e1ti*maskInd, axis = 3, action='sum')
             # Compute volume of isopycnals
             volBinz     = thickBinz  * areazt
             volBinza    = thickBinza * areazta
@@ -1114,6 +1144,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
 
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
+            # NOTE: not done for volume flux as scientific interpretation unclear
             for t in range(nyrtc):
                 tpe0 = timc.clock()
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
@@ -1463,6 +1494,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             outFile_f.write(thickbini.astype('float32'), extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x3bini.astype('float32')   , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(persim.astype('float32') , extend = 1, index = (trmin-tmin)/12) ; # Write out 3D variable first depth,lat,lon are written together
             outFile_f.write(ptopd.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(ptopt.astype('float32')  , extend = 1, index = (trmin-tmin)/12)
@@ -1519,7 +1551,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x2Binzi     = npy.ma.reshape(x2Binzi,newshape)
             x2bz        = npy.ma.concatenate((x2Binz,x2Binza,x2Binzp,x2Binzi),axis=1)
             del(x2Binz,x2Binza,x2Binzp,x2Binzi) ; gc.collect()
-            x2bz        = cdm.createVariable(x2bz,axes=timeBasinRhoAxesList,id='isonso')
+            x2bz        = cdm.createVariable(x3bz,axes=timeBasinRhoAxesList,id='isonso')
+            x3Binz      = npy.ma.reshape(x3Binz,newshape)
+            x3Binza     = npy.ma.reshape(x3Binza,newshape)
+            x3Binzp     = npy.ma.reshape(x3Binzp,newshape)
+            x3Binzi     = npy.ma.reshape(x3Binzi,newshape)
+            x3bz        = npy.ma.concatenate((x3Binz,x3Binza,x3Binzp,x3Binzi),axis=1)
+            del(x3Binz,x3Binza,x3Binzp,x3Binzi) ; gc.collect()
+            x3bz        = cdm.createVariable(x3bz,axes=timeBasinRhoAxesList,id='isonmsf')
 
             if tc == 0:
                 # Global attributes
@@ -1533,6 +1572,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 x1bz.units      = 'degrees_C'
                 x2bz.long_name  = soLongName
                 x2bz.units      = soUnits
+                x2bz.long_name  = 'Meridinal stream function'
+                x2bz.units      = 'm3/s'
                 # Cleanup
             # Write & append
             outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
@@ -1540,7 +1581,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             outFile_f.write(vbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            del(dbz,tbz,vbz,x1bz,x2bz) ; gc.collect()
+            outFile_f.write(x3bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            del(dbz,tbz,vbz,x1bz,x2bz,x3bz) ; gc.collect()
 
         # Write/append to file
         if mthout:
@@ -1548,7 +1590,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             outFileMon_f.write(thickBin.astype('float32'), extend = 1, index = trmin-tmin)
             outFileMon_f.write(x1Bin.astype('float32'),    extend = 1, index = trmin-tmin)
             outFileMon_f.write(x2Bin.astype('float32'),    extend = 1, index = trmin-tmin)
-            del(depthBin,thickBin,x1Bin,x2Bin) ; gc.collect()
+            outFileMon_f.write(x3Bin.astype('float32'),    extend = 1, index = trmin-tmin)
+            del(depthBin,thickBin,x1Bin,x2Bin,x3Bin) ; gc.collect()
             outFileMon_f.sync()
         outFile_f.sync()
         tozf = timc.clock()
