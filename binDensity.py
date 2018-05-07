@@ -224,7 +224,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     return s_s, s_sax, del_s, N_s
 
 
-def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none'):
+def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none'):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -237,6 +237,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     ------
     - fileT(time,lev,lat,lon)   - 4D potential temperature array
     - fileS(time,lev,lat,lon)   - 4D salinity array
+    - fileV(time,lev,lat,lon)   - 4D meridional velocity array
     - fileFx(lat,lon)           - 2D array containing the cell area values
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
@@ -244,6 +245,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     - mthout <optional>         - write annual data (False) or all monthly data (True)
     - gridfT <optional>         - file to get T grid info from
     - gridfS <optional>         - file to get S grid info from
+    - gridfV <optional>         - file to get V grid info from
 
     Usage:
     ------
@@ -266,6 +268,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     - EG  19 Feb 2018   - Solved bottom interp issue + half level missing
     - EG  19 Feb 2018   - added integral before interpolation and derivative afterwards
     - EG  16 Mar 2018   - added optional grid file info gridfT and gridfS
+    - EG + JM 07 May 2018 - add meridional stream function calculation
     - TODO: - Deal with NaN values with mask variables:
             - /usr/local/uvcdat/2014-09-16/lib/python2.7/site-packages/numpy/ma/core.py:3855: UserWarning: Warning: converting a masked element to nan.
               consider: http://helene.llnl.gov/cf/documents/cf-standard-names/standardized-region-names and
@@ -324,15 +327,22 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     # Open files to read
     ft = cdm.open(fileT)
     fs = cdm.open(fileS)
+    fv = cdm.open(fileV)
     # Use alternate file to read grid
     if gridfT != 'none':
         ft2 = cdm.open(gridfT)
         fs2 = cdm.open(gridfS)
-        thetao_h    = ft2['thetao'] ; # Create variable handle
-        so_h        = fs2['so'] ; # Create variable handle
+        thetao_h    = ft2['thetao'] # Create variable handle
+        so_h        = fs2['so']
     else:
         thetao_h    = ft('thetao', time = slice(1,10)) ; # remove handle for non cmor files
         so_h        = fs('so'    , time = slice(1,10)) ; #
+    if gridfV != 'none':
+        fv2 = cdm.open(gridfV)
+        vo_h        = fv2['vo']
+    else:
+        vo_h        = fv('vo'    , time = slice(1,10)) ; #
+
     timeax  = ft.getAxis('time')
     # Define temperature and salinity arrays
     tur = timc.clock()
@@ -382,9 +392,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             valmask = 1.e20
     if debug:
         print 'valmask = ',valmask
-    # Test to ensure thetao and so are equivalent sized (times equal)
+    # Test to ensure thetao, so and vo are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
-        or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
+        or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0] \
+        or vo_h.shape[1] != thetao_h.shape[1] or vo_h.shape[0] != thetao_h.shape[0]:
         print '** Input variables have different dimensions, exiting..'
         return
 
@@ -510,10 +521,10 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     # Preallocate masked arrays on target grid
     # Global arrays on target grid
     depthBini   = npy.ma.ones([nyrtc, N_s+1, Nji, Nii], dtype='float32')*valmask
-    thickBini,x1Bini,x2Bini = [npy.ma.ones(npy.ma.shape(depthBini)) for _ in range(3)]
+    thickBini,x1Bini,x2Bini,x3Bini = [npy.ma.ones(npy.ma.shape(depthBini)) for _ in range(4)]
     # Basin zonal on target grid
-    depthBinia,thickBinia,x1Binia,x2Binia,depthBinip,thickBinip,\
-    x1Binip,x2Binip,depthBinii,thickBinii,x1Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(12)]
+    depthBinia,thickBinia,x1Binia,x2Binia,x3Binia,depthBinip,thickBinip,\
+    x1Binip,x2Binip,x3Binip,depthBinii,thickBinii,x1Binii,x2Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(15)]
     # Persistence arrays on original grid
     persist     = npy.ma.ones([nyrtc, N_s+1, latN, lonN], dtype='float32')*valmask
     persisti,persistia,persistip,persistii,persistv = [npy.ma.ones(npy.shape(depthBini)) for _ in range(5)]
@@ -521,11 +532,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     persistm    = npy.ma.ones([nyrtc, Nji, Nii], dtype='float32')*valmask
     ptopdepthi,ptopsigmai,ptoptempi,ptopsalti = [npy.ma.ones(npy.shape(persistm)) for _ in range(4)]
     # Basin zonal on target grid
-    ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptopdepthip,ptopsigmaip,\
-    ptoptempip,ptopsaltip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii = [npy.ma.ones(npy.shape(persistm)) for _ in range(12)]
+    ptopdepthia,ptopsigmaia,ptoptempia,ptopsaltia,ptophvmia,ptopdepthip,ptopsigmaip,\
+    ptoptempip,ptopsaltip,ptophvmip,ptopdepthii,ptopsigmaii,ptoptempii,ptopsaltii,ptophvmii = [npy.ma.ones(npy.shape(persistm)) for _ in range(15)]
     # Volume/thetao/so of persistent ocean
     volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
-    volpersista,volpersistp,volpersisti,tempersist,tempersista,tempersistp,tempersisti,salpersist,salpersista,salpersistp,salpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(11)]
+    volpersista,volpersistp,volpersisti,\
+        tempersist,tempersista,tempersistp,tempersisti,\
+        salpersist,salpersista,salpersistp,salpersisti,\
+        hvmpersist,hvmpersista,hvmpersistp,hvmpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(15)]
 
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
@@ -542,6 +556,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
     temtotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
     saltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
+    hvmtotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
     tin1     = timc.clock()
     if cpuan:
         print ' '
@@ -554,8 +569,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
         tmp         = npy.ma.ones([tcdel, N_s+1, latN*lonN], dtype='float32')*valmask
         depth_bin   = tmp.copy() ; depth_bin   = maskVal(depth_bin, valmask)
         thick_bin   = tmp.copy() ; thick_bin   = maskVal(thick_bin, valmask)
-        x1_bin      = tmp.copy() ; x1_bin      = maskVal(x1_bin, valmask)
-        x2_bin      = tmp.copy() ; x2_bin      = maskVal(x2_bin, valmask)
+        #x1_bin      = tmp.copy() ; x1_bin      = maskVal(x1_bin, valmask)
+        #x2_bin      = tmp.copy() ; x2_bin      = maskVal(x2_bin, valmask)
+        #x3_bin      = tmp.copy() ; x3_bin      = maskVal(x3_bin, valmask)
         del(tmp) ; gc.collect()
         # read tcdel month by tcdel month to optimise memory
         trmin   = tmin + tc*tcdel ; # define as function of tc and tcdel
@@ -563,6 +579,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
         print ' --> time chunk (bounds) = ',tc+1, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+        vo      = fv('vo'    , time = slice(trmin,trmax))
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
@@ -593,6 +610,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
         # reorganise i,j dims in single dimension data (speeds up loops)
         thetao  = mv.reshape(thetao,(tcdel, depthN, lonN*latN))
         so      = mv.reshape(so    ,(tcdel, depthN, lonN*latN))
+        vo      = mv.reshape(vo    ,(tcdel, depthN, lonN*latN))
         rhon    = mv.reshape(rhon  ,(tcdel, depthN, lonN*latN))
         #print 'thetao.shape:',thetao.shape
         if debug and tc == 0 :
@@ -600,6 +618,8 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             #print ' thetao :',thetao[0,:,ijtest]
             print ' so     :',so.data    [0,:,ijtest]
             #print ' so     :',so[0,:,ijtest]
+            print ' vo     :',vo.data    [0,:,ijtest]
+            #print ' vo     :',vo[0,:,ijtest]
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin,x3_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(5)]
 
@@ -623,9 +643,9 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
-            #x3_content = so.data[t]
-            #x3_content = x1_content*lev_thickt*(1.-vmask_3D) # testing
-            x3_content = lev_thickt*(1.-vmask_3D) # testing
+            # compute "1D volume flux"
+#            x3_content = vo.data[t]*lev_thickt*(1.-vmask_3D)
+            x3_content = lev_thickt*(1.-vmask_3D)
             if debug and t == 0:
                 print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
                 print x3_content[:,ijtest]
@@ -644,11 +664,14 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
                 voltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
                 temtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
                 saltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
+                hvmtotij0 = npy.sum(x3_content[:,:], axis=0) # vertical sum of h*v (m2/s)
                 voltot = npy.sum(voltotij0*mv.reshape(area,lonN*latN))
                 temtot = npy.sum(temtotij0*mv.reshape(area,lonN*latN))/voltot
                 saltot = npy.sum(saltotij0*mv.reshape(area,lonN*latN))/voltot
-                print '  Total volume in z coordinates source grid (ref = 1.33 e+18) : ', voltot
-                print '  Mean Temp./Salinity in z coordinates source grid            : ', temtot, saltot
+                hvmtot = npy.sum(hvmtotij0*mv.reshape(area,lonN*latN))/npy.sum(mv.reshape(area,lonN*latN))
+                print '  Total volume in z coordinates source grid (ref = 1.33 e+18)   : ', voltot
+                print '  Mean Temp./Salinity in z coordinates source grid              : ', temtot, saltot
+                print '  Mean meridional transport in z coordinates source grid (m2/s) : ', hvmtot
 
             # init arrays for this time chunk
             z_s,c1_s,c2_s,c3_s,t_s       = [npy.ma.ones((N_s+1, lonN*latN))*valmask for _ in range(5)]
