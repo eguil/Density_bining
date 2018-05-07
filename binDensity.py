@@ -422,6 +422,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     maskg       = gridFile_f('basinmask3')
     outgrid     = maskg.getGrid()
     maski       = maskg.mask ; # Global mask
+    bounds_loni = gridFile_f('bounds_longitude')
+    bounds_lati = gridFile_f('bounds_latitude')
     # Regional masks
     maskAtl = maski*1 ; maskAtl[...] = True
     idxa = npy.argwhere(maskg == 1).transpose()
@@ -458,8 +460,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
 
     #dx = (lon2-lon1)*40000*math.cos((lat1+lat2)*math.pi/360)/360
     #dy = (lat1-lat2)*40000/360
-    e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
-    e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
+    e1ti = bounds_loni*40000.*math.cos(lati*math.pi/180.)/360.
+    e2ti = bounds_lati*40000./360.
+    print e1ti
+    print e2ti
+    #e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
+    #e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
 
     # Define rho grid with zoom on higher densities
     rho_min = 19.
