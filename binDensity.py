@@ -40,7 +40,7 @@ from string import replace
 import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
-import math
+#import math
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
