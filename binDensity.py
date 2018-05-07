@@ -768,11 +768,11 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             bottom_ind [1,:] = npy.arange(lonN*latN)
 
             # Densest value of derivative on s grid x3ders should be equal to c3_s
-            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[bottom_ind[0],bottom_ind[1]]
+            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0,:] - c3_s[bottom_ind[0],bottom_ind[1]]
             c3_s = c3ders
             if debug and t == 0:
                 print ' c3_s after bottom correction :'
-                print c3ders[:,ijtest]
+                print c3_s[:,ijtest]
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
