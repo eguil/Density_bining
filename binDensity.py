@@ -664,7 +664,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 voltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
                 temtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
                 saltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
-                hvmtotij0 = npy.sum(x3_content[:,:], axis=0) # vertical sum of h*v (m2/s)
+                hvmtotij0 = npy.sum(lev_thickt*(1.-vmask_3D), axis=0) # vertical sum of h*v (m2/s)
                 voltot = npy.sum(voltotij0*mv.reshape(area,lonN*latN))
                 temtot = npy.sum(temtotij0*mv.reshape(area,lonN*latN))/voltot
                 saltot = npy.sum(saltotij0*mv.reshape(area,lonN*latN))/voltot
