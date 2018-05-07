@@ -736,7 +736,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = 0., left = 0.) ; # depth - consider spline
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask, left = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask, left = valmask) ; # so
-                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = c3m[0,i]) ; # integral
+                    c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = c3m[0,i]) ; # volume flux
             tcpu40 = timc.clock()
             # find mask on s grid
             indsm = npy.argwhere (c1_s > valmask/10).transpose()
@@ -747,7 +747,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # Derive back integral of field c3_s
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
-            c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
+#            c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
+            c3ders = npy.roll(c3_s - npy.roll(c3_s,-1,axis=0),1,axis=0)
             if debug and t == 0:
                 print ' c3_s after derivative :'
                 print c3ders[:,ijtest]
