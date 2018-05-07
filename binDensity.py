@@ -902,6 +902,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
         #
+
         # Output files as netCDF
         # Def variables
         depthBin = cdm.createVariable(depth_bin, axes = rhoAxesList, id = 'isondepth')
