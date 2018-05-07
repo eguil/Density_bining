@@ -770,7 +770,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print ' bottom correction', bottom_ind[0,ijtest]
                 print c3ders[bottom_ind[0,ijtest],ijtest], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],ijtest], c3_s[bottom_ind[0,ijtest]-1,ijtest]
             # Densest value of derivative on s grid x3ders should be equal to c3_s
-            c3ders[bottom_ind[0],:] = c3_s[0,:] - c3_s[bottom_ind[0],:]
+            c3ders[bottom_ind[0,:],:] = c3_s[0,:] - c3_s[bottom_ind[0,:]-1,:]
             c3_s = c3ders
             if debug and t == 0:
                 print ' c3_s after bottom correction :'
