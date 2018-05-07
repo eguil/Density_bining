@@ -763,12 +763,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             ssr = npy.roll(s_s, 1, axis=0)
             ssr[0,:] = ssr[1,:]-del_s1
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
-            bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1
+            bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1 # Todo init at sz_max ?
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
-
+            if debug and t == 0:
+                print ' bottom correction', bottom_ind[0,ijtest]
+                print c3ders[bottom_ind[0,ijtest],ijtest], c3_s[0,ijtest], c3_s[bottom_ind[0:ijtest],ijtest], c3_s[bottom_ind[0:ijtest]-1,ijtest]
             # Densest value of derivative on s grid x3ders should be equal to c3_s
-            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0,:] - c3_s[bottom_ind[0],bottom_ind[1]-1]
+            c3ders[bottom_ind[0,:],:] = c3_s[0,:] - c3_s[bottom_ind[0,:],:]
             c3_s = c3ders
             if debug and t == 0:
                 print ' c3_s after bottom correction :'
