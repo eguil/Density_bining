@@ -225,6 +225,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     return s_s, s_sax, del_s, N_s
 
 
+
 def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none'):
     '''
     The densityBin() function takes file and variable arguments and creates
