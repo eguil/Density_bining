@@ -768,9 +768,9 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             bottom_ind [1,:] = npy.arange(lonN*latN)
             if debug and t == 0:
                 print ' bottom correction', bottom_ind[0,ijtest]
-                print c3ders[bottom_ind[0,ijtest],ijtest], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],ijtest], c3_s[bottom_ind[0,ijtest]-1,ijtest]
+                print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[bottom_ind[0,ijtest]-1,bottom_ind[1,ijtest]]
             # Densest value of derivative on s grid x3ders should be equal to c3_s
-            c3ders[bottom_ind[0,:],:] = c3_s[0,:] - c3_s[bottom_ind[0,:]-1,:]
+            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0,:] - c3_s[bottom_ind[0]-1,bottom_ind[1]]
             c3_s = c3ders
             if debug and t == 0:
                 print ' c3_s after bottom correction :'
