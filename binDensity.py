@@ -744,6 +744,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
 
             # Interpolate depth(z) (= zzm) to depth(s) at s_s densities (= z_s) using density(z) (= szm)
             # Use z_s to interpolate other fields
+            # This loop uses 85% of the CPU
             # TODO: use ESMF ? outsource to fortran program ?
             # TODO check that interp is linear or/and stabilise column as post-pro
             tcpu3 = timc.clock()
@@ -793,7 +794,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print c3_s[:,ijtest]
             #
             # TODO: do vertical integral of hvm (c3_s) from bottom to obtain msf
-            #
+            # perform loop on ks
 
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
