@@ -626,7 +626,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             #x3_content = so.data[t]
             #x3_content = x1_content*lev_thickt*(1.-vmask_3D) # testing
             x3_content = lev_thickt*(1.-vmask_3D) # testing
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
                 print x3_content[:,ijtest]
                 print z_zt
@@ -698,7 +698,7 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
                 c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,:] = z_zt[k] # For smooth bottom interpolation
 
-            if debug and t < 0: #t == 0:
+            if debug and t == 0: #t == 0:
                 print ' szm just before interp', szm[:,ijtest]
                 print ' c3m just before interp', c3m[:,ijtest]
                 print ' zzm just before interp', zzm[:,ijtest]
@@ -718,18 +718,18 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             # find mask on s grid
             indsm = npy.argwhere (c1_s > valmask/10).transpose()
 
-            if debug and t < 0: #t == 0:
+            if debug and t == 0: #t == 0:
                 print ' z_s just after interp', z_s[:,ijtest]
                 print ' c1_s just after interp', c1_s[:,ijtest]
                 print ' c3_s just after interp', c3_s[:,ijtest]
             # Derive back integral of field c3_s
             c3ders = npy.ma.ones([N_s+1, latN*lonN])*valmask
             c3ders = c3_s - npy.roll(c3_s,-1,axis=0)
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' c3_s after derivative :'
                 print c3ders[:,ijtest]
             c3ders[indsm[0], indsm[1]] = valmask
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' c3_s after masking :'
                 print c3ders[:,ijtest]
             # Where level of s_s has higher density than bottom density,
@@ -746,13 +746,13 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             # Densest value of derivative on s grid x3ders should be equal to c3_s
             c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[bottom_ind[0],bottom_ind[1]]
             c3_s = c3ders
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' c3_s after bottom correction :'
                 print c3ders[:,ijtest]
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' t_s: '
                 print t_s[:,ijtest]
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
@@ -767,22 +767,22 @@ def densityBin(fileT,fileS,fileFx,outFile,debug=True,timeint='all',mthout=False,
             c3_s[inds[0],inds[1]] = c3t[inds[0],inds[1]]
 
             tcpu4 = timc.clock()
-            if debug and t < 0: #t == 0:
+            if debug and t == 0: #t == 0:
                 print ' z_s  after inds test', z_s[:,ijtest]
                 print ' c3_s after inds test', c3_s[:,ijtest]
             # Add half level to depth to ensure thickness integral conservation at bottom
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' before add half level:'
                 print z_s [bottom_ind[0],bottom_ind[1]][ijtest]
                 print lev_thick[i_bottom[ijtest]]/2.
             z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom[:]]/2.
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' after add half level:'
                 print z_s [bottom_ind[0],bottom_ind[1]][ijtest]
             # Correct thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
-            if debug and t < 0:
+            if debug and t == 0:
                 print ' corrected thickness:'
                 print t_s[:,ijtest]
             # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
