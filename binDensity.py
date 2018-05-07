@@ -843,8 +843,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print c3_s[:,i]
                 print ' vertical integral on z and sigma (volume)'
                 print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
-                print lev_thick*(szm[:,ijtest] < valmask/10)
-                print t_s[:,ijtest]*(t_s[:,ijtest] < valmask/10)
+                #print lev_thick*(szm[:,ijtest] < valmask/10)
+                #print t_s[:,ijtest]*(t_s[:,ijtest] < valmask/10)
 
             # assign to final arrays
             depth_bin[t,:,:] = z_s
@@ -921,12 +921,15 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             temtotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             saltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            hvmtotij0 = npy.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
+            hvmtot = npy.ma.sum(hvmtotij0 * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
             print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
-            print '  Total volume in rho coordinates source grid (ref = 1.33 e+18) : ', voltot
-            print '  Mean Temp./Salinity in rho coordinates source grid            : ', temtot, saltot
+            print '  Total volume in rho coordinates source grid (ref = 1.33 e+18)   : ', voltot
+            print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
+            print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot
         #
 
         # Output files as netCDF
