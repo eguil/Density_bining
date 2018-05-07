@@ -455,6 +455,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     areaitp = npy.ma.sum(npy.reshape(areaip,(Nji*Nii)))
     areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
+
     # Compute scale factors in meter for each point of target grid
     # TODO e1ti,e2ti = compute_scale_factors(loni, lati) in more exact way
 
