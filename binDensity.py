@@ -40,6 +40,7 @@ from string import replace
 import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
+import math
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
@@ -453,8 +454,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
     # Compute scale factors in meter for each point of target grid
-    # TODO e1ti,e2ti = compute_scale_factors(loni, lati)
+    # TODO e1ti,e2ti = compute_scale_factors(loni, lati) in more exact way
 
+    #dx = (lon2-lon1)*40000*math.cos((lat1+lat2)*math.pi/360)/360
+    #dy = (lat1-lat2)*40000/360
     e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
     e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
 
@@ -529,7 +532,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     thickBini,x1Bini,x2Bini,x3Bini = [npy.ma.ones(npy.ma.shape(depthBini)) for _ in range(4)]
     # Basin zonal on target grid
     depthBinia,thickBinia,x1Binia,x2Binia,x3Binia,depthBinip,thickBinip,\
-    x1Binip,x2Binip,x3Binip,depthBinii,thickBinii,x1Binii,x2Binii,x2Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(15)]
+    x1Binip,x2Binip,x3Binip,depthBinii,thickBinii,x1Binii,x2Binii,x3Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(15)]
     # Persistence arrays on original grid
     persist     = npy.ma.ones([nyrtc, N_s+1, latN, lonN], dtype='float32')*valmask
     persisti,persistia,persistip,persistii,persistv = [npy.ma.ones(npy.shape(depthBini)) for _ in range(5)]
