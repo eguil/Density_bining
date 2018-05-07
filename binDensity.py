@@ -922,10 +922,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             print 'x3_bin', x3_bin[0,:,j,i]
         if debug and tc == 0:
             # Check integrals/mean on target density grid
-            voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
-            temtotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
-            saltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
-            hvmtotij0 = npy.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            voltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*\
+                                (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            temtotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*\
+                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            saltotij0 = npy.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*\
+                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            hvmtotij0 = npy.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*\
+                                (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
@@ -933,7 +937,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18)   : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
-            print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot
+            print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot, npy.ma.sum(npy.ma.reshape(area,lonN*latN))
         #
 
         # Output files as netCDF
