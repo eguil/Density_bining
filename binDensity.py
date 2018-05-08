@@ -778,7 +778,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print c3_s[:,ijtest]
             #
             # TODO: do vertical integral of hvm (c3_s) from bottom to obtain msf
-            # perform loop on ks
+            # use npy.cumsum + reverse axis
 
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
@@ -1547,7 +1547,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x2Binzi     = npy.ma.reshape(x2Binzi,newshape)
             x2bz        = npy.ma.concatenate((x2Binz,x2Binza,x2Binzp,x2Binzi),axis=1)
             del(x2Binz,x2Binza,x2Binzp,x2Binzi) ; gc.collect()
-            x2bz        = cdm.createVariable(x3bz,axes=timeBasinRhoAxesList,id='isonso')
+            x2bz        = cdm.createVariable(x2bz,axes=timeBasinRhoAxesList,id='isonso')
             x3Binz      = npy.ma.reshape(x3Binz,newshape)
             x3Binza     = npy.ma.reshape(x3Binza,newshape)
             x3Binzp     = npy.ma.reshape(x3Binzp,newshape)
