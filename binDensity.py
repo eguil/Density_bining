@@ -40,7 +40,6 @@ from string import replace
 import time as timc
 from scipy.interpolate import interp1d
 from scipy.interpolate._fitpack import _bspleval
-import math
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
@@ -464,7 +463,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     #dy = (lat1-lat2)*40000/360
     print bounds_loni.data[:,0]
     print bounds_loni.data[:,0] * 20.
-    e1ti = bounds_loni.data[:,0] * 40000. * math.cos(bounds_lati.data[:,0] * math.pi/180.) / 360.
+    e1ti = bounds_loni.data[:,0] * 40000. * npy.cos(bounds_lati.data[:,0] * npy.pi/180.) / 360.
     e2ti = bounds_lati.data[:,0] * 40000. / 360.
     print e1ti
     print e2ti
