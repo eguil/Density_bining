@@ -422,8 +422,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     maskg       = gridFile_f('basinmask3')
     outgrid     = maskg.getGrid()
     maski       = maskg.mask ; # Global mask
-    bounds_loni = gridFile_f('bounds_longitude')
-    bounds_lati = gridFile_f('bounds_latitude')
     # Regional masks
     maskAtl = maski*1 ; maskAtl[...] = True
     idxa = npy.argwhere(maskg == 1).transpose()
@@ -455,25 +453,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     areaitp = npy.ma.sum(npy.reshape(areaip,(Nji*Nii)))
     areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
-
-    # Compute scale factors in meter for each point of target grid
-    # TODO e1ti,e2ti = compute_scale_factors(loni, lati) in more exact way
-
-    #dx = (lon2-lon1)*40000*math.cos((lat1+lat2)*math.pi/360)/360
-    #dy = (lat1-lat2)*40000/360
-    print bounds_loni.data[:,0]
-    print bounds_loni.data[:,0] * 20.
-    lonibds = npy.reshape(npy.tile(bounds_loni.data[:,0], Nji), [Nii,Nji])
-    latibds = npy.swapaxes(npy.reshape(npy.tile(bounds_lati.data[:,0], Nii), [Nji,Nii]),0,1)
-    print lonibds.shape, latibds.shape
-    print lonibds[0,:], lonibds[:,0]
-    print latibds[0,:], latibds[:,0]
-    e1ti = lonibds * 40000. * npy.cos(latibds * npy.pi/180.) / 360.
-    e2ti = latibds * 40000. / 360.
-    print e1ti
-    print e2ti
-    #e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
-    #e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
 
     # Define rho grid with zoom on higher densities
     rho_min = 19.
@@ -1126,26 +1105,26 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             depthBinz   = cdu.averager(depthBini,   axis = 3)
             thickBinz   = cdu.averager(thickBini,   axis = 3)
             x1Binz      = cdu.averager(x1Bini,      axis = 3)
-            x2Binz      = cdu.averager(x2Bini,      axis = 3)
-            x3Binz      = cdu.averager(x3Bini*e1ti, axis = 3, action='sum')
+            x2Binz      = cdu.averager(x2Bini,    axis = 3)
+            x3Binz      = cdu.averager(x3Bini, axis = 3, action='sum')
             # Atl
             depthBinza  = cdu.averager(depthBinia,  axis = 3)
             thickBinza  = cdu.averager(thickBinia,  axis = 3)
             x1Binza     = cdu.averager(x1Binia,     axis = 3)
             x2Binza     = cdu.averager(x2Binia,     axis = 3)
-            x3Binza     = cdu.averager(x3Binia*e1ti*maskAtl, axis = 3, action='sum')
+            x3Binza     = cdu.averager(x3Binia, axis = 3, action='sum')
             # Pac
             depthBinzp  = cdu.averager(depthBinip,  axis = 3)
             thickBinzp  = cdu.averager(thickBinip,  axis = 3)
             x1Binzp     = cdu.averager(x1Binip,     axis = 3)
             x2Binzp     = cdu.averager(x2Binip,     axis = 3)
-            x3Binzp     = cdu.averager(x3Binip*e1ti*maskPac, axis = 3, action='sum')
+            x3Binzp     = cdu.averager(x3Binip, axis = 3, action='sum')
             # Ind
             depthBinzi  = cdu.averager(depthBinii,  axis = 3)
             thickBinzi  = cdu.averager(thickBinii,  axis = 3)
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
-            x3Binzi     = cdu.averager(x3Binii*e1ti*maskInd, axis = 3, action='sum')
+            x3Binzi     = cdu.averager(x3Binii, axis = 3, action='sum')
             # Compute volume of isopycnals
             volBinz     = thickBinz  * areazt
             volBinza    = thickBinza * areazta
