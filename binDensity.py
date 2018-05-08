@@ -38,8 +38,8 @@ import MV2 as mv
 import numpy as npy
 from string import replace
 import time as timc
-from scipy.interpolate import interp1d
-from scipy.interpolate._fitpack import _bspleval
+#from scipy.interpolate import interp1d
+#from scipy.interpolate._fitpack import _bspleval
 
 # Turn off numpy warnings
 npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
