@@ -453,7 +453,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     areaitp = npy.ma.sum(npy.reshape(areaip,(Nji*Nii)))
     areaiti = npy.ma.sum(npy.reshape(areaii,(Nji*Nii)))
     tarea = timc.clock()
-
     # Define rho grid with zoom on higher densities
     rho_min = 19.
     rho_int = 26.
