@@ -463,8 +463,11 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     #dy = (lat1-lat2)*40000/360
     print bounds_loni.data[:,0]
     print bounds_loni.data[:,0] * 20.
-    e1ti = bounds_loni.data[:,0] * 40000. * npy.cos(bounds_lati.data[:,0] * npy.pi/180.) / 360.
-    e2ti = bounds_lati.data[:,0] * 40000. / 360.
+    lonibds = npy.reshape(npy.tile(bounds_loni.data[:,0], Nji), Nji*Nii)
+    latibds = npy.reshape(npy.swapaxes(npy.tile(bounds_lati.data[:,0], Nii),0,1), Nji*Nii)
+    print lonibds.shape, latibds.shape
+    e1ti = lonibds * 40000. * npy.cos(latibds * npy.pi/180.) / 360.
+    e2ti = latibds * 40000. / 360.
     print e1ti
     print e2ti
     #e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
