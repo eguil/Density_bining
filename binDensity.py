@@ -464,12 +464,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     #dy = (lat1-lat2)*40000/360
     print bounds_loni
     print bounds_loni.data
-    e1ti = (bounds_loni.data)*40000.*math.cos((bounds_lati.data)*math.pi/180.)/360.
-    e2ti = (bounds_lati.data)*40000./360.
-    print e1ti
-    print e2ti
-    #e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
-    #e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
+    #e1ti = (bounds_loni.data)*40000.*math.cos((bounds_lati.data)*math.pi/180.)/360.
+    #e2ti = (bounds_lati.data)*40000./360.
+    #print e1ti
+    #print e2ti
+    e1ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
+    e2ti = npy.ma.ones([Nji, Nii], dtype='float32')*1
 
     # Define rho grid with zoom on higher densities
     rho_min = 19.
