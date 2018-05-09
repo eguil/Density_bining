@@ -778,17 +778,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             if debug and t == 0:
                 print ' c3_s after bottom correction :'
                 print c3_s[:,ijtest]
-            #
-            # TODO: do vertical integral of hvm (c3_s) from bottom to obtain msf
-            # use npy.cumsum + reverse axis
-            c3zero = c3_s*1.
-            c3zero[indsm[0], indsm[1]] = 0.
-            c3zero = npy.cumsum(c3zero[::-1,:],axis=0)[::-1,:]
-            c3_s2 = c3zero*1.
-            c3_s2[indsm[0], indsm[1]] = valmask
-            if debug and t == 0:
-                print ' c3_s2 after cumsum :'
-                print c3_s2[:,ijtest]
 
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
@@ -833,6 +822,21 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             c1_s[inds[0],inds[1]] = valmask
             c2_s[inds[0],inds[1]] = valmask
             c3_s[inds[0],inds[1]] = valmask
+            #
+            # Vertical integral of hvm (c3_s) from bottom to obtain msf
+            # use npy.cumsum + reverse axis
+            c3zero = c3_s*1.
+            c3zero[indsm[0], indsm[1]] = 0.
+            c3zero[inds[0], inds[1]] = 0.
+            c3zero = npy.cumsum(c3zero[::-1,:],axis=0)[::-1,:]
+            c3_s2 = c3zero*1.
+            c3_s2[indsm[0], indsm[1]] = valmask
+            c3_s2[inds[0], inds[1]] = valmask
+
+            if debug and t == 0:
+                print ' c3_s2 after cumsum :'
+                print c3_s2[:,ijtest]
+
             if debug and t == 0: #t == 0:
                 #  Check t_s == 0 vs. non-masked values for c1_s
                 indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
