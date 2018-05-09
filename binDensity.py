@@ -643,6 +643,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
+            area = area*nomask
             # compute "1D volume flux"
 #            x3_content = vo.data[t]*lev_thickt*(1.-vmask_3D)
             x3_content = lev_thickt*(1.-vmask_3D)
@@ -664,7 +665,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 voltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
                 temtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
                 saltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
-                hvmtotij0 = npy.sum(lev_thickt*(1.-vmask_3D), axis=0) # vertical sum of h*v (m2/s)
+                hvmtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0) # vertical sum of h*v (m2/s)
+                print 'hvmtotij0[ijtest]',hvmtotij0[ijtest]
                 voltot = npy.sum(voltotij0*mv.reshape(area,lonN*latN))
                 temtot = npy.sum(temtotij0*mv.reshape(area,lonN*latN))/voltot
                 saltot = npy.sum(saltotij0*mv.reshape(area,lonN*latN))/voltot
