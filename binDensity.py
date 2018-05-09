@@ -781,6 +781,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             #
             # TODO: do vertical integral of hvm (c3_s) from bottom to obtain msf
             # use npy.cumsum + reverse axis
+            c3_s = npy.cumsum(c3_s[::-1,:],axis=0)[::-1,:]
+            if debug and t == 0:
+                print ' c3_s after cumsum :'
+                print c3_s[:,ijtest]
 
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
@@ -937,7 +941,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             hvmtot = npy.ma.sum(hvmtotij0 * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
-            print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
+            print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest], hvmtotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18)   : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
             print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot, npy.ma.sum(npy.ma.reshape(area,lonN*latN))
@@ -1106,8 +1110,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             depthBinz   = cdu.averager(depthBini,   axis = 3)
             thickBinz   = cdu.averager(thickBini,   axis = 3)
             x1Binz      = cdu.averager(x1Bini,      axis = 3)
-            x2Binz      = cdu.averager(x2Bini,    axis = 3)
-            x3Binz      = cdu.averager(x3Bini, axis = 3, action='sum')
+            x2Binz      = cdu.averager(x2Bini,      axis = 3)
+            x3Binz      = cdu.averager(x3Bini,      axis = 3, action='sum')
             # Atl
             depthBinza  = cdu.averager(depthBinia,  axis = 3)
             thickBinza  = cdu.averager(thickBinia,  axis = 3)
