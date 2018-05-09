@@ -773,6 +773,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print ' bottom correction', bottom_ind[0,ijtest]
                 print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[bottom_ind[0,ijtest]-1,bottom_ind[1,ijtest]]
             # Densest value of derivative on s grid x3ders should be equal to c3_s
+            c3ders=c3_s*1.
             c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0,:] - c3_s[bottom_ind[0]-1,bottom_ind[1]]
             c3_s = c3ders
             if debug and t == 0:
@@ -1122,19 +1123,19 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             thickBinza  = cdu.averager(thickBinia,  axis = 3)
             x1Binza     = cdu.averager(x1Binia,     axis = 3)
             x2Binza     = cdu.averager(x2Binia,     axis = 3)
-            x3Binza     = cdu.averager(x3Binia, axis = 3, action='sum')
+            x3Binza     = cdu.averager(x3Binia,     axis = 3, action='sum')
             # Pac
             depthBinzp  = cdu.averager(depthBinip,  axis = 3)
             thickBinzp  = cdu.averager(thickBinip,  axis = 3)
             x1Binzp     = cdu.averager(x1Binip,     axis = 3)
             x2Binzp     = cdu.averager(x2Binip,     axis = 3)
-            x3Binzp     = cdu.averager(x3Binip, axis = 3, action='sum')
+            x3Binzp     = cdu.averager(x3Binip,     axis = 3, action='sum')
             # Ind
             depthBinzi  = cdu.averager(depthBinii,  axis = 3)
             thickBinzi  = cdu.averager(thickBinii,  axis = 3)
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
-            x3Binzi     = cdu.averager(x3Binii, axis = 3, action='sum')
+            x3Binzi     = cdu.averager(x3Binii,     axis = 3, action='sum')
             # Compute volume of isopycnals
             volBinz     = thickBinz  * areazt
             volBinza    = thickBinza * areazta
