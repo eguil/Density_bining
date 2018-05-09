@@ -782,14 +782,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             #
             # TODO: do vertical integral of hvm (c3_s) from bottom to obtain msf
             # use npy.cumsum + reverse axis
-            c3zero = c3_s*1.
-            c3zero[indsm[0], indsm[1]] = 0.
-            c3zero = npy.cumsum(c3zero[::-1,:],axis=0)[::-1,:]
-            c3_s = c3zero*1.
-            c3_s[indsm[0], indsm[1]] = valmask
-            if debug and t == 0:
-                print ' c3_s after cumsum :'
-                print c3_s[:,ijtest]
+            #c3zero = c3_s*1.
+            #c3zero[indsm[0], indsm[1]] = 0.
+            #c3zero = npy.cumsum(c3zero[::-1,:],axis=0)[::-1,:]
+            #c3_s = c3zero*1.
+            #c3_s[indsm[0], indsm[1]] = valmask
+            #if debug and t == 0:
+            #    print ' c3_s after cumsum :'
+            #    print c3_s[:,ijtest]
 
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
