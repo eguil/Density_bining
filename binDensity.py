@@ -643,7 +643,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
-            area = area*npy.reshape(nomask, [lonN,latN])
+            area = area*npy.reshape(nomask, [latN, lonN])
             # compute "1D volume flux"
 #            x3_content = vo.data[t]*lev_thickt*(1.-vmask_3D)
             x3_content = lev_thickt*(1.-vmask_3D)
