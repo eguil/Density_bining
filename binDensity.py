@@ -773,10 +773,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print '   c3_s', c3_s[:,ijtest]
                 print '   c3ders', c3ders[:,ijtest]
                 print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
-            # Densest value of derivative on s grid x3ders should be equal to c3_s
+            # Densest value of derivative on s grid c3ders should be equal to c3_s
             c3ders[indsm[0], indsm[1]] = 0
             print npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
-            c3ders[bottom_ind[0,:],bottom_ind[1,:]] = c3_s[0,:] - npy.sum(c3ders[0:npy.max(bottom_ind[0,:],0),bottom_ind[1,:]],axis=0)
+            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0] - npy.sum(c3ders[0:npy.max(bottom_ind[0],0),bottom_ind[1]],axis=0)
             print 'sum of ', c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]]
             print 'equal ',npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
             print c3_s[0,ijtest] - npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
