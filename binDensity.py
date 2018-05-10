@@ -769,7 +769,9 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
             if debug and t == 0:
-                print ' bottom correction', bottom_ind[0,ijtest]
+                print ' bottom correction', bottom_ind[0,ijtest], bottom_ind[1,ijtest], ijtest
+                print '   c3_s', c3_s[:,ijtest]
+                print '   c3ders', c3ders[:,ijtest]
                 print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
             # Densest value of derivative on s grid x3ders should be equal to c3_s
             c3ders[indsm[0], indsm[1]] = 0
@@ -827,20 +829,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             c2_s[inds[0],inds[1]] = valmask
             c3_s[inds[0],inds[1]] = valmask
             #
-            # Vertical integral of hvm (c3_s) from bottom to obtain msf
-            # use npy.cumsum + reverse axis
-            c3zero = c3_s*1.
-            c3zero[indsm[0], indsm[1]] = 0.
-            c3zero[inds[0], inds[1]] = 0.
-            c3zero = npy.cumsum(c3zero[::-1,:],axis=0)[::-1,:]
-            c3_s2 = c3zero*1.
-            c3_s2[indsm[0], indsm[1]] = valmask
-            c3_s2[inds[0], inds[1]] = valmask
-
-            if debug and t == 0:
-                print ' c3_s2 after cumsum :'
-                print c3_s2[:,ijtest]
-
             if debug and t == 0: #t == 0:
                 #  Check t_s == 0 vs. non-masked values for c1_s
                 indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
@@ -868,6 +856,21 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
                 #print lev_thick*(szm[:,ijtest] < valmask/10)
                 #print t_s[:,ijtest]*(t_s[:,ijtest] < valmask/10)
+            #
+            # Vertical integral of hvm (c3_s) from bottom to obtain msf
+            # use npy.cumsum + reverse axis
+            c3zero = c3_s*1.
+            c3zero[indsm[0], indsm[1]] = 0.
+            c3zero[inds[0], inds[1]] = 0.
+            c3zero = npy.cumsum(c3zero[::-1,:],axis=0)[::-1,:]
+            c3_s2 = c3zero*1.
+            c3_s2[indsm[0], indsm[1]] = valmask
+            c3_s2[inds[0], inds[1]] = valmask
+
+            if debug and t == 0:
+                print ' c3_s2 after cumsum :'
+                print c3_s2[:,ijtest]
+
 
             # assign to final arrays
             depth_bin[t,:,:] = z_s
