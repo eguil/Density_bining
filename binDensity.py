@@ -779,8 +779,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             print npy.sum(c3ders[0:npy.max(bottom_ind[0       ]-1,0),bottom_ind[1]],axis=0).shape, c3_s.shape
             c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0,:] - npy.sum(c3ders[0:npy.max(bottom_ind[0]-1,0),bottom_ind[1]],axis=0)
             c3ders[indsm[0], indsm[1]] = valmask
+            print 'sum of', c3ders[0:npy.max(bottom_ind[0,ijtest]-1,0),bottom_ind[1,ijtest]]
+            print c3_s[0,ijtest] - npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest]-1,0),bottom_ind[1,ijtest]],axis=0)
 
-            c3_s = c3ders
+            c3_s = c3ders*1.
             if debug and t == 0:
                 print ' c3_s after bottom correction :'
                 print c3_s[:,ijtest]
