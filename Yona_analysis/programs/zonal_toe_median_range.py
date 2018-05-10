@@ -19,6 +19,8 @@ import colormaps as cmaps
 # ----- Workspace ------
 
 indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
+indir_mme_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
+indir_mme_hn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
 
 models = defModels()
 
@@ -96,14 +98,6 @@ varToEI = varToEI[0:nruns,:,:]
 
 nruns = int(nruns)
 
-# ----- Build plot variables ------
-
-# # -- Mask
-# var_mask = np.ma.getmask(np.ma.average(fh2d.variables[var][:], axis=0))
-# varToEA = np.ma.array(varToEA, mask=var_mask[1,:,:])
-# varToEP = np.ma.array(varToEP, mask=var_mask[2,:,:])
-# varToEI = np.ma.array(varToEI, mask=var_mask[3,:,:])
-
 
 # -- Compute median and range
 # Median
@@ -124,43 +118,113 @@ rangeToEP = np.ma.around(percentile84ToEP - percentile16ToEP)
 rangeToEI = np.ma.around(percentile84ToEI - percentile16ToEI)
 
 # -- Mask points where signal has not emerged
-medianToEA[medianToEA == finalyear] = np.ma.masked
-medianToEP[medianToEP == finalyear] = np.ma.masked
-medianToEI[medianToEI == finalyear] = np.ma.masked
+# medianToEA[medianToEA == finalyear] = np.ma.masked
+# medianToEP[medianToEP == finalyear] = np.ma.masked
+# medianToEI[medianToEI == finalyear] = np.ma.masked
+
+# -- Mask points
+rangeToEA[rangeToEA == 0] = np.ma.masked
+rangeToEP[rangeToEP == 0] = np.ma.masked
+rangeToEI[rangeToEI == 0] = np.ma.masked
+
+# ----- Read bowl position and mask points above ------
+
+# Read files
+file_rcp85 = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
+file_hn = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+frcp85 = open_ncfile(indir_mme_rcp85+file_rcp85,'r')
+fhn = open_ncfile(indir_mme_hn+file_hn,'r')
+
+# Read bowl position
+bowl2 = frcp85.variables['ptopsigma'][-5:,:,:]
+bowl1 = fhn.variables['ptopsigma'][-5:,:,:]
+bowl2 = np.ma.average(bowl2, axis=0)
+bowl1 = np.ma.average(bowl1, axis=0)
+
+labBowl = ['histNat','RCP8.5']
+
+# Mask points above RCP8.5 bowl
+for ilat in range(len(lat)):
+    if np.ma.is_masked(bowl2[1,ilat]) == False :
+        inda = np.ma.nonzero(bowl2[1,ilat]>=density)
+        medianToEA[inda,ilat] = np.ma.masked
+        rangeToEA[inda,ilat] = np.ma.masked
+    if np.ma.is_masked(bowl2[2,ilat]) == False :
+        indp = np.ma.nonzero(bowl2[2,ilat]>=density)
+        medianToEP[indp,ilat] = np.ma.masked
+        rangeToEP[indp,ilat] = np.ma.masked
+    if np.ma.is_masked(bowl2[3,ilat]) == False :
+        indi = np.ma.nonzero(bowl2[3,ilat]>=density)
+        medianToEI[indi,ilat] = np.ma.masked
+        rangeToEI[indi,ilat] = np.ma.masked
 
 
 # -- Create variable bundles
-labBowl = ['0','0']
-varAtl = {'name': 'Atlantic', 'ToE': medianToEA, 'bowl2': None, 'bowl1': None, 'labBowl': labBowl}
-varPac = {'name': 'Pacific', 'ToE': medianToEP, 'bowl2': None, 'bowl1': None, 'labBowl': labBowl}
-varInd = {'name': 'Indian', 'ToE': medianToEI, 'bowl2': None, 'bowl1': None, 'labBowl': labBowl}
+varAtlmedian = {'name': 'Atlantic', 'ToE': medianToEA, 'bowl2': bowl2[1,:], 'bowl1': bowl1[1,:], 'labBowl': labBowl}
+varPacmedian = {'name': 'Pacific', 'ToE': medianToEP, 'bowl2': bowl2[2,:], 'bowl1': bowl1[2,:], 'labBowl': labBowl}
+varIndmedian = {'name': 'Indian', 'ToE': medianToEI, 'bowl2': bowl2[3,:], 'bowl1': bowl1[3,:], 'labBowl': labBowl}
+
+varAtlrange = {'name': 'Atlantic', 'ToE': rangeToEA, 'bowl2': bowl2[1,:], 'bowl1': bowl1[1,:], 'labBowl': labBowl}
+varPacrange = {'name': 'Pacific', 'ToE': rangeToEP, 'bowl2': bowl2[2,:], 'bowl1': bowl1[2,:], 'labBowl': labBowl}
+varIndrange = {'name': 'Indian', 'ToE': rangeToEI, 'bowl2': bowl2[3,:], 'bowl1': bowl1[3,:], 'labBowl': labBowl}
 
 
 # ----- Plot ToE ------
 
+# -- Median
+
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 
-minmax = [iniyear, finalyear +1, deltat]
+minmax = [1950, finalyear +1, deltat]
 unit = 'ToE'
 cmap = cmaps.viridis
 levels = np.arange(minmax[0], minmax[1], minmax[2])
 
-cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtl, domrho, cmap, levels)
+cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlmedian, domrho, cmap, levels)
 
-cnplot = zonal_2D(plt, 'ToE', axes[0, 1], axes[1, 1], 'mid', lat, density, varPac, domrho, cmap, levels)
+cnplot = zonal_2D(plt, 'ToE', axes[0, 1], axes[1, 1], 'mid', lat, density, varPacmedian, domrho, cmap, levels)
 
-cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels)
+cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varIndmedian, domrho, cmap, levels)
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
 cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks = levels[::2], fraction=0.015, shrink=2.0, pad=0.05)
 cb.set_label('%s' % (unit,), fontweight='bold')
 
-plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', hist+RCP8.5 vs. histNat [> ' + str(multStd) + ' std]'
-# ADD NUMBER OF RUNS
+plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', hist+RCP8.5 vs. histNat [> ' + str(multStd) + ' std]' \
+    '\n %d models, %d runs '%(nmodels,nruns)
 
 plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
 
 plt.figtext(.5,.02,'Computed by : zonal_toe_median_range.py',fontsize=9,ha='center')
 
-plt.show()
+
+# -- 16-84% inter-model range
+
+fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
+
+minmax = [0, 121, deltat]
+unit = 'Years'
+cmap = cmaps.viridis
+levels = np.arange(minmax[0], minmax[1], minmax[2])
+
+cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlrange, domrho, cmap, levels)
+
+cnplot = zonal_2D(plt, 'ToE', axes[0, 1], axes[1, 1], 'mid', lat, density, varPacrange, domrho, cmap, levels)
+
+cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varIndrange, domrho, cmap, levels)
+
+plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+
+cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks = levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
+cb.set_label('%s' % (unit,), fontweight='bold')
+
+plotTitle = '16-84% multimodel ensemble range of the ToE for ' + legVar + ', hist+RCP8.5 vs. histNat [> ' + str(multStd) + ' std]' \
+    '\n %d models, %d runs '%(nmodels,nruns)
+
+plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+
+plt.figtext(.5,.02,'Computed by : zonal_toe_median_range.py',fontsize=9,ha='center')
+
+
+plt.show(fig2)

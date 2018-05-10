@@ -260,12 +260,12 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax0.plot(lat, bowl, color='black')
 
-    # if action == 'ToE' or action == 'total_mme':
-    #     ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-    #     ax0.plot(lat, bowl1, linewidth=2, color='black',label=label1)
-    #     # -- Add legend for bowl position
-    #     if varBasin['name'] == 'Indian':
-    #         ax0.legend(loc='upper right', title='Bowl', fontsize=12)
+    if action == 'ToE' or action == 'total_mme':
+        ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
+        ax0.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+        # -- Add legend for bowl position
+        if varBasin['name'] == 'Indian':
+            ax0.legend(loc='upper right', title='Bowl', fontsize=12)
 
     ax0.set_ylim([domrho[0], domrho[1]])
     ax0.set_xlim([domlat[0], domlat[1]])
@@ -326,9 +326,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax1.plot(lat, bowl, color='black')
 
-    # if action == 'ToE' or action == 'total_mme':
-    #     ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-    #     ax1.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    if action == 'ToE' or action == 'total_mme':
+        ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
+        ax1.plot(lat, bowl1, linewidth=2, color='black',label=label1)
 
 
     ax1.set_ylim([domrho[1], domrho[2]])
@@ -613,7 +613,7 @@ def averageDom(field, dim, domain, lat, rho):
 
 def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
     '''
-    The remaToZ() function remaps a density bined zonal field back to z
+    The remaToZ() function remaps a density binned zonal field back to z
     It starts from the surface and computes the mean field for each z level, using the zonal volume of isopycnals for weighting
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
@@ -665,7 +665,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                             if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
                                 field_int = field_int + fieldr[ibasin,r,j]*volumr[ibasin,r,j]
                                 volum_int = volum_int + volumr[ibasin,r,j]
-                                depthr[ibasin,r,j] = -100. # to speed up search for next depths
+                                # depthr[ibasin,r,j] = -100. # to speed up search for next depths
                     if volum_int != 0.:
                         fieldz[ibasin,k,j] = field_int / volum_int
                         volumez[ibasin,k,j] = volum_int
@@ -694,7 +694,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                     fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
 
 
-    else :
+    else : # Not working
         for ibasin in range(1,4):
             for j in range(latN):
                 iz_notempty = 0
@@ -781,15 +781,15 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
 
     ax0.axvline(x=0, color='black', ls='--')
 
-    # -- Format for contour labels
-    levfmt='%.0f'
-    if abs(clevsm[1]-clevsm[0]) < 1:
-        levfmt='%.1f'
-    if abs(clevsm[1]-clevsm[0]) < 0.1:
-        levfmt='%.2f'
+    # # -- Format for contour labels
+    # levfmt='%.0f'
+    # if abs(clevsm[1]-clevsm[0]) < 1:
+    #     levfmt='%.1f'
+    # if abs(clevsm[1]-clevsm[0]) < 0.1:
+    #     levfmt='%.2f'
 
     # -- draw filled contours of period diff
-    cnplot = ax0.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+    cnplot0 = ax0.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
 
     # # -- draw mean contours --> TODO compute mean field first
     # cpplot = ax0.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
@@ -823,12 +823,13 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
     ax1.set_xticklabels(xlabels)
     # -- Set y ticks
-    ax1.set_yticks([500,1000,1500,2000])
+    ax1.set_yticks([500,1000,1500,2000,zedmax])
     yminorLocator = AutoMinorLocator(4)
     ax1.yaxis.set_minor_locator(yminorLocator)
 
     # -- draw filled contours
-    cnplot = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+    cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+
 
     # # -- draw mean contours
     # cpplot = ax1.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
@@ -838,7 +839,6 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
     ax1.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
 
-
     # Remove intersecting tick at zedmid
     yticks = ax1.yaxis.get_major_ticks()
     if ticks == 'left':
@@ -846,8 +846,8 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     if ticks == 'right':
         yticks[0].label2.set_visible(False)
 
-
     # -- add plot title
     ax1.text(domlat[0] + 10, zedmax-100, varBasin['name'], fontsize=16, fontweight='bold')
 
+    cnplot = [cnplot0, cnplot1]
     return cnplot

@@ -15,8 +15,8 @@ import numpy as np
 # -- Choose what to compute
 # name = 'mme_hist_histNat'
 # name = 'mme_1pctCO2vsPiC'
-# name = 'mme_rcp85_histNat'
-name = 'Durack & Wijffels' ## En cours mais pas accès à la profondeur des isopycnes ni au volume
+name = 'mme_rcp85_histNat'
+# name = 'Durack & Wijffels' ## En cours mais pas accès à la profondeur des isopycnes ni au volume
 # donc pas possible de cette manière -> voir si c'est la peine de faire le remapping ou si Paul a les données
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
@@ -75,8 +75,8 @@ if name == 'mme_rcp85_histNat':
     filercp85_2d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon2D.nc'
     filercp85_1d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
     indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    filehn_2d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
     fh2d = open_ncfile(indir_rcp85 + filercp85_2d, 'r')
     fh1d = open_ncfile(indir_rcp85 + filercp85_1d, 'r')
     fhn2d = open_ncfile(indirhn + filehn_2d, 'r')
@@ -162,8 +162,8 @@ if name == 'Durack & Wijffels':
     var_2000 = var_mean + var_change/2
 
 if v != 'V' and name != 'Durack & Wijffels':
-    field2r[np.ma.nonzero(field2r>50)] = np.ma.masked
-    field1r[np.ma.nonzero(field1r>50)] = np.ma.masked
+    field2r[np.ma.nonzero(field2r>40)] = np.ma.masked
+    field1r[np.ma.nonzero(field1r>40)] = np.ma.masked
 
     # == Compute signal hist - histNat or 1pctCO2 - PiControl or rcp8.5 - histNat ==
     vardiffr = np.ma.average(field2r, axis=0) - np.ma.average(field1r, axis=0)
@@ -218,11 +218,11 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
 
 
 # == Remap ==
-fieldz = remapToZ(vardiffr.data, depthr.data, volumr.data, targetz, bowl1z, v, bathy)
+fieldz = remapToZ(vardiffr.data, depthr, volumr, targetz, bowl1z, v, bathy)
 
 # Mask bad values
 if v=='S':
-    fieldz[np.ma.nonzero(fieldz>1.2)] = np.ma.masked
+    fieldz[np.ma.nonzero(np.ma.abs(fieldz)>1.2)] = np.ma.masked
 
 # -- Make variable bundles for each basin
 varAtl = {'name': 'Atlantic', 'var_change': fieldz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:], 'labBowl': labBowl}
