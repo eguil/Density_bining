@@ -761,27 +761,35 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             # Where level of s_s has higher density than bottom density,
             # isopycnal is set to bottom (z_s = z_zw[i_bottom])
             inds = npy.argwhere(s_s > szmax).transpose()
+
             # Find indices of densest point in column on s grid
             ssr = npy.roll(s_s, 1, axis=0)
             ssr[0,:] = ssr[1,:]-del_s1
             inds_bottom = npy.argwhere ( (szmax <= s_s) & (szmax > ssr) ).transpose()
-            #TODO TRY other strategy with 3D tiled array with bottom value at all levels (as below)
-
             bottom_ind = npy.ones((2,lonN*latN), dtype='int')*-1 # Todo init at sz_max ?
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
+
+            # Bottom correction for integral field
+            #TODO TRY other strategy with 3D tiled array with bottom value at all levels (as below)
+            c3ders[indsm[0], indsm[1]] = 0
+            zcd = npy.cumsum(c3ders, axis=0)
+            zcd = npy.tile(zcd[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c3t = npy.tile(c3_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c3ders[bottom_ind[0],bottom_ind[1]]=c3t[bottom_ind[0],bottom_ind[1]]-zcd[bottom_ind[0],bottom_ind[1]]
+
             if debug and t == 0:
-                print ' bottom correction', bottom_ind[0,ijtest], bottom_ind[1,ijtest], ijtest
-                print '   c3_s', c3_s[:,ijtest]
+                print ' bottom correction', bottom_ind[0,ijtest], bottom_ind[1,ijtest]
+                print '   c3t', c3t[:,ijtest]
+                print '   zcd', zcd[:,ijtest]
                 print '   c3ders', c3ders[:,ijtest]
                 print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
             # Densest value of derivative on s grid c3ders should be equal to c3_s
-            c3ders[indsm[0], indsm[1]] = 0
-            print npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
-            c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0]*1. - npy.sum(c3ders[0:npy.max(bottom_ind[0],0),bottom_ind[1]],axis=0)
-            print 'sum of ', c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]]
-            print 'equal ',npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
-            print c3_s[0,ijtest] - npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
+            #print npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
+            #c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0]*1. - npy.sum(c3ders[0:npy.max(bottom_ind[0],0),bottom_ind[1]],axis=0)
+            #print 'sum of ', c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]]
+            #print 'equal ',npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
+            #print c3_s[0,ijtest] - npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
             print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
 
             c3ders[indsm[0], indsm[1]] = valmask
