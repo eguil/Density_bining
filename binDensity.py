@@ -774,8 +774,9 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             #TODO TRY other strategy with 3D tiled array with bottom value at all levels (as below)
             c3ders[indsm[0], indsm[1]] = 0
             zcd = npy.cumsum(c3ders, axis=0)
-            zcd = npy.tile(zcd[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
-            c3t = npy.tile(c3_s[bottom_ind[0],bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            print '   zcd', zcd[:,ijtest]
+            zcd = npy.tile(zcd[bottom_ind[0]-1,bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c3t = npy.tile(c3_s[bottom_ind[0]-1,bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c3ders[bottom_ind[0],bottom_ind[1]]=c3t[bottom_ind[0],bottom_ind[1]]-zcd[bottom_ind[0],bottom_ind[1]]
 
             if debug and t == 0:
