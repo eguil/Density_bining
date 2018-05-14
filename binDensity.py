@@ -770,7 +770,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
             bottom_ind [1,:] = npy.arange(lonN*latN)
 
-            # Bottom correction for integral field
+            # Bottom correction for extensive field
             #TODO TRY other strategy with 3D tiled array with bottom value at all levels (as below)
             c3ders[indsm[0], indsm[1]] = 0
             zcd = npy.cumsum(c3ders, axis=0)
@@ -785,6 +785,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print '   c3t', c3t[:,ijtest]
                 print '   zcd', zcd[:,ijtest]
                 print '   c3ders', c3ders[:,ijtest]
+                print '  int(c3ders)', npy.cumsum(c3ders, axis=0)[:,ijtest]
                 print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
             # Densest value of derivative on s grid c3ders should be equal to c3_s
             #print npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
