@@ -771,7 +771,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             bottom_ind [1,:] = npy.arange(lonN*latN)
 
             # Bottom correction for extensive field
-            #TODO TRY other strategy with 3D tiled array with bottom value at all levels (as below)
+            # Densest value of derivative on s grid c3ders should be equal to c3_s
+            # Create 3D tiled array with bottom value at all levels (as below)
             c3ders[indsm[0], indsm[1]] = 0
             zcd = npy.cumsum(c3ders, axis=0)
             if debug and t == 0:
@@ -785,15 +786,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print '   c3t', c3t[:,ijtest]
                 print '   zcd', zcd[:,ijtest]
                 print '   c3ders', c3ders[:,ijtest]
-                print '  int(c3ders)', npy.cumsum(c3ders, axis=0)[:,ijtest]
-                print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]], c3_s[0,ijtest], c3_s[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
-            # Densest value of derivative on s grid c3ders should be equal to c3_s
+                print '   int(c3ders)', npy.cumsum(c3ders, axis=0)[:,ijtest]
             #print npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
             #c3ders[bottom_ind[0],bottom_ind[1]] = c3_s[0]*1. - npy.sum(c3ders[0:npy.max(bottom_ind[0],0),bottom_ind[1]],axis=0)
             #print 'sum of ', c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]]
             #print 'equal ',npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
             #print c3_s[0,ijtest] - npy.sum(c3ders[0:npy.max(bottom_ind[0,ijtest],0),bottom_ind[1,ijtest]],axis=0)
-            print c3ders[bottom_ind[0,ijtest],bottom_ind[1,ijtest]]
 
             c3ders[indsm[0], indsm[1]] = valmask
             if debug and t == 0:
@@ -973,7 +971,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
-            hvmtot = npy.ma.sum(hvmtotij0 * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
+            hvmtot = npy.ma.sum(hvmtotij0[0,:] * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
             print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18)   : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
