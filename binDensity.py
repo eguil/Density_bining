@@ -967,11 +967,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                                 npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             hvmtotij0 = npy.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*\
                                 (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
-            print npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,ijtest], 1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,ijtest],hvmtotij0[ijtest]
+            hvmtotij02 = npy.ma.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+                                (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            print npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,ijtest], 1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,ijtest]
+            print hvmtotij0[ijtest],hvmtotij02[ijtest]
             voltot = npy.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
-            hvmtot = npy.ma.sum(hvmtotij0[0,:] * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
+            hvmtot = npy.ma.sum(hvmtotij0 * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
             print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18)   : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
