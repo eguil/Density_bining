@@ -645,8 +645,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             area = area*npy.reshape(nomask, [latN, lonN])
             # compute "1D volume flux"
-#            x3_content = vo.data[t]*lev_thickt*(1.-vmask_3D)
-            x3_content = lev_thickt*(1.-vmask_3D)
+            x3_content = vo.data[t]*lev_thickt*(1.-vmask_3D)
+#            x3_content = lev_thickt*(1.-vmask_3D)
             if debug and t == 0:
                 print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
                 print x3_content[:,ijtest]
@@ -974,7 +974,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             print '  Test point sums', voltotij0[ijtest], temtotij0[ijtest]/voltotij0[ijtest],saltotij0[ijtest]/voltotij0[ijtest]
             print '  Total volume in rho coordinates source grid (ref = 1.33 e+18)   : ', voltot
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
-            print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot, npy.ma.sum(npy.ma.reshape(area,lonN*latN))
+            print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot
         #
 
         # Output files as netCDF
