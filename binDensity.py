@@ -777,7 +777,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             if debug and t == 0:
                 print '   zcd', zcd[:,ijtest]
             zcd = npy.tile(zcd[bottom_ind[0]-1,bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
-            c3t = npy.tile(c3_s[bottom_ind[0]-1,bottom_ind[1]].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
+            c3t = npy.tile(c3_s[0,:].reshape(lonN*latN), N_s+1).reshape(N_s+1,lonN*latN)
             c3ders[bottom_ind[0],bottom_ind[1]]=c3t[bottom_ind[0],bottom_ind[1]]-zcd[bottom_ind[0],bottom_ind[1]]
 
             if debug and t == 0:
