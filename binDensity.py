@@ -126,18 +126,18 @@ def computeAreaScale(lon,lat):
             latp1 = (latr[j]   + latr[j+1])*0.5
             area[j,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
             scalex[j,i] = npy.float(radius * npy.arccos (npy.sin(latm1)**2 + npy.cos(latm1)**2*npy.cos(lonp1-lonm1)))
-            scaley[j,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)))
+            scaley[j,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)+ npy.cos(latm1)*npy.cos(latp1) ))
         # North and south bounds
         latm1 = ((-90.*radconv) + latr[0] )*0.5
         latp1 = (latr[0]        + latr[1] )*0.5
         area[0,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
         scalex[0,i] = npy.float(radius * npy.arccos (npy.sin(latm1)**2 + npy.cos(latm1)**2*npy.cos(lonp1-lonm1)))
-        scaley[0,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)))
+        scaley[0,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)+ npy.cos(latm1)*npy.cos(latp1)))
         latm1 = (latr[latN-2] + latr[latN-1])*0.5
         latp1 = (latr[latN-1] + (90.*radconv)  )*0.5
         area[latN-1,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
         scalex[latN-1,i] = npy.float(radius * npy.arccos (npy.sin(latm1)**2 + npy.cos(latm1)**2*npy.cos(lonp1-lonm1)))
-        scaley[latN-1,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)))
+        scaley[latN-1,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)+ npy.cos(latm1)*npy.cos(latp1)))
     # East and west bounds
     area[:,0]        = area[:,1]
     area[:,lonN-1]   = area[:,lonN-2]
