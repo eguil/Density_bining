@@ -453,6 +453,11 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     Nji     = len(lati)
     # Compute area of target grid and zonal and global sums
     areai, scalexi, scaleyi = computeAreaScale(loni[:], lati[:])
+    print scalexi[3,:]
+    print scalexi[:,3]
+    print scaleyi[3,:]
+    print scaleyi[:,3]
+
     gridFile_f.close()
     areai.mask = maski
     areaia = areai*1. ; areaia.mask = maskAtl
