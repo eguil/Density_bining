@@ -1621,8 +1621,9 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 x1bz.units      = 'degrees_C'
                 x2bz.long_name  = soLongName
                 x2bz.units      = soUnits
-                x2bz.long_name  = 'Meridinal stream function'
-                x2bz.units      = 'm3/s'
+                x3bz.long_name  = 'Meridional stream function'
+                x3bz.units      = 'Sv'
+                x3scale         = 1.e-6
                 # Cleanup
             # Write & append
             outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
@@ -1630,7 +1631,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             outFile_f.write(vbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x1bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             outFile_f.write(x2bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
-            outFile_f.write(x3bz.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
+            outFile_f.write(x3bz*x3scale.astype('float32'),  extend = 1, index = (trmin-tmin)/12)
             del(dbz,tbz,vbz,x1bz,x2bz,x3bz) ; gc.collect()
 
         # Write/append to file
