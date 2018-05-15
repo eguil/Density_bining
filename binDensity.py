@@ -886,7 +886,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print ' c3_s2 after cumsum :'
                 print c3_s2[:,ijtest]
 
-            c3_s = c3_s2*1.
+            #c3_s = c3_s2*1.
             # assign to final arrays
             depth_bin[t,:,:] = z_s
             thick_bin[t,:,:] = t_s
