@@ -1154,8 +1154,8 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x1Binzp     = cdu.averager(x1Binip,     axis = 3)
             x2Binzp     = cdu.averager(x2Binip,     axis = 3)
             x3Binzp     = cdu.averager(x3Binip,     axis = 3, action='sum')
-            print 'zonal means',x3Binip[0,:,jtest,itest]
-            print x3Binzp[0,:,jtest]
+            print 'zonal means',x3Binip[0,10,jtest,ijest]
+            print x3Binzp[0,10,jtest]
             # Ind
             depthBinzi  = cdu.averager(depthBinii,  axis = 3)
             thickBinzi  = cdu.averager(thickBinii,  axis = 3)
