@@ -453,10 +453,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     Nji     = len(lati)
     # Compute area of target grid and zonal and global sums
     areai, scalexi, scaleyi = computeAreaScale(loni[:], lati[:])
-    print scalexi[3,:]
-    print scalexi[:,3]
-    print scaleyi[3,:]
-    print scaleyi[:,3]
 
     gridFile_f.close()
     areai.mask = maski
@@ -1160,19 +1156,19 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             thickBinz   = cdu.averager(thickBini,   axis = 3)
             x1Binz      = cdu.averager(x1Bini,      axis = 3)
             x2Binz      = cdu.averager(x2Bini,      axis = 3)
-            x3Binz      = cdu.averager(x3Bini,      axis = 3, action='sum')
+            x3Binz      = cdu.averager(x3Bini*scalexi, axis = 3, action='sum')
             # Atl
             depthBinza  = cdu.averager(depthBinia,  axis = 3)
             thickBinza  = cdu.averager(thickBinia,  axis = 3)
             x1Binza     = cdu.averager(x1Binia,     axis = 3)
             x2Binza     = cdu.averager(x2Binia,     axis = 3)
-            x3Binza     = cdu.averager(x3Binia,     axis = 3, action='sum')
+            x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
             # Pac
             depthBinzp  = cdu.averager(depthBinip,  axis = 3)
             thickBinzp  = cdu.averager(thickBinip,  axis = 3)
             x1Binzp     = cdu.averager(x1Binip,     axis = 3)
             x2Binzp     = cdu.averager(x2Binip,     axis = 3)
-            x3Binzp     = cdu.averager(x3Binip,     axis = 3, action='sum')
+            x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
             print 'zonal means',x3Binip[0,20,jtest,:]
             print x3Binzp[0,20,jtest]
             # Ind
