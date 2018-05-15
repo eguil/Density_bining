@@ -1601,10 +1601,14 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x2bz        = npy.ma.concatenate((x2Binz,x2Binza,x2Binzp,x2Binzi),axis=1)
             del(x2Binz,x2Binza,x2Binzp,x2Binzi) ; gc.collect()
             x2bz        = cdm.createVariable(x2bz,axes=timeBasinRhoAxesList,id='isonso')
-            x3Binz      = npy.ma.reshape(x3Binz,newshape)
-            x3Binza     = npy.ma.reshape(x3Binza,newshape)
-            x3Binzp     = npy.ma.reshape(x3Binzp,newshape)
-            x3Binzi     = npy.ma.reshape(x3Binzi,newshape)
+
+            # Change unit from m3/s to Sv
+            x3scale         = 1.e-6
+
+            x3Binz      = npy.ma.reshape(x3Binz*x3scale,newshape)
+            x3Binza     = npy.ma.reshape(x3Binza*x3scale,newshape)
+            x3Binzp     = npy.ma.reshape(x3Binzp*x3scale,newshape)
+            x3Binzi     = npy.ma.reshape(x3Binzi*x3scale,newshape)
             x3bz        = npy.ma.concatenate((x3Binz,x3Binza,x3Binzp,x3Binzi),axis=1)
             del(x3Binz,x3Binza,x3Binzp,x3Binzi) ; gc.collect()
             x3bz        = cdm.createVariable(x3bz,axes=timeBasinRhoAxesList,id='isonmsf')
@@ -1623,9 +1627,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 x2bz.units      = soUnits
                 x3bz.long_name  = 'Meridional stream function'
                 x3bz.units      = 'Sv'
-                x3scale         = 1.e-6
-            # Change unit from m3/s to Sv
-            x3bz            = x3bz * x3scale
                 # Cleanup
             # Write & append
             outFile_f.write(dbz.astype('float32'),   extend = 1, index = (trmin-tmin)/12)
