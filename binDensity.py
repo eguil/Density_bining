@@ -79,10 +79,12 @@ def maskVal(field,valmask):
 
 
 # Compute area of grid cells on earth
-def computeArea(lon,lat):
+def computeAreaScale(lon,lat):
     '''
-    The computeArea() function calculates grid cell area assuming values are
-    cell mid-points and formula area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
+    The computeAreaScale() function calculates grid cell area and scale factors assuming values are
+    cell mid-points, formulaes
+     area = R^2(lon2-lon1)*(sin(lat2) - sin(lat1))
+     distance = R arccos[ sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(lon2-lon1) ]
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
     Co-author: Paul J. Durack : pauldurack@llnl.gov : @durack1.
@@ -110,7 +112,9 @@ def computeArea(lon,lat):
     radconv = npy.pi/180.
     lonN = int(lon.shape[0])
     latN = int(lat.shape[0])
-    area = npy.ma.ones([latN, lonN], dtype='float32')*0.
+    area   = npy.ma.ones([latN, lonN], dtype='float32')*0.
+    scalex = npy.ma.ones([latN, lonN], dtype='float32')*0.
+    scaley = npy.ma.ones([latN, lonN], dtype='float32')*0.
     lonr = lon[:] * radconv
     latr = lat[:] * radconv
     #loop
@@ -121,18 +125,28 @@ def computeArea(lon,lat):
             latm1 = (latr[j-1] + latr[j]  )*0.5
             latp1 = (latr[j]   + latr[j+1])*0.5
             area[j,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+            scalex[j,i] = npy.float(radius * npy.arccos (npy.sin(latm1)**2 + npy.cos(latm1)**2*npy.cos(lonp1-lonm1)))
+            scaley[j,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)))
         # North and south bounds
         latm1 = ((-90.*radconv) + latr[0] )*0.5
         latp1 = (latr[0]        + latr[1] )*0.5
         area[0,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        scalex[0,i] = npy.float(radius * npy.arccos (npy.sin(latm1)**2 + npy.cos(latm1)**2*npy.cos(lonp1-lonm1)))
+        scaley[0,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)))
         latm1 = (latr[latN-2] + latr[latN-1])*0.5
         latp1 = (latr[latN-1] + (90.*radconv)  )*0.5
         area[latN-1,i] = npy.float(radius**2 * (lonp1 - lonm1) * (npy.sin(latp1) - npy.sin(latm1)))
+        scalex[latN-1,i] = npy.float(radius * npy.arccos (npy.sin(latm1)**2 + npy.cos(latm1)**2*npy.cos(lonp1-lonm1)))
+        scaley[latN-1,i] = npy.float(radius * npy.arccos (npy.sin(latm1)*npy.sin(latp1)))
     # East and west bounds
-    area[:,0]     = area[:,1]
-    area[:,lonN-1] = area[:,lonN-2]
+    area[:,0]        = area[:,1]
+    area[:,lonN-1]   = area[:,lonN-2]
+    scalex[:,0]      = scalex[:,1]
+    scaley[:,0]      = scaley[:,1]
+    scalex[:,lonN-1] = scalex[:,lonN-2]
+    scaley[:,lonN-1] = scaley[:,lonN-2]
 
-    return area
+    return area, scalex, scaley
 
 
 def eosNeutral(pottemp,salt):
@@ -438,7 +452,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     Nii     = len(loni)
     Nji     = len(lati)
     # Compute area of target grid and zonal and global sums
-    areai = computeArea(loni[:], lati[:])
+    areai, scalexi, scaleyi = computeAreaScale(loni[:], lati[:])
     gridFile_f.close()
     areai.mask = maski
     areaia = areai*1. ; areaia.mask = maskAtl
