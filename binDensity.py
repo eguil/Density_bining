@@ -107,6 +107,8 @@ def computeAreaScale(lon,lat):
     Notes:
     -----
     - PJD 15 Sep 2014 -
+    - EG  15 May 2018 - added scale factors calculation
+
     '''
     radius = 6371000. ; # Earth radius (metres)
     radconv = npy.pi/180.
@@ -638,7 +640,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         # Reset output arrays to missing for binned fields
         depth_Bin,thick_bin,x1_bin,x2_bin,x3_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(5)]
 
-        #print '1'
         tucz0     = timc.clock()
         if cpuan:
             cpu1 = 0.
@@ -661,7 +662,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             area = area*npy.reshape(nomask, [latN, lonN])
             # compute "1D volume flux"
             x3_content = vo.data[t]*lev_thickt*(1.-vmask_3D)
-#            x3_content = lev_thickt*(1.-vmask_3D)
             if debug and t == 0:
                 print ' x3_content before cumul, z_zt and z_zw :', x3_content.shape
                 print x3_content[:,ijtest]
@@ -1169,8 +1169,6 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x1Binzp     = cdu.averager(x1Binip,     axis = 3)
             x2Binzp     = cdu.averager(x2Binip,     axis = 3)
             x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
-            print 'zonal means',x3Binip[0,20,jtest,:]
-            print x3Binzp[0,20,jtest]
             # Ind
             depthBinzi  = cdu.averager(depthBinii,  axis = 3)
             thickBinzi  = cdu.averager(thickBinii,  axis = 3)
