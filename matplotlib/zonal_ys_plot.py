@@ -91,6 +91,16 @@ if dow == 'ishii': # 1945.01 - 2012.12 (68 time steps)
     labBowl = ['<1950', '2010']
     restrictBowl = True
     modelAgree = False
+
+
+if dow == 'test':
+    plotName = 'test_' + varname['var']
+    y11 = 0 ; y12 = 12
+    y21 = 0 ; y22 = 12
+    labBowl = ['<1950', '2000']
+    restrictBowl = False
+    modelAgree = False
+
 #(ignore for now JAMSTEC: 2001.01 - 2014.12
 #(ignore for now UCSD: 2004.01 - 2015.03
 # SmithAndMurphy2007 # 1950.01 - 2013.02 (ignore last year)
