@@ -34,8 +34,8 @@ outfmt = 'view'
 # models
 if dow == 'model':
     work = 'Prod_density_april15/mme_hist'
-    file2d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    file1d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    file2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    file1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
 
 # observations
 if dow == 'EN4':
