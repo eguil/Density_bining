@@ -26,6 +26,7 @@ indir = '/home/ericglod/Density_bining/'
 dow = 'model'
 #dow = 'EN4'
 #dow = 'ishii'
+dow = 'test'
 
 # output format
 outfmt = 'view'
@@ -46,6 +47,12 @@ if dow == 'ishii':
     work = 'Prod_density_obs_april16/mme_obs'
     file2d = 'obs.Ishii.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon2D.nc'
     file1d = 'obs.Ishii.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon1D.nc'
+
+if dow == 'test':
+    work = 'test'
+    file2d='cmip5.IPSL-VLR0.piControl.rip.mon.ocean.Omon.density_msf_ok.nc'
+    file1d='cmip5.IPSL-VLR0.piControl.rip.mon.ocean.Omon.density_msf_ok.nc'
+
 
 indir = indir + work
 
