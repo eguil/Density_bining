@@ -565,7 +565,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     tintrp     = timc.clock()
     # Compute level thickness in source z grid (lev_thickt is a replicate for 3D matrix computation)
     lev_thick     = npy.roll(z_zw,-1)-z_zw
-    lev_thick[-1] = lev_thick[-2]
+    lev_thick[-1] = lev_thick[-2] # TODO is this correct for bottom value ??
     #print 'lev_thick,z_zw ',lev_thick,z_zw
     lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
 
@@ -736,7 +736,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 c1m[k,k_ind] = c1_z[k,k_ind]
                 c2m[k,k_ind] = c2_z[k,k_ind]
                 c3m[k,k_ind] = c3_z[k,k_ind]
-                zzm[k,:] = z_zt[k] # For smooth bottom interpolation
+                zzm[k,:] = z_zt[k] # TODO ?? For smooth bottom interpolation use z_zw for integral field ?
 
             if debug and t == 0: #t == 0:
                 print ' szm just before interp', szm[:,ijtest]

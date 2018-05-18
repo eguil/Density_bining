@@ -56,7 +56,7 @@ agreelev = 0.6
 varname = defVar('salinity')
 #varname = defVar('temp')
 #varname = defVar('depth')
-varname = defVar('volume')
+#varname = defVar('volume')
 # varname = defVar('persist')
 
 # Define plot name, years for difference, bowl label and bowl and model agreement plot options
