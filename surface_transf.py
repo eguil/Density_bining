@@ -331,7 +331,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         Nii     = int(loni.shape[0])
         Nji     = int(lati.shape[0])
         # Compute area of target grid and zonal sums
-        areai, scalex, scaley = computeArea(loni[:], lati[:])
+        areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
     #
     # init arrays
     tmp     = npy.ma.ones([N_t, Nji, Nii], dtype='float32')*valmask 
