@@ -101,7 +101,7 @@ def computeAreaScale(lon,lat):
 
     Usage:
     ------
-    >>> from binDensity import computeArea
+    >>> from binDensity import computeAreaScale
     >>> computeArea(lon,lat)
 
     Notes:
@@ -527,7 +527,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
         tcdel = min(24,tmax)
     else:
         tcdel = min(48,tmax)
-    tcdel = min(12,tmax)
+    tcdel = min(12,tmax) # just for testing
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
