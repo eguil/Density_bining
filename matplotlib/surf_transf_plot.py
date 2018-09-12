@@ -37,9 +37,9 @@ trfatlwfo1 = npy.ma.average(nc1.variables['trsfwfoAtl'][:,:].squeeze(),axis=0)
 #trfatlhef2 = npy.ma.average(nc2.variables['trsfhefAtl'][:,:].squeeze(),axis=0)
 #trfatlwfo2 = npy.ma.average(nc2.variables['trsfwfoAtl'][:,:].squeeze(),axis=0)
 
-trfatltot2 = npy.ma.average(nc2.variables['trsftotAtl'][0,:].squeeze(),axis=0)
-trfatlhef2 = npy.ma.average(nc2.variables['trsfhefAtl'][0,:].squeeze(),axis=0)
-trfatlwfo2 = npy.ma.average(nc2.variables['trsfwfoAtl'][0,:].squeeze(),axis=0)
+trfatltot2 = nc2.variables['trsftotAtl'][0,:].squeeze()
+trfatlhef2 = nc2.variables['trsfhefAtl'][0,:].squeeze()
+trfatlwfo2 = nc2.variables['trsfwfoAtl'][0,:].squeeze()
 
 
 # axis
