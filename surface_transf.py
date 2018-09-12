@@ -22,10 +22,11 @@ This script computes water mass transformation from surface buoyancy fluxes in d
 
 EG   8 Oct 2014     - Started file
 PJD 22 Nov 2014     - Updated to comment out unused statements and imports
-                    - TODO: 
-                     - Bug in integral fluxes calculations
-                     - North vs. South calculation
-                     - add ekman pumping bining (cf wcurl in densit)
+EG  12 Sep 2018     - Add North vs. South calculation
+
+
+- TODO:
+    - add ekman pumping bining (cf wcurl in densit)
 
 
 @author: eguil
@@ -52,7 +53,7 @@ import seawater as sw
 # -----
 #
 
-def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, debug=True, timeint='all',noInterp=False):
+def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, debug=True, timeint='all',noInterp=False, domain='global'):
     '''
     The surfTransf() function takes files and variable arguments and creates
     density bined surface transformation fields which are written to a specified outfile
@@ -72,7 +73,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
-    - noInterp <optional>       - if true no interpolation to target grid 
+    - noInterp <optional>       - if true no interpolation to target grid
+    - domain <optional>         - specify domain for averaging when interpolated to WOA grid ('global','north', 'south' for now)
 
     Outputs:
     --------
@@ -308,7 +310,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # Interpolate on WOA grid
         #fileg = '/work/guilyardi/Density_bining/WOD13_masks.nc'
         #fileg = '/export/durack1/git/Density_bining/140807_WOD13_masks.nc'
-        fileg = '140807_WOD13_masks.nc'
+        fileg = '170224_WOD13_masks.nc'
         gt = cdm.open(fileg)
         maskg = gt('basinmask3')
         outgrid = maskg.getGrid()
@@ -331,7 +333,24 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         Nii     = int(loni.shape[0])
         Nji     = int(lati.shape[0])
         # Compute area of target grid and zonal sums
-        areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
+        #areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
+        areai = gt('basinmask3_area')
+        # Reduce domain to North/South ?
+        if domain == 'north':
+            lati2d = npy.tile(lati, Nii)
+            print lati2d.shape
+            indn = npy.argwhere(lati2d <= 0).transpose()
+            maskAtl[indn[0],indn[1]] = False
+            maskPac[indn[0],indn[1]] = False
+            maskInd[indn[0],indn[1]] = False
+        elif domain == 'south':
+            lati2d = npy.tile(lati, Nii)
+            print lati2d.shape
+            indn = npy.argwhere(lati2d >= 0).transpose()
+            maskAtl[indn[0],indn[1]] = False
+            maskPac[indn[0],indn[1]] = False
+            maskInd[indn[0],indn[1]] = False
+
     #
     # init arrays
     tmp     = npy.ma.ones([N_t, Nji, Nii], dtype='float32')*valmask 
