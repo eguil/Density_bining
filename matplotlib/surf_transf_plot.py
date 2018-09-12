@@ -28,7 +28,7 @@ file2  = run1+'_1950_2009_mean_transf_north40.nc'
 nc1 = open_ncfile(inDir + '/' + file1)
 nc2 = open_ncfile(inDir + '/' + file2)
 
-# -- Read variables for NorthAtl (anual mean from cdo yearmean on monthly data)
+# -- Read variables for North Atl (anual mean from cdo yearmean on monthly data)
 trfatltot1 = npy.ma.average(nc1.variables['trsftotAtl'][:,:].squeeze(),axis=0)
 trfatlhef1 = npy.ma.average(nc1.variables['trsfhefAtl'][:,:].squeeze(),axis=0)
 trfatlwfo1 = npy.ma.average(nc1.variables['trsfwfoAtl'][:,:].squeeze(),axis=0)
