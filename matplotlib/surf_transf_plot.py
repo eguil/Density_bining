@@ -46,8 +46,8 @@ trfatlwfo2 = nc2.variables['trsfwfoAtl'][0,:].squeeze()
 levr = nc1.variables['rhon'][:]
 sigmin = 22
 sigmax = 30
-trfmin = -15
-trfmax = 30
+trfmin = -10
+trfmax = 50
 
 plt.axis([sigmin, sigmax, trfmin, trfmax])
 
