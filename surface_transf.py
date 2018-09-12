@@ -345,7 +345,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # Reduce domain to North/South ?
         if domain == 'north':
             lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
-            indn = npy.argwhere(lati2d <= 0).transpose()
+            indn = npy.argwhere(lati2d <= 40).transpose()
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
