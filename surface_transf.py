@@ -140,7 +140,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     timeaxis.id       = 'time'
     timeaxis.units    = timeax.units
     timeaxis.designateTime()
-
+    print timeaxis
 
     if debugp:
         print; print ' Debug mode'
@@ -180,8 +180,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     # Read time and grid
     #time = tos_h.getTime()
     #time = timeax[tmin:tmax]
-    #print 'time'
-    #print time
     #lon  = tos_h.getLongitude()
     #lat  = tos_h.getLatitude()
     ingrid = tos.getGrid()
@@ -352,14 +350,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
             lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
             print lati2d.shape
             print maskAtl.shape
-            print lati2d[:,70]
-            print maskAtl[:,70]
+            print lati2d[:,170]
+            print maskAtl[:,170]
 
             indn = npy.argwhere(lati2d <= 0).transpose()
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
-            print maskAtl[:,70]
+            print maskAtl[:,170]
         elif domain == 'south':
             lati2d = npy.tile(lati, Nii).reshape(Nii,Nji).transpose()
             indn = npy.argwhere(lati2d >= 0).transpose()
