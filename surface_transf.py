@@ -558,7 +558,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai*maskPac, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai*maskInd, (Nji*Nii)), action='sum')*dt*convw
 
-        if debugp and t <= 2:
+        if debugp and t == 0:
             print '    integral Q flux ',t,intHeatFlx [t], intHeatFlxa[t], intHeatFlxp[t], intHeatFlxi[t]
             print '    integral W flux ',t,intWatFlx [t], intWatFlxa[t], intWatFlxp[t], intWatFlxi[t]
       
