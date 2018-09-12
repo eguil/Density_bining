@@ -120,8 +120,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     fsos  = cdm.open(fileSos)
     fhef  = cdm.open(fileHef)
     fwfo  = cdm.open(fileWfo)
-    timeax = ftos.getAxis('time')
-    #timeax = ftos.getAxis('time_counter')
+    #timeax = ftos.getAxis('time')
+    timeax = ftos.getAxis('time_counter')
     print timeax
     #
     # Dates to read
