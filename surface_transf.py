@@ -135,6 +135,13 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
 
+    # update time axis
+    timeaxis   = cdm.createAxis(timeax[tmin:tmax])
+    timeaxis.id       = 'time'
+    timeaxis.units    = timeax.units
+    timeaxis.designateTime()
+
+
     if debugp:
         print; print ' Debug mode'
  
@@ -172,9 +179,9 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     #
     # Read time and grid
     #time = tos_h.getTime()
-    time = timeax[tmin:tmax]
-    print 'time'
-    print time
+    #time = timeax[tmin:tmax]
+    #print 'time'
+    #print time
     #lon  = tos_h.getLongitude()
     #lat  = tos_h.getLatitude()
     ingrid = tos.getGrid()
@@ -614,10 +621,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     # Density flux (3D: time, lon, lat)
     convw = 1.e6
     if writedenflx:
-        rhon    = cdm.createVariable(rhon          , axes = [time, lati, loni], id = 'densurf')
-        denFlx  = cdm.createVariable(denflx*convw  , axes = [time, lati, loni], id = 'denflux')
-        denFlxh = cdm.createVariable(denflxh*convw , axes = [time, lati, loni], id = 'hdenflx')
-        denFlxw = cdm.createVariable(denflxw*convw , axes = [time, lati, loni], id = 'wdenflx')
+        rhon    = cdm.createVariable(rhon          , axes = [timeaxis, lati, loni], id = 'densurf')
+        denFlx  = cdm.createVariable(denflx*convw  , axes = [timeaxis, lati, loni], id = 'denflux')
+        denFlxh = cdm.createVariable(denflxh*convw , axes = [timeaxis, lati, loni], id = 'hdenflx')
+        denFlxw = cdm.createVariable(denflxw*convw , axes = [timeaxis, lati, loni], id = 'wdenflx')
         denFlx.long_name   = 'Surface density'
         denFlx.units       = 'kg.m-3 (anomaly, minus 1000)'
         denFlx.long_name   = 'Total density flux'
@@ -629,18 +636,18 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     #
     # Transformation (2D: time, sigma)
     convw = 1.e-6
-    totTransf   = cdm.createVariable(transf*convw  , axes = [time, s_axis], id = 'trsftot')
-    hefTransf   = cdm.createVariable(transfh*convw , axes = [time, s_axis], id = 'trsfhef')
-    wfoTransf   = cdm.createVariable(transfw*convw , axes = [time, s_axis], id = 'trsfwfo')
-    totTransfa  = cdm.createVariable(transfa*convw , axes = [time, s_axis], id = 'trsftotAtl')
-    hefTransfa  = cdm.createVariable(transfha*convw, axes = [time, s_axis], id = 'trsfhefAtl')
-    wfoTransfa  = cdm.createVariable(transfwa*convw, axes = [time, s_axis], id = 'trsfwfoAtl')
-    totTransfp  = cdm.createVariable(transfp*convw , axes = [time, s_axis], id = 'trsftotPac')
-    hefTransfp  = cdm.createVariable(transfhp*convw, axes = [time, s_axis], id = 'trsfhefPac')
-    wfoTransfp  = cdm.createVariable(transfwp*convw, axes = [time, s_axis], id = 'trsfwfoPac')
-    totTransfi  = cdm.createVariable(transfi*convw , axes = [time, s_axis], id = 'trsftotInd')
-    hefTransfi  = cdm.createVariable(transfhi*convw, axes = [time, s_axis], id = 'trsfhefInd')
-    wfoTransfi  = cdm.createVariable(transfwi*convw, axes = [time, s_axis], id = 'trsfwfoInd')
+    totTransf   = cdm.createVariable(transf*convw  , axes = [timeaxis, s_axis], id = 'trsftot')
+    hefTransf   = cdm.createVariable(transfh*convw , axes = [timeaxis, s_axis], id = 'trsfhef')
+    wfoTransf   = cdm.createVariable(transfw*convw , axes = [timeaxis, s_axis], id = 'trsfwfo')
+    totTransfa  = cdm.createVariable(transfa*convw , axes = [timeaxis, s_axis], id = 'trsftotAtl')
+    hefTransfa  = cdm.createVariable(transfha*convw, axes = [timeaxis, s_axis], id = 'trsfhefAtl')
+    wfoTransfa  = cdm.createVariable(transfwa*convw, axes = [timeaxis, s_axis], id = 'trsfwfoAtl')
+    totTransfp  = cdm.createVariable(transfp*convw , axes = [timeaxis, s_axis], id = 'trsftotPac')
+    hefTransfp  = cdm.createVariable(transfhp*convw, axes = [timeaxis, s_axis], id = 'trsfhefPac')
+    wfoTransfp  = cdm.createVariable(transfwp*convw, axes = [timeaxis, s_axis], id = 'trsfwfoPac')
+    totTransfi  = cdm.createVariable(transfi*convw , axes = [timeaxis, s_axis], id = 'trsftotInd')
+    hefTransfi  = cdm.createVariable(transfhi*convw, axes = [timeaxis, s_axis], id = 'trsfhefInd')
+    wfoTransfi  = cdm.createVariable(transfwi*convw, axes = [timeaxis, s_axis], id = 'trsfwfoInd')
     totTransf.long_name   = 'Total transformation'
     totTransf.units       = 'Sv'
     hefTransf.long_name   = 'Heat flux transformation'
@@ -667,14 +674,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     wfoTransfi.units      = 'Sv'
     #
     # Integral heat and emp fux (1D: time)
-    intQFlx   = cdm.createVariable(intHeatFlx  , axes = [time], id = 'intQflx')
-    intWFlx   = cdm.createVariable(intWatFlx   , axes = [time], id = 'intWflx')
-    intQFlxa  = cdm.createVariable(intHeatFlxa , axes = [time], id = 'intQflxAtl')
-    intWFlxa  = cdm.createVariable(intWatFlxa  , axes = [time], id = 'intWflxAtl')
-    intQFlxp  = cdm.createVariable(intHeatFlxp , axes = [time], id = 'intQflxPac')
-    intWFlxp  = cdm.createVariable(intWatFlxp  , axes = [time], id = 'intWflxPac')
-    intQFlxi  = cdm.createVariable(intHeatFlxi , axes = [time], id = 'intQflxInd')
-    intWFlxi  = cdm.createVariable(intWatFlxi  , axes = [time], id = 'intWflxInd')
+    intQFlx   = cdm.createVariable(intHeatFlx  , axes = [timeaxis], id = 'intQflx')
+    intWFlx   = cdm.createVariable(intWatFlx   , axes = [timeaxis], id = 'intWflx')
+    intQFlxa  = cdm.createVariable(intHeatFlxa , axes = [timeaxis], id = 'intQflxAtl')
+    intWFlxa  = cdm.createVariable(intWatFlxa  , axes = [timeaxis], id = 'intWflxAtl')
+    intQFlxp  = cdm.createVariable(intHeatFlxp , axes = [timeaxis], id = 'intQflxPac')
+    intWFlxp  = cdm.createVariable(intWatFlxp  , axes = [timeaxis], id = 'intWflxPac')
+    intQFlxi  = cdm.createVariable(intHeatFlxi , axes = [timeaxis], id = 'intQflxInd')
+    intWFlxi  = cdm.createVariable(intWatFlxi  , axes = [timeaxis], id = 'intWflxInd')
     intQFlx.long_name   = 'Integral Surface Heat Flux'
     intQFlx.units       = 'PW'
     intWFlx.long_name   = 'Integral Surface E minus P'
