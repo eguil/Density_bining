@@ -332,24 +332,24 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         Nii     = int(loni.shape[0])
         Nji     = int(lati.shape[0])
         # Compute area of target grid and zonal sums
-        #areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
-        areai = gt('basinmask3_area')
+        areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
+        #areai = gt('basinmask3_area')
         print areai.shape
-        print areai[90,:]
+        print areai[:,90]
         gt.close()
         # Reduce domain to North/South ?
         if domain == 'north':
             lati2d = npy.tile(lati, Nii).reshape(Nji, Nii)
             print lati2d.shape
             print maskAtl.shape
-            print lati2d[90,:]
-            print maskAtl[90,:]
+            print lati2d[:,90]
+            print maskAtl[:,90]
 
             indn = npy.argwhere(lati2d <= 0).transpose()
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
-            print maskAtl[90,:]
+            print maskAtl[:,90]
         elif domain == 'south':
             lati2d = npy.tile(lati, Nii).reshape(Nji,Nii)
             print lati2d.shape
