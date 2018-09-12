@@ -15,7 +15,8 @@ import numpy as np
 #                                Define work
 # -------------------------------------------------------------------------------
 
-inDir = '/Users/ericg/Projets/Density_bining/Nudge_CMIP6_IPSL/'
+#inDir = '/Users/ericg/Projets/Density_bining/Nudge_CMIP6_IPSL/'
+inDir = '/data/ericglod/Runs_nudges_sept2018'
 
 file1  = 'CM6-pace-TSTr7fgT_1950_2009_mean_transf_north.nc'
 
