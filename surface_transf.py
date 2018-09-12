@@ -131,16 +131,16 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     if timeint == 'all':
         tmin = 0
         tmax = timeax.shape[0]
+        timeaxis = timeax
     else:
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
-
-    # update time axis
-    timeaxis   = cdm.createAxis(timeax[tmin:tmax])
-    timeaxis.id       = 'time'
-    timeaxis.units    = timeax.units
-    timeaxis.designateTime()
-    print timeaxis
+        # update time axis
+        timeaxis   = cdm.createAxis(timeax[tmin:tmax])
+        timeaxis.id       = 'time'
+        timeaxis.units    = timeax.units
+        timeaxis.designateTime()
+        #print timeaxis
 
     if debugp:
         print; print ' Debug mode'
@@ -177,11 +177,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     if debugp:
         print tos_h
     #
-    # Read time and grid
-    #time = tos_h.getTime()
-    #time = timeax[tmin:tmax]
-    #lon  = tos_h.getLongitude()
-    #lat  = tos_h.getLatitude()
+    # Read input grid
     ingrid = tos.getGrid()
     #
     # Read cell area
@@ -345,19 +341,14 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         #print areai.shape
         #print areai[:,90]
         gt.close()
+
         # Reduce domain to North/South ?
         if domain == 'north':
             lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
-            print lati2d.shape
-            print maskAtl.shape
-            print lati2d[:,170]
-            print maskAtl[:,170]
-
             indn = npy.argwhere(lati2d <= 0).transpose()
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
-            print maskAtl[:,170]
         elif domain == 'south':
             lati2d = npy.tile(lati, Nii).reshape(Nii,Nji).transpose()
             indn = npy.argwhere(lati2d >= 0).transpose()
@@ -557,17 +548,17 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         convt  = 1.e-15
             
         intHeatFlx [t] = cdu.averager(npy.reshape(heft*areai , (Nji*Nii)), action='sum')*dt*convt
-        intHeatFlxa[t] = cdu.averager(npy.reshape(hefta*areai, (Nji*Nii)), action='sum')*dt*convt
-        intHeatFlxp[t] = cdu.averager(npy.reshape(heftp*areai, (Nji*Nii)), action='sum')*dt*convt
-        intHeatFlxi[t] = cdu.averager(npy.reshape(hefti*areai, (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxa[t] = cdu.averager(npy.reshape(hefta*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxp[t] = cdu.averager(npy.reshape(heftp*areai*maskPac, (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlxi[t] = cdu.averager(npy.reshape(hefti*areai*maskInd, (Nji*Nii)), action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
         intWatFlx [t]  = cdu.averager(npy.reshape(empt*areai , (Nji*Nii)), action='sum')*dt*convw
-        intWatFlxa[t]  = cdu.averager(npy.reshape(empta*areai, (Nji*Nii)), action='sum')*dt*convw
-        intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai, (Nji*Nii)), action='sum')*dt*convw
-        intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai, (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxa[t]  = cdu.averager(npy.reshape(empta*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai*maskPac, (Nji*Nii)), action='sum')*dt*convw
+        intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai*maskInd, (Nji*Nii)), action='sum')*dt*convw
 
-        if debugp and t == 0:
+        if debugp and t <= 2:
             print '    integral Q flux ',t,intHeatFlx [t], intHeatFlxa[t], intHeatFlxp[t], intHeatFlxi[t]
             print '    integral W flux ',t,intWatFlx [t], intWatFlxa[t], intWatFlxp[t], intWatFlxi[t]
       
