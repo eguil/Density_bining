@@ -22,7 +22,7 @@ file1  = 'CM6-pace-TSTr7fgT_1950_2009_mean_transf_north.nc'
 
 #
 # -- Open netcdf files
-nc1 = open_ncfile(inDirh + '/' + file2dh)
+nc1 = open_ncfile(inDir + '/' + file2dh)
 
 # -- Read variables for NorthAtl
 trfatltot1 = nc1.variables['trsftotAtl'][:]
