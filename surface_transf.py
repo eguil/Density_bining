@@ -124,7 +124,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     fwfo  = cdm.open(fileWfo)
     #timeax = ftos.getAxis('time')
     timeax = ftos.getAxis('time_counter')
-    #print timeax
+    print 'timeax'
+    print timeax
     #
     # Dates to read
     if timeint == 'all':
@@ -172,6 +173,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     # Read time and grid
     #time = tos_h.getTime()
     time = timeax[tmin:tmax]
+    print 'time'
+    print time
     #lon  = tos_h.getLongitude()
     #lat  = tos_h.getLatitude()
     ingrid = tos.getGrid()
@@ -334,22 +337,22 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # Compute area of target grid and zonal sums
         areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
         #areai = gt('basinmask3_area')
-        print areai.shape
-        print areai[:,90]
+        #print areai.shape
+        #print areai[:,90]
         gt.close()
         # Reduce domain to North/South ?
         if domain == 'north':
             lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
             print lati2d.shape
             print maskAtl.shape
-            print lati2d[:,90]
-            print maskAtl[:,90]
+            print lati2d[:,70]
+            print maskAtl[:,70]
 
             indn = npy.argwhere(lati2d <= 0).transpose()
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
-            print maskAtl[:,90]
+            print maskAtl[:,70]
         elif domain == 'south':
             lati2d = npy.tile(lati, Nii).reshape(Nii,Nji).transpose()
             indn = npy.argwhere(lati2d >= 0).transpose()
