@@ -339,7 +339,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         gt.close()
         # Reduce domain to North/South ?
         if domain == 'north':
-            lati2d = npy.tile(lati, Nii).reshape(Nji, Nii)
+            lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
             print lati2d.shape
             print maskAtl.shape
             print lati2d[:,90]
@@ -351,8 +351,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
             maskInd[indn[0],indn[1]] = False
             print maskAtl[:,90]
         elif domain == 'south':
-            lati2d = npy.tile(lati, Nii).reshape(Nji,Nii)
-            print lati2d.shape
+            lati2d = npy.tile(lati, Nii).reshape(Nii,Nji).transpose()
             indn = npy.argwhere(lati2d >= 0).transpose()
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
