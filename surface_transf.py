@@ -124,7 +124,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     fwfo  = cdm.open(fileWfo)
     #timeax = ftos.getAxis('time')
     timeax = ftos.getAxis('time_counter')
-    print timeax
+    #print timeax
     #
     # Dates to read
     if timeint == 'all':
@@ -171,7 +171,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     #
     # Read time and grid
     #time = tos_h.getTime()
-    time = timeax
+    time = timeax[tmin:tmax]
     #lon  = tos_h.getLongitude()
     #lat  = tos_h.getLatitude()
     ingrid = tos.getGrid()
