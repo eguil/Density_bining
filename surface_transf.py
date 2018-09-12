@@ -314,7 +314,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         gt = cdm.open(fileg)
         maskg = gt('basinmask3')
         outgrid = maskg.getGrid()
-        gt.close()
         # global mask
         maski = maskg.mask
         # regional masks
@@ -335,6 +334,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # Compute area of target grid and zonal sums
         #areai, scalex, scaley = computeAreaScale(loni[:], lati[:])
         areai = gt('basinmask3_area')
+        gt.close()
         # Reduce domain to North/South ?
         if domain == 'north':
             lati2d = npy.tile(lati, Nii)
