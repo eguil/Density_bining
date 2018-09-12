@@ -47,7 +47,7 @@ levr = nc1.variables['rhon'][:]
 sigmin = 22
 sigmax = 30
 trfmin = -10
-trfmax = 50
+trfmax = 40
 
 plt.axis([sigmin, sigmax, trfmin, trfmax])
 
@@ -65,7 +65,7 @@ plt.hlines(0.,sigmin, sigmax)
 
 plt.legend(loc='upper left', title='', fontsize=10)
 
-plt.text(23, 32, 'Surface transformation North Atl.', fontsize=14, fontweight='bold')
+plt.text(23, trfmax+3, 'Surface transformation North Atl.', fontsize=14, fontweight='bold')
 
 plt.show()
 
