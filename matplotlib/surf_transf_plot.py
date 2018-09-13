@@ -64,8 +64,8 @@ trfmax = 40
 
 # -- Create figure and axes instances
 fig, axes = plt.subplots(nrows=1, ncols=2)
-ax0 = axes[0,0]
-ax1 = axes[0,1]
+ax0 = axes[0]
+ax1 = axes[1]
 
 
 ax0.axis([sigmin, sigmax, trfmin, trfmax])
