@@ -73,7 +73,7 @@ plt.hlines(0.,sigmin, sigmax)
 
 plt.legend(loc='upper left', title='', fontsize=10)
 
-plt.text(23, trfmax+3, 'DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
+plt.text(23, trfmax+3, 'IPSL-CM6A-LR 1950-2009 DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
 
 plt.show()
 
