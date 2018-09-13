@@ -60,10 +60,11 @@ sigmin = 22
 sigmax = 29
 trfmin = -10
 trfmax = 40
+trfdiff = 15
 
 
 # -- Create figure and axes instances
-fig, axes = plt.subplots(nrows=1, ncols=2)
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 10))
 ax0 = axes[0]
 ax1 = axes[1]
 
@@ -91,6 +92,18 @@ ax0.plot(levr, trfatlwfo4, c = 'g', linestyle =':')
 ax0.hlines(0.,sigmin, sigmax)
 
 ax0.legend(loc='upper left', title='', fontsize=10)
+
+# difference
+ax1.axis([sigmin, sigmax, -trfdiff, trfdiff])
+
+ax1.plot(levr, trfatltot2-trfatltot1, c = 'b', label = run2)
+ax1.plot(levr, trfatlhef2-trfatlhef1, c = 'b', linestyle ='--')
+ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle =':')
+
+ax1.hlines(0.,sigmin, sigmax)
+
+ax2.legend(loc='upper left', title='', fontsize=10)
+
 
 ttxt = fig.suptitle('IPSL-CM6A-LR 1950-2009 DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
 plt.show()
