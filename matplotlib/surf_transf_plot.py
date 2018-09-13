@@ -86,8 +86,8 @@ ax0.plot(levr, trfatltot4, c = 'g', label = run4)
 ax0.plot(levr, trfatlhef4, c = 'g', linestyle ='--')
 ax0.plot(levr, trfatlwfo4, c = 'g', linestyle =':')
 
-ax0.xlabel('sigma_n', fontsize=14)
-ax0.ylabel('Tranformation(Sv)', fontsize=14)
+#ax0.xlabel('sigma_n', fontsize=14)
+#ax0.ylabel('Tranformation(Sv)', fontsize=14)
 ax0.hlines(0.,sigmin, sigmax)
 
 ax0.legend(loc='upper left', title='', fontsize=10)
