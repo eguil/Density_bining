@@ -100,13 +100,13 @@ ax1.plot(levr, trfatltot2-trfatltot1, c = 'b', label = run2)
 ax1.plot(levr, trfatlhef2-trfatlhef1, c = 'b', linestyle ='--')
 ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle =':')
 
-ax1.plot(levr, trfatltot3-trfatltot1, c = 'b', label = run3)
-ax1.plot(levr, trfatlhef3-trfatlhef1, c = 'b', linestyle ='--')
-ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'b', linestyle =':')
+ax1.plot(levr, trfatltot3-trfatltot1, c = 'r', label = run3)
+ax1.plot(levr, trfatlhef3-trfatlhef1, c = 'r', linestyle ='--')
+ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'r', linestyle =':')
 
-ax1.plot(levr, trfatltot4-trfatltot1, c = 'b', label = run4)
-ax1.plot(levr, trfatlhef4-trfatlhef1, c = 'b', linestyle ='--')
-ax1.plot(levr, trfatlwfo4-trfatlwfo1, c = 'b', linestyle =':')
+ax1.plot(levr, trfatltot4-trfatltot1, c = 'g', label = run4)
+ax1.plot(levr, trfatlhef4-trfatlhef1, c = 'g', linestyle ='--')
+ax1.plot(levr, trfatlwfo4-trfatlwfo1, c = 'g', linestyle =':')
 
 ax1.hlines(0.,sigmin, sigmax)
 
