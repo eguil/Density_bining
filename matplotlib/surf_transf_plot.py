@@ -64,7 +64,7 @@ trfdiff = 15
 
 
 # -- Create figure and axes instances
-fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 10))
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(17, 8))
 ax0 = axes[0]
 ax1 = axes[1]
 
@@ -99,6 +99,14 @@ ax1.axis([sigmin, sigmax, -trfdiff, trfdiff])
 ax1.plot(levr, trfatltot2-trfatltot1, c = 'b', label = run2)
 ax1.plot(levr, trfatlhef2-trfatlhef1, c = 'b', linestyle ='--')
 ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle =':')
+
+ax1.plot(levr, trfatltot3-trfatltot1, c = 'b', label = run3)
+ax1.plot(levr, trfatlhef3-trfatlhef1, c = 'b', linestyle ='--')
+ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'b', linestyle =':')
+
+ax1.plot(levr, trfatltot4-trfatltot1, c = 'b', label = run4)
+ax1.plot(levr, trfatlhef4-trfatlhef1, c = 'b', linestyle ='--')
+ax1.plot(levr, trfatlwfo4-trfatlwfo1, c = 'b', linestyle =':')
 
 ax1.hlines(0.,sigmin, sigmax)
 
