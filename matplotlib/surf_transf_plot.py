@@ -102,7 +102,7 @@ ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle =':')
 
 ax1.hlines(0.,sigmin, sigmax)
 
-ax2.legend(loc='upper left', title='', fontsize=10)
+ax1.legend(loc='upper left', title='', fontsize=10)
 
 
 ttxt = fig.suptitle('IPSL-CM6A-LR 1950-2009 DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
