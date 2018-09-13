@@ -124,8 +124,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     fwfo  = cdm.open(fileWfo)
     #timeax = ftos.getAxis('time')
     timeax = ftos.getAxis('time_counter')
-    #print 'timeax'
-    #print timeax
+    print 'timeax'
+    print timeax
     #
     # Dates to read
     if timeint == 'all':
@@ -136,7 +136,10 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         tmin = int(timeint.split(',')[0]) - 1
         tmax = tmin + int(timeint.split(',')[1])
         # update time axis
-        timeaxis   = cdm.createAxis(timeax[tmin:tmax])
+        timedel = timeax[tmin:tmax]
+        print 'timdel'
+        print timedel
+        timeaxis   = cdm.createAxis(timedel)
         timeaxis.id       = 'time'
         timeaxis.units    = timeax.units
         timeaxis.designateTime()
