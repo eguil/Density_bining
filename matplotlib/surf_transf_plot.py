@@ -16,7 +16,7 @@ import numpy as npy
 # -------------------------------------------------------------------------------
 
 #inDir = '/Users/ericg/Projets/Density_bining/Nudge_CMIP6_IPSL/'
-inDir = '/data/ericglod/Runs_nudges_sept2018'
+inDir = '/data/ericglod/Runs_nudges_sept2018/'
 
 run1 = 'historical_r1i1p1f1'
 file1  = 'IPSL-CM6A-LR_historical_r1i1p1f1_gn_1950_2009_seasmean_transf_north40.nc'
