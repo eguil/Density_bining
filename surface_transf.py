@@ -22,11 +22,10 @@ This script computes water mass transformation from surface buoyancy fluxes in d
 
 EG   8 Oct 2014     - Started file
 PJD 22 Nov 2014     - Updated to comment out unused statements and imports
-EG  12 Sep 2018     - Add North vs. South calculation
-
 
 - TODO:
     - add ekman pumping bining (cf wcurl in densit)
+    - remove time loop
 
 
 @author: eguil
@@ -92,6 +91,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     - EG   8 Oct 2014   - Initial function write and tests ok
     - PJD 22 Nov 2014   - Code cleanup
     - EG   4 Oct 2017   - code on ciclad, more cleanup and options
+    - EG  12 Sep 2018   - Add North vs. South calculation
 
     '''
     # Keep track of time (CPU and elapsed)
@@ -344,6 +344,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         gt.close()
 
         # Reduce domain to North/South ?
+        print ' Domain : ',domain
         if domain == 'north':
             lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
             indn = npy.argwhere(lati2d <= 0).transpose()

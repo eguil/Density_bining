@@ -61,31 +61,37 @@ sigmax = 29
 trfmin = -10
 trfmax = 40
 
-plt.axis([sigmin, sigmax, trfmin, trfmax])
 
-plt.plot(levr, trfatltot1, c = 'black', label = run1)
-plt.plot(levr, trfatlhef1, c = 'black', linestyle ='--')
-plt.plot(levr, trfatlwfo1, c = 'black', linestyle =':')
+# -- Create figure and axes instances
+fig, axes = plt.subplots(nrows=1, ncols=2)
+ax0 = axes[0,0]
+ax1 = axes[0,1]
 
-plt.plot(levr, trfatltot2, c = 'b', label = run2)
-plt.plot(levr, trfatlhef2, c = 'b', linestyle ='--')
-plt.plot(levr, trfatlwfo2, c = 'b', linestyle =':')
 
-plt.plot(levr, trfatltot3, c = 'r', label = run3)
-plt.plot(levr, trfatlhef3, c = 'r', linestyle ='--')
-plt.plot(levr, trfatlwfo3, c = 'r', linestyle =':')
+ax0.axis([sigmin, sigmax, trfmin, trfmax])
 
-plt.plot(levr, trfatltot4, c = 'g', label = run4)
-plt.plot(levr, trfatlhef4, c = 'g', linestyle ='--')
-plt.plot(levr, trfatlwfo4, c = 'g', linestyle =':')
+ax0.plot(levr, trfatltot1, c = 'black', label = run1)
+ax0.plot(levr, trfatlhef1, c = 'black', linestyle ='--')
+ax0.plot(levr, trfatlwfo1, c = 'black', linestyle =':')
 
-plt.xlabel('sigma_n', fontsize=14)
-plt.ylabel('Tranformation(Sv)', fontsize=14)
-plt.hlines(0.,sigmin, sigmax)
+ax0.plot(levr, trfatltot2, c = 'b', label = run2)
+ax0.plot(levr, trfatlhef2, c = 'b', linestyle ='--')
+ax0.plot(levr, trfatlwfo2, c = 'b', linestyle =':')
 
-plt.legend(loc='upper left', title='', fontsize=10)
+ax0.plot(levr, trfatltot3, c = 'r', label = run3)
+ax0.plot(levr, trfatlhef3, c = 'r', linestyle ='--')
+ax0.plot(levr, trfatlwfo3, c = 'r', linestyle =':')
 
-plt.text(22.5, trfmax+2, 'IPSL-CM6A-LR 1950-2009 DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
+ax0.plot(levr, trfatltot4, c = 'g', label = run4)
+ax0.plot(levr, trfatlhef4, c = 'g', linestyle ='--')
+ax0.plot(levr, trfatlwfo4, c = 'g', linestyle =':')
 
+ax0.xlabel('sigma_n', fontsize=14)
+ax0.ylabel('Tranformation(Sv)', fontsize=14)
+ax0.hlines(0.,sigmin, sigmax)
+
+ax0.legend(loc='upper left', title='', fontsize=10)
+
+ttxt = fig.suptitle('IPSL-CM6A-LR 1950-2009 DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
 plt.show()
 
