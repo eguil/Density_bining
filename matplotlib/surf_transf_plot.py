@@ -71,17 +71,17 @@ ax1 = axes[1]
 
 ax0.axis([sigmin, sigmax, trfmin, trfmax])
 
-ax0.plot(levr, trfatltot1, c = 'black', label = run1)
-ax0.plot(levr, trfatlhef1, c = 'black', linestyle ='--')
-ax0.plot(levr, trfatlwfo1, c = 'black', linestyle =':')
+ax0.plot(levr, trfatltot1, c = 'orange', label = run1)
+ax0.plot(levr, trfatlhef1, c = 'orange', linestyle ='--')
+ax0.plot(levr, trfatlwfo1, c = 'orange', linestyle =':')
 
-ax0.plot(levr, trfatltot2, c = 'b', label = run2)
-ax0.plot(levr, trfatlhef2, c = 'b', linestyle ='--')
-ax0.plot(levr, trfatlwfo2, c = 'b', linestyle =':')
+ax0.plot(levr, trfatltot2, c = 'r', label = run2)
+ax0.plot(levr, trfatlhef2, c = 'r', linestyle ='--')
+ax0.plot(levr, trfatlwfo2, c = 'r', linestyle =':')
 
-ax0.plot(levr, trfatltot3, c = 'r', label = run3)
-ax0.plot(levr, trfatlhef3, c = 'r', linestyle ='--')
-ax0.plot(levr, trfatlwfo3, c = 'r', linestyle =':')
+ax0.plot(levr, trfatltot3, c = 'black', label = run3)
+ax0.plot(levr, trfatlhef3, c = 'black', linestyle ='--')
+ax0.plot(levr, trfatlwfo3, c = 'black', linestyle =':')
 
 ax0.plot(levr, trfatltot4, c = 'g', label = run4)
 ax0.plot(levr, trfatlhef4, c = 'g', linestyle ='--')
