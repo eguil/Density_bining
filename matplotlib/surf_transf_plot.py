@@ -69,23 +69,27 @@ ax0 = axes[0]
 ax1 = axes[1]
 
 
+plt.xlabel('sigma_n', fontsize=14)
+plt.ylabel('Tranformation(Sv)', fontsize=14)
+
+
 ax0.axis([sigmin, sigmax, trfmin, trfmax])
 
 ax0.plot(levr, trfatltot1, c = 'orange', label = run1)
 ax0.plot(levr, trfatlhef1, c = 'orange', linestyle ='--')
-ax0.plot(levr, trfatlwfo1, c = 'orange', linestyle ='-')
+ax0.plot(levr, trfatlwfo1, c = 'orange', linestyle ='-.')
 
 ax0.plot(levr, trfatltot2, c = 'r', label = run2)
 ax0.plot(levr, trfatlhef2, c = 'r', linestyle ='--')
-ax0.plot(levr, trfatlwfo2, c = 'r', linestyle ='-')
+ax0.plot(levr, trfatlwfo2, c = 'r', linestyle ='-.')
 
 ax0.plot(levr, trfatltot3, c = 'black', label = run3)
 ax0.plot(levr, trfatlhef3, c = 'black', linestyle ='--')
-ax0.plot(levr, trfatlwfo3, c = 'black', linestyle ='-')
+ax0.plot(levr, trfatlwfo3, c = 'black', linestyle ='-.')
 
 ax0.plot(levr, trfatltot4, c = 'g', label = run4)
 ax0.plot(levr, trfatlhef4, c = 'g', linestyle ='--')
-ax0.plot(levr, trfatlwfo4, c = 'g', linestyle ='-')
+ax0.plot(levr, trfatlwfo4, c = 'g', linestyle ='-.')
 
 
 
@@ -100,21 +104,25 @@ ax1.axis([sigmin, sigmax, -trfdiff, trfdiff])
 
 ax1.plot(levr, trfatltot2-trfatltot1, c = 'b', label = run2)
 ax1.plot(levr, trfatlhef2-trfatlhef1, c = 'b', linestyle ='--')
-ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle =':')
+ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle ='-.')
 
 ax1.plot(levr, trfatltot3-trfatltot1, c = 'r', label = run3)
 ax1.plot(levr, trfatlhef3-trfatlhef1, c = 'r', linestyle ='--')
-ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'r', linestyle =':')
+ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'r', linestyle ='-.')
 
 ax1.plot(levr, trfatltot4-trfatltot1, c = 'g', label = run4)
 ax1.plot(levr, trfatlhef4-trfatlhef1, c = 'g', linestyle ='--')
-ax1.plot(levr, trfatlwfo4-trfatlwfo1, c = 'g', linestyle =':')
+ax1.plot(levr, trfatlwfo4-trfatlwfo1, c = 'g', linestyle ='-.')
 
 ax1.hlines(0.,sigmin, sigmax)
 
 ax1.legend(loc='upper left', title='', fontsize=10)
 
 ax1.set_title("Differences")
+
+
+plt.xlabel('sigma_n', fontsize=14)
+plt.ylabel('Tranformation(Sv)', fontsize=14)
 
 
 ttxt = fig.suptitle('IPSL-CM6A-LR 1950-2009 DJF Surface transformation North Atl. > 40N', fontsize=14, fontweight='bold')
