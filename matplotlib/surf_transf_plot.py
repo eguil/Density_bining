@@ -19,12 +19,12 @@ import numpy as npy
 inDir = '/data/ericglod/Runs_nudges_sept2018/'
 
 # use cdo yseasmean to compute seasonal climatology
-run1 = 'historical_r1i1p1f1'
-file1  = 'IPSL-CM6A-LR_historical_r1i1p1f1_gn_1950_2009_seasmean_transf_north40.nc'
-run2 = 'CM6-pace-TSTr7fgT'
+run1 = 'CM61-LR-hist-03.2110'
+file1  = run1+'_1950_2009_seasmean_transf_north40.nc'
+run2 = 'CM6-pace-TSTr8fgT'
 file2  = run2+'_1950_2009_seasmean_transf_north40.nc'
-run3 = 'CM6-pace-TSTr7vg'
-file3  = run3+'_1950_2009_seasmean_transf_north40.nc'
+run3 = 'CM6-pace-TSTr8vg'
+file3  = run3+'_1950_1999_seasmean_transf_north40.nc'
 run4 = 'CM6-pace-TSTr8vgS0'
 file4  = run4+'_1950_2009_seasmean_transf_north40.nc'
 
