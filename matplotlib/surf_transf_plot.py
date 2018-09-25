@@ -85,7 +85,7 @@ trfdiff = 15
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(22, 8))
 ax0 = axes[0]
 ax1 = axes[1]
-ax1 = axes[2]
+ax2 = axes[2]
 
 
 plt.xlabel('sigma_n', fontsize=14)
