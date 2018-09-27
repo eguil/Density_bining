@@ -269,49 +269,41 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     # target horizonal grid for interp 
     if noInterp:
         outgrid = ingrid
-        maski = tos[0,...].mask
-        #fileg = 'Pablo_work/Convection-NORTHREGION-mask.nc'
-        #gt = cdm.open(fileg)
-        #maskr = gt('NORTHREGION')
-        #maskAtl = maskr[0,...]
-        #gt.close
-        #fileg = 'Pablo_work/Convection-SOUTHREGION-mask.nc'
-        #gt = cdm.open(fileg)
-        #maskr = gt('SOUTHREGION')
-        #maskPac = maskr[0,...]
-        #gt.close
-        #fileg = 'Pablo_work/Convection-WESTREGION-mask.nc'
-        #gt = cdm.open(fileg)
-        #maskr = gt('WESTREGION')
-        #maskInd = maskr[0,...]
-        #gt.close
+        fileg = '/data/vestella/Masks/Mask_Convect_Atlantic_40N.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('mask_part')
+        maski = maskr[...]
+        gt.close
+        #maski = tos[0,...].mask
+        fileg = '/data/vestella/Masks/Mask_Convect_GS.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('mask_part')
+        maskAtl = maskr[...]
+        gt.close
+        fileg = '/data/vestella/Masks/Mask_Convect_SI.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('mask_part')
+        maskPac = maskr[...]
+        gt.close
+        fileg = '/data/vestella/Masks/Mask_Convect_LS.nc'
+        gt = cdm.open(fileg)
+        maskr = gt('mask_part')
+        maskInd = maskr[...]
+        gt.close
 
-        # séparer en deux boites, une boite sud (pour i=1:45, j=1:30) dans maskAtl
-        #et une boite nord (pour i=1:45, j=31:48). dans maskPac
-        # boite sud  j = [20:35] i = [17:30]
-        maskAtl = maski*1; maskAtl[...] = False
-        maskAtl[0:29,:] = True
-        maskPac = maski*1; maskPac[...] = False
-        maskPac[30:47,:] = True
-        maskInd = maski*1; maskInd[...] = False
-        maskInd[19:34,16:29] = True
-        
-        #loni  = tos_h.getLongitude()
-        #lati  = tos_h.getLatitude()
- 
         # Read area of target grid and zonal sums
         areai = npy.ma.ones([N_j, N_i], dtype='float32')*0.
-        fileg = 'Pablo_work/area-lon_lat-NATL.nc'
+        fileg = '/data/igcmg/database/grids/ORCA2.3_area.nc'
         gt = cdm.open(fileg)
-        arear = gt('AREAT')
-        arear_h = gt['AREAT']
-        areai = arear.data[0,:,:]
+        arear = gt('area')
+        arear_h = gt['area']
+        areai = arear.data[:,:]
 
         loni  = tos_h.getLongitude()
         lati  = tos_h.getLatitude()
 
         Nii   = int(loni.shape[1])
-        Nji   = int(lati.shape[0])  
+        Nji   = int(lati.shape[0])
 
         gt.close
     else:
