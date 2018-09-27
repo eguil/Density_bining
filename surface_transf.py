@@ -351,18 +351,21 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         if domain == 'north':
             lati2d = npy.tile(lati, Nii).reshape(Nii, Nji).transpose()
             indn = npy.argwhere(lati2d <= 0).transpose()
+            maski  [indn[0],indn[1]] = False
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
         elif domain == 'north40':
             lati2d = npy.tile(lati, Nii).reshape(Nii,Nji).transpose()
             indn = npy.argwhere(lati2d <= 40).transpose()
+            maski  [indn[0],indn[1]] = False
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
         elif domain == 'south':
             lati2d = npy.tile(lati, Nii).reshape(Nii,Nji).transpose()
             indn = npy.argwhere(lati2d >= 0).transpose()
+            maski  [indn[0],indn[1]] = False
             maskAtl[indn[0],indn[1]] = False
             maskPac[indn[0],indn[1]] = False
             maskInd[indn[0],indn[1]] = False
@@ -490,7 +493,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         for ks in range(N_s-1):
             # find indices of points in density bin
             # Global
-            idxbin = npy.argwhere( (rhonl >= sigrid[ks]) & (rhonl < sigrid[ks+1]) ).transpose()
+            idxbin = npy.argwhere( (rhonl*maski >= sigrid[ks]) & (rhonl < sigrid[ks+1]) ).transpose()
             idj = idxbin[0] ; idi = idxbin[1]
             transfh[t,ks] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
             transfw[t,ks] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
