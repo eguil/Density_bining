@@ -465,6 +465,8 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         #
         # Compute density
         rhon[t,...] = eosNeutral(tost.data, sost.data) - 1000.
+        rhon[t,...].mask  = maski
+        rhon[t,...] = maskVal(rhon[t,...], valmask)
         rhonl = rhon.data[t,...]
         # Compute buoyancy/density flux as mass fluxes in kg/m2/s (SI units)
         #  convwf : kg/m2/s = mm/s -> m/s
