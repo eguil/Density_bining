@@ -437,6 +437,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     # init integration intervals
     dt   = 1./float(N_t) 
 
+
     # Bin on density grid
     for t in range(N_t):
         if noInterp:
