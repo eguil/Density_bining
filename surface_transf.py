@@ -221,10 +221,6 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
     N_j = int(tos.shape[1])
     N_t = int(tos.shape[0])
     print ' ==> dimensions N_t, N_j, N_i:', N_t, N_j, N_i
-    # Read masking value
-    # added if wfcorr == masked values everywhere
-    emp.mask = sos.mask
-    emp.data[:] = emp.filled(valmask)
     try:
         valmask = tos.missing_value
         if valmask == None:
@@ -253,6 +249,11 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
             qnet.data[:] = qnet.filled(valmask)
             emp.mask = sos.mask
             emp.data[:] = emp.filled(valmask)
+    # Read masking value
+    # added if wfcorr == masked values everywhere
+    emp.mask = sos.mask
+    emp.data[:] = emp.filled(valmask)
+
     # Test variable units
     [sos,sosFixed] = fixVarUnits(sos,'sos',True)#,'logfile.txt')
     if sosFixed:
