@@ -121,13 +121,13 @@ ax0.legend(loc='upper left', title='', fontsize=10)
 # difference
 ax1.axis([sigmin, sigmax, -trfdiff, trfdiff])
 
-ax1.plot(levr, trfatltot2-trfatltot1, c = 'b', label = run2)
-ax1.plot(levr, trfatlhef2-trfatlhef1, c = 'b', linestyle ='--')
-ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'b', linestyle ='-.')
+ax1.plot(levr, trfatltot2-trfatltot1, c = 'r', label = run2)
+ax1.plot(levr, trfatlhef2-trfatlhef1, c = 'r, linestyle ='--')
+ax1.plot(levr, trfatlwfo2-trfatlwfo1, c = 'r', linestyle ='-.')
 
-ax1.plot(levr, trfatltot3-trfatltot1, c = 'r', label = run3)
-ax1.plot(levr, trfatlhef3-trfatlhef1, c = 'r', linestyle ='--')
-ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'r', linestyle ='-.')
+ax1.plot(levr, trfatltot3-trfatltot1, c = 'black', label = run3)
+ax1.plot(levr, trfatlhef3-trfatlhef1, c = 'black', linestyle ='--')
+ax1.plot(levr, trfatlwfo3-trfatlwfo1, c = 'black', linestyle ='-.')
 
 ax1.plot(levr, trfatltot4-trfatltot1, c = 'g', label = run4)
 ax1.plot(levr, trfatlhef4-trfatlhef1, c = 'g', linestyle ='--')
@@ -142,13 +142,13 @@ ax1.set_title("Differences")
 # Correction
 ax2.axis([sigmin, sigmax, -trfdiff, trfdiff])
 
-ax2.plot(levr, trfatltot2c, c = 'b', label = run2)
-ax2.plot(levr, trfatlhef2c, c = 'b', linestyle ='--')
-ax2.plot(levr, trfatlwfo2c, c = 'b', linestyle ='-.')
+ax2.plot(levr, trfatltot2c, c = 'r', label = run2)
+ax2.plot(levr, trfatlhef2c, c = 'r', linestyle ='--')
+ax2.plot(levr, trfatlwfo2c, c = 'r', linestyle ='-.')
 
-ax2.plot(levr, trfatltot3c, c = 'r', label = run3)
-ax2.plot(levr, trfatlhef3c, c = 'r', linestyle ='--')
-ax2.plot(levr, trfatlwfo3c, c = 'r', linestyle ='-.')
+ax2.plot(levr, trfatltot3c, c = 'black', label = run3)
+ax2.plot(levr, trfatlhef3c, c = 'black', linestyle ='--')
+ax2.plot(levr, trfatlwfo3c, c = 'black', linestyle ='-.')
 
 ax2.plot(levr, trfatltot4c, c = 'g', label = run4)
 ax2.plot(levr, trfatlhef4c, c = 'g', linestyle ='--')
