@@ -519,7 +519,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
             
         # last bin
         # Global
-        idxbin = npy.argwhere( (rhonl >= sigrid[N_s-1])).transpose()
+        idxbin = npy.argwhere( (rhonl*maski >= sigrid[N_s-1])).transpose()
         idj = idxbin[0] ; idi = idxbin[1]
         transfh[t,N_s] = cdu.averager(dflxh[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
         transfw[t,N_s] = cdu.averager(dflxw[idj,idi] * areai[idj,idi], axis=0, action='sum')/del_s[ks]
@@ -554,13 +554,13 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
         # heat flux (conv W -> PW)
         convt  = 1.e-15
             
-        intHeatFlx [t] = cdu.averager(npy.reshape(heft*areai , (Nji*Nii)), action='sum')*dt*convt
+        intHeatFlx [t] = cdu.averager(npy.reshape(heft*areai*maski , (Nji*Nii)), action='sum')*dt*convt
         intHeatFlxa[t] = cdu.averager(npy.reshape(hefta*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convt
         intHeatFlxp[t] = cdu.averager(npy.reshape(heftp*areai*maskPac, (Nji*Nii)), action='sum')*dt*convt
         intHeatFlxi[t] = cdu.averager(npy.reshape(hefti*areai*maskInd, (Nji*Nii)), action='sum')*dt*convt
         # fw flux (conv mm -> m and m3/s to Sv)
         convw = 1.e-3*1.e-6
-        intWatFlx [t]  = cdu.averager(npy.reshape(empt*areai , (Nji*Nii)), action='sum')*dt*convw
+        intWatFlx [t]  = cdu.averager(npy.reshape(empt*areai*maski , (Nji*Nii)), action='sum')*dt*convw
         intWatFlxa[t]  = cdu.averager(npy.reshape(empta*areai*maskAtl, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxp[t]  = cdu.averager(npy.reshape(emptp*areai*maskPac, (Nji*Nii)), action='sum')*dt*convw
         intWatFlxi[t]  = cdu.averager(npy.reshape(empti*areai*maskInd, (Nji*Nii)), action='sum')*dt*convw
