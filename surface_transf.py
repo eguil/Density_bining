@@ -33,7 +33,7 @@ PJD 22 Nov 2014     - Updated to comment out unused statements and imports
 
 import cdms2 as cdm
 import MV2 as mv
-import os
+import os, resource
 import numpy as npy
 import cdutil as cdu
 
@@ -741,4 +741,7 @@ def surfTransf(fileFx, fileTos, fileSos, fileHef, fileWfo, varNames, outFile, de
 
     # CPU use
     print
+    print ' [ Time stamp',(timc.strftime("%d/%m/%Y %H:%M:%S")),']'
     print ' CPU use', timc.clock() - cpu0
+    print ' Max memory use',resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1.e6,'GB'
+
