@@ -77,10 +77,10 @@ def defModelsCO2piC():
          'file_end_piC':'v20130402'}, # 7
         {'name':'CSIRO-Mk3-6-0' , 'picontrol':[500],'correctFile':[178,179,180], 'file_end_CO2':'v20111221',
          'file_end_piC':'1'}, # 8
-        {'name':'FGOALS-g2'     , 'picontrol':[700],'correctFile':[0,0,0], 'file_end_CO2':'1',
-         'file_end_piC':'v1'}, # 9
-        {'name':'GFDL-ESM2G'    , 'picontrol':[500],'correctFile':[0,0,0], 'file_end_CO2':'v20120820',
-         'file_end_piC':'v20110601'}, # 10
+        #{'name':'FGOALS-g2'     , 'picontrol':[700],'correctFile':[0,0,0], 'file_end_CO2':'1',
+        # 'file_end_piC':'v1'}, # 9
+        # {'name':'GFDL-ESM2G'    , 'picontrol':[500],'correctFile':[0,0,0], 'file_end_CO2':'v20120820',
+        # 'file_end_piC':'v20110601'}, # 10
         {'name':'GFDL-ESM2M'    , 'picontrol':[500],'correctFile':[0,0,0], 'file_end_CO2':'v20130226',
          'file_end_piC':'v20130226'}, # 11
         {'name':'HadGEM2-ES'    , 'picontrol':[576],'correctFile':[179,179,180], 'file_end_CO2':'v20111017',

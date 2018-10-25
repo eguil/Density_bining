@@ -191,8 +191,6 @@ rangeToEz = np.ma.around(remapToZ(rangeToEr.data, depthr, volumr, targetz, bowl1
 print('Range remapping done')
 
 # Mask
-# medianToEz[medianToEz == finalyear] = np.ma.masked
-# medianToEz[medianToEz < iniyear ] = np.ma.masked
 rangeToEz[medianToEz > finalyear-20] = np.ma.masked # Mask points where median hasn't emerged
 
 # -- Make variable bundles for each basin
@@ -207,7 +205,7 @@ varIndrange = {'name': 'Indian', 'var_change': rangeToEz[3,:,:], 'bowl1': bowl1z
 
 # ----- Plot -----
 
-domzed = [0,500,4000]
+domzed = [0,500,2000]
 
 # -- Median
 
@@ -256,6 +254,7 @@ plt.figtext(.5,.02,'Computed by : remap_to_z_toe_median_range.py',fontsize=9,ha=
 # plotName = 'remapping_median_toe_rcp85vshistNat'
 # plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
 
+# SHOW ONE FIGURE OR THE OTHER
 # -- 16-84% range
 
 # -- Create figure and axes instances

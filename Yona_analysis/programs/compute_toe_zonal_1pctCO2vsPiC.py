@@ -33,7 +33,7 @@ f = open_ncfile(indir_CO2 + file,'r')
 lat = f.variables['latitude'][:]; latN = lat.size
 density = f.variables['lev'][:]; levN = density.size
 time = f.variables['time'][:]; timN = time.size
-var = varname['var_zonal']
+var = varname['var_zonal_w/bowl']
 basinN = 4
 
 # Define variable properties
@@ -55,7 +55,7 @@ for i, model in enumerate(models): # Loop on models
     # -- Read var PiControl
     varpiC = fpiC.variables[var][-140:,:,:,:]
     # Read std of PiControl
-    stdvarpiC = fpiC.variables[var+'Std'][-140:,:,:,:]
+    stdvarpiC = np.ma.std(varpiC, axis=0)
 
     # Reorganise i,j dims in single dimension data (speeds up loops)
     stdvarpiC_a = np.reshape(stdvarpiC[1,:,:], (levN*latN))

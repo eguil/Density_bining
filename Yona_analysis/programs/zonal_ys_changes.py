@@ -23,9 +23,9 @@ import glob
 
 # ----- Workspace ------
 
-# name = 'Durack & Wijffels'
+name = 'Durack & Wijffels'
 # name = 'mme_hist'
-name = 'mme_hist_histNat'
+# name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
 # name = 'ens_mean_hist_histNat'
 # name = 'mme_1pctCO2vsPiC'
@@ -51,8 +51,8 @@ imodel = 13 # Choose model index in model list (modelsDef.py)
 # -- Choose work files
 
 if name == 'Durack & Wijffels':
-    indir = '/data/ericglod/Density_binning/Obs_Prod_density_april16/'
-    file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_120209_11_46_11_beta.nc'
+    indir = '/home/ysilvy/Density_bining/Yona_analysis/data/' #'/data/ericglod/Density_binning/Obs_Prod_density_april16/'
+    file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_170224_20_48_22_beta.nc' #'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_120209_11_46_11_beta.nc'
     data = indir + file
     fh2d = open_ncfile(data, 'r')
 
@@ -422,7 +422,7 @@ else:
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
-cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
+cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
 

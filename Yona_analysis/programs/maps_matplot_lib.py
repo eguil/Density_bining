@@ -4,7 +4,7 @@
 
 import numpy as np
 import numpy.ma as ma
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 #from matplotlib.ticker import MaxNLocator
 from netCDF4 import Dataset as open_ncfile
 from matplotlib.ticker import AutoMinorLocator
@@ -369,8 +369,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # -- add plot title
     ax0.text(-60, 22, varBasin['name'], fontsize=14, fontweight='bold')
 
+    cnplot = [cnplot1, cnplot2]
 
-    return cnplot2
+    return cnplot
 
 
 
@@ -740,18 +741,20 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
 #   Build zonal latitude/depth plot
 # ----------------------------------------------------
 
-def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domzed):
+def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clevsm=None, clevsm_bold=None):
 
     # -- variables
     var = varBasin['var_change']
-    bowl1 = varBasin['bowl1']
-    bowl2 = varBasin['bowl2']
+    
+    if varBasin['bowl1'] != None:
+        bowl1 = varBasin['bowl1']
+        bowl2 = varBasin['bowl2']
 
-    # -- title and bowl labels
-    label1 = varBasin['labBowl'][0]
-    label2 = varBasin['labBowl'][1]
+        # -- bowl labels
+        label1 = varBasin['labBowl'][0]
+        label2 = varBasin['labBowl'][1]
 
-    # -- contour levels
+    # -- min,mid,max depth for the 2 panels
     zedmin = domzed[0]
     zedmid = domzed[1]
     zedmax = domzed[2]
@@ -788,19 +791,20 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     # if abs(clevsm[1]-clevsm[0]) < 0.1:
     #     levfmt='%.2f'
 
-    # -- draw filled contours of period diff
+    # -- draw filled contours of the field
     cnplot0 = ax0.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
 
-    # # -- draw mean contours --> TODO compute mean field first
+    # # -- draw mean field contours --> TODO compute mean field first
     # cpplot = ax0.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
     # ax0.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
 
-    # -- draw bowl
-    ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-    ax0.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
-
-    if varBasin['name'] == 'Indian':
-        ax0.legend(loc='upper right', title='Bowl', fontsize=12)
+    if varBasin['bowl1'] != None:
+        # -- draw bowl
+        ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+        ax0.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
+        # -- bowl legend
+        if varBasin['name'] == 'Indian':
+            ax0.legend(loc='upper right', title='Bowl', fontsize=12)
 
     #
     # ====  Lower panel   ===================================================
@@ -823,21 +827,21 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
     ax1.set_xticklabels(xlabels)
     # -- Set y ticks
-    ax1.set_yticks([500,1000,1500,2000,zedmax])
+    ax1.set_yticks([500,1000,1500,2000])
     yminorLocator = AutoMinorLocator(4)
     ax1.yaxis.set_minor_locator(yminorLocator)
 
     # -- draw filled contours
     cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
 
-
-    # # -- draw mean contours
+    # # -- draw mean field contours
     # cpplot = ax1.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
     # ax1.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
 
-    # -- draw bowl
-    ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-    ax1.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
+    if varBasin['bowl1'] != None:
+        # -- draw bowl
+        ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+        ax1.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
 
     # Remove intersecting tick at zedmid
     yticks = ax1.yaxis.get_major_ticks()

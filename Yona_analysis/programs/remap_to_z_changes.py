@@ -15,9 +15,7 @@ import numpy as np
 # -- Choose what to compute
 # name = 'mme_hist_histNat'
 # name = 'mme_1pctCO2vsPiC'
-name = 'mme_rcp85_histNat'
-# name = 'Durack & Wijffels' ## En cours mais pas accès à la profondeur des isopycnes ni au volume
-# donc pas possible de cette manière -> voir si c'est la peine de faire le remapping ou si Paul a les données
+# name = 'mme_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
@@ -83,8 +81,8 @@ if name == 'mme_rcp85_histNat':
     fhn1d = open_ncfile(indirhn + filehn_1d, 'r')
 
 if name == 'Durack & Wijffels':
-    indir = '/data/ericglod/Density_binning/Obs_Prod_density_april16/'
-    file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_120209_11_46_11_beta.nc'
+    indir = '/home/ysilvy/Density_bining/Yona_analysis/data/' #'/data/ericglod/Density_binning/Obs_Prod_density_april16/'
+    file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_170224_20_48_22_beta.nc' #'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_120209_11_46_11_beta.nc'
     data = indir + file
     fh2d = open_ncfile(data, 'r')
 
@@ -168,11 +166,13 @@ if v != 'V' and name != 'Durack & Wijffels':
     # == Compute signal hist - histNat or 1pctCO2 - PiControl or rcp8.5 - histNat ==
     vardiffr = np.ma.average(field2r, axis=0) - np.ma.average(field1r, axis=0)
 
-# == Average other variables ==
-depthr = np.ma.average(depthr, axis=0)
-volumr = np.ma.average(volumr, axis=0)
-bowl2z = np.ma.average(bowl2z, axis=0)
-bowl1z = np.ma.average(bowl1z, axis=0)
+if name != 'Durack & Wijffels':
+    # == Average other variables ==
+    depthr = np.ma.average(depthr, axis=0)
+    volumr = np.ma.average(volumr, axis=0)
+    bowl2z = np.ma.average(bowl2z, axis=0)
+    bowl1z = np.ma.average(bowl1z, axis=0)
+
 
 # == Bathymetry ==
 # Read masks
@@ -250,11 +250,11 @@ levels = np.linspace(minmax[0],minmax[1],minmax[2]) # Change
 
 # -- Contourf of signal
 cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtl,
-                 clevsm, cmap, levels, domzed)
+                 cmap, levels, domzed)
 cnplot = zon_2Dz(plt, axes[0,1], axes[1,1], 'mid', lat, targetz, varPac,
-                 clevsm, cmap, levels, domzed)
+                 cmap, levels, domzed)
 cnplot = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varInd,
-                 clevsm, cmap, levels, domzed)
+                 cmap, levels, domzed)
 
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)

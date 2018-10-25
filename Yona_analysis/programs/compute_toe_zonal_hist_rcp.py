@@ -5,6 +5,7 @@
 Compute ToE hist + RCP85 vs. histNat (or PiControl) in lat/rho domain for all runs of available models
 Over the 2005-2100 period, use either RCP85-average(histNat) or RCP85-average(PiControl) as the signal
 Save ToE in output files
+For now only the first option is implemented
 """
 
 import numpy as np
