@@ -4,17 +4,68 @@
 Created on Wed Oct 24 14:51:58 2018
 
 @author: Yona
+
+Data : Durack & Wijffels 1950-2000 zonal changes, analyzed in density framework
+Grid back to a pressure coordinate and plot
 """
 
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset as open_ncfile
 from scipy.interpolate import griddata
-from matplotlib.ticker import AutoMinorLocator
-from maps_matplot_lib import zon_2Dz
+from maps_matplot_lib import defVarDurack, zon_2Dz, custom_div_cmap
 
-#TODO : début du script puis transférer sur Ciclad
+# ===== Workspace =====
 
-pressure = fh2d.variables['pressure_mean_basin_zonal'][:].squeeze()
+indir = '/home/ysilvy/Density_bining/Yona_analysis/data/'
+file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_170224_20_48_22_beta.nc'
+data = indir + file
+f2d = open_ncfile(data, 'r')
 
-# WOA13 grid
+# out = 'save' # View or save output figure
+out = 'view'
+
+# ===== Read variables =====
+
+lat = f2d.variables['latitude'][:]
+density = f2d.variables['density'][:]
+pressure = f2d.variables['pressure_mean_basin_zonal'][:].squeeze()
+
+# -- Choose wich variable to work on
+varname = defVarDurack('salinity'); v = 'S'
+# varname = defVarDurack('temp'); v = 'T'
+
+var_mean = varname['var_mean_zonal']
+var_change = varname['var_change_zonal']
+var_change_er = varname['var_change_zonal_er']
+
+var_attributes = f2d.variables[var_mean]
+var_mean = f2d.variables[var_mean][:].squeeze()
+var_change = f2d.variables[var_change][:].squeeze()
+var_change_er = f2d.variables[var_change_er][:].squeeze()
+
+# -- Determine field in 1950 and 2000 from mean field
+var_1950 = var_mean - var_change/2
+var_2000 = var_mean + var_change/2
+
+# -- Define variable properties
+minmax = varname['minmax_zonal']
+clevsm = varname['clevsm_zonal']
+clevsm_bold = varname['clevsm_bold']
+legVar = varname['legVar']
+unit = varname['unit']
+
+# -- Density domain
+rhomin = 21
+rhomid = 26
+rhomax = 28
+domrho = [rhomin, rhomid, rhomax]
+
+valmask = 1e+20
+
+# ===== REMAP ======
+
+# -- WOA13 grid for target grid
 targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
    85, 90, 95, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375,
    400, 425, 450, 475, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950,
@@ -24,29 +75,47 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
    3600, 3700, 3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700,
    4800, 4900, 5000, 5100, 5200, 5300, 5400, 5500]
 
+# -- Initialize fields in pseudo-z
 var_change_z = np.ma.masked_all((len(targetz),141,4))
+var_mean_z = np.ma.masked_all((len(targetz),141,4))
+var_change_er_z = np.ma.masked_all((len(targetz),141,4))
 
+# -- Grid fields to target pressure grid, using the pressure field in density/lat framework
 for ibasin in range(4):
     for ilat in range(len(lat)):
+
         Psig = pressure[:,ilat,ibasin]
         var_change_sig = var_change[:,ilat,ibasin]
-        Psort = np.ma.compressed(np.sort(Psig))
+        var_mean_sig = var_mean[:,ilat,ibasin]
+        var_change_er_sig = var_change_er[:,ilat,ibasin]
+
+        Psort = np.ma.compressed(np.sort(Psig)) # Sort pressure and get rid of nans
         isort = np.argsort(Psig)
-        var_change_sort = np.ma.compressed(var_change_sig[isort])
+        var_change_sort = np.ma.compressed(var_change_sig[isort]) # Change order according to corresponding pressure vector
+        var_mean_sort = np.ma.compressed(var_mean_sig[isort])
+        var_change_er_sort = np.ma.compressed(var_change_er_sig[isort])
+
         if len(Psort) > 1:
-            var_change_z[:,ilat,ibasin] = griddata(Psort,var_change_sort,targetz)
+            var_change_z[:,ilat,ibasin] = griddata(Psort,var_change_sort,targetz) # Grid field with target pressure grid
+            var_mean_z[:,ilat,ibasin] = griddata(Psort,var_mean_sort,targetz)
+            var_change_er_z[:,ilat,ibasin] = griddata(Psort,var_change_er_sort,targetz)
         else :
             var_change_z[:,ilat,ibasin] = np.ma.masked
+            var_mean_z[:,ilat,ibasin] = np.ma.masked
+            var_change_er_z[:,ilat,ibasin] = np.ma.masked
             
-
+# -- Pressure domain for the plot
 domzed = [0,500,2000]
 
 # -- Make variable bundles for each basin
-varAtl = {'name': 'Atlantic', 'var_change': var_change_z[:,:,2], 'bowl1': None, 'bowl2': None, 'labBowl': None} #Rajouter mean et err si code okay
-varPac = {'name': 'Pacific', 'var_change': var_change_z[:,:,1], 'bowl1': None, 'bowl2': None, 'labBowl': None}
-varInd = {'name': 'Indian', 'var_change': var_change_z[:,:,3], 'bowl1': None, 'bowl2': None, 'labBowl': None}
+varAtl = {'name': 'Atlantic', 'var_change': var_change_z[:,:,2], 'var_mean':var_mean_z[:,:,2],
+          'bowl1': None, 'bowl2': None, 'labBowl': None}
+varPac = {'name': 'Pacific', 'var_change': var_change_z[:,:,1], 'var_mean':var_mean_z[:,:,1],
+          'bowl1': None, 'bowl2': None, 'labBowl': None}
+varInd = {'name': 'Indian', 'var_change': var_change_z[:,:,3], 'var_mean':var_mean_z[:,:,3],
+          'bowl1': None, 'bowl2': None, 'labBowl': None}
 
-# == PLOT ==
+# ===== PLOT ======
 
 # -- Create figure and axes instances
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
@@ -56,19 +125,48 @@ cmap = custom_div_cmap()
 
 # -- levels
 levels = np.linspace(minmax[0],minmax[1],minmax[2])
+
+# -- Error field
+var_change_er_z = var_change_er_z * 1.1  # to account for a potential underestimation of the error determined by a bootstrap analysis
+var_change_er_z = var_change_er_z * 1.64  # 90% confidence level
+not_signif_change = np.ma.where(np.absolute(var_change_z) < var_change_er_z, 1, 0)
     
 # -- Contourf of signal
 cnplot = zon_2Dz(plt,axes[0,0], axes[1,0], 'left', lat, targetz, varAtl,
-                 cmap, levels, domzed)
+                 cmap, levels, domzed, clevsm, clevsm_bold)
 cnplot = zon_2Dz(plt,axes[0,1], axes[1,1], 'mid', lat, targetz, varPac,
-                 cmap, levels, domzed)
+                 cmap, levels, domzed, clevsm, clevsm_bold)
 cnplot = zon_2Dz(plt,axes[0,2], axes[1,2], 'right', lat, targetz, varInd,
-                 cmap, levels, domzed)
+                 cmap, levels, domzed, clevsm, clevsm_bold)
+
+# -- Draw areas where signal is not significant
+lat2d, lev2d = np.meshgrid(lat, targetz)
+for i in range(2):
+    axes[i,0].contourf(lat2d, lev2d, not_signif_change[:,:,2], levels=[0.25,0.5,1.5], colors='None',
+                       hatches=['','....'], edgecolor='0.3', linewidth=0.0)
+    axes[i,1].contourf(lat2d, lev2d, not_signif_change[:,:,1], levels=[0.25,0.5,1.5], colors='None',
+                       hatches=['','....'], edgecolor='0.3', linewidth=0.0)
+    axes[i,2].contourf(lat2d, lev2d, not_signif_change[:,:,3], levels=[0.25,0.5,1.5], colors='None',
+                       hatches=['','....'], edgecolor='0.3', linewidth=0.0)
 
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+plt.figtext(.006,.5,'Presure (dB)',rotation='vertical')
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
+name = 'Durack & Wijffels'
+plotTitle = '%s changes 2000-1950 (pseudo-depth coordinate), %s' %(legVar, name)
+plotName = 'remapping_' + name + '_' + v + 'changes'
+
+plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+plt.figtext(.5,.02,'Computed by : remap_to_z_Durack&Wijffels.py',fontsize=9,ha='center')
+
+figureDir = 'obs/zonal_remaptoz/'
+
+if out == 'view':
+    plt.show()
+else:
+    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')

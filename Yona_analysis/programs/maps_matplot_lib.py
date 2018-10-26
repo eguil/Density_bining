@@ -67,7 +67,7 @@ def defVarDurack(longName):
                 'minmax': [-0.3, 0.3, 16],
                 'minmax_zonal': [-0.2, 0.2, 16],
                 'clevsm': np.arange(30, 40, .25),
-                'clevsm_zonal': np.arange(30, 40, .1),
+                'clevsm_zonal': np.arange(30, 40, .25), #0.1
                 'clevsm_bold': np.arange(30, 40, .5),
                 'legVar': "Salinity", 'unit': "PSU", 'longN': 'salinity'}
 
@@ -784,19 +784,21 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
 
     ax0.axvline(x=0, color='black', ls='--')
 
-    # # -- Format for contour labels
-    # levfmt='%.0f'
-    # if abs(clevsm[1]-clevsm[0]) < 1:
-    #     levfmt='%.1f'
-    # if abs(clevsm[1]-clevsm[0]) < 0.1:
-    #     levfmt='%.2f'
-
     # -- draw filled contours of the field
     cnplot0 = ax0.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
 
-    # # -- draw mean field contours --> TODO compute mean field first
-    # cpplot = ax0.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
-    # ax0.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
+    if clevsm != None:
+        # -- Format for contour labels
+        levfmt='%.0f'
+        if abs(clevsm[1]-clevsm[0]) < 1:
+            levfmt='%.1f'
+        if abs(clevsm[1]-clevsm[0]) < 0.1:
+            levfmt='%.2f'
+
+        # -- draw mean field contours
+        cpplot11 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm, colors='black', linewidths=0.5)
+        cpplot12 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
+        ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     if varBasin['bowl1'] != None:
         # -- draw bowl
@@ -834,9 +836,10 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
     # -- draw filled contours
     cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
 
-    # # -- draw mean field contours
-    # cpplot = ax1.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
-    # ax1.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
+    # -- draw mean field contours
+    cpplot21 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm, colors='black', linewidths=0.5)
+    cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
+    ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     if varBasin['bowl1'] != None:
         # -- draw bowl
