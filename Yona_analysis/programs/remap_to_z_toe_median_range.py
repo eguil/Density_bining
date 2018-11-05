@@ -31,6 +31,11 @@ iniyear = 1860
 finalyear = 2100
 deltat = 10.
 
+nb_outliers = 5 # Nb of outlier runs allowed to compute the ToE distribution
+
+fig = 'view'
+# fig = 'save'
+
 # ----- Variables ------
 var = varname['var_zonal_w/bowl']
 legVar = varname['legVar']
@@ -58,6 +63,11 @@ varToEA = np.ma.masked_all((nrunmax, levN, latN))
 varToEP = np.ma.masked_all((nrunmax, levN, latN))
 varToEI = np.ma.masked_all((nrunmax, levN, latN))
 
+# -- Initialize varsignal (essential for knowing the sign of the emergence)
+varsignal_a = np.ma.masked_all((nrunmax, levN, latN))
+varsignal_p = np.ma.masked_all((nrunmax, levN, latN))
+varsignal_i = np.ma.masked_all((nrunmax, levN, latN))
+
 # Loop over models
 listfiles = glob.glob(indir_toe_rcphn + '/*.nc')
 nmodels = len(listfiles)
@@ -73,10 +83,18 @@ for i in range(nmodels):
     print('- Reading ToE of %s with %d members'%(name,nMembers[i]))
     nruns1 = nruns + nMembers[i]
 
+    # Read signal
+    signalread = ftoe.variables[var + '_change'][:]
+
     # Save ToE
     varToEA[nruns:nruns1,:,:] = toe2read[:,1,:,:]
     varToEP[nruns:nruns1,:,:] = toe2read[:,2,:,:]
     varToEI[nruns:nruns1,:,:] = toe2read[:,3,:,:]
+
+    # Save signal
+    varsignal_a[nruns:nruns1,:,:] = signalread[:,1,:,:]
+    varsignal_p[nruns:nruns1,:,:] = signalread[:,2,:,:]
+    varsignal_i[nruns:nruns1,:,:] = signalread[:,3,:,:]
 
     nruns = nruns1
 
@@ -84,32 +102,149 @@ print('Total number of runs:', nruns)
 varToEA = varToEA[0:nruns,:,:]
 varToEP = varToEP[0:nruns,:,:]
 varToEI = varToEI[0:nruns,:,:]
+varsignal_a = varsignal_a[0:nruns,:,:]
+varsignal_p = varsignal_p[0:nruns,:,:]
+varsignal_i = varsignal_i[0:nruns,:,:]
 
 nruns = int(nruns)
 
 
-# -- Compute median and range
-# Median
-medianToEA = np.ma.around(np.ma.median(varToEA, axis=0)) + iniyear
-medianToEP = np.ma.around(np.ma.median(varToEP, axis=0)) + iniyear
-medianToEI = np.ma.around(np.ma.median(varToEI, axis=0)) + iniyear
-# 16th percentile
-percentile16ToEA = np.percentile(varToEA, 16, axis=0)
-percentile16ToEP = np.percentile(varToEP, 16, axis=0)
-percentile16ToEI = np.percentile(varToEI, 16, axis=0)
-# 84th percentile
-percentile84ToEA = np.percentile(varToEA, 84, axis=0)
-percentile84ToEP = np.percentile(varToEP, 84, axis=0)
-percentile84ToEI = np.percentile(varToEI, 84, axis=0)
+# ----- Compute distribution according to Lyu et. al method ------
+
+groups_a = np.ma.masked_all((nruns, levN, latN))
+groups_p = np.ma.masked_all((nruns, levN, latN))
+groups_i = np.ma.masked_all((nruns, levN, latN))
+# Groups values : 0 for no emergence, 1 emergence with positive change, -1 emergence with negative change
+
+# -- Check if emergence
+
+groups_a = np.ma.where(varsignal_a>0,1,-1) # 1 if positive change, -1 if negative change
+groups_a[np.ma.where(varToEA > 220)] = 0 # Overwrite with 0 if no emergence
+groups_p = np.ma.where(varsignal_p>0,1,-1)
+groups_p[np.ma.where(varToEP > 220)] = 0
+groups_i = np.ma.where(varsignal_i>0,1,-1)
+groups_i[np.ma.where(varToEI > 220)] = 0
+
+nruns_a = np.ma.count(varsignal_a,axis=0)
+nruns_p = np.ma.count(varsignal_p,axis=0)
+nruns_i = np.ma.count(varsignal_i,axis=0)
+
+# -- Initialize median and percentiles
+medianToEA = np.ma.masked_all((levN, latN))
+medianToEP = np.ma.masked_all((levN, latN))
+medianToEI = np.ma.masked_all((levN, latN))
+percentile16ToEA = np.ma.masked_all((levN, latN))
+percentile16ToEP = np.ma.masked_all((levN, latN))
+percentile16ToEI = np.ma.masked_all((levN, latN))
+percentile84ToEA = np.ma.masked_all((levN, latN))
+percentile84ToEP = np.ma.masked_all((levN, latN))
+percentile84ToEI = np.ma.masked_all((levN, latN))
+
+# -- Initialize where there is no agreement
+noagree_a = np.ma.masked_all((levN, latN))
+noagree_p = np.ma.masked_all((levN, latN))
+noagree_i = np.ma.masked_all((levN, latN))
+
+
+# -- Compute distribution if conditions are met
+
+varToEA_clean = np.ma.masked_all((nruns,levN,latN))
+varToEP_clean = np.ma.masked_all((nruns,levN,latN))
+varToEI_clean = np.ma.masked_all((nruns,levN,latN))
+
+for ilat in range(len(lat)):
+    for isig in range(len(density)):
+
+        # Atlantic
+        if nruns_a[isig,ilat] >= nruns - 5 : # Criteria for RCP8.5 (lower for 1%CO2)
+            # Positive emergence
+            if ((groups_a[:,isig,ilat]==1).sum() > nruns_a[isig,ilat]/2) and ((groups_a[:,isig,ilat]==-1).sum() < nb_outliers):
+                varToEA_clean[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat] = varToEA[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat]
+                # print(varToEA_clean[:,isig,ilat])
+            # Negative emergence
+            elif ((groups_a[:,isig,ilat]==-1).sum() > nruns_a[isig,ilat]/2) and ((groups_a[:,isig,ilat]==1).sum() < nb_outliers):
+                 varToEA_clean[np.where(groups_a[:,isig,ilat]!=1),isig,ilat] = varToEA[np.where(groups_a[:,isig,ilat]!=1),isig,ilat]
+                 # print(varToEA_clean[:,isig,ilat])
+            # No emergence
+            elif ((groups_a[:,isig,ilat]==0).sum() > nruns_a[isig,ilat]/2) and ((groups_a[:,isig,ilat]==1).sum()<=nb_outliers or
+                    (groups_a[:,isig,ilat]==-1).sum()<=-1):
+                if (groups_a[:,isig,ilat]==1).sum() > (groups_a[:,isig,ilat]==-1).sum() :
+                    varToEA_clean[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat] = varToEA[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat]
+                else:
+                    varToEA_clean[np.where(groups_a[:,isig,ilat]!=1),isig,ilat] = varToEA[np.where(groups_a[:,isig,ilat]!=1),isig,ilat]
+            # No agreement between models
+            else:
+                noagree_a[isig,ilat] = 1
+                varToEA_clean[:,isig,ilat] = varToEA[:,isig,ilat]
+
+        # Pacific
+        if nruns_p[isig,ilat] >= nruns - 5 : # Criteria for RCP8.5 (lower for 1%CO2)
+            # Positive emergence
+            if ((groups_p[:,isig,ilat]==1).sum() > nruns_p[isig,ilat]/2) and ((groups_p[:,isig,ilat]==-1).sum() < nb_outliers):
+                varToEP_clean[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat]
+            # Negative emergence
+            elif ((groups_p[:,isig,ilat]==-1).sum() > nruns_p[isig,ilat]/2) and ((groups_p[:,isig,ilat]==1).sum() < nb_outliers):
+                 varToEP_clean[np.where(groups_p[:,isig,ilat]!=1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=1),isig,ilat]
+            # No emergence
+            elif ((groups_p[:,isig,ilat]==0).sum() > nruns_p[isig,ilat]/2) and ((groups_p[:,isig,ilat]==1).sum()<=nb_outliers or
+                    (groups_p[:,isig,ilat]==-1).sum()<=-1):
+                if (groups_p[:,isig,ilat]==1).sum() > (groups_p[:,isig,ilat]==-1).sum() :
+                    varToEP_clean[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat]
+                else:
+                    varToEP_clean[np.where(groups_p[:,isig,ilat]!=1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=1),isig,ilat]
+            # No agreement between models
+            else:
+                noagree_p[isig,ilat] = 1
+                varToEP_clean[:,isig,ilat] = varToEP[:,isig,ilat]
+
+        # Indian
+        if nruns_i[isig,ilat] >= nruns - 5 : # Criteria for RCP8.5 (lower for 1%CO2)
+            # Positive emergence
+            if ((groups_i[:,isig,ilat]==1).sum() > nruns_i[isig,ilat]/2) and ((groups_i[:,isig,ilat]==-1).sum() < nb_outliers):
+                varToEI_clean[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat]
+            # Negative emergence
+            elif ((groups_i[:,isig,ilat]==-1).sum() > nruns_i[isig,ilat]/2) and ((groups_i[:,isig,ilat]==1).sum() < nb_outliers):
+                 varToEI_clean[np.where(groups_i[:,isig,ilat]!=1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=1),isig,ilat]
+            # No emergence
+            elif ((groups_i[:,isig,ilat]==0).sum() > nruns_i[isig,ilat]/2) and ((groups_i[:,isig,ilat]==1).sum()<=nb_outliers or
+                    (groups_i[:,isig,ilat]==-1).sum()<=-1):
+                if (groups_i[:,isig,ilat]==1).sum() > (groups_i[:,isig,ilat]==-1).sum() :
+                    varToEI_clean[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat]
+                else:
+                    varToEI_clean[np.where(groups_i[:,isig,ilat]!=1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=1),isig,ilat]
+            # No agreement between models
+            else:
+                noagree_i[isig,ilat] = 1
+                varToEI_clean[:,isig,ilat] = varToEI[:,isig,ilat]
+
+print('Loops done')
+medianToEA = np.ma.around(np.ma.median(varToEA_clean, axis=0)) + iniyear
+percentile16ToEA = np.ma.around(np.percentile(varToEA_clean, 16, axis=0)) + iniyear
+percentile84ToEA = np.ma.around(np.percentile(varToEA_clean, 84, axis=0)) + iniyear
+medianToEP = np.ma.around(np.ma.median(varToEP_clean, axis=0)) + iniyear
+percentile16ToEP = np.ma.around(np.percentile(varToEP_clean, 16, axis=0)) + iniyear
+percentile84ToEP = np.ma.around(np.percentile(varToEP_clean, 84, axis=0)) + iniyear
+medianToEI = np.ma.around(np.ma.median(varToEI_clean, axis=0)) + iniyear
+percentile16ToEI = np.ma.around(np.percentile(varToEI_clean, 16, axis=0)) + iniyear
+percentile84ToEI = np.ma.around(np.percentile(varToEI_clean, 84, axis=0)) + iniyear
+
+
 # 16-84% range
-rangeToEA = np.ma.around(percentile84ToEA - percentile16ToEA)
-rangeToEP = np.ma.around(percentile84ToEP - percentile16ToEP)
-rangeToEI = np.ma.around(percentile84ToEI - percentile16ToEI)
+rangeToEA = percentile84ToEA - percentile16ToEA
+rangeToEP = percentile84ToEP - percentile16ToEP
+rangeToEI = percentile84ToEI - percentile16ToEI
 
 # -- Mask points
 rangeToEA[rangeToEA == 0] = np.ma.masked
 rangeToEP[rangeToEP == 0] = np.ma.masked
 rangeToEI[rangeToEI == 0] = np.ma.masked
+
+rangeToEA[percentile84ToEA>finalyear-20] = np.ma.masked
+norangeA = np.where(percentile84ToEA>finalyear-20,1,0)
+rangeToEP[percentile84ToEP>finalyear-20] = np.ma.masked
+norangeP = np.where(percentile84ToEP>finalyear-20,1,0)
+rangeToEI[percentile84ToEI>finalyear-20] = np.ma.masked
+norangeI = np.where(percentile84ToEI>finalyear-20,1,0)
 
 # -- Regroup basins
 medianToEr = np.ma.masked_all((basinN,levN,latN))
@@ -121,6 +256,16 @@ rangeToEr = np.ma.masked_all((basinN,levN,latN))
 rangeToEr[1,:,:] = rangeToEA
 rangeToEr[2,:,:] = rangeToEP
 rangeToEr[3,:,:] = rangeToEI
+
+noagreer = np.ma.masked_all((basinN,levN,latN))
+noagreer[1,:,:] = noagree_a
+noagreer[2,:,:] = noagree_p
+noagreer[3,:,:] = noagree_i
+
+noranger = np.ma.masked_all((basinN,levN,latN))
+noranger[1,:,:] = norangeA
+noranger[2,:,:] = norangeP
+noranger[3,:,:] = norangeI
 
 # ----- Read volume and depth of isopycnals ------
 
@@ -183,15 +328,25 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
    3600, 3700, 3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700,
    4800, 4900, 5000, 5100, 5200, 5300, 5400, 5500]
 
-depthrbis = depthr
+depthr2 = depthr
+depthr3 = depthr
+depthr4 = depthr
 
-medianToEz = np.ma.around(remapToZ(medianToEr.data, depthrbis, volumr, targetz, bowl1z, 'ToE', bathy))
+medianToEz = np.ma.around(remapToZ(medianToEr.data, depthr, volumr, targetz, bowl1z, 'ToE', bathy))
 print('Median remapping done')
-rangeToEz = np.ma.around(remapToZ(rangeToEr.data, depthr, volumr, targetz, bowl1z, 'ToE', bathy))
+rangeToEz = np.ma.around(remapToZ(rangeToEr.data, depthr2, volumr, targetz, bowl1z, 'ToE', bathy))
 print('Range remapping done')
+noagreez = remapToZ(noagreer.data, depthr3, volumr, targetz, bowl1z, 'ToE', bathy)
+print('noagree remapping done')
+norangez = remapToZ(noranger.data, depthr4, volumr, targetz, bowl1z, 'ToE', bathy)
+print('noagree remapping done')
+
 
 # Mask
-rangeToEz[medianToEz > finalyear-20] = np.ma.masked # Mask points where median hasn't emerged
+#rangeToEz[medianToEz > finalyear-20] = np.ma.masked # Mask points where median hasn't emerged
+#medianToEz[noagreez==1] = np.ma.masked
+medianToEz[medianToEz<iniyear] = np.ma.masked
+rangeToEz[rangeToEz==0] = np.ma.masked
 
 # -- Make variable bundles for each basin
 varAtlmedian = {'name': 'Atlantic', 'var_change': medianToEz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:], 'labBowl': labBowl}
@@ -206,53 +361,73 @@ varIndrange = {'name': 'Indian', 'var_change': rangeToEz[3,:,:], 'bowl1': bowl1z
 # ----- Plot -----
 
 domzed = [0,500,2000]
+# Create meshgrid
+lat2d, lev2d = np.meshgrid(lat, targetz)
 
-# -- Median
-
-# -- Create figure and axes instances
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
-
-# -- Color map
-cmap = 'jet_r'
-# -- Unit
-unit = 'ToE'
-# -- Levels
-minmax = [1950, 2080.01, deltat]
-levels = np.arange(minmax[0], minmax[1], minmax[2])
-
-# -- Contourf
-cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlmedian,
-                 None, cmap, levels, domzed)
-cnplot[0].cmap.set_over('white')
-cnplot[1].cmap.set_over('white')
-
-cnplot = zon_2Dz(plt, axes[0,1], axes[1,1], 'mid', lat, targetz, varPacmedian,
-                 None, cmap, levels, domzed)
-cnplot[0].cmap.set_over('white')
-cnplot[1].cmap.set_over('white')
-
-cnplot = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varIndmedian,
-                 None, cmap, levels, domzed)
-cnplot[0].cmap.set_over('white')
-cnplot[1].cmap.set_over('white')
-
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-
-# -- Add colorbar
-cb = plt.colorbar(cnplot[1], ax=axes.ravel().tolist(), ticks=levels, fraction=0.015, shrink=2.0, pad=0.05)
-cb.set_label('%s' % (unit,), fontweight='bold')
-
-# -- Add title
-plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', hist+RCP8.5 vs. histNat [> ' + str(multStd) + ' std]' \
-    '\n %d models, %d runs '%(nmodels,nruns)
-
-plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-
-plt.figtext(.5,.02,'Computed by : remap_to_z_toe_median_range.py',fontsize=9,ha='center')
-
+# # -- Median
+#
+# # -- Create figure and axes instances
+# fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
+#
+# # -- Color map
+# cmap = 'jet_r'
+# # -- Unit
+# unit = 'ToE'
+# # -- Levels
+# minmax = [1960, 2080.01, deltat]
+# levels = np.arange(minmax[0], minmax[1], minmax[2])
+#
+#
+# # -- Contourf
+# # Atlantic
+# cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlmedian,
+#                  cmap, levels, domzed, None, None)
+# cnplot[0].cmap.set_over('0.8')
+# cnplot[1].cmap.set_over('0.8')
+# axes[0,0].contourf(lat2d, lev2d, noagreez[1,:,:], levels=[0.25,0.5,1.5], colors='None',
+#                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+# axes[1,0].contourf(lat2d, lev2d, noagreez[1,:,:], levels=[0.25,0.5,1.5], colors='None',
+#                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+#
+# # -- Add colorbar
+# cb = fig.colorbar(cnplot[1], ax=axes.ravel().tolist(), ticks=levels, fraction=0.015, shrink=2.0, pad=0.05)
+# cb.set_label('%s' % (unit,), fontweight='bold')
+#
+# # Pacific
+# cnplot = zon_2Dz(plt, axes[0,1], axes[1,1], 'mid', lat, targetz, varPacmedian,
+#                  cmap, levels, domzed, None, None)
+# cnplot[0].cmap.set_over('0.8')
+# cnplot[1].cmap.set_over('0.8')
+# axes[0,1].contourf(lat2d, lev2d, noagreez[2,:,:], levels=[0.25,0.5,1.5], colors='None',
+#                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+# axes[1,1].contourf(lat2d, lev2d, noagreez[2,:,:], levels=[0.25,0.5,1.5], colors='None',
+#                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+#
+# # Indian
+# cnplot = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varIndmedian,
+#                  cmap, levels, domzed, None, None)
+# cnplot[0].cmap.set_over('0.8')
+# cnplot[1].cmap.set_over('0.8')
+# axes[0,2].contourf(lat2d, lev2d, noagreez[3,:,:], levels=[0.25,0.5,1.5], colors='None',
+#                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+# axes[1,2].contourf(lat2d, lev2d, noagreez[3,:,:], levels=[0.25,0.5,1.5], colors='None',
+#                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+#
+# plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+#
+#
+# # -- Add title
+# plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', hist+RCP8.5 vs. histNat [> ' + str(multStd) + ' std]' \
+#     '\n %d models, %d runs '%(nmodels,nruns)
+#
+# plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+#
+# plt.figtext(.5,.02,'Computed by : remap_to_z_toe_median_range.py',fontsize=9,ha='center')
+#
 # figureDir = 'models/zonal_remaptoz/'
 # plotName = 'remapping_median_toe_rcp85vshistNat'
-# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+# if fig == 'save':
+#     plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
 
 # SHOW ONE FIGURE OR THE OTHER
 # -- 16-84% range
@@ -265,16 +440,22 @@ cmap = 'jet_r'
 # -- Unit
 unit = 'Years'
 # -- Levels
-minmax = [0, 121, deltat]
+minmax = [0, 111, deltat]
 levels = np.arange(minmax[0], minmax[1], minmax[2])
 
 # -- Contourf
 cnplot2 = zon_2Dz(fig2, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlrange,
-                 None, cmap, levels, domzed)
+                 cmap, levels, domzed)
 cnplot2 = zon_2Dz(fig2, axes[0,1], axes[1,1], 'mid', lat, targetz, varPacrange,
-                 None, cmap, levels, domzed)
+                 cmap, levels, domzed)
 cnplot2 = zon_2Dz(fig2, axes[0,2], axes[1,2], 'right', lat, targetz, varIndrange,
-                 None, cmap, levels, domzed)
+                 cmap, levels, domzed)
+
+for i in range(2):
+    for ibasin in range(3):
+        axes[i,ibasin].contourf(lat2d, lev2d, norangez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='0.8') # No emergence
+        axes[i,ibasin].contourf(lat2d, lev2d, noagreez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='None',
+                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
 
 fig2.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
@@ -290,9 +471,9 @@ plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
 
 plt.figtext(.5,.02,'Computed by : remap_to_z_toe_median_range.py',fontsize=9,ha='center')
 
-# # figureDir = 'models/zonal_remaptoz/'
-# # plotName = 'remapping_16-84range_toe_rcp85vshistNat'
-# # plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
-#
-#
-# plt.show()
+figureDir = 'models/zonal_remaptoz/'
+plotName = 'remapping_16-84range_toe_rcp85vshistNat'
+if fig == 'save':
+    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+else:
+    plt.show()

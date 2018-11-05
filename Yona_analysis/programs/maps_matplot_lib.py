@@ -683,8 +683,9 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
                     # Interpolate the data on the depth column
                     if iz_notempty > 3:
                         # print 'Interpolate'
-                        spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
-                        fieldz_new = spl(targetz)
+                        fieldz_new = np.interp(targetz,z_notempty,fieldz_notempty)
+                        # spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
+                        # fieldz_new = spl(targetz)
                         fieldz[ibasin,:,j] = fieldz_new
                     # Mask field above the bowl
                     fieldz[ibasin,0:kbowl,j] = np.ma.masked
@@ -836,10 +837,11 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
     # -- draw filled contours
     cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
 
-    # -- draw mean field contours
-    cpplot21 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm, colors='black', linewidths=0.5)
-    cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
-    ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+    if clevsm != None:
+        # -- draw mean field contours
+        cpplot21 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm, colors='black', linewidths=0.5)
+        cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
+        ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     if varBasin['bowl1'] != None:
         # -- draw bowl

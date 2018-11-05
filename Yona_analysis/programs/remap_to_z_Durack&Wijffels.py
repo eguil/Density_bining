@@ -22,8 +22,8 @@ file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_170224_20_
 data = indir + file
 f2d = open_ncfile(data, 'r')
 
-# out = 'save' # View or save output figure
-out = 'view'
+out = 'save' # View or save output figure
+# out = 'view'
 
 # ===== Read variables =====
 
@@ -151,7 +151,7 @@ for i in range(2):
 
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-plt.figtext(.006,.5,'Presure (dB)',rotation='vertical')
+plt.figtext(.006,.5,'Presure (db)',rotation='vertical')
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)

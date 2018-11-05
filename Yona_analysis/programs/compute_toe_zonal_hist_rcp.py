@@ -49,6 +49,7 @@ basinN = 4
 
 # Define variable properties
 legVar = varname['legVar']
+unit = varname['unit']
 
 # ----- Compute zonal ToE for each simulation ------
 
@@ -120,6 +121,7 @@ for i, model in enumerate(models): # Loop on models
             toe_i = np.ma.masked_all((nruns,levN,latN))
             # Initialize output variable
             varToE = np.ma.masked_all((nruns,basinN,levN,latN)) # (members,basin,density,latitude)
+            varsignal_end = np.ma.masked_all((nruns,basinN,levN,latN)) # Save signal (last 5 years)
 
             # Loop over number of runs
             for k in range(nruns):
@@ -153,6 +155,11 @@ for i, model in enumerate(models): # Loop on models
                     varsignal_p[145:,:,:] = varrcp_p-meanvarpiC_p
                     varsignal_i[145:,:,:] = varrcp_i-meanvarpiC_i
 
+                # Save signal
+                varsignal_end[k,1,:,:] = np.ma.average(varsignal_a[-5:,:,:],axis=0)
+                varsignal_end[k,2,:,:] = np.ma.average(varsignal_p[-5:,:,:],axis=0)
+                varsignal_end[k,3,:,:] = np.ma.average(varsignal_i[-5:,:,:],axis=0)
+
                 # Reorganise i,j dims in single dimension data (speeds up loops)
                 varsignal_a = np.reshape(varsignal_a, (timN, levN*latN))
                 varsignal_p = np.reshape(varsignal_p, (timN, levN*latN))
@@ -167,6 +174,7 @@ for i, model in enumerate(models): # Loop on models
                 varToE[k,1,:,:] = toe_a
                 varToE[k,2,:,:] = toe_p
                 varToE[k,3,:,:] = toe_i
+
 
             # Save in output file
             if use_piC == False:
@@ -206,6 +214,7 @@ for i, model in enumerate(models): # Loop on models
             density = fout.createVariable('density', 'd', ('density',))
             latitude = fout.createVariable('latitude', 'f4', ('latitude',))
             varToE2 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE2', 'f4', ('members','basin','density','latitude',))
+            varchange = fout.createVariable(varname['var_zonal_w/bowl']+'_change', 'f4', ('members','basin','density','latitude',))
 
             # data
             members[:] =  np.arange(0,nruns)
@@ -213,6 +222,7 @@ for i, model in enumerate(models): # Loop on models
             density[:] = density
             latitude[:] = latitude
             varToE2[:,:,:] = varToE
+            varchange[:,:,:] = varsignal_end
 
             # units
             basin.units = 'basin index'
@@ -220,6 +230,8 @@ for i, model in enumerate(models): # Loop on models
             latitude.units = ''
             varToE2.units = 'Year'
             varToE2.long_name = 'ToE 2 for ' + legVar
+            varchange.units = unit
+            varchange.longName = legVar + ' signal averaged in the last five years'
 
             fout.close()
 

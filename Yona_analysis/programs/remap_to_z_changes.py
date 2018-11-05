@@ -14,15 +14,16 @@ import numpy as np
 
 # -- Choose what to compute
 # name = 'mme_hist_histNat'
+# name = 'mme_hist'
 # name = 'mme_1pctCO2vsPiC'
-# name = 'mme_rcp85_histNat'
+name = 'mme_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 # output format
-outfmt = 'view'
-# outfmt = 'save'
+# outfmt = 'view'
+outfmt = 'save'
 
 valmask = 1.e20
 basinN = 4
@@ -46,6 +47,15 @@ if name == 'mme_hist_histNat':
     fh1d = open_ncfile(datah_1d,'r')
     fhn2d = open_ncfile(datahn_2d,'r')
     fhn1d = open_ncfile(datahn_1d,'r')
+
+if name == 'mme_hist':
+    indir = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
+    file_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    data_2d = indir + file_2d
+    data_1d = indir + file_1d
+    fh2d = open_ncfile(data_2d, 'r')
+    fh1d = open_ncfile(data_1d, 'r')
 
 if name == 'mme_1pctCO2vsPiC':
     indir_1pctCO2 = '/data/ericglod/Density_binning/Prod_density_april15/mme_1pctCO2/'
@@ -80,11 +90,6 @@ if name == 'mme_rcp85_histNat':
     fhn2d = open_ncfile(indirhn + filehn_2d, 'r')
     fhn1d = open_ncfile(indirhn + filehn_1d, 'r')
 
-if name == 'Durack & Wijffels':
-    indir = '/home/ysilvy/Density_bining/Yona_analysis/data/' #'/data/ericglod/Density_binning/Obs_Prod_density_april16/'
-    file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_170224_20_48_22_beta.nc' #'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_120209_11_46_11_beta.nc'
-    data = indir + file
-    fh2d = open_ncfile(data, 'r')
 
 # -------------------------------------------------------------------------------
 #                                Build variables
@@ -92,21 +97,11 @@ if name == 'Durack & Wijffels':
 
 # == Define variables ==
 
-if name != 'Durack & Wijffels':
+# -- Salinity or temperature
+varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('temp'); v = 'T'
 
-    # Salinity or temperature
-    varname = defVarmme('salinity'); v = 'S'
-    # varname = defVarmme('temp'); v = 'T'
-
-    var = varname['var_zonal_w/bowl']
-
-else :
-    varname = defVarDurack('salinity'); v = 'S'
-    # varname = defVarDurack('temp'); v = 'T'
-
-    var_mean = varname['var_mean_zonal']
-    var_change = varname['var_change_zonal']
-    var_change_er = varname['var_change_zonal_er']
+var = varname['var_zonal_w/bowl']
 
 if name == 'mme_rcp85_histNat':
     minmax = varname['minmax_zonal_rcp85']
@@ -132,6 +127,15 @@ if name == 'mme_hist_histNat' or name == 'mme_rcp85_histNat':
     else:
         labBowl = ['histNat', 'hist']
 
+if name == 'mme_hist':
+    field2r = fh2d.variables[var][-5:,:,:,:]
+    field1r = fh2d.variables[var][88:93,:,:,:] # 1950
+    depthr = fh2d.variables['isondepth'][-5:,:,:,:]
+    volumr = fh2d.variables['isonvol'][-5:,:,:,:]
+    bowl2z = fh1d.variables['ptopdepth'][-5:,:,:]
+    bowl1z = fh1d.variables['ptopdepth'][88:93,:,:]
+    labBowl = ['1950','2000']
+
 if name == 'mme_1pctCO2vsPiC':
     if focus_1pctCO2 == '4*CO2':
         y1 = 134
@@ -150,28 +154,18 @@ if name == 'mme_1pctCO2vsPiC':
     bowl1z = fhn1d.variables['ptopdepth'][-10:,:,:]
     labBowl = ['PiControl', focus_1pctCO2]
 
-if name == 'Durack & Wijffels':
-    var_attributes = fh2d.variables[var_mean]
-    var_mean = fh2d.variables[var_mean][:].squeeze()
-    vardiffr = fh2d.variables[var_change][:].squeeze()
-    vardiffr_er = fh2d.variables[var_change_er][:].squeeze()
-    # -- Determine field in 1950 and 2000 from mean field
-    var_1950 = var_mean - var_change/2
-    var_2000 = var_mean + var_change/2
-
-if v != 'V' and name != 'Durack & Wijffels':
-    field2r[np.ma.nonzero(field2r>40)] = np.ma.masked
-    field1r[np.ma.nonzero(field1r>40)] = np.ma.masked
+if v != 'V':
+#     field2r[np.ma.nonzero(field2r>40)] = np.ma.masked
+#     field1r[np.ma.nonzero(field1r>40)] = np.ma.masked
 
     # == Compute signal hist - histNat or 1pctCO2 - PiControl or rcp8.5 - histNat ==
     vardiffr = np.ma.average(field2r, axis=0) - np.ma.average(field1r, axis=0)
 
-if name != 'Durack & Wijffels':
-    # == Average other variables ==
-    depthr = np.ma.average(depthr, axis=0)
-    volumr = np.ma.average(volumr, axis=0)
-    bowl2z = np.ma.average(bowl2z, axis=0)
-    bowl1z = np.ma.average(bowl1z, axis=0)
+# == Average other variables ==
+depthr = np.ma.average(depthr, axis=0)
+volumr = np.ma.average(volumr, axis=0)
+bowl2z = np.ma.average(bowl2z, axis=0)
+bowl1z = np.ma.average(bowl1z, axis=0)
 
 
 # == Bathymetry ==
@@ -260,12 +254,16 @@ cnplot = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varInd,
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
 # -- Add colorbar
-cb = plt.colorbar(cnplot, ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
+cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
 # -- Add Title text
 if name == 'mme_hist_histNat':
     plotTitle = '%s changes %s (pseudo-depth coordinate)' %(legVar,name)
+    plotName = 'remapping_' + name + '_' + legVar
+    figureDir = 'models/zonal_remaptoz/'
+if name == 'mme_hist':
+    plotTitle = '%s changes (2000-1950), %s' %(legVar, name)
     plotName = 'remapping_' + name + '_' + legVar
     figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_1pctCO2vsPiC':
@@ -279,7 +277,7 @@ if name == 'mme_rcp85_histNat':
 
 fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
 
-plt.figtext(.5,.01,'Computed by : remap_to_z.py',fontsize=9,ha='center')
+plt.figtext(.5,.01,'Computed by : remap_to_z_changes.py',fontsize=9,ha='center')
 
 
 if outfmt == 'view':
