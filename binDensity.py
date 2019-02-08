@@ -565,7 +565,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
     tintrp     = timc.clock()
     # Compute level thickness in source z grid (lev_thickt is a replicate for 3D matrix computation)
     lev_thick     = npy.roll(z_zw,-1)-z_zw
-    lev_thick[-1] = lev_thick[-2] # TODO is this correct for bottom value ??
+    lev_thick[-1] = lev_thick[-2]
     #print 'lev_thick,z_zw ',lev_thick,z_zw
     lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
 
@@ -1180,6 +1180,12 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             volBinza    = thickBinza * areazta
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
+            if tc == 0:
+                print thickBinz.shape, areazt.shape
+                print volBinz.shape
+                print thickBinz[0,:,jtest]
+                print areazt[jtest]
+                print volBinz[0,:,jtest]
 
             # Free memory (!! to be uncommented if we store these 4D fields at some point)
             #del(depthBini, x1Bini, x2Bini)
