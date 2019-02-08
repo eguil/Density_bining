@@ -1175,15 +1175,16 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
             x3Binzi     = cdu.averager(x3Binii,     axis = 3, action='sum')
+
             # Compute volume of isopycnals # TODO correct BUG !!
             # use   e.g.       voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
             #                   (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
             # with axis =3 ?
             if tc == 0:
                 print ' === zonal volume test'
-            areaitsig = npy.tile(npy.ma.reshape(areai,Nii*Nji), (N_s,1))
-            areaitsig = npy.tile(npy.ma.reshape(areaitsig,N_s*Nii*Nji), (tcdel,1))
-            areaitsig = npy.ma.reshape(areaitsig,[tcdel,N_s,Nji,Nii])
+            areaitsig = npy.tile(npy.ma.reshape(areai,Nii*Nji), (N_s+1,1))
+            areaitsig = npy.tile(npy.ma.reshape(areaitsig,(N_s+1)*Nii*Nji), (nyrtc,1))
+            areaitsig = npy.ma.reshape(areaitsig,[nyrtc,N_s+1,Nji,Nii])
             print areaitsig.shape
             volBinz = npy.ma.sum(thickBini*(1-thickBini.mask)*areaitsig, axis=3)
 
