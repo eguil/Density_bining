@@ -1175,16 +1175,27 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
             x3Binzi     = cdu.averager(x3Binii,     axis = 3, action='sum')
-            # Compute volume of isopycnals
-            volBinz     = thickBinz  * areazt
+            # Compute volume of isopycnals # TODO correct BUG !!
+            # use   e.g.       voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                   (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+            # with axis =3 ?
+            if tc == 0:
+                print ' === zonal volume test'
+            areaitsig = npy.tile(npy.ma.reshape(areai,Nii*Nji), (N_s,1))
+            areaitsig = npy.tile(npy.ma.reshape(areaitsig,N_s*Nii*Nji), (tcdel,1))
+            areaitsig = npy.ma.reshape(areaitsig,[tcdel,N_s,Nii,Nji])
+            print areaitsig.shape
+            volBinz = npy.ma.sum(thickBini*(1-thickBini.mask)*areaitsig, axis=3)
+
+            #volBinz     = thickBinz  * areazt
             volBinza    = thickBinza * areazta
             volBinzp    = thickBinzp * areaztp
             volBinzi    = thickBinzi * areazti
             if tc == 0:
-                print thickBinz.shape, areazt.shape
                 print volBinz.shape
-                print thickBinz[0,:,jtest]
-                print areazt[jtest]
+                print thickBini[0,:,jtest,:]
+                print areaitsig[0,:,jtest,:]
+                print areai[jtest,itest]
                 print volBinz[0,:,jtest]
 
             # Free memory (!! to be uncommented if we store these 4D fields at some point)
