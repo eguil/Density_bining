@@ -1176,30 +1176,19 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
             x3Binzi     = cdu.averager(x3Binii,     axis = 3, action='sum')
 
-            # Compute volume of isopycnals # TODO correct BUG !!
-            # use   e.g.       voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-            #                   (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
-            # with axis =3 ?
-            if tc == 0:
-                print ' === zonal volume test'
+            # Compute volume of isopycnals
+            # Create areai array with right dimensions to avoid loop
             areaitsig = npy.tile(npy.ma.reshape(areai,Nii*Nji), (N_s+1,1))
             areaitsig = npy.tile(npy.ma.reshape(areaitsig,(N_s+1)*Nii*Nji), (nyrtc,1))
             areaitsig = npy.ma.reshape(areaitsig,[nyrtc,N_s+1,Nji,Nii])
-            print areaitsig.shape
-            volBinz = npy.ma.sum(thickBini*(1-thickBini.mask)*areaitsig, axis=3)
-            volBinz = maskVal(volBinz, valmask)
-            voltottest = npy.ma.sum(volBinz)
-            #volBinz     = thickBinz  * areazt
-            volBinza    = thickBinza * areazta
-            volBinzp    = thickBinzp * areaztp
-            volBinzi    = thickBinzi * areazti
-            if tc == 0:
-                print volBinz.shape
-                print thickBini[0,0,jtest,:]
-                print areaitsig[0,0,jtest,:]
-                print areai[jtest,:]
-                print volBinz[0,0,jtest]
-                print voltottest
+            # Create volume via zonal integral of thickness * area
+            volBinz  = npy.ma.sum(thickBini *(1- thickBini.mask)*areaitsig, axis=3)
+            volBinza = npy.ma.sum(thickBinia*(1-thickBinia.mask)*areaitsig, axis=3)
+            volBinzp = npy.ma.sum(thickBinip*(1-thickBinip.mask)*areaitsig, axis=3)
+            volBinzi = npy.ma.sum(thickBinii*(1-thickBinii.mask)*areaitsig, axis=3)
+
+            voltoti = npy.ma.sum(volBinz)
+            print '  Total volume in rho coordinates target grid (ref = 1.33 e+18)   : ', voltoti
 
             # Free memory (!! to be uncommented if we store these 4D fields at some point)
             #del(depthBini, x1Bini, x2Bini)
