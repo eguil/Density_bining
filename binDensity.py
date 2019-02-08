@@ -1183,7 +1183,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
                 print ' === zonal volume test'
             areaitsig = npy.tile(npy.ma.reshape(areai,Nii*Nji), (N_s,1))
             areaitsig = npy.tile(npy.ma.reshape(areaitsig,N_s*Nii*Nji), (tcdel,1))
-            areaitsig = npy.ma.reshape(areaitsig,[tcdel,N_s,Nii,Nji])
+            areaitsig = npy.ma.reshape(areaitsig,[tcdel,N_s,Nji,Nii])
             print areaitsig.shape
             volBinz = npy.ma.sum(thickBini*(1-thickBini.mask)*areaitsig, axis=3)
 
