@@ -1187,6 +1187,7 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             areaitsig = npy.ma.reshape(areaitsig,[nyrtc,N_s+1,Nji,Nii])
             print areaitsig.shape
             volBinz = npy.ma.sum(thickBini*(1-thickBini.mask)*areaitsig, axis=3)
+            volBinz = maskVal(volBinz, valmask)
             voltottest = npy.ma.sum(volBinz)
             #volBinz     = thickBinz  * areazt
             volBinza    = thickBinza * areazta
@@ -1194,10 +1195,10 @@ def densityBin(fileT,fileS,fileV,fileFx,outFile,debug=True,timeint='all',mthout=
             volBinzi    = thickBinzi * areazti
             if tc == 0:
                 print volBinz.shape
-                print thickBini[0,:,jtest,:]
-                print areaitsig[0,:,jtest,:]
-                print areai[jtest,itest]
-                print volBinz[0,:,jtest]
+                print thickBini[0,0,jtest,:]
+                print areaitsig[0,0,jtest,:]
+                print areai[jtest,:]
+                print volBinz[0,0,jtest]
                 print voltottest
 
             # Free memory (!! to be uncommented if we store these 4D fields at some point)
