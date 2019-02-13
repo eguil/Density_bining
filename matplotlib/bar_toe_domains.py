@@ -25,7 +25,7 @@ import numpy as np
 #                                Define work
 # -------------------------------------------------------------------------------
 
-inDir = '/Users/ericg/Projets/Density_bining/'
+inDir = '/data/ericglod/Density_binning/'
 workh = 'Prod_density_april15/toe_histNat'
 #workh = 'Prod_density_april15/mme_hist'
 inDirh = inDir + workh
@@ -94,12 +94,12 @@ DomToEA1 = {'domain': [-40., -30, 25.5, 26.7], 'name': 'Southern ST', 'color': '
 DomToEP1 = {'domain': [-15, -10, 26, 26.3]   , 'name': 'Southern ST', 'color': 'blue'}
 DomToEI1 = {'domain': [-40, -15, 25.6, 26.8] , 'name': 'Southern ST', 'color': 'blue'}
 
-varToEA1 = np.around(averageDom(toe1[:,1,:,:], 3, DomToEA1['domain'], lats, levr) + iniyear)
-print min(varToEA1),max(varToEA1), np.around(np.average(varToEA1)), np.median(varToEA1),np.std(varToEA1)
-varToEP1 = np.around(averageDom(toe1[:,2,:,:], 3, DomToEP1['domain'], lats, levr) + iniyear)
-print min(varToEP1),max(varToEP1), np.around(np.average(varToEP1)), np.median(varToEP1),np.std(varToEP1)
-varToEI1 = np.around(averageDom(toe1[:,3,:,:], 3, DomToEI1['domain'], lats, levr) + iniyear)
-print min(varToEI1),max(varToEI1), np.around(np.average(varToEI1)), np.median(varToEI1),np.std(varToEI1)
+varToEA1 = np.around(averageDom(toe2[:,1,:,:], 3, DomToEA1['domain'], lats, levr) + iniyear)
+#print min(varToEA1),max(varToEA1), np.around(np.average(varToEA1)), np.median(varToEA1),np.std(varToEA1)
+varToEP1 = np.around(averageDom(toe2[:,2,:,:], 3, DomToEP1['domain'], lats, levr) + iniyear)
+#print min(varToEP1),max(varToEP1), np.around(np.average(varToEP1)), np.median(varToEP1),np.std(varToEP1)
+varToEI1 = np.around(averageDom(toe2[:,3,:,:], 3, DomToEI1['domain'], lats, levr) + iniyear)
+#print min(varToEI1),max(varToEI1), np.around(np.average(varToEI1)), np.median(varToEI1),np.std(varToEI1)
 
 varToE2A1 = np.around(averageDom(toe2[:,1,:,:], 3, DomToEA1['domain'], lats, levr) + iniyear)
 print min(varToE2A1),max(varToE2A1), np.around(np.average(varToE2A1)), np.median(varToE2A1),np.std(varToE2A1)
@@ -107,22 +107,22 @@ print min(varToE2A1),max(varToE2A1), np.around(np.average(varToE2A1)), np.median
 ndecades = int((finalyear - iniyear)/deltay)
 yearbins = np.arange(ndecades+1)*10+5+iniyear
 
-ToE1A1Means,bins = np.histogram(varToEA1, yearbins)
+ToE2A1Means,bins = np.histogram(varToEA1, yearbins)
 center = (bins[:-1] + bins[1:]) / 2
-ToE1P1Means,bins = np.histogram(varToEP1, yearbins)
-ToE1I1Means,bins = np.histogram(varToEI1, yearbins)
+ToE2P1Means,bins = np.histogram(varToEP1, yearbins)
+ToE2I1Means,bins = np.histogram(varToEI1, yearbins)
 
 fig, ax = plt.subplots(nrows=3, ncols=1)
 
-rects1 = ax[0].bar(center, ToE1A1Means, deltay, color='b')
+rects1 = ax[0].bar(center, ToE2A1Means, deltay, color='b')
 ax[0].set_ylabel('Members')
 ax[0].set_title('ToE1 in '+DomToEA1['name']+' Atl')
 
-rects2 = ax[1].bar(center, ToE1P1Means, deltay, color='b')
+rects2 = ax[1].bar(center, ToE2P1Means, deltay, color='b')
 ax[1].set_ylabel('Members')
 ax[1].set_title('ToE1 in '+DomToEP1['name']+' Pac')
 
-rects3 = ax[2].bar(center, ToE1I1Means, deltay, color='b')
+rects3 = ax[2].bar(center, ToE2I1Means, deltay, color='b')
 ax[2].set_ylabel('Members')
 ax[2].set_title('ToE1 in '+DomToEI1['name']+' Ind')
 
