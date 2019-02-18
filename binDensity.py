@@ -1235,7 +1235,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                 deltitsig = npy.ma.reshape(deltitsig,[nyrtc,N_s+1,Nji,Nii])
                 #x3Binz      = cdu.averager(x3Bini*scalexi,  axis = 3, action='sum')
                 x3Binz  = npy.ma.sum(x3Bini *(1- thickBini.mask)*deltitsig, axis=3)
-                x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
+                x3Binza     = cdu.averager(x3Bini*scalexi, axis = 3, action='sum')
                 x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
                 x3Binzi     = cdu.averager(x3Binii*scalexi, axis = 3, action='sum')
 
