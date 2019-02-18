@@ -563,12 +563,12 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
     volpersist = npy.ma.ones([nyrtc], dtype='float32')*valmask
     volpersista,volpersistp,volpersisti,\
         tempersist,tempersista,tempersistp,tempersisti,\
-        salpersist,salpersista,salpersistp,salpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(12)]
+        salpersist,salpersista,salpersistp,salpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(11)]
     if fileV != 'none':
         x3Bini = npy.ma.ones(npy.ma.shape(depthBini))
         x3Binia,x3Binip,x3Binii = [npy.ma.ones(npy.shape(depthBini)) for _ in range(3)]
         ptophvmia,ptophvmip,ptophvmii = [npy.ma.ones(npy.shape(persistm)) for _ in range(3)]
-        hvmpersist,hvmpersista,hvmpersistp,hvmpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(3)]
+        hvmpersist,hvmpersista,hvmpersistp,hvmpersisti = [npy.ma.ones(npy.shape(volpersist)) for _ in range(4)]
     # Interpolation init (regrid)
     ESMP.ESMP_Initialize()
     regridObj = CdmsRegrid(ingrid,outgrid,depthBini.dtype,missing=valmask,regridMethod='distwgt',regridTool='esmf', coordSys='deg', diag = {},periodicity=1)
