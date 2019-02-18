@@ -1226,18 +1226,19 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
 
-            if fileV != 'none':
-                x3Binz      = cdu.averager(x3Bini*scalexi,  axis = 3, action='sum')
-                x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
-                x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
-                x3Binzi     = cdu.averager(x3Binii*scalexi, axis = 3, action='sum')
-
-
             # Compute volume of isopycnals
             # Create areai array with right dimensions to avoid loop
             areaitsig = npy.tile(npy.ma.reshape(areai,Nii*Nji), (N_s+1,1))
             areaitsig = npy.tile(npy.ma.reshape(areaitsig,(N_s+1)*Nii*Nji), (nyrtc,1))
             areaitsig = npy.ma.reshape(areaitsig,[nyrtc,N_s+1,Nji,Nii])
+
+            # TODO: review to correct as below
+            if fileV != 'none':
+                #x3Binz      = cdu.averager(x3Bini*scalexi,  axis = 3, action='sum')
+                x3Binz  = npy.ma.sum(x3Bini *(1- thickBini.mask)*areaitsig, axis=3)
+                x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
+                x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
+                x3Binzi     = cdu.averager(x3Binii*scalexi, axis = 3, action='sum')
             # Create volume via zonal integral of thickness * area
             volBinz  = npy.ma.sum(thickBini *(1- thickBini.mask)*areaitsig, axis=3)
             volBinza = npy.ma.sum(thickBinia*(1-thickBinia.mask)*areaitsig, axis=3)
