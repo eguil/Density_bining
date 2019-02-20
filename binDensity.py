@@ -1226,16 +1226,17 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             x1Binzi     = cdu.averager(x1Binii,     axis = 3)
             x2Binzi     = cdu.averager(x2Binii,     axis = 3)
 
-            # TODO: review to correct as below
+            # TODO: review
             if fileV != 'none':
-                # Compute volume of isopycnals
-                # Create areai array with right dimensions to avoid loop
+                # Compute MSF
+                # Create scalexi array with right dimensions to avoid loop
                 deltitsig = npy.tile(npy.ma.reshape(scalexi,Nii*Nji), (N_s+1,1))
                 deltitsig = npy.tile(npy.ma.reshape(deltitsig,(N_s+1)*Nii*Nji), (nyrtc,1))
                 deltitsig = npy.ma.reshape(deltitsig,[nyrtc,N_s+1,Nji,Nii])
                 #x3Binz      = cdu.averager(x3Bini*scalexi,  axis = 3, action='sum')
+                # same resuts as:
                 x3Binz  = npy.ma.sum(x3Bini *(1- thickBini.mask)*deltitsig, axis=3)
-                x3Binza     = cdu.averager(x3Bini*scalexi, axis = 3, action='sum')
+                x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
                 x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
                 x3Binzi     = cdu.averager(x3Binii*scalexi, axis = 3, action='sum')
 
