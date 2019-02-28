@@ -83,4 +83,5 @@ for input in range(0,iterCount):
     print 'so:        ',so
     print 'thetao:    ',thetao
     #densityBin(fileT,fileS,fileFx,'./out.nc',debug=True,timeint='all',mthout=True)
-    densityBin(thetao,so,areacello,outfileDensity,debug=True,timeint='all')
+    #densityBin(thetao,so,areacello,outfileDensity,debug=True,timeint='all')
+    densityBin(thetao,so,areacello,'none',outfileDensity,debug=True,timeint='all')
