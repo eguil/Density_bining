@@ -13,6 +13,7 @@ PJD 24 Apr 2016     - Added host check as inputs are linked and host dependent
 PJD 25 Apr 2016     - Updated outFile name from so not areacello (xml -> nc)
 PJD 25 Apr 2016     - Added IPRC fudge - needs rewriting
 PJD 13 Feb 2019     - Updated to write new bugfixed data to new dir (was 160421)
+PJD  5 Mar 2019     - Updated to deal with remote paths
                     - TODO:
                     - Rewrite: IPRC, ORAS4, SODA224
                     - Resolve temp/to vs thetao inconsistencies (JAMSTEC, UCSD, Ishii, SODA224)
@@ -21,9 +22,10 @@ PJD 13 Feb 2019     - Updated to write new bugfixed data to new dir (was 160421)
 @author: durack1
 """
 
-import glob,os,socket
+import glob,os,socket,sys
 from binDensity import densityBin
 from string import replace
+sys.path.append('/export/durack1/git/Density_bining')
 
 #%% Create input list of files
 outDir = '/work/durack1/Shared/190213_data_density'
