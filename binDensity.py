@@ -24,12 +24,15 @@ PJD 18 Sep 2014     - Added fixVarUnits function to densityBin
 EG  23 Sep 2014     - Clean up and more comments
 PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to outfiles
 EG  03 Feb 2015     - Code optimisation (removing loop in persistence)
+EG  18 Feb 2019     - Updated so velocity field is optional (for obs)
+PJD 27 Feb 2019     - Update ESMP to use ESMF (CDAT8.1)
                     - TODO:
 test
 @author: durack1
 """
 
-import ESMP,gc,os,resource,timeit ; #argparse,sys
+import gc,os,resource,timeit ; #argparse,sys
+import ESMF as ESMP ; # Update from ESMP <CDAT8
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu

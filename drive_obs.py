@@ -12,6 +12,8 @@ PJD 24 Apr 2016     - Updated to rewrite inputs rather than function
 PJD 24 Apr 2016     - Added host check as inputs are linked and host dependent
 PJD 25 Apr 2016     - Updated outFile name from so not areacello (xml -> nc)
 PJD 25 Apr 2016     - Added IPRC fudge - needs rewriting
+PJD 13 Feb 2019     - Updated to write new bugfixed data to new dir (was 160421)
+PJD  5 Mar 2019     - Updated to deal with remote paths
                     - TODO:
                     - Rewrite: IPRC, ORAS4, SODA224
                     - Resolve temp/to vs thetao inconsistencies (JAMSTEC, UCSD, Ishii, SODA224)
@@ -20,12 +22,13 @@ PJD 25 Apr 2016     - Added IPRC fudge - needs rewriting
 @author: durack1
 """
 
+import glob,os,socket,sys
 from binDensity import densityBin
 from string import replace
-import glob,os,socket
+sys.path.append('/export/durack1/git/Density_bining')
 
 #%% Create input list of files
-outDir = '/work/durack1/Shared/160421_data_density'
+outDir = '/work/durack1/Shared/190213_data_density'
 inFiles = glob.glob(os.path.join(outDir,'*'))
 processList = []
 for count,inFile in enumerate(inFiles):
@@ -56,7 +59,7 @@ for count,inFile in enumerate(processList):
 # Reset input to sublist
 processList = noIPRC
 del(noIPRC)
-        
+
 #%% Call densityBin
 iterCount = len(processList)/3 ; # Assumes three input files
 listCount = 0
@@ -82,4 +85,5 @@ for input in range(0,iterCount):
     print 'so:        ',so
     print 'thetao:    ',thetao
     #densityBin(fileT,fileS,fileFx,'./out.nc',debug=True,timeint='all',mthout=True)
-    densityBin(thetao,so,areacello,outfileDensity,debug=True,timeint='all')
+    #densityBin(thetao,so,areacello,outfileDensity,debug=True,timeint='all')
+    densityBin(thetao,so,areacello,'none',outfileDensity,debug=True,timeint='all')
