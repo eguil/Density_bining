@@ -993,7 +993,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             x3_bin       = maskVal(x3_bin, valmask)
             x3_bin       = npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN, lonN))
 
-        if debug and (tc == 0):
+        if debug and (tc < 0):
             # test write
             i = itest
             j = jtest
