@@ -28,7 +28,6 @@ EG  03 Feb 2015     - Code optimisation (removing loop in persistence)
 @author: durack1
 """
 
-
 import ESMP,gc,os,resource,timeit ; #argparse,sys
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
