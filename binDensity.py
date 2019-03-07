@@ -25,7 +25,6 @@ EG  23 Sep 2014     - Clean up and more comments
 PJD 16 Oct 2014     - Added getGitInfo,globalAttWrite for metadata writing to outfiles
 EG  03 Feb 2015     - Code optimisation (removing loop in persistence)
                     - TODO:
-test
 @author: durack1
 """
 
