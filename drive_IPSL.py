@@ -38,4 +38,4 @@ print 'areacello: ',modelAreacello
 print grid_T_file
 
 #densityBin(modelThetao,modelSo,modelAreacello,fileV=modelVo,outFile=outfileDensity,timeint='121,12', gridfT=grid_T_file, gridfS=grid_S_file, gridfV=grid_V_file)
-densityBin(modelThetao,modelSo,modelAreacello,fileV='none',outFile=outfileDensity,timeint='1,12', gridfT=grid_T_file, gridfS=grid_S_file, gridfV=grid_V_file)
+densityBin(modelThetao,modelSo,modelAreacello,'none',outFile=outfileDensity,timeint='1,12', gridfT=grid_T_file, gridfS=grid_S_file, gridfV=grid_V_file)
