@@ -10,7 +10,6 @@ This script generates area weight (areacello) variables from input grids
 PJD 24 Apr 2016     - Started
 PJD 25 Apr 2016     - Corrected confused logic with IPRC - drive_obs not here
 PJD 25 Apr 2016     - Added chdir to local dir
-PJD  5 Mar 2019     - Updated for new data, new functions
                     - TODO:
 
 @author: durack1
@@ -33,8 +32,7 @@ earthArea = 510.072e6 ; # Earth area in km^2
 earthAreaM2 = earthArea*1e6 ; # Earth area in m^2
 
 #%% Get input grids
-#os.chdir('/work/durack1/Shared/160421_data_density')
-os.chdir('/work/durack1/Shared/190213_data_density') ; # New data oceanonly
+os.chdir('/work/durack1/Shared/160421_data_density')
 inFiles = glob.glob('*thetao*')
 
 #%% Determine machine and host files
