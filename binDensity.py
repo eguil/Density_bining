@@ -376,6 +376,8 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
     depth   = thetao_h.getLevel()
     # depth profiles:
     z_zt = depth[:]
+    if debug:
+        print 'z_zt:', z_zt
     if gridfT != 'none':
         try:
             bounds  = ft2('lev_bnds')
@@ -384,6 +386,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             print 'Exception: ',err
             bounds  = depth.getBounds() ; # Work around for BNU-ESM
             z_zw = bounds[:,0]
+            print 'z_zw:',z_zw
     else:
         try:
             bounds  = ft('lev_bnds')
@@ -699,7 +702,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                 saltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
                 if fileV != 'none':
                     hvmtotij0 = npy.sum(x3_content*(1-vmask_3D[:,:]), axis=0) # vertical sum of h*v (m2/s)
-                #print 'hvmtotij0[ijtest]',hvmtotij0[ijtest]
+                    print 'hvmtotij0[ijtest]',hvmtotij0[ijtest]
                 voltot = npy.sum(voltotij0*mv.reshape(area,lonN*latN))
                 temtot = npy.sum(temtotij0*mv.reshape(area,lonN*latN))/voltot
                 saltot = npy.sum(saltotij0*mv.reshape(area,lonN*latN))/voltot
