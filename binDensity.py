@@ -522,7 +522,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
     #  Init density bining
     # ---------------------
     # test point
-    itest = 80
+    itest = 200
     jtest = 80
     ijtest = jtest*lonN + itest
 
