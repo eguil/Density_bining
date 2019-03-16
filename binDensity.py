@@ -722,6 +722,8 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             i_bottom                = vmask_3D.argmax(axis=0)-1
             # init arrays as a function of depth = f(z)
             s_z     = rhon.data[t]
+            if debug:
+                print ' s_z:',s_z[:,ijtest]
             c1_z    = x1_content
             c2_z    = x2_content
             if fileV != 'none':
