@@ -73,7 +73,10 @@ def maskVal(field,valmask):
     '''
     field [npy.isnan(field.data)] = valmask
     field._FillValue = valmask
-    field = mv.masked_where(field > valmask/10, field)
+    if valmask > 0:
+        field = mv.masked_where(field > valmask/10, field)
+    else:
+        field = mv.masked_where(field < valmask / 10, field)
     return field
 
 
@@ -779,7 +782,10 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                         c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = c3m[0,i]) ; # volume flux
             tcpu40 = timc.clock()
             # find mask on s grid
-            indsm = npy.argwhere (c1_s > valmask/10).transpose()
+            if valmask > 0:
+                indsm = npy.argwhere (c1_s > valmask/10).transpose()
+            else:
+                indsm = npy.argwhere(c1_s < valmask / 10).transpose()
 
             if debug and t == 0 : #t == 0:
                 print ' z_s just after interp', z_s[:,ijtest]
@@ -890,7 +896,10 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             #
             if debug and t == 0: #t == 0:
                 #  Check t_s == 0 vs. non-masked values for c1_s
-                indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
+                if valmask > 0:
+                    indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
+                else:
+                    ndtst = npy.argwhere((t_s <= 0.) & (c1_s > valmask / 10))
                 print 'Nb points with t_s vs. c1_s pb ',indtst.shape
                 i = ijtest
                 print
@@ -913,7 +922,10 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                     print ' bined integral profile on rhon grid c3_s[i]'
                     print c3_s[:,i]
                 print ' vertical integral on z and sigma (volume)'
-                print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
+                if valmask > 0:
+                    print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
+                else:
+                    print npy.ma.sum(lev_thick * (szm[:, i] > valmask / 10)), npy.ma.sum(t_s[:, i] * (t_s[:, i] > valmask / 10))
                 #print lev_thick*(szm[:,ijtest] < valmask/10)
                 #print t_s[:,ijtest]*(t_s[:,ijtest] < valmask/10)
             #
@@ -1487,7 +1499,10 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             # Compute % of persistent ocean on the vertical
             persistm                = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))
             persistm._FillValue     = valmask
-            persistm                = mv.masked_where(persistm > valmask/10, persistm)
+            if valmask > 0:
+                persistm            = mv.masked_where(persistm > valmask / 10, persistm)
+            else:
+                persistm            = mv.masked_where(persistm < valmask / 10, persistm)
             persistm.mask           = maski
 
             # Write % of persistent ocean, depth/temp/salinity of bowl 3D (time, lat, lon)
