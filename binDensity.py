@@ -763,10 +763,13 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                     c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,:] = z_zt[k] # TODO ?? For smooth bottom interpolation use z_zw for integral field ?
 
-            if debug and t == 0 and fileV != 'none':
+            if debug and t == 0 :
                 print ' szm just before interp', szm[:,ijtest]
-                print ' c3m just before interp', c3m[:,ijtest]
+                if fileV != 'none':
+                    print ' c3m just before interp', c3m[:,ijtest]
                 print ' zzm just before interp', zzm[:,ijtest]
+                print ' c1m just before interp', c1m[:,ijtest]
+                print ' c2m just before interp', c2m[:,ijtest]
 
             # Interpolate depth(z) (= zzm) to depth(s) at s_s densities (= z_s) using density(z) (= szm)
             # Use z_s to interpolate other fields
