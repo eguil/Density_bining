@@ -57,7 +57,7 @@ file1dhn = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc
 varname = defVar('salinity')
 #varname = defVar('temp')
 #varname = defVar('depth')
-#varname = defVar('volume')
+varname = defVar('volume')
 #varname = defVar('persist')
 #varname = defVar('heatcontent')
 

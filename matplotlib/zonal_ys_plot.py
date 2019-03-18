@@ -20,12 +20,13 @@ from densit_matplot_lib import zon_2dom, defVar
 #                               Define work
 # -------------------------------------------------------------------------------
 
-indir = '/Users/ericg/Projets/Density_bining/'
+indir = '/home/ericglod/Density_bining/'
 
 # description of work (dow)
 dow = 'model'
 #dow = 'EN4'
 #dow = 'ishii'
+dow = 'test'
 
 # output format
 outfmt = 'view'
@@ -34,8 +35,8 @@ outfmt = 'view'
 # models
 if dow == 'model':
     work = 'Prod_density_april15/mme_hist'
-    file2d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    file1d = 'cmip5.multimodel_All.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    file2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    file1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
 
 # observations
 if dow == 'EN4':
@@ -46,6 +47,12 @@ if dow == 'ishii':
     work = 'Prod_density_obs_april16/mme_obs'
     file2d = 'obs.Ishii.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon2D.nc'
     file1d = 'obs.Ishii.historical.ensm.an.ocn.Omon.density.ver-1.latestX_zon1D.nc'
+
+if dow == 'test':
+    work = 'test'
+    file2d='cmip5.IPSL-VLR0.piControl.rip.mon.ocean.Omon.density_msf_ok.nc'
+    file1d='cmip5.IPSL-VLR0.piControl.rip.mon.ocean.Omon.density_msf_ok.nc'
+
 
 indir = indir + work
 
@@ -84,10 +91,20 @@ if dow == 'ishii': # 1945.01 - 2012.12 (68 time steps)
     labBowl = ['<1950', '2010']
     restrictBowl = True
     modelAgree = False
+
+
+if dow == 'test':
+    plotName = 'test_' + varname['var']
+    y11 = 0 ; y12 = 12
+    y21 = 0 ; y22 = 12
+    labBowl = ['<1950', '2000']
+    restrictBowl = False
+    modelAgree = False
+
 #(ignore for now JAMSTEC: 2001.01 - 2014.12
 #(ignore for now UCSD: 2004.01 - 2015.03
 # SmithAndMurphy2007 # 1950.01 - 2013.02 (ignore last year)
-
+modelAgree = False
 # density domain
 domrho = [21., 26., 28.]  # min/mid/max
 delrho = [.5, .2]

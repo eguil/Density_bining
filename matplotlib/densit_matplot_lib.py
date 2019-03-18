@@ -220,13 +220,17 @@ def defVar(longName):
               'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-5, 5],'clevsmdif': np.arange(-20, 20, 5),
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume',
               }
+    msf = {'var': 'isonmsf', 'minmax': [-60., 60., 10], 'clevsm': np.arange(0, 200, 20),
+              'clevsmstd': np.arange(0, 20, 1),'1dminmax': [-5, 5],'clevsmdif': np.arange(-20, 20, 5),
+              'legVar': "MSF", 'unit': "Sv", 'longN': 'msf',
+              }
     persist = {'var': 'isonpers', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
                'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],'clevsmdif': np.arange(-10, 10, 2),
                'legVar': "Persistence", 'unit': "% of time", 'longN': 'persist'
                }
     heatcontent = {'var': 'isonhtc', 'minmax': [-10., 10., 20], 'clevsm': np.arange(0, 90, 10),
                'clevsmstd': np.arange(0, 3., .5),'1dminmax': [-50, 50],'clevsmdif': np.arange(-10, 10, 2),
-               'legVar': "Heat content", 'unit': "10^XX J", 'longN': 'persist'
+               'legVar': "Heat content", 'unit': "10^XX J", 'longN': 'heat content'
                }
 
     vars = [salinity, temp, depth, volume, persist, heatcontent]

@@ -1,5 +1,5 @@
 import os,glob,sys,resource,socket
-from libDensity import mmeAveMsk1D,mmeAveMsk2D, mmeAveMsk3D
+from libDensityPostpro import mmeAveMsk1D,mmeAveMsk2D, mmeAveMsk3D
 from modelsDef import defModels
 from correctBinFiles import correctFile
 from string import replace
@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore")
 # April 2016 : add ToE computation support (for 2D files only)
 # May 2016   : add obs support
 # Nov 2016   : add 3D files support
+# Jan 2017   : add picontrol and 1pctCo2 support
 #
 # TODO : add arguments to proc for INIT part (exper, raw, fullTS, test, keepfiles, oneD/twoD, mm/mme, ToE...) or per step
 #
@@ -29,13 +30,14 @@ tcpu0 = timc.clock()
 #   0.3) raw, oneD, mm, fullTS = F, correctF = T
 # 1) run oneD first (mm and mme) for historical and histNat
 # 2) run twoD mm for histNat
-# 3) run twoD + ToE mm for historical
+# 3) run twoD + ToE mm for historical (or better use Yona's calculation)
 # 4) run twoD mme for historical (still to implement for ToE)
 #
 # ===============================================================================================================
 #                                        INIT - work definition
 # ===============================================================================================================
-raw = True
+#raw = True
+raw = False
 # fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
 fullTS = False
 #testOneModel = True
@@ -45,7 +47,8 @@ testOneModel = False
 correctF = False  # only active if Raw = True
 
 # Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
-keepFiles = False
+# Use False for testing
+keepFiles = True
 
 oneD = False
 twoD = False
@@ -55,10 +58,15 @@ twoD = True
 mm  = False
 mme = True
 # experiment
-exper  = 'historical'
-#exper  = 'historicalNat'
+#exper = 'historical'
+#exper = 'historicalNat'
+#exper = 'piControl'
+#exper = '1pctCO2'
+exper = 'rcp85'
 #exper = 'obs'
 
+# Time mean/max bowl calculation used to mask out bowl
+timeBowl = 'max'
 
 if twoD:
     correctF = False # already done for oneD
@@ -70,13 +78,26 @@ ToeType = 'histnat'    # working from hist and histnat
 if not ToE:
     ToeType ='F'
 
+# Select range of MME
+#selMME = 'All' # select all models for MME
+#selMME = 'Hist' # select only models for which there are rcp85 and hist and simulations
+selMME = 'Nat' # select only models for which there are hist AND histNat simulations
+#selMME = '1pct' # select only models for which there are piControl AND 1pctCO2 simulations
+
+
 # ===============================================================================================================
 
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
     baseDir = '/Volumes/hciclad/data/Density_binning/'
-elif 'waippo.local' in hostname:
-    baseDir = '/Volumes/hciclad/data/Density_binning/'
+    #baseDir = '/Volumes/hciclad2/data/Density_binning/'
+elif 'waippo.local' in hostname or 'canalip.upmc.fr' in hostname or 'waippo-3.local' in hostname:
+    if raw:
+        baseDir = '/Volumes/hciclad/data/Density_binning/'
+        baseDir = '/Volumes/hciclad/data/Density_binning/'
+    else:
+        baseDir ='/Users/ericg/Projets/Density_bining/'
+        baseDir = '/Volumes/hciclad/data/Density_binning/'
 elif 'private.ipsl.fr' in hostname:
     baseDir = '/data/ericglod/Density_binning/'
 elif 'crunchy.llnl.gov' in hostname:
@@ -93,18 +114,26 @@ if exper <> 'obs':
     iniyear = 1861
     peri1 = (1861-iniyear)+1
     peri2 = (1950-iniyear)+2
-    idxtime=[0,145]
 
     # I/O directories
     #rootDir = '/Users/ericg/Projets/Density_bining/Prod_density_april15/'
     #rootDir = '/Volumes/hciclad/data/Density_binning/Prod_density_april15/Raw/'
     #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
-    rootDir =baseDir+'Prod_density_april15/Raw/'
+    if raw:
+        rootDir =baseDir+'Prod_density_april15/Raw/'
+    else:
+        rootDir =baseDir+'Prod_density_april15/'
     histDir    = rootDir+'historical'
     histNatDir = rootDir+'historicalNat'
+    piControlDir = rootDir+'piControl'
+    pctCO2Dir = rootDir+'1pctCO2'
+    rcp85Dir = rootDir+'rcp85'
     histMMEOut = rootDir+'mme_hist'
     histNatMMEOut = rootDir+'mme_histNat'
+    picMMEOut = rootDir+'mme_piControl'
+    pctMMEOut = rootDir+'mme_1pctCO2'
+    rcp85MMEOut = rootDir+'mme_rcp85'
     ToeNatOut = rootDir+'toe_histNat'
 
     # output name
@@ -141,11 +170,7 @@ modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
 #modelSel = [22,23]
 if testOneModel:
-    modelSel = [0]
-
-# Select range of MME
-selMME = 'All' # select all models for MME
-#selMME = 'Nat' # select only models for which there are hist AND histNat simulations
+    modelSel = [19]
 
 if mme:
     fullTS = False
@@ -158,9 +183,25 @@ if ToE:
 if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
+    idxtime=[0,145]
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
+    idxtime=[0,145]
+elif exper == 'piControl':
+    indir  = [piControlDir]
+    outdir = picMMEOut
+    idxtime=[0,-140] # last 140 years are used for mme
+    selMME = '1pct' # select on runs that also have a 1pctCO2
+elif exper == '1pctCO2':
+    indir  = [pctCO2Dir]
+    outdir = pctMMEOut
+    idxtime=[0,140]
+    selMME = 'piCtl' # select on runs that also have a piControl
+elif exper == 'rcp85':
+    indir = [rcp85Dir]
+    outdir = rcp85MMEOut
+    idxtime=[0,95]
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
@@ -192,6 +233,10 @@ if raw & twoD :
     if mme:
         indir[0] = indir[0]+'/mme'
 
+if mme:
+    indir[0]  = outdir
+
+
 timeInt=[peri1,peri2]
 
 listens = []
@@ -203,7 +248,7 @@ print '-------------------------------------------------------------------------
 if oneD:
     print ' -> work on 1D files'
 if twoD:
-    print ' -> work on 2D files'
+    print ' -> work on 2D files (using 1D files)'
 if raw:
     print ' -> work on raw 4D data'
     if correctF:
@@ -212,22 +257,42 @@ if ToE:
     print ' -> computing ToE for type = ',ToeType
 if mm:
         print ' -> Performing ensemble(s) for',exper
+        print ' -> Type of time selection on bowl (mean or max):',timeBowl
 if mme:
         print ' -> Performing MME for',selMME, 'models for', exper
+if exper == 'piControl':
+        print ' -> USing'
 print
 print '  --> indir = ',indir
-print '  --> outdir = ',outdir
+print '  --> outdir =  ',outdir
 print '-----------------------------------------------------------------------------------------------'
 print
 
 os.chdir(indir[0])
 for i in modelSel:
     mod = models[i]['name']
+    years = [models[i]['props'][3],models[i]['props'][4]]
     if exper == 'historical':
         nens = models[i]['props'][0]
         chartest = exper
     elif exper == 'historicalNat':
         nens = models[i]['props'][1]
+        chartest = exper
+    elif exper == 'piControl':
+        nyears = models[i]['picontrol'][0]
+        nens = 1
+        years=[0,nyears]
+        if selMME == '1pct' and nyears < 140 and nyears > 0:
+            nens = 1
+            print ' TOO SHORT: IGNORE model', mod
+        chartest = exper
+    elif exper == '1pctCO2':
+        nens = models[i]['props'][2]
+        years=[0,140]
+        chartest = exper
+    elif exper == 'rcp85':
+        nens = models[i]['props'][5]
+        years=[0,95]
         chartest = exper
     elif exper == 'obs':
         nens = models[i]['props'][0]
@@ -235,7 +300,6 @@ for i in modelSel:
     if ToE:
         if ToeType == 'histnat':
             nens = models[i]['props'][1]
-    years = [models[i]['props'][2],models[i]['props'][3]]
     if years[1] <> 0: # do not ignore model
         if nens > 0: # only if 1 member or more
             if raw:
@@ -244,8 +308,8 @@ for i in modelSel:
             else:
                 listf  = glob.glob(inroot+'.'+mod+'.*zon2D*')
                 listf1 = glob.glob(inroot+'.'+mod+'.*zon1D*')
-
             if len(listf) == 0:
+                print i, mod
                 sys.exit('### no such file !')
             start = listf[0].find(chartest)+len(chartest)
             end = listf[0].find('.an.')
@@ -280,36 +344,50 @@ for i in modelSel:
                         listens.append(outFile)
                         listens1.append(outFile1)
                         print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
+                if selMME == '1pct': # only select model if 1pctCO2 mm is present
+                    if models[i]['props'][2] > 0:
+                        listens.append(outFile)
+                        listens1.append(outFile1)
+                        print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
+                if selMME == 'piCtl': # only select model if piCtl mm is present
+                    if models[i]['picontrol'][0] > 0:
+                        listens.append(outFile)
+                        listens1.append(outFile1)
+                        print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
+                if selMME == 'Hist': # only select model if hist mm is present
+                    if models[i]['props'][0] > 0:
+                        listens.append(outFile)
+                        listens1.append(outFile1)
+                        print ' Add ',i,mod, '(slice', years, nens, 'members) to MME'
             # Perform model ensemble
             if mm:
                 if twoD:
                     if os.path.isfile(outdir+'/'+outFile) & keepFiles:
-                        print ' -> IGNORE: mm of',outFile,'already in',outdir
+                        print ' -> File exists - IGNORE mm of',outFile,'already in',outdir
                     else:
                         print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
                         if dim == 1:
-                            mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
+                            mmeAveMsk2D(listf,years,indir,outdir,outFile,timeInt,mme,timeBowl,ToeType)
                         elif dim == 2:
                             mmeAveMsk3D(listf,years,indir,outdir,outFile,timeInt,mme,ToeType)
                         print 'Wrote ',outdir+'/'+outFile
                 if oneD:
                     if os.path.isfile(outdir+'/'+outFile1) & keepFiles:
-                        print ' -> IGNORE: mm of',outFile1,'already in',outdir
+                        print ' -> File exists - IGNORE mm of',outFile1,'already in',outdir
                     else:
-                        print ' -> working on: ', i,mod, 'slice', years, nens, 'members'
+                        print ' -> working on: ', i,mod, 'slice', years, nens, 'member(s)'
                         mmeAveMsk1D(listf1,dim,years,indir,outdir,outFile1,timeInt,mme,ToeType,fullTS)
                         print 'Wrote ',outdir+'/'+outFile1
                     
 if mme:
     # run 1D MME first
-    indir[0]  = outdir
     if twoD:
         outFile = outroot+'_'+selMME+'.'+exper+'.ensm.an.ocn.Omon.density_'+appendDim2d+'.nc'
         if os.path.isfile(outdir+'/'+outFile) & keepFiles:
             print ' -> IGNORE: mme of',outFile,'already in',outdir
         else:
             if dim == 1:
-                mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
+                mmeAveMsk2D(listens,idxtime,indir,outdir,outFile,timeInt,mme,timeBowl,ToeType)
             elif dim ==2:
                 mmeAveMsk3D(listens,idxtime,indir,outdir,outFile,timeInt,mme,ToeType)
             print 'Wrote ',outdir+'/'+outFile
