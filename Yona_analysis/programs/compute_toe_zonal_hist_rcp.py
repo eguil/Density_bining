@@ -3,9 +3,7 @@
 
 """
 Compute ToE hist + RCP85 vs. histNat (or PiControl) in lat/rho domain for all runs of available models
-Over the 2005-2100 period, use either RCP85-average(histNat) or RCP85-average(PiControl) as the signal
 Save ToE in output files
-For now only the first option is implemented
 """
 
 import numpy as np
@@ -27,10 +25,10 @@ models = defModels()
 
 varname = defVarmme('salinity'); v = 'S'
 
-multStd = 2. # detect ToE at multStd std dev of histNat
+multStd = 2. # detect ToE at multStd std dev of histNat or PiControl
 
-use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+# use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std(histNat)
+use_piC = True # Signal = hist + RCP8.5 - PiControl, noise = std(PiControl)
 
 iniyear = 1860
 finalyear = 2100
@@ -71,56 +69,59 @@ for i, model in enumerate(models): # Loop on models
             tstart = model['props'][2]
             tend = model['props'][3]
 
-            # Read histNat ensemble mean
-            filehn = 'cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' \
-                     + model['file_end_histNat'] + '_zon2D.nc'
-            fhn = open_ncfile(indir_histNat + filehn,'r')
+            if use_piC == False:
+                # Read histNat ensemble mean
+                filehn = 'cmip5.' + model['name'] + '.historicalNat.ensm.an.ocn.Omon.density.ver-' \
+                         + model['file_end_histNat'] + '_zon2D.nc'
+                fhn = open_ncfile(indir_histNat + filehn,'r')
 
-            # Read var histNat
-            varhn_a = fhn.variables[var][:,1,:,:].squeeze()
-            varhn_p = fhn.variables[var][:,2,:,:].squeeze()
-            varhn_i = fhn.variables[var][:,3,:,:].squeeze()
+                # Read var histNat
+                varhn_a = fhn.variables[var][:,1,:,:].squeeze()
+                varhn_p = fhn.variables[var][:,2,:,:].squeeze()
+                varhn_i = fhn.variables[var][:,3,:,:].squeeze()
 
-            # Read std of histNat (max std of all runs for each model)
-            stdvarhn_a = fhn.variables[var+'Std'][1,:,:].squeeze()
-            stdvarhn_i = fhn.variables[var+'Std'][3,:,:].squeeze()
-            stdvarhn_p = fhn.variables[var+'Std'][2,:,:].squeeze()
+                # Read std of histNat (max std of all runs for each model)
+                stdvarhn_a = fhn.variables[var+'Std'][1,:,:].squeeze()
+                stdvarhn_i = fhn.variables[var+'Std'][3,:,:].squeeze()
+                stdvarhn_p = fhn.variables[var+'Std'][2,:,:].squeeze()
 
-            # Compute time average of the whole histNat series (signal over projection = RCP - mean(histNat))
-            meanvarhn_a = np.ma.mean(varhn_a, axis=0)
-            meanvarhn_p = np.ma.mean(varhn_p, axis=0)
-            meanvarhn_i = np.ma.mean(varhn_i, axis=0)
-
-            # Reorganise i,j dims in single dimension data (speeds up loops)
-            stdvarhn_a = np.reshape(stdvarhn_a, (levN*latN))
-            stdvarhn_p = np.reshape(stdvarhn_p, (levN*latN))
-            stdvarhn_i = np.reshape(stdvarhn_i, (levN*latN))
-
-            if use_piC:
-                # Read and Compute time average of PiControl over last 95 years + std of PiControl
-                filepiC = glob.glob(indir_piC + 'cmip5.' + model['name'] + '.' + '*zon2D.nc')[0]
-                fpiC = open_ncfile(filepiC,'r')
-                varpiC_a = fpiC.variables[var][-95:,1,:,:].squeeze()
-                varpiC_p = fpiC.variables[var][-95:,2,:,:].squeeze()
-                varpiC_i = fpiC.variables[var][-95:,3,:,:].squeeze()
-                meanvarpiC_a = np.ma.mean(varpiC_a, axis=0)
-                meanvarpiC_p = np.ma.mean(varpiC_p, axis=0)
-                meanvarpiC_i = np.ma.mean(varpiC_i, axis=0)
-                stdvarpiC_a = np.ma.std(varpiC_a, axis=0)
-                stdvarpiC_p = np.ma.std(varpiC_p, axis=0)
-                stdvarpiC_i = np.ma.std(varpiC_i, axis=0)
+                # Compute time average of the whole histNat series (signal over projection = RCP - mean(histNat))
+                meanvarhn_a = np.ma.mean(varhn_a, axis=0)
+                meanvarhn_p = np.ma.mean(varhn_p, axis=0)
+                meanvarhn_i = np.ma.mean(varhn_i, axis=0)
 
                 # Reorganise i,j dims in single dimension data (speeds up loops)
-                stdvarpiC_a = np.reshape(stdvarpiC_a, (levN*latN))
-                stdvarpiC_p = np.reshape(stdvarpiC_p, (levN*latN))
-                stdvarpiC_i = np.reshape(stdvarpiC_i, (levN*latN))
+                varnoise_a = np.reshape(stdvarhn_a, (levN*latN))
+                varnoise_p = np.reshape(stdvarhn_p, (levN*latN))
+                varnoise_i = np.reshape(stdvarhn_i, (levN*latN))
+
+            else:
+                # Read PiControl over 240 years + compute mean and std of PiControl
+                filepiC = glob.glob(indir_piC + 'cmip5.' + model['name'] + '.' + '*zon2D.nc')[0]
+                fpiC = open_ncfile(filepiC,'r')
+                varpiC = fpiC.variables[var][-240:,:,:,:]
+                meanvarpiC_a = np.ma.average(varpiC[:,1,:,:], axis=0)
+                meanvarpiC_p = np.ma.average(varpiC[:,2,:,:], axis=0)
+                meanvarpiC_i = np.ma.average(varpiC[:,3,:,:], axis=0)
+                stdvarpiC_a = np.ma.std(varpiC[:,1,:,:], axis=0)
+                stdvarpiC_p = np.ma.std(varpiC[:,2,:,:], axis=0)
+                stdvarpiC_i = np.ma.std(varpiC[:,3,:,:], axis=0)
+
+                # Reorganise i,j dims in single dimension data (speeds up loops)
+                varnoise_a = np.reshape(stdvarpiC_a, (levN*latN))
+                varnoise_p = np.reshape(stdvarpiC_p, (levN*latN))
+                varnoise_i = np.reshape(stdvarpiC_i, (levN*latN))
 
             # Initialize toe for each basin (run, density, lat)
-            toe_a = np.ma.masked_all((nruns,levN,latN))
-            toe_p = np.ma.masked_all((nruns,levN,latN))
-            toe_i = np.ma.masked_all((nruns,levN,latN))
+            toe1_a = np.ma.masked_all((nruns,levN,latN))
+            toe1_p = np.ma.masked_all((nruns,levN,latN))
+            toe1_i = np.ma.masked_all((nruns,levN,latN))
+            toe2_a = np.ma.masked_all((nruns,levN,latN))
+            toe2_p = np.ma.masked_all((nruns,levN,latN))
+            toe2_i = np.ma.masked_all((nruns,levN,latN))
             # Initialize output variable
-            varToE = np.ma.masked_all((nruns,basinN,levN,latN)) # (members,basin,density,latitude)
+            varToE1 = np.ma.masked_all((nruns,basinN,levN,latN)) # (>1std) (members,basin,density,latitude)
+            varToE2 = np.ma.masked_all((nruns,basinN,levN,latN)) # (>2std)
             varsignal_end = np.ma.masked_all((nruns,basinN,levN,latN)) # Save signal (last 5 years)
 
             # Loop over number of runs
@@ -130,30 +131,29 @@ for i, model in enumerate(models): # Loop on models
                 # Read file
                 fhrcp = open_ncfile(listruns[k],'r')
                 # Read var hist + rcp85
-                varh_a = fhrcp.variables[var][tstart:tend,1,:,:].squeeze()
-                varh_p = fhrcp.variables[var][tstart:tend,2,:,:].squeeze()
-                varh_i = fhrcp.variables[var][tstart:tend,3,:,:].squeeze()
-                varrcp_a = fhrcp.variables[var][tend:tend+95,1,:,:].squeeze()
-                varrcp_p = fhrcp.variables[var][tend:tend+95,2,:,:].squeeze()
-                varrcp_i = fhrcp.variables[var][tend:tend+95,3,:,:].squeeze()
+                # varh_a = fhrcp.variables[var][tstart:tend,1,:,:].squeeze()
+                # varh_p = fhrcp.variables[var][tstart:tend,2,:,:].squeeze()
+                # varh_i = fhrcp.variables[var][tstart:tend,3,:,:].squeeze()
+                varhrcp_a = fhrcp.variables[var][tstart:tend+95,1,:,:].squeeze()
+                varhrcp_p = fhrcp.variables[var][tstart:tend+95,2,:,:].squeeze()
+                varhrcp_i = fhrcp.variables[var][tstart:tend+95,3,:,:].squeeze()
 
                 # Initialize and fill var_signal for each basin (timN, density, latitude)
                 varsignal_a = np.ma.masked_all((timN,levN,latN))
                 varsignal_p = np.ma.masked_all((timN,levN,latN))
                 varsignal_i = np.ma.masked_all((timN,levN,latN))
 
-                varsignal_a[0:145,:,:] = varh_a-varhn_a
-                varsignal_p[0:145,:,:] = varh_p-varhn_p
-                varsignal_i[0:145,:,:] = varh_i-varhn_i
-
                 if use_piC == False:
-                    varsignal_a[145:,:,:] = varrcp_a-meanvarhn_a
-                    varsignal_p[145:,:,:] = varrcp_p-meanvarhn_p
-                    varsignal_i[145:,:,:] = varrcp_i-meanvarhn_i
+                    varsignal_a[0:145,:,:] = varhrcp_a[0:145,:,:]-varhn_a
+                    varsignal_p[0:145,:,:] = varhrcp_p[0:145,:,:]-varhn_p
+                    varsignal_i[0:145,:,:] = varhrcp_i[0:145,:,:]-varhn_i
+                    varsignal_a[145:,:,:] = varhrcp_a[145:,:,:]-meanvarhn_a
+                    varsignal_p[145:,:,:] = varhrcp_p[145:,:,:]-meanvarhn_p
+                    varsignal_i[145:,:,:] = varhrcp_i[145:,:,:]-meanvarhn_i
                 else:
-                    varsignal_a[145:,:,:] = varrcp_a-meanvarpiC_a
-                    varsignal_p[145:,:,:] = varrcp_p-meanvarpiC_p
-                    varsignal_i[145:,:,:] = varrcp_i-meanvarpiC_i
+                    varsignal_a = varhrcp_a-meanvarpiC_a
+                    varsignal_p = varhrcp_p-meanvarpiC_p
+                    varsignal_i = varhrcp_i-meanvarpiC_i
 
                 # Save signal
                 varsignal_end[k,1,:,:] = np.ma.average(varsignal_a[-5:,:,:],axis=0)
@@ -166,14 +166,20 @@ for i, model in enumerate(models): # Loop on models
                 varsignal_i = np.reshape(varsignal_i, (timN, levN*latN))
 
                 # Compute ToE as last date when diff hist+RCP - histNat is larger than mult * stddev
-                toe_a = np.reshape(findToE(varsignal_a, stdvarhn_a, multStd),(levN,latN))
-                toe_p = np.reshape(findToE(varsignal_p, stdvarhn_p, multStd),(levN,latN))
-                toe_i = np.reshape(findToE(varsignal_i, stdvarhn_i, multStd),(levN,latN))
+                toe2_a = np.reshape(findToE(varsignal_a, varnoise_a, multStd),(levN,latN))
+                toe2_p = np.reshape(findToE(varsignal_p, varnoise_p, multStd),(levN,latN))
+                toe2_i = np.reshape(findToE(varsignal_i, varnoise_i, multStd),(levN,latN))
+                toe1_a = np.reshape(findToE(varsignal_a, varnoise_a, 1),(levN,latN))
+                toe1_p = np.reshape(findToE(varsignal_p, varnoise_p, 1),(levN,latN))
+                toe1_i = np.reshape(findToE(varsignal_i, varnoise_i, 1),(levN,latN))
 
                 # Save in output variable
-                varToE[k,1,:,:] = toe_a
-                varToE[k,2,:,:] = toe_p
-                varToE[k,3,:,:] = toe_i
+                varToE1[k,1,:,:] = toe1_a
+                varToE1[k,2,:,:] = toe1_p
+                varToE1[k,3,:,:] = toe1_i
+                varToE2[k,1,:,:] = toe2_a
+                varToE2[k,2,:,:] = toe2_p
+                varToE2[k,3,:,:] = toe2_i
 
 
             # Save in output file
@@ -186,18 +192,15 @@ for i, model in enumerate(models): # Loop on models
                               'The signal in each point is hist-histNat over the historical period and ' \
                               'hist-timeaverage(histNat) over the projection period. ' \
                               'The noise in each point is the max standard deviation of the historicalNat runs \n' \
-                              'The ToE is computed by using twice the noise as the threshold.'
+                              'The ToE is computed by using once or twice the noise as the threshold.'
             else:
                 fileName = 'cmip5.'+model['name']+'.toe_zonal_rcp_PiControl.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
-                description = 'Time of Emergence hist vs. histNat +rcp8.5 vs. PiControl for each member. \n' \
+                description = 'Time of Emergence hist+rcp8.5 vs. PiControl for each member. \n' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \
-                              'The ensemble mean historicalNat is used here for all historical runs of the model. \n' \
-                              'The signal in each point is hist-histNat over the historical period and ' \
-                               'hist-timeaverage(PiControl) over the projection period. ' \
-                              'The noise in each point is the max standard deviation of the historicalNat runs over ' \
-                              'the historical period and the standard deviation of the PiControl run over the projection period. \n' \
-                              'The ToE is computed by using twice the noise as the threshold.'
+                              'The signal in each point is hist+RCP8.5 - timeaverage(PiControl) (using last 240 years of PiControl ensemble mean). ' \
+                              'The noise in each point is the standard deviation of the PiControl ensemble mean (last 240 years). \n' \
+                              'The ToE is computed by using once or twice the noise as the threshold.'
 
             fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
             fout.description = description
@@ -213,7 +216,8 @@ for i, model in enumerate(models): # Loop on models
             basin = fout.createVariable('basin', 'i4', ('basin',))
             density = fout.createVariable('density', 'd', ('density',))
             latitude = fout.createVariable('latitude', 'f4', ('latitude',))
-            varToE2 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE2', 'f4', ('members','basin','density','latitude',))
+            ToE1 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE1', 'f4', ('members','basin','density','latitude',))
+            ToE2 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE2', 'f4', ('members','basin','density','latitude',))
             varchange = fout.createVariable(varname['var_zonal_w/bowl']+'_change', 'f4', ('members','basin','density','latitude',))
 
             # data
@@ -221,17 +225,20 @@ for i, model in enumerate(models): # Loop on models
             basin[:] =  np.arange(0,basinN)
             density[:] = density
             latitude[:] = latitude
-            varToE2[:,:,:] = varToE
+            ToE1[:,:,:] = varToE1
+            ToE2[:,:,:] = varToE2
             varchange[:,:,:] = varsignal_end
 
             # units
             basin.units = 'basin index'
             density.units = 'kg.m-3'
             latitude.units = ''
-            varToE2.units = 'Year'
-            varToE2.long_name = 'ToE 2 for ' + legVar
+            ToE2.units = 'Year'
+            ToE2.long_name = 'ToE (>2std) for ' + legVar
+            ToE1.units = 'Year'
+            ToE1.long_name = 'ToE (>1std) for ' + legVar
             varchange.units = unit
-            varchange.longName = legVar + ' signal averaged in the last five years'
+            varchange.long_name = legVar + ' signal averaged in the last five years'
 
             fout.close()
 

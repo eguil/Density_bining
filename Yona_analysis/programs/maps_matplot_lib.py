@@ -7,7 +7,7 @@ import numpy.ma as ma
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib.ticker import MaxNLocator
 from netCDF4 import Dataset as open_ncfile
-from matplotlib.ticker import AutoMinorLocator
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 
 # --------------------------------
@@ -60,6 +60,9 @@ def defVar(longName):
 
 
 def defVarDurack(longName):
+
+    degree_sign= u'\N{DEGREE SIGN}'
+
     salinity = {'var_change': 'salinity_change', 'var_change_er':'thetao_change_error',
                 'var_mean': 'salinity_mean',
                 'var_mean_zonal': 'salinity_mean_basin_zonal',
@@ -76,11 +79,11 @@ def defVarDurack(longName):
             'var_mean_zonal': 'thetao_mean_basin_zonal',
             'var_change_zonal': 'thetao_change_basin_zonal', 'var_change_zonal_er' : 'thetao_change_error_basin_zonal',
             'minmax': [-0.65, 0.65, 14],
-            'minmax_zonal' : [-0.4,0.4,16],
+            'minmax_zonal' : [-0.5,0.5,16],
             'clevsm': np.arange(-2, 30, 1),
             'clevsm_zonal': np.arange(-2, 30, 1),
             'clevsm_bold': np.arange(-2,30,2),
-            'legVar': "Temperature", 'unit': "C", 'longN': 'temp'}
+            'legVar': "Temperature", 'unit': degree_sign+"C", 'longN': 'temp'}
 
     vars = [salinity,temp]
     for ivar in range(len(vars)):
@@ -91,6 +94,9 @@ def defVarDurack(longName):
 
 
 def defVarmme(longName):
+
+    degree_sign= u'\N{DEGREE SIGN}'
+
     salinity = {'var_zonal': 'isonsoBowl', 'var_zonal_w/bowl': 'isonso',
                 'var_global': 'sogBowl', 'var_global_std':'sogBowlStd',
                 'minmax': [-0.3, 0.3, 16],
@@ -103,11 +109,11 @@ def defVarmme(longName):
     temp = {'var_zonal':'isonthetaoBowl', 'var_zonal_w/bowl': 'isonthetao',
             'var_global': 'thetaogBowl', 'var_global_std':'thetaogBowlStd',
             'minmax': [-0.65, 0.65, 14],
-            'minmax_zonal' : [-0.4,0.4,16],
+            'minmax_zonal' : [-0.5,0.5,16], 'minmax_zonal_rcp85': [-1,1,16],
             'clevsm': np.arange(-2, 30, 1),
             'clevsm_zonal': np.arange(-2, 30, 1),
             'clevsm_bold': np.arange(-2,30,2),
-            'legVar': "Temperature", 'unit': "C", 'longN': 'temp'}
+            'legVar': "Temperature", 'unit': degree_sign+"C", 'longN': 'temp'}
 
     depth = {'var_zonal':'isondepthBowl',
              'clevsm_zonal': np.arange(0, 2000, 100),
@@ -243,6 +249,10 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         ax0.clabel(cnt_1950, inline=1, fontsize=11, fmt=levfmt)
         cnt_2000 = ax0.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linestyles='dashed')
         ax0.clabel(cnt_2000, inline=1, fontsize=11, fmt=levfmt)
+    elif action == 'var_std':
+        cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='max')
+        cnt1 = ax0.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
+        ax0.clabel(cnt1, inline=1, fontsize=11, fmt='%.3f')
     else:
         cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
 
@@ -258,7 +268,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
                                    hatches=['','....'], edgecolor='0.3', linewidth=0.0)
 
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
-        ax0.plot(lat, bowl, color='black')
+        ax0.plot(lat, bowl, color='black', linewidth=2)
 
     if action == 'ToE' or action == 'total_mme':
         ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
@@ -309,6 +319,10 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         cnt_2000 = ax1.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linestyles='dashed')
         ax1.clabel(cnt_2000, inline=1, fontsize=11, fmt=levfmt)
         cnplot2 = cnt_2000
+    elif action == 'var_std':
+        cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='max')
+        cnt2 = ax1.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
+        ax1.clabel(cnt2, inline=1, fontsize=11, fmt='%.3f')
     else:
         cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
 
@@ -324,7 +338,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
                                   hatches=['', '....'], edgecolor='0.6', linewidth=0.0)
 
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
-        ax1.plot(lat, bowl, color='black')
+        ax1.plot(lat, bowl, color='black', linewidth=2)
 
     if action == 'ToE' or action == 'total_mme':
         ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
@@ -373,6 +387,26 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
 
     return cnplot
 
+
+def modelagree(ax0,ax1,agreelev,lat,lev,var_agree):
+
+    # Create meshgrid
+    lat2d, lev2d = np.meshgrid(lat, lev)
+
+    # -- draw agreement contour > agreement level (agreelev)
+    ax0.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev,], hatches=['..'], colors='None')
+    ax0.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
+                linewidths=1.5)
+    ax0.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
+                linewidths=1.5)
+
+    ax1.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev], hatches=['..'], colors='None')
+    ax1.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
+                linewidths=1.5)
+    agree_plot = ax1.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
+                             linewidths=1.5)
+
+    return agree_plot
 
 
 # ----------------------------------------------------
@@ -591,7 +625,7 @@ def proj_map_zonal_changes(kind, zonal_change, plt, ax1, ax2, minmax, clevsm, la
 # -----------------------------------------------
 
 def averageDom(field, dim, domain, lat, rho):
-
+    
     latidx = np.argwhere((lat >= domain[0]) & (lat <= domain[1])).transpose()
     rhoidx = np.argwhere((rho >= domain[2]) & (rho <= domain[3])).transpose()
     lidx1 = latidx[0][0];
@@ -612,9 +646,9 @@ def averageDom(field, dim, domain, lat, rho):
 #          Remap to Depth coordinates
 # -----------------------------------------------
 
-def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
+def remapToZ(fieldr,depthr,volumr, targetz, bowlz, bathy):
     '''
-    The remaToZ() function remaps a density binned zonal field back to z
+    The remapToZ() function remaps a density binned zonal field back to z
     It starts from the surface and computes the mean field for each z level, using the zonal volume of isopycnals for weighting
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
@@ -628,6 +662,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
     - volumr     - volume of isopycnals - 3D basin,density,latitude
     - targetz    - target z grid        - 1D
     - bowlz      - depth of bowl        - basin, latitude array
+    - bathy      - bathymetry           - basin, latitude
 
     Output:
     - fieldz    - 3D depth,latitude
@@ -651,88 +686,50 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
     fieldz  = np.ma.masked_all([basN, levN, latN], dtype='float32')
     volumez = np.ma.masked_all([basN, levN, latN], dtype='float32')
 
-    if v != 'V': # If not volume
-        for ibasin in range(1,4):
-            for j in range(latN):
-                # Initialize local variables for interpolation to save levels that are not missing data
-                iz_notempty = 0
-                z_notempty = np.array([])
-                fieldz_notempty = np.array([])
-                for k in range(levN-1):
-                    field_int = 0.
-                    volum_int = 0.
-                    for r in range(rhoN):
-                        if volumr[ibasin,r,j] != 0:
-                            if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
-                                field_int = field_int + fieldr[ibasin,r,j]*volumr[ibasin,r,j]
-                                volum_int = volum_int + volumr[ibasin,r,j]
-                                # depthr[ibasin,r,j] = -100. # to speed up search for next depths
-                    if volum_int != 0.:
-                        fieldz[ibasin,k,j] = field_int / volum_int
-                        volumez[ibasin,k,j] = volum_int
-                        # Save which levels are not missing data for extrapolating
-                        z_notempty = np.append(z_notempty, targetz[k])
-                        fieldz_notempty = np.append(fieldz_notempty, fieldz[ibasin,k,j])
-                        iz_notempty = iz_notempty + 1
-                    # Search bowl index for masking data later
-                    if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
-                        kbowl = k+1
-                # print('lat index', j)
-                # print(iz_notempty-1, z_notempty.shape)
-                if np.ma.is_masked(bowlz[ibasin,j]) == False :
-                    # Interpolate the data on the depth column
-                    if iz_notempty > 3:
-                        # print 'Interpolate'
-                        fieldz_new = np.interp(targetz,z_notempty,fieldz_notempty)
-                        # spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
-                        # fieldz_new = spl(targetz)
-                        fieldz[ibasin,:,j] = fieldz_new
-                    # Mask field above the bowl
-                    fieldz[ibasin,0:kbowl,j] = np.ma.masked
-                # Mask bottom
-                if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
-                    bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
-                    # print(targetz[bathy_mask[0]:])
-                    fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
-
-
-    else : # Not working
-        for ibasin in range(1,4):
-            for j in range(latN):
-                iz_notempty = 0
-                z_notempty = np.array([])
-                fieldz_notempty = np.array([])
-                for k in range(levN-1):
-                    field_int = 0.
-                    for r in range(rhoN):
+    for ibasin in range(4):
+        for j in range(latN):
+            # Initialize local variables for interpolation to save levels that are not missing data
+            iz_notempty = 0
+            z_notempty = np.array([])
+            fieldz_notempty = np.array([])
+            # Loop on target depths
+            for k in range(levN-1):
+                field_int = 0.
+                volum_int = 0.
+                # Loop on isopycnals of which the depth is betwwen targetz[k] and targetz[k+1]
+                for r in range(rhoN):
+                    if volumr[ibasin,r,j] != 0:
                         if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
-                            field_int = field_int + fieldr[ibasin,r,j]
-                            depthr[ibasin,r,j] = -100. # to speed up search for next depths
-                    if field_int != 0.:
-                        fieldz[ibasin,k,j] = field_int
-                        # Save which levels are not missing data for extrapolating
-                        z_notempty = np.append(z_notempty, targetz[k])
-                        fieldz_notempty = np.append(fieldz_notempty,fieldz[ibasin,k,j])
-                        iz_notempty = iz_notempty + 1
-                    # Search bowl index for masking data later
-                    if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
-                        kbowl = k
-                print('lat index', j)
-                print(iz_notempty-1, z_notempty.shape)
-                if np.ma.is_masked(bowlz[ibasin,j]) == False :
-                    # Interpolate the data on the depth column
-                    if iz_notempty > 3:
-                        # print 'Interpolate'
-                        spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
-                        fieldz_new = spl(targetz)
-                        fieldz[ibasin,:,j] = fieldz_new
-                    # Mask field below the bowl
-                    fieldz[ibasin,0:kbowl,j] = np.ma.masked
-                # Mask bottom
-                if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
-                    bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
-                    print(targetz[bathy_mask[0]:])
-                    fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
+                            field_int = field_int + fieldr[ibasin,r,j]*volumr[ibasin,r,j]
+                            volum_int = volum_int + volumr[ibasin,r,j]
+                            # depthr[ibasin,r,j] = -100. # to speed up search for next depths
+                if volum_int != 0.:
+                    fieldz[ibasin,k,j] = field_int / volum_int # weighted average
+                    volumez[ibasin,k,j] = volum_int
+                    # Save which levels are not missing data for extrapolating
+                    z_notempty = np.append(z_notempty, targetz[k])
+                    fieldz_notempty = np.append(fieldz_notempty, fieldz[ibasin,k,j])
+                    iz_notempty = iz_notempty + 1
+                # Search bowl index for masking data later
+                if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
+                    kbowl = k+1
+            # print('lat index', j)
+            # print(iz_notempty-1, z_notempty.shape)
+            if np.ma.is_masked(bowlz[ibasin,j]) == False :
+                # Interpolate the data on the depth column
+                if iz_notempty > 3:
+                    # print 'Interpolate'
+                    fieldz_new = np.interp(targetz,z_notempty,fieldz_notempty,right=np.ma.masked)
+                    # spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
+                    # fieldz_new = spl(targetz)
+                    fieldz[ibasin,:,j] = fieldz_new
+                # Mask field above the bowl
+                # fieldz[ibasin,0:kbowl,j] = np.ma.masked
+            # Mask bottom
+            # if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
+            #     bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
+            #     # print(targetz[bathy_mask[0]:])
+            #     fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
 
     return fieldz
 
@@ -742,7 +739,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
 #   Build zonal latitude/depth plot
 # ----------------------------------------------------
 
-def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clevsm=None, clevsm_bold=None):
+def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=None, clevsm_bold=None):
 
     # -- variables
     var = varBasin['var_change']
@@ -786,7 +783,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
     ax0.axvline(x=0, color='black', ls='--')
 
     # -- draw filled contours of the field
-    cnplot0 = ax0.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+    cnplot0 = ax0.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels'], extend=cnDict['ext_cmap'])
 
     if clevsm != None:
         # -- Format for contour labels
@@ -801,14 +798,25 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
         cpplot12 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
         ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    if varBasin['bowl1'] != None:
+    if varBasin['bowl1'] != None and varBasin['bowl2'] != None:
         # -- draw bowl
-        ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-        ax0.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
+        ax0.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
+        ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
         # -- bowl legend
         if varBasin['name'] == 'Indian':
             ax0.legend(loc='upper right', title='Bowl', fontsize=12)
+    if varBasin['bowl1'] != None and varBasin['bowl2'] == None:
+        ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+        if varBasin['name'] == 'Indian':
+            ax0.legend(loc='upper right', fontsize=12)
 
+    # -- Draw isopycnals
+    if varBasin['density'] != None :
+        levels1 = np.arange(21,28.6,0.5)
+        levels2 = np.arange(21,28.6,1)
+        ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
+        cont_isopyc1 = ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
+        ax0.clabel(cont_isopyc1, inline=1, fontsize=12, fontweight='bold', fmt='%d')
     #
     # ====  Lower panel   ===================================================
     #
@@ -830,12 +838,15 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
     ax1.set_xticklabels(xlabels)
     # -- Set y ticks
-    ax1.set_yticks([500,1000,1500,2000])
-    yminorLocator = AutoMinorLocator(4)
-    ax1.yaxis.set_minor_locator(yminorLocator)
+    # ymajorLocator = MultipleLocator(500)
+    # ax1.yaxis.set_major_locator(ymajorLocator)
+    #ax1.set_yticks([500,1000,1500,2000])
+    if zedmax == 2000:
+        yminorLocator = AutoMinorLocator(5)
+        ax1.yaxis.set_minor_locator(yminorLocator)
 
     # -- draw filled contours
-    cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+    cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels'], extend=cnDict['ext_cmap'])
 
     if clevsm != None:
         # -- draw mean field contours
@@ -843,10 +854,18 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
         cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
         ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    if varBasin['bowl1'] != None:
+    if varBasin['bowl1'] != None and varBasin['bowl2'] != None:
         # -- draw bowl
+        ax1.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
+        ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+    if varBasin['bowl1'] != None and varBasin['bowl2'] == None:
         ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-        ax1.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
+
+    # -- Draw isopycnals
+    if varBasin['density'] != None :
+        ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
+        cont_isopyc2 = ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
+        ax1.clabel(cont_isopyc2, inline=1, fontsize=12, fontweight='bold',fmt='%d')
 
     # Remove intersecting tick at zedmid
     yticks = ax1.yaxis.get_major_ticks()
@@ -855,8 +874,9 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cmap, levels, domzed, clev
     if ticks == 'right':
         yticks[0].label2.set_visible(False)
 
+
     # -- add plot title
-    ax1.text(domlat[0] + 10, zedmax-100, varBasin['name'], fontsize=16, fontweight='bold')
+    ax0.text(domlat[0] + 10, zedmin+60, varBasin['name'], fontsize=16, fontweight='bold')
 
     cnplot = [cnplot0, cnplot1]
     return cnplot

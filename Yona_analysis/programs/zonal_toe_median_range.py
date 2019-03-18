@@ -15,10 +15,15 @@ from modelsDef import defModels, defModelsCO2piC
 import glob
 import os
 import colormaps as cmaps
+import cmocean
+import palettable.cartocolors.sequential
+import datetime
+
 
 # ----- Workspace ------
 
 indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
+indir_toe_rcppiC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
 indir_mme_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
 indir_mme_hn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
 indir_toe_CO2piC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_1pctCO2_piC/'
@@ -27,32 +32,44 @@ indir_mme_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piContr
 
 # ----- Work ------
 
+# === INPUTS ===
 work = 'RCP85'
 # work = 'CO2'
 
-# figure = 'median'
-figure = 'range'
+figure = 'median'
+# figure = 'range'
 
-use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+# output format
+outfmt = 'view'
+# outfmt = 'save'
+
+use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std(histNat)
+# use_piC = True # Signal = hist + RCP8.5 - average(PiControl), noise = std(PiControl)
+
+# runs_rcp = 'same' # Same runs (30 runs) for hist+RCP8.5 vs. histNat as for hist+RCP8.5 vs. PiControl
+runs_rcp = 'all' # All runs (35)
 
 varname = defVarmme('salinity'); v = 'S'
 
-multStd = 2. # detect ToE at multStd std dev of histnat/PiControl
+multstd = 2 # detect ToE at multstd std dev of histnat/PiControl
 
 nb_outliers = 5 # Nb of outlier runs allowed to compute the ToE distribution for hist + RCP8.5
+nb_outliers_CO2 = 1 # Nb of outlier runs allowed to compute the ToE distribution for 1%CO2 vs. PiControl
 
+# =====
 
 if work == 'RCP85':
     iniyear = 1860
     finalyear = 2100
     models = defModels()
-    min = 1960
+    min = 1960 # Start year for colorbar
+    crit_min_runs = 5 # min number of runs with unmasked values = nruns-crit_min_runs
 else:
     iniyear = 0
     finalyear = 140
     models = defModelsCO2piC()
-    min = 0
+    min = 20 # Start year for colorbar
+    crit_min_runs = 1 # min number of runs with unmasked values = nruns-crit_min_runs
 deltat = 10.
 
 # density domain
@@ -77,7 +94,7 @@ density = fh2d.variables['lev'][:]; levN = len(density)
 # ----- Read ToE for each model ------
 
 if work == 'RCP85':
-    # == Historical vs historicalNat + RCP8.5 vs. historicalNat or RCP8.5 vs. PiControl ==
+    # == Historical + RCP8.5 vs. historicalNat or vs. PiControl ==
 
     nruns = 0 # Initialize total number of runs
     nrunmax = 100
@@ -94,7 +111,10 @@ if work == 'RCP85':
     varsignal_i = np.ma.masked_all((nrunmax, levN, latN))
 
     # Loop over models
-    listfiles = glob.glob(indir_toe_rcphn + '/*.nc')
+    if use_piC == False:
+        listfiles = glob.glob(indir_toe_rcphn + '/*.nc')
+    else:
+        listfiles = glob.glob(indir_toe_rcppiC + '/*.nc')
     nmodels = len(listfiles)
 
     for i in range(nmodels):
@@ -102,26 +122,33 @@ if work == 'RCP85':
         file_toe = listfiles[i]
         ftoe = open_ncfile(file_toe, 'r')
         name = os.path.basename(file_toe).split('.')[1]
-        # Read ToE (members, basin, density, latitude)
-        toe2read = ftoe.variables[var + 'ToE2'][:]
-        nMembers[i] = toe2read.shape[0]
-        print('- Reading ToE of %s with %d members'%(name,nMembers[i]))
-        nruns1 = int(nruns + nMembers[i])
 
-        # Save ToE
-        varToEA[nruns:nruns1,:,:] = toe2read[:,1,:,:]
-        varToEP[nruns:nruns1,:,:] = toe2read[:,2,:,:]
-        varToEI[nruns:nruns1,:,:] = toe2read[:,3,:,:]
+        # If use same runs in vs. histNat as in vs. PiControl, take out deficient models
+        if (runs_rcp == 'all') or (runs_rcp =='same' and name != 'GISS-E2-R' and name != 'FGOALS-g2' and name != 'MIROC-ESM'):
 
-        # Read signal
-        signalread = ftoe.variables[var + '_change'][:]
+            # Read ToE (members, basin, density, latitude)
+            if multstd == 1:
+                toeread = ftoe.variables[var + 'ToE1'][:]
+            else:
+                toeread = ftoe.variables[var + 'ToE2'][:]
+            nMembers[i] = toeread.shape[0]
+            print('- Reading ToE of %s with %d members'%(name,nMembers[i]))
+            nruns1 = int(nruns + nMembers[i])
 
-        # Save signal
-        varsignal_a[nruns:nruns1,:,:] = signalread[:,1,:,:]
-        varsignal_p[nruns:nruns1,:,:] = signalread[:,2,:,:]
-        varsignal_i[nruns:nruns1,:,:] = signalread[:,3,:,:]
+            # Save ToE
+            varToEA[nruns:nruns1,:,:] = toeread[:,1,:,:]
+            varToEP[nruns:nruns1,:,:] = toeread[:,2,:,:]
+            varToEI[nruns:nruns1,:,:] = toeread[:,3,:,:]
 
-        nruns = nruns1
+            # Read signal
+            signalread = ftoe.variables[var + '_change'][:]
+
+            # Save signal
+            varsignal_a[nruns:nruns1,:,:] = signalread[:,1,:,:]
+            varsignal_p[nruns:nruns1,:,:] = signalread[:,2,:,:]
+            varsignal_i[nruns:nruns1,:,:] = signalread[:,3,:,:]
+
+            nruns = nruns1
 
     print('Total number of runs:', nruns)
     varToEA = varToEA[0:nruns,:,:]
@@ -132,6 +159,9 @@ if work == 'RCP85':
     varsignal_i = varsignal_i[0:nruns,:,:]
 
     nruns = int(nruns)
+
+    if runs_rcp == 'same':
+        nmodels=nmodels-3
 
 else:
     # == 1%CO2 vs. PiControl ==
@@ -144,6 +174,11 @@ else:
     varToEP = np.ma.masked_all((nmodels, levN, latN))
     varToEI = np.ma.masked_all((nmodels, levN, latN))
 
+    # -- Initialize varsignal (essential for knowing the sign of the emergence)
+    varsignal_a = np.ma.masked_all((nmodels, levN, latN))
+    varsignal_p = np.ma.masked_all((nmodels, levN, latN))
+    varsignal_i = np.ma.masked_all((nmodels, levN, latN))
+
     # Loop over models
     for i in range(nmodels):
 
@@ -151,15 +186,28 @@ else:
         ftoe = open_ncfile(file_toe, 'r')
         name = os.path.basename(file_toe).split('.')[1]
         # Read ToE (basin, density, latitude)
-        toe2read = ftoe.variables[var + 'ToE2'][:]
+        if multstd == 1:
+            toeread = ftoe.variables[var + 'ToE1'][:]
+        else:
+            toeread = ftoe.variables[var + 'ToE2'][:]
         print('- Reading ToE of %s'%(name,))
 
         # Save ToE
-        varToEA[i,:,:] = toe2read[1,:,:]
-        varToEP[i,:,:] = toe2read[2,:,:]
-        varToEI[i,:,:] = toe2read[3,:,:]
+        varToEA[i,:,:] = toeread[1,:,:]
+        varToEP[i,:,:] = toeread[2,:,:]
+        varToEI[i,:,:] = toeread[3,:,:]
+
+        # Read signal
+        signalread = ftoe.variables[var + '_change'][:]
+
+        # Save signal
+        varsignal_a[i,:,:] = signalread[1,:,:]
+        varsignal_p[i,:,:] = signalread[2,:,:]
+        varsignal_i[i,:,:] = signalread[3,:,:]
 
     print('Total number of models:', nmodels)
+
+    nruns = nmodels
 
 
 # # -- Compute median and range -- old method
@@ -189,7 +237,6 @@ else:
 # rangeToEA[medianToEA > finalyear-20] = np.ma.masked # Mask points where median hasn't emerged
 
 # ----- Compute distribution according to Lyu et. al method ------
-# Done for hist + RCP8.5 only
 
 groups_a = np.ma.masked_all((nruns, levN, latN))
 groups_p = np.ma.masked_all((nruns, levN, latN))
@@ -199,11 +246,11 @@ groups_i = np.ma.masked_all((nruns, levN, latN))
 # -- Check if emergence
 
 groups_a = np.ma.where(varsignal_a>0,1,-1) # 1 if positive change, -1 if negative change
-groups_a[np.ma.where(varToEA > 220)] = 0 # Overwrite with 0 if no emergence
+groups_a[np.ma.where(varToEA > finalyear-20)] = 0 # Overwrite with 0 if no emergence
 groups_p = np.ma.where(varsignal_p>0,1,-1)
-groups_p[np.ma.where(varToEP > 220)] = 0
+groups_p[np.ma.where(varToEP > finalyear-20)] = 0
 groups_i = np.ma.where(varsignal_i>0,1,-1)
-groups_i[np.ma.where(varToEI > 220)] = 0
+groups_i[np.ma.where(varToEI > finalyear-20)] = 0
 
 nruns_a = np.ma.count(varsignal_a,axis=0) # Nb of runs with unmasked values
 nruns_p = np.ma.count(varsignal_p,axis=0)
@@ -213,30 +260,31 @@ nruns_i = np.ma.count(varsignal_i,axis=0)
 medianToEA = np.ma.masked_all((levN, latN))
 medianToEP = np.ma.masked_all((levN, latN))
 medianToEI = np.ma.masked_all((levN, latN))
-percentile16ToEA = np.ma.masked_all((levN, latN))
-percentile16ToEP = np.ma.masked_all((levN, latN))
-percentile16ToEI = np.ma.masked_all((levN, latN))
-percentile84ToEA = np.ma.masked_all((levN, latN))
-percentile84ToEP = np.ma.masked_all((levN, latN))
-percentile84ToEI = np.ma.masked_all((levN, latN))
+percentile25ToEA = np.ma.masked_all((levN, latN))
+percentile25ToEP = np.ma.masked_all((levN, latN))
+percentile25ToEI = np.ma.masked_all((levN, latN))
+percentile75ToEA = np.ma.masked_all((levN, latN))
+percentile75ToEP = np.ma.masked_all((levN, latN))
+percentile75ToEI = np.ma.masked_all((levN, latN))
 
-# -- Initialize where there is no agreement
+# -- Initialize where there is no agreement between models on the sign of the signal
 noagree_a = np.ma.masked_all((levN, latN))
 noagree_p = np.ma.masked_all((levN, latN))
 noagree_i = np.ma.masked_all((levN, latN))
 
 
-# -- Compute distribution if conditions are met
+# -- Compute distribution if conditions are met 
 
 varToEA_clean = np.ma.masked_all((nruns,levN,latN))
 varToEP_clean = np.ma.masked_all((nruns,levN,latN))
 varToEI_clean = np.ma.masked_all((nruns,levN,latN))
 
+# TODO maybe use reshape instead of double loop ? Check feasability --> idem TOE computation
 for ilat in range(len(lat)):
     for isig in range(len(density)):
 
-        # Atlantic
-        if nruns_a[isig,ilat] >= nruns - 5 : # Criteria for RCP8.5 (lower for 1%CO2)
+        # -- Atlantic
+        if nruns_a[isig,ilat] >= nruns - crit_min_runs :
             # Positive emergence
             if ((groups_a[:,isig,ilat]==1).sum() > nruns_a[isig,ilat]/2) and ((groups_a[:,isig,ilat]==-1).sum() < nb_outliers):
                 varToEA_clean[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat] = varToEA[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat]
@@ -247,7 +295,7 @@ for ilat in range(len(lat)):
                  # print(varToEA_clean[:,isig,ilat])
             # No emergence
             elif ((groups_a[:,isig,ilat]==0).sum() > nruns_a[isig,ilat]/2) and ((groups_a[:,isig,ilat]==1).sum()<=nb_outliers or
-                    (groups_a[:,isig,ilat]==-1).sum()<=-1):
+                    (groups_a[:,isig,ilat]==-1).sum()<=nb_outliers):
                 if (groups_a[:,isig,ilat]==1).sum() > (groups_a[:,isig,ilat]==-1).sum() :
                     varToEA_clean[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat] = varToEA[np.where(groups_a[:,isig,ilat]!=-1),isig,ilat]
                 else:
@@ -257,8 +305,8 @@ for ilat in range(len(lat)):
                 noagree_a[isig,ilat] = 1
                 varToEA_clean[:,isig,ilat] = varToEA[:,isig,ilat]
 
-        # Pacific
-        if nruns_p[isig,ilat] >= nruns - 5 : # Criteria for RCP8.5 (lower for 1%CO2)
+        # -- Pacific
+        if nruns_p[isig,ilat] >= nruns - crit_min_runs :
             # Positive emergence
             if ((groups_p[:,isig,ilat]==1).sum() > nruns_p[isig,ilat]/2) and ((groups_p[:,isig,ilat]==-1).sum() < nb_outliers):
                 varToEP_clean[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat]
@@ -267,7 +315,7 @@ for ilat in range(len(lat)):
                  varToEP_clean[np.where(groups_p[:,isig,ilat]!=1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=1),isig,ilat]
             # No emergence
             elif ((groups_p[:,isig,ilat]==0).sum() > nruns_p[isig,ilat]/2) and ((groups_p[:,isig,ilat]==1).sum()<=nb_outliers or
-                    (groups_p[:,isig,ilat]==-1).sum()<=-1):
+                    (groups_p[:,isig,ilat]==-1).sum()<=nb_outliers):
                 if (groups_p[:,isig,ilat]==1).sum() > (groups_p[:,isig,ilat]==-1).sum() :
                     varToEP_clean[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat] = varToEP[np.where(groups_p[:,isig,ilat]!=-1),isig,ilat]
                 else:
@@ -277,8 +325,8 @@ for ilat in range(len(lat)):
                 noagree_p[isig,ilat] = 1
                 varToEP_clean[:,isig,ilat] = varToEP[:,isig,ilat]
 
-        # Indian
-        if nruns_i[isig,ilat] >= nruns - 5 : # Criteria for RCP8.5 (lower for 1%CO2)
+        # -- Indian
+        if nruns_i[isig,ilat] >= nruns - crit_min_runs :
             # Positive emergence
             if ((groups_i[:,isig,ilat]==1).sum() > nruns_i[isig,ilat]/2) and ((groups_i[:,isig,ilat]==-1).sum() < nb_outliers):
                 varToEI_clean[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat]
@@ -287,7 +335,7 @@ for ilat in range(len(lat)):
                  varToEI_clean[np.where(groups_i[:,isig,ilat]!=1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=1),isig,ilat]
             # No emergence
             elif ((groups_i[:,isig,ilat]==0).sum() > nruns_i[isig,ilat]/2) and ((groups_i[:,isig,ilat]==1).sum()<=nb_outliers or
-                    (groups_i[:,isig,ilat]==-1).sum()<=-1):
+                    (groups_i[:,isig,ilat]==-1).sum()<=nb_outliers):
                 if (groups_i[:,isig,ilat]==1).sum() > (groups_i[:,isig,ilat]==-1).sum() :
                     varToEI_clean[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat] = varToEI[np.where(groups_i[:,isig,ilat]!=-1),isig,ilat]
                 else:
@@ -297,16 +345,18 @@ for ilat in range(len(lat)):
                 noagree_i[isig,ilat] = 1
                 varToEI_clean[:,isig,ilat] = varToEI[:,isig,ilat]
 
+# THOUGHT : deep Atlantic blank due to not enough unmasked runs ?
+
 print('Loops done')
 medianToEA = np.ma.around(np.ma.median(varToEA_clean, axis=0)) + iniyear
-percentile16ToEA = np.ma.around(np.percentile(varToEA_clean, 16, axis=0)) + iniyear
-percentile84ToEA = np.ma.around(np.percentile(varToEA_clean, 84, axis=0)) + iniyear
+percentile25ToEA = np.ma.around(np.percentile(varToEA_clean, 25, axis=0)) + iniyear
+percentile75ToEA = np.ma.around(np.percentile(varToEA_clean, 75, axis=0)) + iniyear
 medianToEP = np.ma.around(np.ma.median(varToEP_clean, axis=0)) + iniyear
-percentile16ToEP = np.ma.around(np.percentile(varToEP_clean, 16, axis=0)) + iniyear
-percentile84ToEP = np.ma.around(np.percentile(varToEP_clean, 84, axis=0)) + iniyear
+percentile25ToEP = np.ma.around(np.percentile(varToEP_clean, 25, axis=0)) + iniyear
+percentile75ToEP = np.ma.around(np.percentile(varToEP_clean, 75, axis=0)) + iniyear
 medianToEI = np.ma.around(np.ma.median(varToEI_clean, axis=0)) + iniyear
-percentile16ToEI = np.ma.around(np.percentile(varToEI_clean, 16, axis=0)) + iniyear
-percentile84ToEI = np.ma.around(np.percentile(varToEI_clean, 84, axis=0)) + iniyear
+percentile25ToEI = np.ma.around(np.percentile(varToEI_clean, 25, axis=0)) + iniyear
+percentile75ToEI = np.ma.around(np.percentile(varToEI_clean, 75, axis=0)) + iniyear
 
 
 # for ilat in range(len(lat)):
@@ -396,21 +446,24 @@ percentile84ToEI = np.ma.around(np.percentile(varToEI_clean, 84, axis=0)) + iniy
 # print('Loops done')
 
 # 16-84% range
-rangeToEA = percentile84ToEA - percentile16ToEA
-rangeToEP = percentile84ToEP - percentile16ToEP
-rangeToEI = percentile84ToEI - percentile16ToEI
+rangeToEA = percentile75ToEA - percentile25ToEA
+rangeToEP = percentile75ToEP - percentile25ToEP
+rangeToEI = percentile75ToEI - percentile25ToEI
 
-rangeToEA[percentile84ToEA>finalyear-20] = np.ma.masked
-norangeA = np.where(percentile84ToEA>finalyear-20,1,0)
-rangeToEP[percentile84ToEP>finalyear-20] = np.ma.masked
-norangeP = np.where(percentile84ToEP>finalyear-20,1,0)
-rangeToEI[percentile84ToEI>finalyear-20] = np.ma.masked
-norangeI = np.where(percentile84ToEI>finalyear-20,1,0)
+rangeToEA[percentile75ToEA>finalyear-20] = np.ma.masked
+norangeA = np.where(percentile75ToEA>finalyear-20,1,0)
+rangeToEP[percentile75ToEP>finalyear-20] = np.ma.masked
+norangeP = np.where(percentile75ToEP>finalyear-20,1,0)
+rangeToEI[percentile75ToEI>finalyear-20] = np.ma.masked
+norangeI = np.where(percentile75ToEI>finalyear-20,1,0)
 
 # Mask
 rangeToEA[rangeToEA==0] = np.ma.masked
 rangeToEP[rangeToEP==0] = np.ma.masked
 rangeToEI[rangeToEI==0] = np.ma.masked
+
+# ----- Save to file ------
+# TODO ?
 
 # ----- Read bowl position and mask points above ------
 
@@ -418,9 +471,15 @@ if work == 'RCP85':
     # Read files
     file_rcp85 = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
     file_hn = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    file_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
     f2 = open_ncfile(indir_mme_rcp85+file_rcp85,'r')
-    f1 = open_ncfile(indir_mme_hn+file_hn,'r')
-    labBowl = ['histNat','RCP8.5']
+    if use_piC:
+        f1 = open_ncfile(indir_mme_piC+file_piC,'r')
+        labBowl = ['PiControl','RCP8.5']
+    else:
+        f1 = open_ncfile(indir_mme_hn+file_hn,'r')
+        labBowl = ['histNat','RCP8.5']
+
 else:
     file_CO2 = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon1D.nc'
     file_piC = 'cmip5.multimodel_1pct.piControl.ensm.an.ocn.Omon.density_zon1D.nc'
@@ -469,6 +528,10 @@ varIndrange = {'name': 'Indian', 'ToE': rangeToEI, 'bowl2': bowl2[3,:], 'bowl1':
 # ----- Plot ToE ------
 lat2d, density2d = np.meshgrid(lat,density)
 
+# Date
+now = datetime.datetime.now()
+date = now.strftime("%Y-%m-%d")
+
 if figure == 'median':
     # -- Median
 
@@ -476,7 +539,7 @@ if figure == 'median':
 
     minmax = [min, finalyear-20 +0.1, deltat]
     unit = 'ToE'
-    cmap = 'jet_r'
+    cmap = cmaps.viridis
     levels = np.arange(minmax[0], minmax[1], minmax[2])
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlmedian, domrho, cmap, levels)
@@ -498,6 +561,8 @@ if figure == 'median':
                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
     axes[1,1].contourf(lat2d, density2d, noagree_p, levels=[0.25,0.5,1.5], colors='None',
                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+    #axes[0,1].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
+    #axes[1,1].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varIndmedian, domrho, cmap, levels)
     cnplot[0].cmap.set_over('0.8')
@@ -506,32 +571,59 @@ if figure == 'median':
                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
     axes[1,2].contourf(lat2d, density2d, noagree_i, levels=[0.25,0.5,1.5], colors='None',
                             hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+    #axes[0,2].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
+    #axes[1,2].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
+
 
     plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
+    # Bug with Atlantic colorbar - top panel, so repeat
+    cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlmedian, domrho, cmap, levels)
+    cnplot[0].cmap.set_over('0.8')
+    cnplot[1].cmap.set_over('0.8')
+    axes[0,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
+                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+    axes[1,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
+                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+    #axes[0,0].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
+    #axes[1,0].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
 
     if work == 'RCP85':
-        name = 'hist+RCP8.5 vs. histNat'
+        if use_piC == False:
+            name = 'hist+RCP8.5 vs. histNat'
+            if runs_rcp == 'all':
+                plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+            else:
+                plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
+        else:
+            name = 'hist+RCP8.5 vs. PiControl'
+            plotName = 'median_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
     else:
         name = '1pctCO2 vs. PiControl'
+        plotName = 'median_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
-    plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', ' + name + ' [> ' + str(multStd) + ' std]' \
+    plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]' \
         '\n %d models, %d runs '%(nmodels,nruns)
 
 
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold')
 
-    plt.figtext(.5,.02,'Computed by : zonal_toe_median_range.py',fontsize=9,ha='center')
+    plt.figtext(.5,.01,'Computed by : zonal_toe_median_range.py '+date,fontsize=9,ha='center')
+    if use_piC and work =='RCP85':
+        plt.figtext(.2,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
+    if use_piC == False and work =='RCP85':
+        plt.figtext(.2,.01,'Runs : '+runs_rcp,fontsize=9,ha='center')
 
 
 else:
-    # -- 16-84% inter-model range
+    # -- 25-75% inter-model range
 
     fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 
-    minmax = [0, 101, deltat]
+    minmax = [0, 91, deltat]
     unit = 'Years'
-    cmap = 'jet_r'
+    cmap = 'YlOrRd' #palettable.cartocolors.sequential.OrYel.mpl_colormap #cmocean.cm.tempo
     levels = np.arange(minmax[0], minmax[1], minmax[2])
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlrange, domrho, cmap, levels)
@@ -558,17 +650,45 @@ else:
     cb.set_label('%s' % (unit,), fontweight='bold')
 
     if work == 'RCP85':
-        name = 'hist+RCP8.5 vs. histNat'
+        if use_piC == False :
+            name = 'hist+RCP8.5 vs. histNat'
+            if runs_rcp == 'all':
+                plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+            else:
+                plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
+        else:
+            name = 'hist+RCP8.5 vs. PiControl'
+            plotName = 'range_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+
     else:
         name = '1pctCO2 vs. PiControl'
+        plotName = 'range_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
 
-    plotTitle = '16-84% multimodel ensemble range of the ToE for ' + legVar + ', ' + name + ' [> ' + str(multStd) + ' std]' \
+    plotTitle = '25-75% multimodel ensemble range of the ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]' \
         '\n %d models, %d runs '%(nmodels,nruns)
 
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold')
 
-    plt.figtext(.5,.02,'Computed by : zonal_toe_median_range.py',fontsize=9,ha='center')
+    plt.figtext(.5,.01,'Computed by : zonal_toe_median_range.py '+date,fontsize=9,ha='center')
+    if use_piC and work =='RCP85':
+        plt.figtext(.2,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
+    if use_piC == False and work == 'RCP85':
+        plt.figtext(.2,.01,'Runs : '+runs_rcp,fontsize=9,ha='center')
 
 
-plt.show()
+# -- Show or save figure ---
+
+if work == 'RCP85':
+    if use_piC:
+        path_end = 'rcp85_PiControl/'
+    else:
+        path_end = 'rcp85_histNat/'
+else:
+    path_end = '1pctCO2_piC/'
+
+if outfmt == 'view':
+    plt.show()
+else:
+    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/ToE/'+path_end+plotName+'.png', bbox_inches='tight')

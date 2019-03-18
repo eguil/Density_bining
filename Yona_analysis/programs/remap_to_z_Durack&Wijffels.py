@@ -3,7 +3,7 @@
 """
 Created on Wed Oct 24 14:51:58 2018
 
-@author: Yona
+@author: Yona Silvy
 
 Data : Durack & Wijffels 1950-2000 zonal changes, analyzed in density framework
 Grid back to a pressure coordinate and plot
@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
 from scipy.interpolate import griddata
 from maps_matplot_lib import defVarDurack, zon_2Dz, custom_div_cmap
+import datetime
 
 # ===== Workspace =====
 
@@ -75,10 +76,15 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
    3600, 3700, 3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700,
    4800, 4900, 5000, 5100, 5200, 5300, 5400, 5500]
 
+# -- Meshgrid density for remapping isopycnals
+
+lat2d, density2d = np.meshgrid(lat,density)
+
 # -- Initialize fields in pseudo-z
 var_change_z = np.ma.masked_all((len(targetz),141,4))
 var_mean_z = np.ma.masked_all((len(targetz),141,4))
 var_change_er_z = np.ma.masked_all((len(targetz),141,4))
+density_z = np.ma.masked_all((len(targetz),141,4))
 
 # -- Grid fields to target pressure grid, using the pressure field in density/lat framework
 for ibasin in range(4):
@@ -88,32 +94,36 @@ for ibasin in range(4):
         var_change_sig = var_change[:,ilat,ibasin]
         var_mean_sig = var_mean[:,ilat,ibasin]
         var_change_er_sig = var_change_er[:,ilat,ibasin]
+        density_sig = density2d[:,ilat]
 
         Psort = np.ma.compressed(np.sort(Psig)) # Sort pressure and get rid of nans
         isort = np.argsort(Psig)
         var_change_sort = np.ma.compressed(var_change_sig[isort]) # Change order according to corresponding pressure vector
         var_mean_sort = np.ma.compressed(var_mean_sig[isort])
         var_change_er_sort = np.ma.compressed(var_change_er_sig[isort])
+        density_sort = np.ma.compressed(density_sig[isort])
 
         if len(Psort) > 1:
             var_change_z[:,ilat,ibasin] = griddata(Psort,var_change_sort,targetz) # Grid field with target pressure grid
             var_mean_z[:,ilat,ibasin] = griddata(Psort,var_mean_sort,targetz)
             var_change_er_z[:,ilat,ibasin] = griddata(Psort,var_change_er_sort,targetz)
+            density_z[:,ilat,ibasin] = griddata(Psort,density_sort,targetz)
         else :
             var_change_z[:,ilat,ibasin] = np.ma.masked
             var_mean_z[:,ilat,ibasin] = np.ma.masked
             var_change_er_z[:,ilat,ibasin] = np.ma.masked
-            
+            density_z[:,ilat,ibasin] = np.ma.masked
+
 # -- Pressure domain for the plot
 domzed = [0,500,2000]
 
 # -- Make variable bundles for each basin
 varAtl = {'name': 'Atlantic', 'var_change': var_change_z[:,:,2], 'var_mean':var_mean_z[:,:,2],
-          'bowl1': None, 'bowl2': None, 'labBowl': None}
+          'bowl1': None, 'bowl2': None, 'labBowl': None, 'density':density_z[:,:,2]}
 varPac = {'name': 'Pacific', 'var_change': var_change_z[:,:,1], 'var_mean':var_mean_z[:,:,1],
-          'bowl1': None, 'bowl2': None, 'labBowl': None}
+          'bowl1': None, 'bowl2': None, 'labBowl': None, 'density':density_z[:,:,1]}
 varInd = {'name': 'Indian', 'var_change': var_change_z[:,:,3], 'var_mean':var_mean_z[:,:,3],
-          'bowl1': None, 'bowl2': None, 'labBowl': None}
+          'bowl1': None, 'bowl2': None, 'labBowl': None, 'density':density_z[:,:,3]}
 
 # ===== PLOT ======
 
@@ -126,18 +136,22 @@ cmap = custom_div_cmap()
 # -- levels
 levels = np.linspace(minmax[0],minmax[1],minmax[2])
 
+# Dictionary
+ext_cmap = 'both'
+contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap}
+
 # -- Error field
 var_change_er_z = var_change_er_z * 1.1  # to account for a potential underestimation of the error determined by a bootstrap analysis
 var_change_er_z = var_change_er_z * 1.64  # 90% confidence level
 not_signif_change = np.ma.where(np.absolute(var_change_z) < var_change_er_z, 1, 0)
-    
+
 # -- Contourf of signal
 cnplot = zon_2Dz(plt,axes[0,0], axes[1,0], 'left', lat, targetz, varAtl,
-                 cmap, levels, domzed, clevsm, clevsm_bold)
+                 contourDict, domzed)
 cnplot = zon_2Dz(plt,axes[0,1], axes[1,1], 'mid', lat, targetz, varPac,
-                 cmap, levels, domzed, clevsm, clevsm_bold)
+                 contourDict, domzed)
 cnplot = zon_2Dz(plt,axes[0,2], axes[1,2], 'right', lat, targetz, varInd,
-                 cmap, levels, domzed, clevsm, clevsm_bold)
+                 contourDict, domzed)
 
 # -- Draw areas where signal is not significant
 lat2d, lev2d = np.meshgrid(lat, targetz)
@@ -149,9 +163,8 @@ for i in range(2):
     axes[i,2].contourf(lat2d, lev2d, not_signif_change[:,:,3], levels=[0.25,0.5,1.5], colors='None',
                        hatches=['','....'], edgecolor='0.3', linewidth=0.0)
 
-
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
-plt.figtext(.006,.5,'Presure (db)',rotation='vertical')
+plt.figtext(.006,.58,'Pseudo-depth',rotation='vertical',fontweight='bold')
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
@@ -159,14 +172,18 @@ cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
 name = 'Durack & Wijffels'
 plotTitle = '%s changes 2000-1950 (pseudo-depth coordinate), %s' %(legVar, name)
-plotName = 'remapping_' + name + '_' + v + 'changes'
+plotName = 'remapping_' + name + '_' + v + 'changes_isopyccontours'
+
+# Date
+now = datetime.datetime.now()
+date = now.strftime("%Y-%m-%d")
 
 plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-plt.figtext(.5,.02,'Computed by : remap_to_z_Durack&Wijffels.py',fontsize=9,ha='center')
+plt.figtext(.5,.02,'Computed by : remap_to_z_Durack&Wijffels.py  '+date,fontsize=9,ha='center')
 
 figureDir = 'obs/zonal_remaptoz/'
 
 if out == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')

@@ -10,21 +10,21 @@ Choose between :
 - hist vs. histNat (mme or ensemble means)
 - 1%CO2 (mme or single models)
 - 1%CO2 vs. piControl (mme or single models)
-
+- RCP8.5 vs. histNat
 
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
-from maps_matplot_lib import defVarDurack, zonal_2D, defVarmme, custom_div_cmap
+from maps_matplot_lib import defVarDurack, zonal_2D, defVarmme, custom_div_cmap, modelagree
 from modelsDef import defModels, defModelsCO2piC
 import glob
 
 # ----- Workspace ------
 
-name = 'Durack & Wijffels'
-# name = 'mme_hist'
+# name = 'Durack & Wijffels'
+name = 'mme_hist'
 # name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
 # name = 'ens_mean_hist_histNat'
@@ -36,7 +36,7 @@ name = 'Durack & Wijffels'
 # name = 'ens_mean_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
-focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
+focus_1pctCO2 = '4*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 if focus_1pctCO2 == '1.4*CO2':
     y1 = 33; y2 = 38
@@ -45,7 +45,11 @@ elif focus_1pctCO2 == '2*CO2':
 else:
     y1 = 134; y2 = 140
 
-imodel = 13 # Choose model index in model list (modelsDef.py)
+# Model agreement level
+agreelev = 0.6
+modelAgree = True
+
+imodel = 12 # Choose model index in model list (modelsDef.py)
 # for imodel in range(16):
 
 # -- Choose work files
@@ -152,8 +156,8 @@ if name == 'mme_rcp85_histNat':
     filercp85_2d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon2D.nc'
     filercp85_1d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
     indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    filehn_2d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_1d = 'cmip5.multimodel_All.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    filehn_2d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
     fh2d = open_ncfile(indir_rcp85 + filercp85_2d, 'r')
     fh1d = open_ncfile(indir_rcp85 + filercp85_1d, 'r')
     fhn2d = open_ncfile(indirhn + filehn_2d, 'r')
@@ -190,6 +194,11 @@ else:
     var = varname['var_zonal_w/bowl']
 
     if name == 'mme_hist' or name == 'ens_mean_hist':
+        if modelAgree:
+            var_agree = fh2d.variables[var + 'Agree'][-5:, :, :, :]
+            var_agree_a = np.ma.average(var_agree[:,1,:,:].squeeze(), axis=0)
+            var_agree_p = np.ma.average(var_agree[:,2,:,:].squeeze(), axis=0)
+            var_agree_i = np.ma.average(var_agree[:,3,:,:].squeeze(), axis=0)
         var = fh2d.variables[var][88:,:,:,:]  # Index 88 = year 1950
         var_mean = np.ma.average(var[0:,:,:,:], axis=0)
         var_change = np.ma.average(var[-5:,:,:,:], axis=0) - np.ma.average(var[0:5,:,:,:], axis=0)
@@ -199,8 +208,8 @@ else:
         bowl1 = np.ma.average(bowl1, axis=0)
         labBowl = ['1950', '2010']
 
-    if name == 'mme_hist_histNat' or name == 'ens_mean_hist_histNat' or name == 'mme_rcp85_histNat' \
-            or name == 'ens_mean_rcp85_histNat':
+
+    if name == 'mme_hist_histNat' or name == 'ens_mean_hist_histNat':
         varh = fh2d.variables[var][-5:, :, :, :]
         varhn = fhn2d.variables[var][-5:, :, :, :]
         var_change = np.ma.average(varh, axis=0) - np.ma.average(varhn, axis=0)
@@ -208,10 +217,17 @@ else:
         bowl1 = fhn1d.variables['ptopsigma'][-5:,:,:]
         bowl2 = np.ma.average(bowl2, axis=0)
         bowl1 = np.ma.average(bowl1, axis=0)
-        if name == 'mme_rcp85_histNat' or name == 'ens_mean_rcp85_histNat':
-            labBowl = ['histNat', 'RCP8.5']
-        else :
-            labBowl = ['histNat', 'hist']
+        labBowl = ['histNat', 'hist']
+
+    if name == 'mme_rcp85_histNat' or name == 'ens_mean_rcp85_histNat':
+        varh = fh2d.variables[var][-5:, :, :, :]
+        varhn = fhn2d.variables[var][:, :, :, :]
+        var_change = np.ma.average(varh, axis=0) - np.ma.average(varhn, axis=0)
+        bowl2 = fh1d.variables['ptopsigma'][-5:,:,:]
+        bowl1 = fhn1d.variables['ptopsigma'][:,:,:]
+        bowl2 = np.ma.average(bowl2, axis=0)
+        bowl1 = np.ma.average(bowl1, axis=0)
+        labBowl = ['histNat', 'RCP8.5']
 
     if name == 'mme_1pctCO2' or name == '1pctCO2':
         if focus_1pctCO2 == '2*CO2':
@@ -334,7 +350,8 @@ if name == 'Durack & Wijffels':
               'bowl1': bowl_1950[:,3], 'bowl2': bowl_2000[:,3], 'labBowl': labBowl}
 
 
-if name == 'mme_hist' or name == 'ens_mean_hist':
+# if name == 'mme_hist' or name == 'ens_mean_hist':
+if name != 'Durack & Wijffels':
     var_change_p = var_change[2,:,:].squeeze()
     var_change_a = var_change[1,:,:].squeeze()
     var_change_i = var_change[3,:,:].squeeze()
@@ -344,6 +361,25 @@ if name == 'mme_hist' or name == 'ens_mean_hist':
     bowl2_p = bowl2[2,:].squeeze(); bowl1_p = bowl1[2,:].squeeze()
     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
+
+    # In mme 1%CO2 vs. Pi Control (and others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
+    # Pb with masked values in the bottom
+    # Also to read model agreement, need to have variable with bowl
+    var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
+    var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
+    var_change_i[np.ma.nonzero(var_change_i>valmask/10)] = np.ma.masked
+    # Now mask points in the bowl
+    for ilat in range(len(lat)):
+        if np.ma.is_masked(bowl2_a[ilat]) == False :
+            inda = np.ma.nonzero(bowl2_a[ilat]>=density)
+            var_change_a[inda,ilat] = np.ma.masked
+        if np.ma.is_masked(bowl2_p[ilat]) == False :
+            indp = np.ma.nonzero(bowl2_p[ilat]>=density)
+            var_change_p[indp,ilat] = np.ma.masked
+        if np.ma.is_masked(bowl2_i[ilat]) == False :
+            indi = np.ma.nonzero(bowl2_i[ilat]>=density)
+            var_change_i[indi,ilat] = np.ma.masked
+
     # -- Create variable bundles
     varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': var_mean_p,
               'bowl1': bowl1_p, 'bowl2': bowl2_p, 'labBowl': labBowl}
@@ -353,44 +389,44 @@ if name == 'mme_hist' or name == 'ens_mean_hist':
               'bowl1': bowl1_i, 'bowl2': bowl2_i, 'labBowl': labBowl}
 
 
-if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2' or name == '1pctCO2' \
-        or name == 'ens_mean_hist_histNat' or name == '1pctCO2vsPiC' or name == 'mme_rcp85_histNat' \
-        or name == 'ens_mean_rcp85_histNat':
-    var_change_p = var_change[2, :, :].squeeze()
-    var_change_a = var_change[1, :, :].squeeze()
-    var_change_i = var_change[3, :, :].squeeze()
-    bowl2_p = bowl2[2,:].squeeze(); bowl1_p = bowl1[2,:].squeeze()
-    bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
-    bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
+# if name == 'mme_hist_histNat' or name == 'mme_1pctCO2vsPiC' or name == 'mme_1pctCO2' or name == '1pctCO2' \
+#         or name == 'ens_mean_hist_histNat' or name == '1pctCO2vsPiC' or name == 'mme_rcp85_histNat' \
+#         or name == 'ens_mean_rcp85_histNat':
+#     var_change_p = var_change[2, :, :].squeeze()
+#     var_change_a = var_change[1, :, :].squeeze()
+#     var_change_i = var_change[3, :, :].squeeze()
+#     bowl2_p = bowl2[2,:].squeeze(); bowl1_p = bowl1[2,:].squeeze()
+#     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
+#     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
+#     var_mean_a = None
+#     var_mean_p = None
+#     var_mean_i = None
 
-    # In mme 1%CO2 vs. Pi Control (and others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
-    # Pb with masked values in the bottom
-    var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
-    var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
-    var_change_i[np.ma.nonzero(var_change_i>valmask/10)] = np.ma.masked
-    # Now mask points in the bowl
-    for ilat in range(len(lat)):
-        if np.ma.is_masked(bowl1_a[ilat]) == False :
-            # ja = bowl1_a[ilat]
-            inda = np.ma.nonzero(bowl1_a[ilat]>=density)
-            var_change_a[inda,ilat] = np.ma.masked
-        if np.ma.is_masked(bowl1_p[ilat]) == False :
-            # jp = bowl1_p[ilat]
-            indp = np.ma.nonzero(bowl1_p[ilat]>=density)
-            var_change_p[indp,ilat] = np.ma.masked
-        if np.ma.is_masked(bowl1_i[ilat]) == False :
-            # ji = bowl1_i[ilat]
-            indi = np.ma.nonzero(bowl1_i[ilat]>=density)
-            var_change_i[indi,ilat] = np.ma.masked
+    # # In mme 1%CO2 vs. Pi Control (and others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
+    # # Pb with masked values in the bottom
+    # var_change_a[np.ma.nonzero(var_change_a>valmask/10)] = np.ma.masked
+    # var_change_p[np.ma.nonzero(var_change_p>valmask/10)] = np.ma.masked
+    # var_change_i[np.ma.nonzero(var_change_i>valmask/10)] = np.ma.masked
+    # # Now mask points in the bowl
+    # for ilat in range(len(lat)):
+    #     if np.ma.is_masked(bowl2_a[ilat]) == False :
+    #         inda = np.ma.nonzero(bowl2_a[ilat]>=density)
+    #         var_change_a[inda,ilat] = np.ma.masked
+    #     if np.ma.is_masked(bowl2_p[ilat]) == False :
+    #         indp = np.ma.nonzero(bowl2_p[ilat]>=density)
+    #         var_change_p[indp,ilat] = np.ma.masked
+    #     if np.ma.is_masked(bowl2_i[ilat]) == False :
+    #         indi = np.ma.nonzero(bowl2_i[ilat]>=density)
+    #         var_change_i[indi,ilat] = np.ma.masked
+    #
 
-
-    # -- Create variable bundles
-    varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': None,
-              'bowl1': bowl1_p, 'bowl2': bowl2_p, 'labBowl': labBowl}
-    varAtl = {'name': 'Atlantic', 'var_change': var_change_a, 'var_mean': None,
-              'bowl1': bowl1_a, 'bowl2': bowl2_a, 'labBowl': labBowl}
-    varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': None,
-              'bowl1': bowl1_i, 'bowl2': bowl2_i, 'labBowl': labBowl}
+    # # -- Create variable bundles
+    # varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': None,
+    #           'bowl1': bowl1_p, 'bowl2': bowl2_p, 'labBowl': labBowl}
+    # varAtl = {'name': 'Atlantic', 'var_change': var_change_a, 'var_mean': None,
+    #           'bowl1': bowl1_a, 'bowl2': bowl2_a, 'labBowl': labBowl}
+    # varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': None,
+    #           'bowl1': bowl1_i, 'bowl2': bowl2_i, 'labBowl': labBowl}
 
 # ------------------------------------
 #               Plot
@@ -419,6 +455,10 @@ else:
 
     cnplot = zonal_2D(plt, 'total_mme', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels, clevsm, clevsm_bold)
 
+if modelAgree :
+    modelagree(axes[0,0],axes[1,0],agreelev,lat,density,var_agree_a)
+    modelagree(axes[0,1],axes[1,1],agreelev,lat,density,var_agree_p)
+    modelagree(axes[0,2],axes[1,2],agreelev,lat,density,var_agree_i)
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
@@ -429,6 +469,8 @@ cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 if name == 'mme_hist' or name == 'Durack & Wijffels':
     plotTitle = '%s changes (2000-1950), %s' %(legVar, name)
     plotName = name + '_' + v + 'changes'
+    if modelAgree:
+        plotName = name + '_' + v + 'changes_modelAgree'
     if name == 'mme_hist':
         figureDir = 'models/zonal_ys/hist/'
     else:
@@ -441,7 +483,7 @@ elif name == 'mme_hist_histNat':
 
 elif name == 'mme_rcp85_histNat':
     plotTitle = '%s changes %s' %(legVar, name)
-    plotName = name + '_' + legVar
+    plotName = name + '_' + legVar + '_meanhistNat'
     figureDir = 'models/zonal_ys/rcp85-histNat/'
 
 elif name == 'mme_1pctCO2vsPiC':
@@ -452,7 +494,7 @@ elif name == 'mme_1pctCO2vsPiC':
 elif name == '1pctCO2vsPiC':
     plotTitle = '%s changes 1pctCO2 vs. pi Control (%s, %s)' %(legVar, model['name'], focus_1pctCO2)
     plotName = model['name'] + '_' + name + '_' + focus_1pctCO2 + '_' + legVar
-    figureDir = 'models/zonal_ys/1pctCO2vsPiC/'
+    figureDir = 'models/zonal_ys/1pctCO2vsPiC/With_grid/'
 
 elif name == 'mme_1pctCO2':
     plotTitle = '%s changes (%s, %s)' %(legVar, name, focus_1pctCO2)
@@ -476,7 +518,7 @@ elif name == 'ens_mean_rcp85_histNat':
         nb = '%d member'%(nb_members,)
     plotTitle = '%s changes RCP8.5 - histNat, %s ensemble mean (%s)' %(legVar, model['name'], nb)
     plotName = model['name'] + '_rcp85_histNat' + legVar
-    figureDir = 'models/zonal_ys/rcp85-histNat/'
+    figureDir = 'models/zonal_ys/rcp85-histNat/With_grid/'
 
 else:
     plotTitle = '%s changes (2000-1950), %s ensemble mean (%d members)' %(legVar, model['name'], nb_members)
@@ -484,8 +526,9 @@ else:
     figureDir = 'models/zonal_ys/hist/'
 
 plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-plt.figtext(.5,.02,'Computed by : zonal_ys_changes.py',fontsize=9,ha='center')
+plt.figtext(.5,.015,'Computed by : zonal_ys_changes.py',fontsize=9,ha='center')
+if modelAgree:
+    plt.figtext(.1,.015,'Model agreement level : ' + str(agreelev),fontsize=9,ha='center')
 
-
-plt.show()
-# plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+# plt.show()
+plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
