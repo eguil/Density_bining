@@ -99,7 +99,7 @@ def maskValCorr(field,valmaski,valmask):
     Usage:
     ------
     >>> from binDensity import maskValCorr
-    >>> maskedVariable = maskValCorr(MaskedVariable,valmaski,valmask)
+    >>> maskedVariable = maskValCorr(maskedVariable,valmaski,valmask)
 
     Notes:
     -----
@@ -109,9 +109,10 @@ def maskValCorr(field,valmaski,valmask):
     #field = mv.masked_where(field == valmaski, field)
     #field [npy.isnan(field.data)] = valmask
 
-    idx = npy.argwhere(field.data == valmaski)
+    idx = npy.argwhere(field.mask)
     print idx.shape
     field.data[idx[0],idx[1],idx[2],idx[4]] = valmask
+    field._FillValue = valmask
 
     return field
 
@@ -662,7 +663,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             #thetao = maskVal(thetao,valmask)
             print ' thetao after correct :',thetao.data[0,:,jtest,itest]
             print ' mask:',thetao.mask[0,:,jtest,itest]
-            #so     = maskValCorr(so,valmask)
+            so     = maskValCorr(so,valmaski,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
             if corrmask:
