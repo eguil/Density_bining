@@ -444,10 +444,9 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         if 'EC-EARTH' == modeln:
             print 'EC-EARTH missing_value fix'
             valmask = 1.e20
-    if debug:
-        print 'valmask = ',valmask
     #Correct for valmask if not eq 1.e20
     if valmask <> 1.e20:
+        print 'valmask = ',valmask,' -> correcting to 1.e20'
         corrmask = True
         valmaski = valmask
         valmask  = 1.e20
@@ -649,7 +648,9 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         so      = fs('so'    , time = slice(trmin,trmax))
         # Correct for mask value if needed
         if corrmask:
+            print ' thetao before correct :',thetao.data[0,:,ijtest]
             thetao = maskValCorr(thetao,valmaski,valmask)
+            print ' thetao after correct :',thetao.data[0,:,ijtest]
             so     = maskValCorr(so    ,valmaski,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
