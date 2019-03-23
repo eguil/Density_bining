@@ -73,10 +73,38 @@ def maskVal(field,valmask):
     '''
     field [npy.isnan(field.data)] = valmask
     field._FillValue = valmask
-    if valmask > 0:
-        field = mv.masked_where(field > valmask/10, field)
-    else:
-        field = mv.masked_where(field < valmask / 10, field)
+    field = mv.masked_where(field > valmask/10, field)
+    return field
+
+def maskValCorr(field,valmaski,valmask):
+    '''
+    The maskValCorr() function modifies the mask value of a masked array provided
+
+    Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
+
+    Created on Sat Mar 23 08:36:08 CET 2019
+
+    Inputs:
+    ------
+    - field     - 1D/2D/3D masked array
+    - valmaski  - 1D scalar of current mask value
+    - valmask   - 1D scalar of final mask value
+
+    Output:
+    - field     - 1D/2D/3D masked array
+
+    Usage:
+    ------
+    >>> from binDensity import maskValCorr
+    >>> maskedVariable = maskValCorr(MaskedVariable,valmaski,valmask)
+
+    Notes:
+    -----
+
+    '''
+    field [npy.isnan(field.data)] = valmask
+    field._FillValue = valmask
+    field = mv.masked_where(field == valmaski, field)
     return field
 
 
@@ -403,12 +431,13 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
     lonN    = so_h.shape[3]
     latN    = so_h.shape[2]
     depthN  = so_h.shape[1]
+
     # Read masking value
     try:
         #valmask = so_h._FillValue
         valmask = so_h.missing_value
         if valmask is None:
-            print 'EC-EARTH missing_value fix'
+            print 'Missing_value fix'
             valmask = 1.e20
     except Exception,err:
         print 'Exception: ',err
@@ -417,6 +446,13 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             valmask = 1.e20
     if debug:
         print 'valmask = ',valmask
+    #Correct for valmask if not eq 1.e20
+    if valmask <> 1.e20:
+        corrmask = True
+        valmaski = valmask
+        valmask  = 1.e20
+    else:
+        corrmask = False
     # Test to ensure thetao, so and vo are equivalent sized (times equal)
     if so_h.shape[3] != thetao_h.shape[3] or so_h.shape[2] != thetao_h.shape[2] \
         or so_h.shape[1] != thetao_h.shape[1] or so_h.shape[0] != thetao_h.shape[0]:
@@ -611,8 +647,14 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         print ' --> time chunk (bounds) = ',tc+1, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+        # Correct for mask value if needed
+        if corrmask:
+            thetao = maskValCorr(thetao,valmaski,valmask)
+            so     = maskValCorr(so    ,valmaski,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
+            if corrmask:
+                vo = maskValCorr(vo, valmaski, valmask)
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
@@ -624,6 +666,8 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             so.data[:] = so.filled(valmask)
             thetao.mask = so.mask
             thetao.data[:] = thetao.filled(valmask)
+            vo.mask = so.mask
+            vo.data[:] = vo.filled(valmask)
         # Define rho output axis
         rhoAxesList[0]  = time ; # replace time axis
 
@@ -788,10 +832,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                         c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = c3m[0,i]) ; # volume flux
             tcpu40 = timc.clock()
             # find mask on s grid
-            if valmask > 0:
-                indsm = npy.argwhere (c1_s > valmask/10).transpose()
-            else:
-                indsm = npy.argwhere(c1_s < valmask / 10).transpose()
+            indsm = npy.argwhere (c1_s > valmask/10).transpose()
 
             if debug and t == 0 : #t == 0:
                 print ' z_s just after interp', z_s[:,ijtest]
@@ -902,10 +943,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             #
             if debug and t == 0: #t == 0:
                 #  Check t_s == 0 vs. non-masked values for c1_s
-                if valmask > 0:
-                    indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
-                else:
-                    ndtst = npy.argwhere((t_s <= 0.) & (c1_s > valmask / 10))
+                indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
                 print 'Nb points with t_s vs. c1_s pb ',indtst.shape
                 i = ijtest
                 print
@@ -928,10 +966,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
                     print ' bined integral profile on rhon grid c3_s[i]'
                     print c3_s[:,i]
                 print ' vertical integral on z and sigma (volume)'
-                if valmask > 0:
-                    print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
-                else:
-                    print npy.ma.sum(lev_thick * (szm[:, i] > valmask / 10)), npy.ma.sum(t_s[:, i] * (t_s[:, i] > valmask / 10))
+                print npy.ma.sum(lev_thick*(szm[:,i] < valmask/10)), npy.ma.sum(t_s[:,i]*(t_s[:,i] < valmask/10))
                 #print lev_thick*(szm[:,ijtest] < valmask/10)
                 #print t_s[:,ijtest]*(t_s[:,ijtest] < valmask/10)
             #
@@ -1505,10 +1540,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             # Compute % of persistent ocean on the vertical
             persistm                = (cdu.averager(persistv, axis = 1)/cdu.averager(thickBini, axis = 1))
             persistm._FillValue     = valmask
-            if valmask > 0:
-                persistm            = mv.masked_where(persistm > valmask / 10, persistm)
-            else:
-                persistm            = mv.masked_where(persistm < valmask / 10, persistm)
+            persistm            = mv.masked_where(persistm > valmask / 10, persistm)
             persistm.mask           = maski
 
             # Write % of persistent ocean, depth/temp/salinity of bowl 3D (time, lat, lon)
