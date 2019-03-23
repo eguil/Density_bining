@@ -105,10 +105,7 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    print npy.argwhere(field.data == valmaski).shape
-
-    field [npy.argwhere(field.data == valmaski)] = valmask
-    field._FillValue = valmask
+    filed = npy.ma.filled(field, fill_value=valmask)
     return field
 
 
