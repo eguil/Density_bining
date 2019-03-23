@@ -660,7 +660,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
             if corrmask:
-                #vo = maskValCorr(vo, valmask)
+                vo = maskValCorr(vo, valmaski, valmask)
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
