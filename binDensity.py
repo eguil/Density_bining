@@ -653,6 +653,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         # Correct for mask value if needed
         if corrmask:
             print ' thetao before correct :',thetao.data[0,:,jtest,itest]
+            print ' mask':,thetao.mask[0,:,jtest,itest]
             thetao = maskVal    (thetao,valmaski)
             thetao = maskValCorr(thetao,valmaski,valmask)
             print ' thetao after correct :',thetao.data[0,:,jtest,itest]
