@@ -105,9 +105,9 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    field [npy.isnan(field.data)] = valmask
+    print npy.argwhere(field.data == vakmaski).shape
+    field [npy.argwhere(field.data == vakmaski)] = valmask
     field._FillValue = valmask
-    field = mv.masked_where(field == valmaski, field)
     return field
 
 
