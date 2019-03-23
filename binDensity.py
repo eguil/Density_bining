@@ -105,7 +105,7 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    filed = npy.ma.filled(field, fill_value=valmask)
+    field = npy.ma.filled(field, fill_value=valmask)
     return field
 
 
