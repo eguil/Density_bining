@@ -79,7 +79,7 @@ def maskVal(field,valmask):
         field = mv.masked_where(field < valmask / 10, field)
     return field
 
-def maskValCorr(field,valmaski,valmask):
+def maskValCorr(field,valmask):
     '''
     The maskValCorr() function modifies the mask value of a masked array provided
 
@@ -90,7 +90,6 @@ def maskValCorr(field,valmaski,valmask):
     Inputs:
     ------
     - field     - 1D/2D/3D masked array
-    - valmaski  - 1D scalar of current mask value
     - valmask   - 1D scalar of final mask value
 
     Output:
@@ -99,12 +98,15 @@ def maskValCorr(field,valmaski,valmask):
     Usage:
     ------
     >>> from binDensity import maskValCorr
-    >>> maskedVariable = maskValCorr(MaskedVariable,valmaski,valmask)
+    >>> maskedVariable = maskValCorr(MaskedVariable,valmask)
 
     Notes:
     -----
 
     '''
+    #field [npy.isnan(field.data)] = valmask
+    field._FillValue = valmask
+    field = mv.masked_where(field.mask, valmask)
     return field
 
 
@@ -650,16 +652,14 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         if corrmask:
             print ' thetao before correct :',thetao.data[0,:,jtest,itest]
             print ' mask:',thetao.mask[0,:,jtest,itest]
-            thetao = npy.ma.filled(thetao, fill_value=valmask)
+            thetao = maskValCorr(thetao,valmask)
             thetao = maskVal(thetao,valmask)
             print ' thetao after correct :',thetao.data[0,:,jtest,itest]
-            so     = maskVal    (so,    valmaski)
-            so     = maskValCorr(so,    valmaski,valmask)
+            so     = maskValCorr(so,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
             if corrmask:
-                vo = maskVal(vo, valmaski)
-                vo = maskValCorr(vo, valmaski, valmask)
+                vo = maskValCorr(vo, valmask)
         time    = thetao.getTime()
         testval = valmask
         # Check for missing_value/mask
