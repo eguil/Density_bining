@@ -105,7 +105,6 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    field = npy.ma.filled(field, fill_value=valmask)
     return field
 
 
@@ -649,10 +648,11 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         so      = fs('so'    , time = slice(trmin,trmax))
         # Correct for mask value if needed
         if corrmask:
+            print thetao.shape
             print ' thetao before correct :',thetao.data[0,:,jtest,itest]
             print ' mask:',thetao.mask[0,:,jtest,itest]
-            thetao = maskVal    (thetao,valmaski)
-            thetao = maskValCorr(thetao,valmaski,valmask)
+            thetao = npy.ma.filled(thetao, fill_value=valmask)
+            print thetao.shape
             print ' thetao after correct :',thetao.data[0,:,jtest,itest]
             so     = maskVal    (so,    valmaski)
             so     = maskValCorr(so,    valmaski,valmask)
