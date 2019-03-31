@@ -105,22 +105,22 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    field._FillValue = valmask
-    field.set_fill_value(valmask)
-    field.setMissing(valmask)
-    fieldo = field*1.
-    fieldo.data = valmask
-    fieldo.data = mv.masked_where(field != valmaski, field)
+    #field._FillValue = valmask
+    #field.set_fill_value(valmask)
+    #field.setMissing(valmask)
+    fieldo = npy.ma.ones(npy.ma.shape(field))*valmask
+    fieldo = mv.masked_where(field != valmaski, field)
     fieldo.mask = field.mask
+    fieldo = maskVal(fieldo, valmask)
     #field [npy.isnan(field.data)] = valmask
 
     #idx = npy.argwhere(field.mask)
     #print idx.shape
     #field.data[idx[0],idx[1],idx[2],idx[4]] = valmask
     #field._FillValue = valmask
-    fieldo._FillValue = valmask
-    fieldo.set_fill_value(valmask)
-    fieldo.setMissing(valmask)
+    #fieldo._FillValue = valmask
+    #fieldo.set_fill_value(valmask)
+    #fieldo.setMissing(valmask)
 
     return fieldo
 
