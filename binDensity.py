@@ -662,7 +662,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             print ' thetao before correct :',thetao.data[0,:,jtest,itest]
             print ' mask:',thetao.mask[0,:,jtest,itest]
             thetao = maskValCorr(thetao,valmaski,valmask)
-            #thetao = maskVal(thetao,valmask)
+            thetao = maskVal(thetao,valmask)
             print ' thetao after correct :',thetao.data[0,:,jtest,itest]
             print ' mask:',thetao.mask[0,:,jtest,itest]
             so     = maskValCorr(so,valmaski,valmask)
@@ -788,6 +788,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             if fileV != 'none':
                 c3_z    = x3_content
             # Extract a strictly increasing sub-profile
+            # todo : ensure this works whatever the valmask (fails for valmask <0)
             i_min[nomask]           = s_z.argmin(axis=0)[nomask]
             i_max[nomask]           = s_z.argmax(axis=0)[nomask]-1 # why -1 ?
             i_min[i_min > i_max]    = i_max[i_min > i_max]
