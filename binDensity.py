@@ -105,18 +105,23 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    #field._FillValue = valmask
+    field._FillValue = valmask
     field.set_fill_value(valmask)
     field.setMissing(valmask)
-    #field = mv.masked_where(field == valmaski, field)
+    fieldo = field*1.
+    fieldo = valmask
+    fieldo = mv.masked_where(field != valmaski, field)
     #field [npy.isnan(field.data)] = valmask
 
     #idx = npy.argwhere(field.mask)
     #print idx.shape
     #field.data[idx[0],idx[1],idx[2],idx[4]] = valmask
     #field._FillValue = valmask
+    fieldo._FillValue = valmask
+    fieldo.set_fill_value(valmask)
+    fieldo.setMissing(valmask)
 
-    return field
+    return fieldo
 
 
 # Compute area of grid cells on earth
