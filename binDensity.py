@@ -109,8 +109,9 @@ def maskValCorr(field,valmaski,valmask):
     field.set_fill_value(valmask)
     field.setMissing(valmask)
     fieldo = field*1.
-    fieldo = valmask
-    fieldo = mv.masked_where(field != valmaski, field)
+    fieldo.data = valmask
+    fieldo.data = mv.masked_where(field != valmaski, field)
+    fieldo.mask = field.mask
     #field [npy.isnan(field.data)] = valmask
 
     #idx = npy.argwhere(field.mask)
@@ -666,10 +667,10 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
         if corrmask:
             print ' thetao before correct :',thetao.data[0,:,jtest,itest]
             print ' mask:',thetao.mask[0,:,jtest,itest]
-            thetao = maskValCorr(thetao,valmaski,valmask)
-            thetao = maskVal(thetao,valmask)
-            print ' thetao after correct :',thetao.data[0,:,jtest,itest]
-            print ' mask:',thetao.mask[0,:,jtest,itest]
+            thetao1 = maskValCorr(thetao,valmaski,valmask)
+            #thetao = maskVal(thetao,valmask)
+            print ' thetao after correct :',thetao1.data[0,:,jtest,itest]
+            print ' mask:',thetao1.mask[0,:,jtest,itest]
             so     = maskValCorr(so,valmaski,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
