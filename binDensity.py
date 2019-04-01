@@ -126,7 +126,7 @@ def maskValCorr(field,valmaski,valmask):
     #fieldo.set_fill_value(valmask)
     #fieldo.setMissing(valmask)
 
-    return fieldo
+    return field
 
 
 # Compute area of grid cells on earth
