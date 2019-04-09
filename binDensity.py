@@ -105,26 +105,10 @@ def maskValCorr(field,valmaski,valmask):
     -----
 
     '''
-    #field._FillValue = valmask
-    #field.set_fill_value(valmask)
-    #field.setMissing(valmask)
-    #fieldo = npy.ma.ones(npy.ma.shape(field))*valmask
-    #fieldo = mv.masked_where(field == valmaski, field)
-    #fieldo.mask = field.mask
-    #fieldo = maskVal(fieldo, valmask)
 
     field = mv.masked_equal(field, valmaski)
     field.data[:] = field.filled(valmask)
-
-    #field [npy.isnan(field.data)] = valmask
-
-    #idx = npy.argwhere(field.mask)
-    #print idx.shape
-    #field.data[idx[0],idx[1],idx[2],idx[4]] = valmask
     field._FillValue = valmask
-    #fieldo._FillValue = valmask
-    #fieldo.set_fill_value(valmask)
-    #fieldo.setMissing(valmask)
 
     return field
 
@@ -292,7 +276,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
 
 
 
-def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none'):
+def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc',debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none'):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -305,8 +289,9 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
     ------
     - fileT(time,lev,lat,lon)   - 4D potential temperature array
     - fileS(time,lev,lat,lon)   - 4D salinity array
-    - fileFx(lat,lon)           - 2D array containing the cell area values
+    - fileFx(lat,lon)           - 2D array containing the cell area values of original grid
     -> options:
+    - targetGrid                - horizontal target grid for interpolation ('none' = no interpolation -> still to be developed)
     - fileV(time,lev,lat,lon)   - 4D meridional velocity array
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
@@ -500,8 +485,7 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
     ff.close()
 
     # Target horizonal grid for interp
-    gridFile    = '140807_WOD13_masks.nc'
-    gridFile_f  = cdm.open(gridFile)
+    gridFile_f  = cdm.open(targetGrid)
     maskg       = gridFile_f('basinmask3')
     outgrid     = maskg.getGrid()
     maski       = maskg.mask ; # Global mask
@@ -791,8 +775,6 @@ def densityBin(fileT,fileS,fileFx,fileV='none',outFile='out.nc',debug=True,timei
             i_bottom                = vmask_3D.argmax(axis=0)-1
             # init arrays as a function of depth = f(z)
             s_z     = rhon.data[t]
-            if debug:
-                print ' s_z:',s_z[:,ijtest]
             c1_z    = x1_content
             c2_z    = x2_content
             if fileV != 'none':
