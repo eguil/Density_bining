@@ -427,6 +427,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             print 'Exception: ',err
             bounds  = depth.getBounds() ; # Work around for BNU-ESM
             z_zw = bounds[:,0]
+    if debug:
+        print " z_zt after read",z_zt
+        print " z_zw after read",z_zw
 
     max_depth_ocean = 6000. # maximum depth of ocean
     # Horizontal grid
@@ -454,7 +457,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     if valmask <> 1.e20:
         print 'valmask = ',valmask,' -> correcting to 1.e20'
         corrmask = True
-        valmaski = valmask
+        valmaski = valmask*1
         valmask  = 1.e20
     else:
         corrmask = False
