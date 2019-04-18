@@ -733,8 +733,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
             vmask_3D2 = so.mask
             if debug:
-                print 'vmask_3D', vmask3D[:,ijtest]
-                print 'vmask_3D2',vmask3D2[:, ijtest]
+                print 'vmask_3D', vmask_3D[:,ijtest]
+                print 'vmask_3D2',vmask_3D2[:, ijtest]
 
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
