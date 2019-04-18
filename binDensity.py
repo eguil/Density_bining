@@ -625,7 +625,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     lev_thick[-1] = lev_thick[-2]
     if debug:
         print 'lev_thick ',lev_thick
-    lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
+    lev_thickt = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
+    print lev_thickt.shape
+    lev_thickt2 = npy.repeat(lev_thick[npy.newaxis,:],lonN*latN,axis=0)
+    print lev_thickt2.shape
 
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
