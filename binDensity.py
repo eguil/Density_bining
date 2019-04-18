@@ -427,9 +427,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             print 'Exception: ',err
             bounds  = depth.getBounds() ; # Work around for BNU-ESM
             z_zw = bounds[:,0]
-    if debug:
-        print " z_zt after read",z_zt
-        print " z_zw after read",z_zw
+    ##if debug:
+    #   print " z_zt after read",z_zt
+    #   print " z_zw after read",z_zw
 
     max_depth_ocean = 6000. # maximum depth of ocean
     # Horizontal grid
@@ -624,8 +624,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     # Compute level thickness in source z grid (lev_thickt is a replicate for 3D matrix computation)
     lev_thick     = npy.roll(z_zw,-1)-z_zw
     lev_thick[-1] = lev_thick[-2]
-    if debug:
-        print 'lev_thick ',lev_thick
+    #if debug:
+    #    print 'lev_thick ',lev_thick
     lev_thickt = npy.repeat(lev_thick[:,npy.newaxis],lonN*latN,axis=1)
 
     # testing
@@ -658,12 +658,12 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs('so'    , time = slice(trmin,trmax))
         # Correct for mask value if needed
         if corrmask:
-            print ' thetao before correct :',thetao.data[0,:,jtest,itest]
-            print ' mask:',thetao.mask[0,:,jtest,itest]
+            #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
+            #print ' mask:',thetao.mask[0,:,jtest,itest]
             thetao = maskValCorr(thetao,valmaski,valmask)
             #thetao = maskVal(thetao,valmask)
-            print ' thetao after correct :',thetao.data[0,:,jtest,itest]
-            print ' mask:',thetao.mask[0,:,jtest,itest]
+            #print ' thetao after correct :',thetao.data[0,:,jtest,itest]
+            #print ' mask:',thetao.mask[0,:,jtest,itest]
             so     = maskValCorr(so,valmaski,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
@@ -755,7 +755,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             #print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
-                voltotij0 = npy.sum(lev_thickt*(1-vmask_3D2[:,:]), axis=0)
+                voltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
                 temtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
                 saltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
                 if fileV != 'none':
