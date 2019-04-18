@@ -625,12 +625,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     lev_thick[-1] = lev_thick[-2]
     if debug:
         print 'lev_thick ',lev_thick
-    lev_thickt = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
-    print lev_thickt.shape
-    print lev_thickt[:,ijtest]
-    lev_thickt2 = npy.repeat(lev_thick[:,npy.newaxis],lonN*latN,axis=1)
-    print lev_thickt2.shape
-    print lev_thickt2[:,ijtest]
+    lev_thickt = npy.repeat(lev_thick[:,npy.newaxis],lonN*latN,axis=1)
 
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
@@ -736,6 +731,11 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             #
             #  Find indexes of masked points
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
+            vmask_3D2 = so.mask
+            if debug:
+                print 'vmask_3D', vmask3D[:,ijtest]
+                print 'vmask_3D2',vmask3D2[:, ijtest]
+
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             area = area*npy.reshape(nomask, [latN, lonN])
