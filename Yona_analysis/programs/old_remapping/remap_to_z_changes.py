@@ -1,7 +1,9 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys
+# Add path to PYTHONPATH
+sys.path.append("/home/ysilvy/Density_bining/Yona_analysis/programs")
 from netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 from maps_matplot_lib import defVarmme, defVarDurack, remapToZ, zon_2Dz, custom_div_cmap, modelagree
@@ -17,18 +19,18 @@ import datetime
 # name = 'mme_hist_histNat'
 name = 'mme_hist'
 # name = 'mme_1pctCO2vsPiC'
-# name = 'mme_rcp85_histNat'
+#name = 'mme_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 # output format
-outfmt = 'view'
-# outfmt = 'save'
+# outfmt = 'view'
+outfmt = 'save'
 
 # Model agreement level
 agreelev = 0.6
-modelAgree = False
+modelAgree = True
 
 valmask = 1.e20
 basinN = 4
@@ -123,8 +125,8 @@ if name == 'mme_rcp85_histNat':
 # == Define variables ==
 
 # -- Salinity or temperature
-# varname = defVarmme('salinity'); v = 'S'
-varname = defVarmme('temp'); v = 'T'
+varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('temp'); v = 'T'
 
 var = varname['var_zonal_w/bowl']
 
@@ -170,9 +172,10 @@ if name == 'mme_hist':
     volumr = fh2d.variables['isonvol'][-5:,:,:,:]
     bowl2z = fh1d.variables['ptopdepth'][-5:,:,:]
     bowl1z = fh1d.variables['ptopdepth'][88:93,:,:]
+    bowlr = fh1d.variables['ptopsigma'][88:93,:,:]
     labBowl = ['1950','2000']
     if modelAgree:
-        var_agreer = fh2d.variables[var + 'Agree'][-5:,:,:,:]
+        var_agreer = fh2d.variables['isonso' + 'Agree'][-5:,:,:,:]
 
 if name == 'mme_1pctCO2vsPiC':
     if focus_1pctCO2 == '4*CO2':
@@ -206,6 +209,18 @@ bowl2z = np.ma.average(bowl2z, axis=0)
 bowl1z = np.ma.average(bowl1z, axis=0)
 if name=='mme_hist' and modelAgree :
     var_agreer = np.ma.average(var_agreer, axis=0)
+    bowlr = np.ma.average(bowlr,axis=0)
+#     for ilat in range(len(lat)):
+#         if np.ma.is_masked(bowlr[1,ilat]) == False:
+#             inda = np.ma.nonzero(bowlr[1,ilat]>=density)
+#             var_agreer[1,inda,ilat] = np.ma.masked
+#         if np.ma.is_masked(bowlr[2,ilat]) == False:
+#             indp = np.ma.nonzero(bowlr[2,ilat]>=density)
+#             var_agreer[2,indp,ilat] = np.ma.masked
+#         if np.ma.is_masked(bowlr[3,ilat]) == False:
+#             indi = np.ma.nonzero(bowlr[3,ilat]>=density)
+#             var_agreer[3,inda,ilat] = np.ma.masked
+
 
 
 # == Bathymetry ==
@@ -265,6 +280,18 @@ if v=='S':
 # if v=='T':
 #     fieldz[np.ma.nonzero(np.ma.abs(fieldz)>2)] = np.ma.masked
 
+# # Mask above bowl2z
+# for ilat in range(len(lat)):
+#     if np.ma.is_masked(bowl2z[1,ilat]) == False :
+#         inda = np.ma.nonzero(bowl2z[1,ilat]>=targetz)
+#         var_agreez[1,inda,ilat] = np.ma.masked
+#     if np.ma.is_masked(bowl2z[2,ilat]) == False :
+#         indp = np.ma.nonzero(bowl2z[2,ilat]>=targetz)
+#         var_agreez[2,indp,ilat] = np.ma.masked
+#     if np.ma.is_masked(bowl2z[3,ilat]) == False :
+#         indi = np.ma.nonzero(bowl2z[3,ilat]>=targetz)
+#         var_agreez[3,indi,ilat] = np.ma.masked
+
 # -- Make variable bundles for each basin
 varAtl = {'name': 'Atlantic', 'var_change': fieldz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:],
           'labBowl': labBowl, 'density':density_z[1,:,:]}
@@ -278,7 +305,7 @@ varInd = {'name': 'Indian', 'var_change': fieldz[3,:,:], 'bowl1': bowl1z[3,:], '
 #                                Plot
 # -------------------------------------------------------------------------------
 
-domzed = [0,500,5000]
+domzed = [0,500,2000]
 
 # -- Create figure and axes instances
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
@@ -293,7 +320,7 @@ levels = np.linspace(minmax[0],minmax[1],minmax[2]) # Change
 #levels = np.arange(0,701,50) # Mean volume
 
 ext_cmap = 'both'
-contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap}
+contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap,'isopyc':False}
 
 # -- Contourf of signal
 cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtl,
@@ -309,9 +336,9 @@ if name=='mme_hist' and modelAgree:
     modelagree(axes[0,2],axes[1,2],agreelev,lat,targetz,var_agreez[3,:,:])
 
 # Bathymetry
-for i in range(3):
-    axes[0,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.7')
-    axes[1,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.7')
+# for i in range(3):
+#     axes[0,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.7')
+#     axes[1,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.7')
 
 plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
 
@@ -353,4 +380,4 @@ if name == 'mme_hist' and modelAgree:
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+    plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')

@@ -445,7 +445,7 @@ percentile75ToEI = np.ma.around(np.percentile(varToEI_clean, 75, axis=0)) + iniy
 #
 # print('Loops done')
 
-# 16-84% range
+# 25-75% range
 rangeToEA = percentile75ToEA - percentile25ToEA
 rangeToEP = percentile75ToEP - percentile25ToEP
 rangeToEI = percentile75ToEI - percentile25ToEI

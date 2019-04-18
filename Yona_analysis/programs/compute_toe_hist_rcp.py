@@ -28,7 +28,8 @@ models = defModels()
 
 # ----- Work ------
 
-varname = defVarmme('salinity'); v = 'S'
+#varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('depth'); v = 'Z'
 
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
@@ -144,7 +145,7 @@ for i, model in enumerate(models):
             varToE2 = np.ma.masked_all((nruns,basinN,len(domains))) # (members,basin,domain) 2std
 
             if method_noise == 'average_histNat':
-                filenoise = 'cmip5.' + model['name'] + '.noise_domains_hist_histNat.std_of_average.nc'
+                filenoise = 'cmip5.' + model['name'] + '.'+legVar+'_noise_domains_hist_histNat.std_of_average.nc'
                 fnoise = open_ncfile(indir_noise + filenoise,'r')
                 if use_piC == False:
                     # Here we read the std of the averaged histNat in the 5 domains for all runs, then take the max as our noise
@@ -152,12 +153,12 @@ for i, model in enumerate(models):
                     varnoise_a = np.ma.max(varstd[:,1,:], axis=0)
                     varnoise_p = np.ma.max(varstd[:,2,:], axis=0)
                     varnoise_i = np.ma.max(varstd[:,3,:], axis=0)
-                # else: # incorrect because std of PiControl over 95 years in compute_noise_estimate.py
-                #     # Reading std of averaged PiControl in the 5 domains (boxes coordinates corresponding to RCP8.5 - histNat)
-                #     # varstd = fnoise.variables[var+'stdpiC'][:]
-                #     varnoise_a = varstd[1,:]
-                #     varnoise_p = varstd[2,:]
-                #     varnoise_i = varstd[3,:]
+                else: 
+                    # Reading std of averaged PiControl in the 5 domains (boxes coordinates corresponding to RCP8.5 - histNat)
+                    varstd = fnoise.variables[var+'stdpiC'][:]
+                    varnoise_a = varstd[1,:]
+                    varnoise_p = varstd[2,:]
+                    varnoise_i = varstd[3,:]
 
             # Loop over 5 domains
             for j, domain_name in enumerate(domains):
@@ -182,18 +183,18 @@ for i, model in enumerate(models):
                     if domain['Atlantic'] != None:
                         if method_noise == 'average_std':
                             varnoise_a[j] = averageDom(stdvarpiC_a, 2, domain['Atlantic'], lat, density)
-                        else :
-                            varnoise_a[j] = np.ma.std(averageDom(varpiC_a, 3, domain['Atlantic'], lat, density), axis=0)
+#                         else :
+#                             varnoise_a[j] = np.ma.std(averageDom(varpiC_a, 3, domain['Atlantic'], lat, density), axis=0)
                     if domain['Pacific'] != None:
                         if method_noise == 'average_std':
                             varnoise_p[j] = averageDom(stdvarpiC_p, 2, domain['Pacific'], lat, density)
-                        else:
-                            varnoise_p[j] = np.ma.std(averageDom(varpiC_p, 3, domain['Pacific'], lat, density), axis=0)
+#                         else:
+#                             varnoise_p[j] = np.ma.std(averageDom(varpiC_p, 3, domain['Pacific'], lat, density), axis=0)
                     if domain['Indian'] != None:
                         if method_noise == 'average_std':
                             varnoise_i[j] = averageDom(stdvarpiC_i, 2, domain['Indian'], lat, density)
-                        else:
-                            varnoise_i[j] = np.ma.std(averageDom(varpiC_i, 3, domain['Indian'], lat, density), axis=0)
+#                         else:
+#                             varnoise_i[j] = np.ma.std(averageDom(varpiC_i, 3, domain['Indian'], lat, density), axis=0)
 
                 # Loop over number of runs
                 for k in range(nruns):
@@ -246,7 +247,7 @@ for i, model in enumerate(models):
                     if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a[j]) == False:
                         toe2_a[k,j] = findToE(varsignal_a[:,k,j], varnoise_a[j], multStd) + iniyear
                         toe1_a[k,j] = findToE(varsignal_a[:,k,j], varnoise_a[j], 1) + iniyear
-                        print(toe1_a[k,j], toe2_a[k,j])
+#                         print(toe1_a[k,j], toe2_a[k,j])
                     if domain['Pacific'] != None and np.ma.is_masked(varnoise_p[j]) == False:
                         toe2_p[k,j] = findToE(varsignal_p[:,k,j], varnoise_p[j], multStd) + iniyear
                         toe1_p[k,j] = findToE(varsignal_p[:,k,j], varnoise_p[j], 1) + iniyear
@@ -266,34 +267,34 @@ for i, model in enumerate(models):
                     #         toe_i[k,j] = findToE_2thresholds(varsignal_i[:,k,j], varnoise_i[j], varnoise2_i[j], 145, multStd) + iniyear
 
                     # Take out runs where the signal is of opposite sign than expected
-
-                    if signal_domains[j] == 'fresher':
-                        if np.ma.mean(varsignal_a[-5:,k,j],axis=0) > 2 * varnoise_a[j]:
-                            toe2_a[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_a[-5:,k,j],axis=0) > 1 * varnoise_a[j]:
-                            toe1_a[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_p[-5:,k,j],axis=0) > 2 * varnoise_p[j]:
-                            toe2_p[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_p[-5:,k,j],axis=0) > 1 * varnoise_p[j]:
-                            toe1_p[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_i[-5:,k,j],axis=0) > 2 * varnoise_i[j]:
-                            toe2_i[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_i[-5:,k,j],axis=0) > 1 * varnoise_i[j]:
-                            toe1_i[k,j] = np.ma.masked
-                    else:
-                        if np.ma.mean(varsignal_a[-5:,k,j],axis=0) < -2 * varnoise_a[j]:
-                            toe2_a[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_a[-5:,k,j],axis=0) < -1 * varnoise_a[j]:
-                            toe1_a[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_p[-5:,k,j],axis=0) < -2 * varnoise_p[j]:
-                            toe2_p[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_p[-5:,k,j],axis=0) < -1 * varnoise_p[j]:
-                            toe1_p[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -2 * varnoise_i[j]:
-                            toe2_i[k,j] = np.ma.masked
-                        if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -1 * varnoise_i[j]:
-                            toe1_i[k,j] = np.ma.masked
-                    print(toe1_a[k,j], toe2_a[k,j])
+                    if v != 'Z':
+                        if signal_domains[j] == 'fresher':
+                            if np.ma.mean(varsignal_a[-5:,k,j],axis=0) > 2 * varnoise_a[j]:
+                                toe2_a[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_a[-5:,k,j],axis=0) > 1 * varnoise_a[j]:
+                                toe1_a[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_p[-5:,k,j],axis=0) > 2 * varnoise_p[j]:
+                                toe2_p[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_p[-5:,k,j],axis=0) > 1 * varnoise_p[j]:
+                                toe1_p[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_i[-5:,k,j],axis=0) > 2 * varnoise_i[j]:
+                                toe2_i[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_i[-5:,k,j],axis=0) > 1 * varnoise_i[j]:
+                                toe1_i[k,j] = np.ma.masked
+                        else:
+                            if np.ma.mean(varsignal_a[-5:,k,j],axis=0) < -2 * varnoise_a[j]:
+                                toe2_a[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_a[-5:,k,j],axis=0) < -1 * varnoise_a[j]:
+                                toe1_a[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_p[-5:,k,j],axis=0) < -2 * varnoise_p[j]:
+                                toe2_p[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_p[-5:,k,j],axis=0) < -1 * varnoise_p[j]:
+                                toe1_p[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -2 * varnoise_i[j]:
+                                toe2_i[k,j] = np.ma.masked
+                            if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -1 * varnoise_i[j]:
+                                toe1_i[k,j] = np.ma.masked
+#                     print(toe1_a[k,j], toe2_a[k,j])
                     # # Take out runs that are wrongly concatenated (i.e. which have a jump between 2005 and 2006)
                     # if np.ma.abs(varsignal_a[145,k,j]-varsignal_a[144,k,j])>0.2:  # Jump in salinity difference
                     #     toe_a[k,j] = np.ma.masked
@@ -314,14 +315,14 @@ for i, model in enumerate(models):
 
             # Save in output file
             if use_piC != True:
-                fileName = 'cmip5.'+model['name']+'.toe_rcp_histNat_'+method_noise+'.nc'
+                fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_rcp_histNat_'+method_noise+'.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_rcp85_histNat_average_signal/'+method_noise+'/'
             else :
                 if method_noise == 'average_histNat':
                     method = 'average_piC'
                 else:
                     method = method_noise
-                fileName = 'cmip5.'+model['name']+'.toe_rcp_PiControl_method2_'+method+'.nc'
+                fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_rcp_PiControl_method2_'+method+'.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_rcp85_PiControl_average_signal/'+method+'/'
             fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
             if method_noise == 'average_std':

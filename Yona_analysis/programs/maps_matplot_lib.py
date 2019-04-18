@@ -115,10 +115,10 @@ def defVarmme(longName):
             'clevsm_bold': np.arange(-2,30,2),
             'legVar': "Temperature", 'unit': degree_sign+"C", 'longN': 'temp'}
 
-    depth = {'var_zonal':'isondepthBowl',
+    depth = {'var_zonal':'isondepthBowl', 'var_zonal_w/bowl': 'isondepth',
              'clevsm_zonal': np.arange(0, 2000, 100),
              'clevsm_bold' : np.arange(0,2000,500),
-             'minmax_zonal': [-50, 50, 16],
+             'minmax_zonal': [-50, 50, 16], 'minmax_zonal_rcp85': [-100, 100, 16],
              'legVar': "Depth", 'unit': "m", 'longN': 'depth'}
 
     volume = {'var_zonal': 'isonvolBowl', 'var_zonal_w/bowl': 'isonvolBowl',
@@ -686,7 +686,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, bathy):
     fieldz  = np.ma.masked_all([basN, levN, latN], dtype='float32')
     volumez = np.ma.masked_all([basN, levN, latN], dtype='float32')
 
-    for ibasin in range(4):
+    for ibasin in range(1,4):
         for j in range(latN):
             # Initialize local variables for interpolation to save levels that are not missing data
             iz_notempty = 0
@@ -724,7 +724,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, bathy):
                     # fieldz_new = spl(targetz)
                     fieldz[ibasin,:,j] = fieldz_new
                 # Mask field above the bowl
-                # fieldz[ibasin,0:kbowl,j] = np.ma.masked
+                fieldz[ibasin,0:kbowl,j] = np.ma.masked
             # Mask bottom
             # if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
             #     bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
@@ -744,7 +744,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     # -- variables
     var = varBasin['var_change']
     
-    if varBasin['bowl1'] != None:
+    if np.any(varBasin['bowl1']) != None or np.any(varBasin['bowl2']) != None:
         bowl1 = varBasin['bowl1']
         bowl2 = varBasin['bowl2']
 
@@ -774,6 +774,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         bottom='off',  # ticks along the bottom edge are off
         labelbottom='off',
         top='off')
+    ax0.tick_params(axis='y',which='both',right='on')
 
     if ticks != 'left':
         ax0.tick_params(axis='y', labelleft='off')
@@ -798,25 +799,29 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         cpplot12 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
         ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    if varBasin['bowl1'] != None and varBasin['bowl2'] != None:
+    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
         # -- draw bowl
         ax0.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
         ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
         # -- bowl legend
         if varBasin['name'] == 'Indian':
             ax0.legend(loc='upper right', title='Bowl', fontsize=12)
-    if varBasin['bowl1'] != None and varBasin['bowl2'] == None:
+    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
         ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+        if varBasin['name'] == 'Indian':
+            ax0.legend(loc='upper right', fontsize=12)
+    if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
+        ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
         if varBasin['name'] == 'Indian':
             ax0.legend(loc='upper right', fontsize=12)
 
     # -- Draw isopycnals
-    if varBasin['density'] != None :
+    if cnDict['isopyc'] == True:#np.any(varBasin['density']) != None :
         levels1 = np.arange(21,28.6,0.5)
         levels2 = np.arange(21,28.6,1)
         ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
         cont_isopyc1 = ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
-        ax0.clabel(cont_isopyc1, inline=1, fontsize=12, fontweight='bold', fmt='%d')
+        ax0.clabel(cont_isopyc1, inline=1, fontsize=13, fmt='%d')
     #
     # ====  Lower panel   ===================================================
     #
@@ -826,7 +831,8 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
         top='off')  # ticks along the bottom edge are off
-
+    ax1.tick_params(axis='y',which='both',right='on')
+    
     if ticks != 'left':
         ax1.tick_params(axis='y', labelleft='off')
     if ticks == 'right':
@@ -838,9 +844,10 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
     ax1.set_xticklabels(xlabels)
     # -- Set y ticks
-    # ymajorLocator = MultipleLocator(500)
-    # ax1.yaxis.set_major_locator(ymajorLocator)
-    #ax1.set_yticks([500,1000,1500,2000])
+    ymajorLocator = MultipleLocator(500)
+    ax1.yaxis.set_major_locator(ymajorLocator)
+    ax1.set_yticks([500,1000,1500,2000])
+    #ax1.set_yticks([1000,1000,2000,3000,4000,5000])
     if zedmax == 2000:
         yminorLocator = AutoMinorLocator(5)
         ax1.yaxis.set_minor_locator(yminorLocator)
@@ -854,18 +861,20 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
         ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    if varBasin['bowl1'] != None and varBasin['bowl2'] != None:
+    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
         # -- draw bowl
         ax1.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
         ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
-    if varBasin['bowl1'] != None and varBasin['bowl2'] == None:
+    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
         ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+    if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
+        ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
 
     # -- Draw isopycnals
-    if varBasin['density'] != None :
+    if cnDict['isopyc'] == True: #np.any(varBasin['density']) != None :
         ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
         cont_isopyc2 = ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
-        ax1.clabel(cont_isopyc2, inline=1, fontsize=12, fontweight='bold',fmt='%d')
+        ax1.clabel(cont_isopyc2, inline=1, fontsize=13, fmt='%d')
 
     # Remove intersecting tick at zedmid
     yticks = ax1.yaxis.get_major_ticks()

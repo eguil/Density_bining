@@ -16,8 +16,9 @@ from modelsDef import defModels
 from lib_remapping import remaptoz
 import numpy as np
 import colormaps as cmaps
-import cmocean
+#import cmocean
 import datetime
+import pickle
 
 # ----- Workspace ------
 
@@ -88,6 +89,7 @@ fileh_2d = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/' \
 fh2d = open_ncfile(fileh_2d, 'r')
 lat = fh2d.variables['latitude'][:]; latN = len(lat)
 density = fh2d.variables['lev'][:]; levN = len(density)
+basinN = 4
 
 # ------------------------------------
 # ----- Read ToE for each model ------
@@ -112,9 +114,9 @@ if work == 'RCP85':
 
     # Loop over models
     if use_piC == False:
-        listfiles = glob.glob(indir_toe_rcphn + '/*.nc')
+        listfiles = glob.glob(indir_toe_rcphn + '/*.toe_zonal*.nc')
     else:
-        listfiles = glob.glob(indir_toe_rcppiC + '/*.nc')
+        listfiles = glob.glob(indir_toe_rcppiC + '/*.toe_zonal*.nc')
     nmodels = len(listfiles)
 
     for i in range(nmodels):
@@ -330,7 +332,7 @@ medianToEI = np.ma.around(np.ma.median(varToEI_clean, axis=0)) + iniyear
 percentile25ToEI = np.ma.around(np.percentile(varToEI_clean, 25, axis=0)) + iniyear
 percentile75ToEI = np.ma.around(np.percentile(varToEI_clean, 75, axis=0)) + iniyear
 
-# 16-84% range
+# 25-75% range
 rangeToEA = percentile75ToEA - percentile25ToEA
 rangeToEP = percentile75ToEP - percentile25ToEP
 rangeToEI = percentile75ToEI - percentile25ToEI
@@ -423,9 +425,10 @@ noranger[3,:,:] = norangeI
 
 # --- Read reference pseudo-depth used for remapping ---
 indir_z = '/home/ysilvy/Density_bining/Yona_analysis/data/remaptoz/'
-file_z = ''
-fz = open_ncfile(indir_z+file_z,'r')
-pseudo_depth = fz.variables['pseudo_depth'][:]
+file_z = 'EN4.pseudo_depth.zonal.pkl'
+#fz = open_ncfile(indir_z+file_z,'r')
+#pseudo_depth = fz.variables['pseudo_depth'][:]
+pseudo_depth = pickle.load( open( indir_z+file_z, "rb" ) )
 
 # -- Target grid for remapping - WOA13 grid --
 targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
@@ -445,7 +448,7 @@ print('Range remapping done')
 noagreez = remaptoz(noagreer,pseudo_depth,targetz)
 print('noagree remapping done')
 norangez = remaptoz(noranger,pseudo_depth,targetz)
-print('noagree remapping done')
+print('norange remapping done')
 
 # # Mask
 # #rangeToEz[medianToEz > finalyear-20] = np.ma.masked # Mask points where median hasn't emerged
@@ -472,14 +475,13 @@ print('noagree remapping done')
 labBowl=[None,None]
 
 # -- Make variable bundles for each basin
-varAtlmedian = {'name': 'Atlantic', 'var_change': medianToEz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:], 'labBowl': labBowl}
-varPacmedian = {'name': 'Pacific', 'var_change': medianToEz[2,:,:], 'bowl1': bowl1z[2,:], 'bowl2': bowl2z[2,:], 'labBowl': labBowl}
-varIndmedian = {'name': 'Indian', 'var_change': medianToEz[3,:,:], 'bowl1': bowl1z[3,:], 'bowl2': bowl2z[3,:], 'labBowl': labBowl}
+varAtlmedian = {'name': 'Atlantic', 'var_change': medianToEz[1,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
+varPacmedian = {'name': 'Pacific', 'var_change': medianToEz[2,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
+varIndmedian = {'name': 'Indian', 'var_change': medianToEz[3,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
 
-varAtlrange = {'name': 'Atlantic', 'var_change': rangeToEz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:], 'labBowl': labBowl}
-varPacrange = {'name': 'Pacific', 'var_change': rangeToEz[2,:,:], 'bowl1': bowl1z[2,:], 'bowl2': bowl2z[2,:], 'labBowl': labBowl}
-varIndrange = {'name': 'Indian', 'var_change': rangeToEz[3,:,:], 'bowl1': bowl1z[3,:], 'bowl2': bowl2z[3,:], 'labBowl': labBowl}
-
+varAtlrange = {'name': 'Atlantic', 'var_change': rangeToEz[1,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
+varPacrange = {'name': 'Pacific', 'var_change': rangeToEz[2,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
+varIndrange = {'name': 'Indian', 'var_change': rangeToEz[3,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
 
 # ----- Plot -----
 
@@ -498,7 +500,7 @@ if figure == 'median':
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 
     # -- Color map
-    cmap = cmaps.plasma
+    cmap = 'jet_r' #cmaps.plasma
     # -- Unit
     unit = 'ToE'
     # -- Levels
@@ -506,7 +508,7 @@ if figure == 'median':
     levels = np.arange(minmax[0], minmax[1], minmax[2]) 
     ext_cmap = 'both'
     # -- Put everything into a dictionary
-    contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap}
+    contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap, 'isopyc':False}
 
     # -- Contourf
     # Atlantic
@@ -548,15 +550,15 @@ if figure == 'median':
         if use_piC == False:
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+                plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
             else:
-                plotName = 'remapping_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
+                plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
             name = 'hist+RCP8.5 vs. PiControl'
-            plotName = 'remapping_median_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+            plotName = 'remapping2_median_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
     else:
         name = '1pctCO2 vs. PiControl'
-        plotName = 'remapping_median_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
+        plotName = 'remapping2_median_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
     
     # -- Add title    
@@ -570,7 +572,7 @@ if figure == 'median':
 
     figureDir = 'models/zonal_remaptoz/'
     if fig == 'save':
-        plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
 
 else:
     # -- 25-75% range
@@ -579,7 +581,7 @@ else:
     fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 
     # -- Color map
-    cmap = cmocean.cm.tempo
+    cmap = 'jet_r' #cmocean.cm.tempo
     # -- Unit
     unit = 'Years'
     # -- Levels
@@ -613,16 +615,16 @@ else:
         if use_piC == False :
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+                plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
             else:
-                plotName = 'remapping_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
+                plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
             name = 'hist+RCP8.5 vs. PiControl'
-            plotName = 'remapping_range_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+            plotName = 'remapping2_range_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
 
     else:
         name = '1pctCO2 vs. PiControl'
-        plotName = 'remapping_range_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
+        plotName = 'remapping2_range_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
     
     # -- Add title
@@ -640,9 +642,9 @@ else:
     if use_piC == False and work == 'RCP85':
         plt.figtext(.2,.01,'Runs : '+runs_rcp,fontsize=9,ha='center')
 
-figureDir = 'models/zonal_remaptoz/'
+    figureDir = 'models/zonal_remaptoz/'
 
-if fig == 'save':
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
-else:
-    plt.show()
+    if fig == 'save':
+        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
+    else:
+        plt.show()

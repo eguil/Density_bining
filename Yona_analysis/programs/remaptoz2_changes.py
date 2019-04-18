@@ -11,7 +11,7 @@ from maps_matplot_lib import defVarmme, defVarDurack, zon_2Dz, custom_div_cmap, 
 from lib_remapping import remaptoz
 import numpy as np
 import datetime
-
+import pickle
 
 # -------------------------------------------------------------------------------
 #                                Define work
@@ -19,20 +19,23 @@ import datetime
 
 # -- Choose what to compute
 # name = 'mme_hist_histNat'
-name = 'mme_hist'
+# name = 'mme_hist'
 # name = 'mme_1pctCO2vsPiC'
-# name = 'mme_rcp85_histNat'
+name = 'mme_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 # output format
-outfmt = 'view'
-# outfmt = 'save'
+#outfmt = 'view'
+outfmt = 'save'
 
 # Model agreement level
 agreelev = 0.6
 modelAgree = False
+
+# Show isopycnals
+show_isopyc = False
 
 valmask = 1.e20
 basinN = 4
@@ -101,7 +104,7 @@ if name == 'mme_rcp85_histNat':
 varname = defVarmme('salinity'); v = 'S'
 # varname = defVarmme('temp'); v = 'T'
 
-var = varname['var_zonal_w/bowl']
+var = varname['var_zonal'] #var_zonal_w/bowl
 
 if name == 'mme_rcp85_histNat':
     minmax = varname['minmax_zonal_rcp85']
@@ -141,7 +144,8 @@ if name == 'mme_hist':
     bowl1z = fh1d.variables['ptopdepth'][88:93,:,:]
     labBowl = ['1950','2000']
     if modelAgree:
-        var_agreer = fh2d.variables[var + 'Agree'][-5:,:,:,:]
+        var_name = varname['var_zonal_w/bowl']
+        var_agreer = fh2d.variables[var_name + 'Agree'][-5:,:,:,:]
 
 if name == 'mme_1pctCO2vsPiC':
     if focus_1pctCO2 == '4*CO2':
@@ -171,9 +175,10 @@ if name=='mme_hist' and modelAgree :
     
 # == Read reference pseudo-depth used for remapping ==
 indir_z = '/home/ysilvy/Density_bining/Yona_analysis/data/remaptoz/'
-file_z = ''
-fz = open_ncfile(indir_z+file_z,'r')
-pseudo_depth = fz.variables['pseudo_depth'][:]
+file_z = 'EN4.pseudo_depth.zonal.pkl'
+#fz = open_ncfile(indir_z+file_z,'r')
+#pseudo_depth = fz.variables['pseudo_depth'][:]
+pseudo_depth = pickle.load( open( indir_z+file_z, "rb" ) )
 
 # == Target grid for remapping ==
 # WOA13 grid
@@ -194,7 +199,6 @@ print('density remapped')
 if name=='mme_hist' and modelAgree:
     var_agreez = remaptoz(var_agreer,pseudo_depth,targetz)
 
-
 # -- Make variable bundles for each basin
 varAtl = {'name': 'Atlantic', 'var_change': fieldz[1,:,:], 'bowl1': bowl1z[1,:], 'bowl2': bowl2z[1,:],
           'labBowl': labBowl, 'density':density_z[1,:,:]}
@@ -202,7 +206,30 @@ varPac = {'name': 'Pacific', 'var_change': fieldz[2,:,:], 'bowl1': bowl1z[2,:], 
           'labBowl': labBowl, 'density':density_z[2,:,:]}
 varInd = {'name': 'Indian', 'var_change': fieldz[3,:,:], 'bowl1': bowl1z[3,:], 'bowl2': bowl2z[3,:],
           'labBowl': labBowl, 'density':density_z[3,:,:]}
-
+    
+# -- Read bathymetry
+# Read masks
+fmask = open_ncfile('/home/ysilvy/Density_bining/Yona_analysis/data/170224_WOD13_masks.nc','r')
+basinmask = fmask.variables['basinmask3'][:] # (latitude, longitude)
+depthmask = fmask.variables['depthmask'][:] # (latitude, longitude)
+longitude = fmask.variables['longitude'][:]
+# Create basin masks
+mask_a = basinmask != 1
+mask_p = basinmask != 2
+mask_i = basinmask != 3
+# Read bathy
+depthmask_a = np.ma.array(depthmask, mask=mask_a) # Mask every basin except Atlantic
+depthmask_p = np.ma.array(depthmask, mask=mask_p)
+depthmask_i = np.ma.array(depthmask, mask=mask_i)
+# Zonal bathy
+bathy_a = np.ma.max(depthmask_a, axis=1)
+bathy_p = np.ma.max(depthmask_p, axis=1)
+bathy_i = np.ma.max(depthmask_i, axis=1)
+# Regroup
+bathy = np.ma.masked_all((basinN,len(lat)))
+bathy[1,:] = bathy_a
+bathy[2,:] = bathy_p
+bathy[3,:] = bathy_i
 
 # -------------------------------------------------------------------------------
 #                                Plot
@@ -220,7 +247,7 @@ cmap = custom_div_cmap()
 levels = np.linspace(minmax[0],minmax[1],minmax[2])
 
 ext_cmap = 'both'
-contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap}
+contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap, 'isopyc':show_isopyc}
 
 # -- Contourf of signal
 cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtl,
@@ -249,21 +276,21 @@ cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 # -- Add Title text
 if name == 'mme_hist_histNat':
     plotTitle = '%s changes %s' %(legVar,name)
-    plotName = 'remapping_' + name + '_' + legVar
+    plotName = 'remapping2_' + name + '_' + legVar
     figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_hist':
     plotTitle = '%s changes (2000-1950), %s' %(legVar, name)
-    plotName = 'remapping_' + name + '_' + legVar
+    plotName = 'remapping2_' + name + '_' + legVar
     if modelAgree:
-        plotName = 'remapping_' + name + '_' + legVar + '_modelAgree'
+        plotName = 'remapping2_' + name + '_' + legVar + '_modelAgree'
     figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_1pctCO2vsPiC':
     plotTitle  = '%s changes %s, %s' %(legVar,name,focus_1pctCO2)
-    plotName = 'remapping_' + name + '_' + focus_1pctCO2 + '_' + legVar
+    plotName = 'remapping2_' + name + '_' + focus_1pctCO2 + '_' + legVar
     figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_rcp85_histNat':
     plotTitle = '%s changes %s' %(legVar,name)
-    plotName = 'remapping_' + name + '_' + legVar + '_meanhistNat'
+    plotName = 'remapping2_' + name + '_' + legVar + '_meanhistNat'
     figureDir = 'models/zonal_remaptoz/'
 
 fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
@@ -280,4 +307,4 @@ if name == 'mme_hist' and modelAgree:
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+    plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')

@@ -366,6 +366,8 @@ xminorLocator = AutoMinorLocator(2)
 ax.yaxis.set_major_locator(xmajorLocator)
 ax.yaxis.set_minor_locator(xminorLocator)
 
+fig.delaxes(axes[-1,-1])
+
 plt.suptitle('ToE[>' +str(multstd)+ 'std]/noise for '+title, fontweight='bold', fontsize=14)
 
 plt.figtext(0.38,0.03,'Noise: std('+noise+')', fontweight='bold',fontsize=13)

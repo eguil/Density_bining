@@ -23,12 +23,13 @@ models = defModels()
 
 # ----- Work ------
 
-varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('depth') ; v='Z'
 
 multStd = 2. # detect ToE at multStd std dev of histNat or PiControl
 
-# use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std(histNat)
-use_piC = True # Signal = hist + RCP8.5 - PiControl, noise = std(PiControl)
+use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std(histNat)
+# use_piC = True # Signal = hist + RCP8.5 - PiControl, noise = std(PiControl)
 
 iniyear = 1860
 finalyear = 2100
@@ -184,7 +185,7 @@ for i, model in enumerate(models): # Loop on models
 
             # Save in output file
             if use_piC == False:
-                fileName = 'cmip5.'+model['name']+'.toe_zonal_rcp_histNat.nc'
+                fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_zonal_rcp_histNat.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
                 description = 'Time of Emergence hist+rcp8.5 vs. histNat for each member. \n' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \
@@ -194,7 +195,7 @@ for i, model in enumerate(models): # Loop on models
                               'The noise in each point is the max standard deviation of the historicalNat runs \n' \
                               'The ToE is computed by using once or twice the noise as the threshold.'
             else:
-                fileName = 'cmip5.'+model['name']+'.toe_zonal_rcp_PiControl.nc'
+                fileName = 'cmip5.'+model['name']+'.'+legvar+'_toe_zonal_rcp_PiControl.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
                 description = 'Time of Emergence hist+rcp8.5 vs. PiControl for each member. \n' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \

@@ -37,8 +37,9 @@ else:
 
 # ----- Work ------
 
-varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('salinity'); v = 'S'
 # varname = defVarmme('temp'); v = 'T'
+varname = defVarmme('depth'); v = 'Z'
 
 iniyear = 1860
 finalyear = 2005
@@ -209,10 +210,10 @@ for i, model in enumerate(models):
         print('  varnoise_h shape:', varnoise_h.shape)
         print('  varnoise_piC shape:', varnoise_piC.shape)
 
-
+                
         # Save in output file
-        fileName = 'cmip5.'+model['name']+'.noise_domains_hist_histNat.' + method_noise + '.nc'
-        dir = '/home/ysilvy/Density_bining/Yona_analysis/data/noise_estimate/'
+        fileName = 'cmip5.'+model['name']+'.'+legVar+'_noise_domains_hist_histNat.' + method_noise + '.nc'
+        dir = '/home/ysilvy/Density_bining/Yona_analysis/data/noise_estimate/RCP85vshistNat_domains/'
         fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
         fout.description = 'Standard deviation of historical, historicalNat and PiControl for each member, in 5 domains : ' \
                            'Southern Subtropics (0), Southern Ocean (1), Northern Subtropics (2), North Atlantic (3), ' \

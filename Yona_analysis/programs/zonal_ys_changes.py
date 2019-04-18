@@ -20,14 +20,15 @@ from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarDurack, zonal_2D, defVarmme, custom_div_cmap, modelagree
 from modelsDef import defModels, defModelsCO2piC
 import glob
+import datetime
 
 # ----- Workspace ------
 
 # name = 'Durack & Wijffels'
-name = 'mme_hist'
+# name = 'mme_hist'
 # name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
-# name = 'ens_mean_hist_histNat'
+name = 'ens_mean_hist_histNat'
 # name = 'mme_1pctCO2vsPiC'
 # name = 'mme_1pctCO2'
 # name = '1pctCO2'
@@ -49,7 +50,7 @@ else:
 agreelev = 0.6
 modelAgree = True
 
-imodel = 12 # Choose model index in model list (modelsDef.py)
+imodel = 1 # Choose model index in model list (modelsDef.py)
 # for imodel in range(16):
 
 # -- Choose work files
@@ -188,8 +189,9 @@ if name == 'Durack & Wijffels':
 
 else:
     # -- Choose wich variable to work on
-    varname = defVarmme('salinity'); v = 'S'
+    # varname = defVarmme('salinity'); v = 'S'
     # varname = defVarmme('temp'); v = 'T'
+    varname = defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
     var = varname['var_zonal_w/bowl']
 
@@ -220,7 +222,7 @@ else:
         labBowl = ['histNat', 'hist']
 
     if name == 'mme_rcp85_histNat' or name == 'ens_mean_rcp85_histNat':
-        varh = fh2d.variables[var][-5:, :, :, :]
+        varh = fh2d.variables[var][-10:, :, :, :]
         varhn = fhn2d.variables[var][:, :, :, :]
         var_change = np.ma.average(varh, axis=0) - np.ma.average(varhn, axis=0)
         bowl2 = fh1d.variables['ptopsigma'][-5:,:,:]
@@ -351,16 +353,22 @@ if name == 'Durack & Wijffels':
 
 
 # if name == 'mme_hist' or name == 'ens_mean_hist':
-if name != 'Durack & Wijffels':
+else:
     var_change_p = var_change[2,:,:].squeeze()
     var_change_a = var_change[1,:,:].squeeze()
     var_change_i = var_change[3,:,:].squeeze()
-    var_mean_p = var_mean[2,:,:].squeeze()
-    var_mean_a = var_mean[1,:,:].squeeze()
-    var_mean_i = var_mean[3,:,:].squeeze()
     bowl2_p = bowl2[2,:].squeeze(); bowl1_p = bowl1[2,:].squeeze()
     bowl2_a = bowl2[1,:].squeeze(); bowl1_a = bowl1[1,:].squeeze()
     bowl2_i = bowl2[3,:].squeeze(); bowl1_i = bowl1[3,:].squeeze()
+    
+    if name == 'mme_hist' or name == 'ens_mean_hist':
+        var_mean_p = var_mean[2,:,:].squeeze()
+        var_mean_a = var_mean[1,:,:].squeeze()
+        var_mean_i = var_mean[3,:,:].squeeze()
+    else :
+        var_mean_a = None
+        var_mean_p = None
+        var_mean_i = None
 
     # In mme 1%CO2 vs. Pi Control (and others) problem below the bowl, so take variable with bowl, and mask the data above the bowl
     # Pb with masked values in the bottom
@@ -455,7 +463,7 @@ else:
 
     cnplot = zonal_2D(plt, 'total_mme', axes[0, 2], axes[1, 2], 'right', lat, density, varInd, domrho, cmap, levels, clevsm, clevsm_bold)
 
-if modelAgree :
+if modelAgree and name=='mme_hist' :
     modelagree(axes[0,0],axes[1,0],agreelev,lat,density,var_agree_a)
     modelagree(axes[0,1],axes[1,1],agreelev,lat,density,var_agree_p)
     modelagree(axes[0,2],axes[1,2],agreelev,lat,density,var_agree_i)
@@ -525,10 +533,15 @@ else:
     plotName = model['name'] + '_' + v + 'changes'
     figureDir = 'models/zonal_ys/hist/'
 
+# Date
+now = datetime.datetime.now()
+date = now.strftime("%Y-%m-%d")
+
 plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-plt.figtext(.5,.015,'Computed by : zonal_ys_changes.py',fontsize=9,ha='center')
-if modelAgree:
+plt.figtext(.004,.55,'Density',rotation='vertical',fontweight='bold')
+plt.figtext(.5,.015,'Computed by : zonal_ys_changes.py,  '+date,fontsize=9,ha='center')
+if modelAgree and name=='mme_hist':
     plt.figtext(.1,.015,'Model agreement level : ' + str(agreelev),fontsize=9,ha='center')
 
 # plt.show()
-plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
+plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
