@@ -582,7 +582,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tcdel = min(24,tmax)
     else:
         tcdel = min(48,tmax)
-    tcdel = min(12,tmax) # just for testing
+    #tcdel = min(12,tmax) # just for testing
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
