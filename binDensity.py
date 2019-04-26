@@ -428,6 +428,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             print 'Exception: ',err
             bounds  = depth.getBounds() ; # Work around for BNU-ESM
             z_zw = bounds[:,0]
+    ##if debug:
+    #   print " z_zt after read",z_zt
+    #   print " z_zw after read",z_zw
 
     max_depth_ocean = 6000. # maximum depth of ocean
     # Horizontal grid
@@ -455,7 +458,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     if valmask <> 1.e20:
         print 'valmask = ',valmask,' -> correcting to 1.e20'
         corrmask = True
-        valmaski = valmask
+        valmaski = valmask*1
         valmask  = 1.e20
     else:
         corrmask = False
@@ -482,7 +485,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tmax = tmin + int(timeint.split(',')[1])
     # Read cell area
     ff      = cdm.open(fileFx)
-    area    = ff('areacello')
+    #area    = ff('areacello')
+    area, scalex, scaley = computeAreaScale(lon, lat)
     ff.close()
 
     # Target horizonal grid for interp
@@ -579,7 +583,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tcdel = min(24,tmax)
     else:
         tcdel = min(48,tmax)
-    tcdel = min(12,tmax) # just for testing
+    #tcdel = min(12,tmax) # just for testing
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
@@ -621,8 +625,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     # Compute level thickness in source z grid (lev_thickt is a replicate for 3D matrix computation)
     lev_thick     = npy.roll(z_zw,-1)-z_zw
     lev_thick[-1] = lev_thick[-2]
-    #print 'lev_thick,z_zw ',lev_thick,z_zw
-    lev_thickt    = npy.swapaxes(mv.reshape(npy.tile(lev_thick,lonN*latN),(lonN*latN,depthN)),0,1)
+    #if debug:
+    #    print 'lev_thick ',lev_thick
+    lev_thickt = npy.repeat(lev_thick[:,npy.newaxis],lonN*latN,axis=1)
 
     # testing
     voltotij0 = npy.ma.ones([latN*lonN], dtype='float32')*0.
@@ -654,12 +659,12 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs('so'    , time = slice(trmin,trmax))
         # Correct for mask value if needed
         if corrmask:
-            print ' thetao before correct :',thetao.data[0,:,jtest,itest]
-            print ' mask:',thetao.mask[0,:,jtest,itest]
+            #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
+            #print ' mask:',thetao.mask[0,:,jtest,itest]
             thetao = maskValCorr(thetao,valmaski,valmask)
             #thetao = maskVal(thetao,valmask)
-            print ' thetao after correct :',thetao.data[0,:,jtest,itest]
-            print ' mask:',thetao.mask[0,:,jtest,itest]
+            #print ' thetao after correct :',thetao.data[0,:,jtest,itest]
+            #print ' mask:',thetao.mask[0,:,jtest,itest]
             so     = maskValCorr(so,valmaski,valmask)
         if fileV != 'none':
             vo      = fv('vo'    , time = slice(trmin,trmax))
@@ -728,6 +733,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             #
             #  Find indexes of masked points
             vmask_3D    = mv.masked_values(so.data[t],testval).mask ; # Returns boolean
+            #vmask_3D2 = so.mask[t] todo: use this instead ?
+
             # find surface non-masked points
             nomask      = npy.equal(vmask_3D[0],0) ; # Returns boolean
             area = area*npy.reshape(nomask, [latN, lonN])
@@ -749,15 +756,15 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             #print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
             if debug and t == 0:
-                voltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
-                temtotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
-                saltotij0 = npy.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
+                voltotij0 = npy.ma.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
+                temtotij0 = npy.ma.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
+                saltotij0 = npy.ma.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
                 if fileV != 'none':
-                    hvmtotij0 = npy.sum(x3_content*(1-vmask_3D[:,:]), axis=0) # vertical sum of h*v (m2/s)
+                    hvmtotij0 = npy.ma.sum(x3_content*(1-vmask_3D[:,:]), axis=0) # vertical sum of h*v (m2/s)
                     print 'hvmtotij0[ijtest]',hvmtotij0[ijtest]
-                voltot = npy.sum(voltotij0*mv.reshape(area,lonN*latN))
-                temtot = npy.sum(temtotij0*mv.reshape(area,lonN*latN))/voltot
-                saltot = npy.sum(saltotij0*mv.reshape(area,lonN*latN))/voltot
+                voltot = npy.ma.sum(voltotij0*mv.reshape(area,lonN*latN))
+                temtot = npy.ma.sum(temtotij0*mv.reshape(area,lonN*latN))/voltot
+                saltot = npy.ma.sum(saltotij0*mv.reshape(area,lonN*latN))/voltot
                 if fileV != 'none':
                     hvmtot = npy.sum(hvmtotij0*mv.reshape(area,lonN*latN))/npy.sum(mv.reshape(area,lonN*latN))
                 print '  Total volume in z coordinates source grid (ref = 1.33 e+18)   : ', voltot
