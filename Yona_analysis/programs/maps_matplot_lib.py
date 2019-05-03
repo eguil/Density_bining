@@ -724,7 +724,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, bathy):
                     # fieldz_new = spl(targetz)
                     fieldz[ibasin,:,j] = fieldz_new
                 # Mask field above the bowl
-                fieldz[ibasin,0:kbowl,j] = np.ma.masked
+                #fieldz[ibasin,0:kbowl,j] = np.ma.masked
             # Mask bottom
             # if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
             #     bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
@@ -744,13 +744,13 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     # -- variables
     var = varBasin['var_change']
     
-    if np.any(varBasin['bowl1']) != None or np.any(varBasin['bowl2']) != None:
-        bowl1 = varBasin['bowl1']
-        bowl2 = varBasin['bowl2']
+#     if np.any(varBasin['bowl1']) != None or np.any(varBasin['bowl2']) != None:
+#         bowl1 = varBasin['bowl1']
+#         bowl2 = varBasin['bowl2']
 
-        # -- bowl labels
-        label1 = varBasin['labBowl'][0]
-        label2 = varBasin['labBowl'][1]
+#         # -- bowl labels
+#         label1 = varBasin['labBowl'][0]
+#         label2 = varBasin['labBowl'][1]
 
     # -- min,mid,max depth for the 2 panels
     zedmin = domzed[0]
@@ -799,21 +799,21 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         cpplot12 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
         ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
-        # -- draw bowl
-        ax0.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
-        ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
-        # -- bowl legend
-        if varBasin['name'] == 'Indian':
-            ax0.legend(loc='upper right', title='Bowl', fontsize=12)
-    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
-        ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-        if varBasin['name'] == 'Indian':
-            ax0.legend(loc='upper right', fontsize=12)
-    if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
-        ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
-        if varBasin['name'] == 'Indian':
-            ax0.legend(loc='upper right', fontsize=12)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
+#         # -- draw bowl
+#         ax0.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
+#         ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#         # -- bowl legend
+#         if varBasin['name'] == 'Indian':
+#             ax0.legend(loc='upper right', title='Bowl', fontsize=12)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
+#         ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+#         if varBasin['name'] == 'Indian':
+#             ax0.legend(loc='upper right', fontsize=12)
+#     if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
+#         ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#         if varBasin['name'] == 'Indian':
+#             ax0.legend(loc='upper right', fontsize=12)
 
     # -- Draw isopycnals
     if cnDict['isopyc'] == True:#np.any(varBasin['density']) != None :
@@ -861,14 +861,14 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
         ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
-        # -- draw bowl
-        ax1.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
-        ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
-    if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
-        ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-    if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
-        ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
+#         # -- draw bowl
+#         ax1.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
+#         ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
+#         ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+#     if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
+#         ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
 
     # -- Draw isopycnals
     if cnDict['isopyc'] == True: #np.any(varBasin['density']) != None :

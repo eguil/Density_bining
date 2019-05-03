@@ -1344,8 +1344,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
                 inim = t*12
                 finm = t*12 + 12
-                #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask
-                idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
+                idxvm = 1-(mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask).astype(int)
+                #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
                 #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
                 #print 'persist',persist[t,:,jtsti,itsti]
@@ -1367,7 +1367,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 #print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
                 bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
                 bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
-                bottom_ind [1,:] = npy.arange(latN*lonN)             
+                bottom_ind [1,:] = npy.arange(latN*lonN)
                 #print 'ijtsti',ijtsti, nomask[ijtsti]
                 #print 'maskp',maskp[:,ijtsti]
                 #print 'p_top index',p_top[ijtsti]
