@@ -1335,10 +1335,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
             # NOTE: not done for volume flux as scientific interpretation unclear
             itsti = 31 #100 #67
-	    jtsti = 60
-	    ijtsti = jtsti*lonN + itsti
-	    ststi = 50
-	    for t in range(nyrtc):
+            jtsti = 60
+            ijtsti = jtsti*lonN + itsti
+            ststi = 50
+            for t in range(nyrtc):
                 tpe0 = timc.clock()
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
                 inim = t*12
@@ -1346,9 +1346,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 idxvm = 1-(mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask).astype(int)
                 #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
-		#print 'persist',persist[t,:,jtsti,itsti]
-		#print 'thick inim',thickBin[inim,:,jtsti,itsti]
-		#print 'salt inim',x2Bin[inim,:,jtsti,itsti]
+                #print 'persist',persist[t,:,jtsti,itsti]
+		        #print 'thick inim',thickBin[inim,:,jtsti,itsti]
+		        #print 'salt inim',x2Bin[inim,:,jtsti,itsti]
                 #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
@@ -1365,10 +1365,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 #print inds_bottom.shape, type(inds_bottom)
                 #print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
             	bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
-            	bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
-            	bottom_ind [1,:] = npy.arange(latN*lonN)             
+                bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
+                bottom_ind [1,:] = npy.arange(latN*lonN)
                 #print 'ijtsti',ijtsti, nomask[ijtsti]
- 		#print 'maskp',maskp[:,ijtsti]
+ 		        #print 'maskp',maskp[:,ijtsti]
                 #print 'p_top index',p_top[ijtsti]
                 counti = 0
                 maskbowl = npy.ones((latN*lonN), dtype='bool')
