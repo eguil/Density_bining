@@ -1343,8 +1343,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
                 inim = t*12
                 finm = t*12 + 12
-                idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask
-                #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
+                idxvm = 1-(mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask).astype(int)
+                #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
 		#print 'persist',persist[t,:,jtsti,itsti]
 		#print 'thick inim',thickBin[inim,:,jtsti,itsti]
