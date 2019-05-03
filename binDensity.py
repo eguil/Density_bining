@@ -1392,6 +1392,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 tpe1 = timc.clock()
+
                 # Creat array of 1 on bowl and 0 elsewhere
                 maskp = (maskp != npy.roll(maskp,1,axis=0))*maskp
                 #print 'bowl only maskp',maskp[:,ijtsti]
