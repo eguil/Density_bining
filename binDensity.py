@@ -485,8 +485,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tmax = tmin + int(timeint.split(',')[1])
     # Read cell area
     ff      = cdm.open(fileFx)
-    #area    = ff('areacello')
-    area, scalex, scaley = computeAreaScale(lon, lat)
+    area    = ff('areacello')
+    #area, scalex, scaley = computeAreaScale(lon, lat)
     ff.close()
 
     # Target horizonal grid for interp
@@ -1338,14 +1338,14 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
                 inim = t*12
                 finm = t*12 + 12
-                idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask
-                #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
-                persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
-                #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
+                #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask
+                idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
+                #persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
+                persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
-                maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
-                #maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.)
+                #maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
+                maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.)
                 maskp = npy.ma.reshape(maskp, (N_s+1, latN*lonN))
                 p_top = maskp.argmax(axis=0)
                 #del(maskp) ; gc.collect()
@@ -1353,8 +1353,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 tpe1 = timc.clock()
-                # Creat array of 1 on bowl and 0 elsewhere
-                maskp = (maskp-npy.roll(maskp,1,axis=0))*maskp
+                # Create array of 1 on bowl and 0 elsewhere
+                #maskp = (maskp<>npy.roll(maskp,1,axis=0))*maskp
+                maskp = (maskp!=npy.roll(maskp,1,axis=0))*maskp.mask
+                print 'maskp after roll: ', maskp[:,ijtest]
                 depthBintmp = npy.ma.reshape(depthBin[t,...],(N_s+1, latN*lonN))
                 x1Bintmp    = npy.ma.reshape(x1Bin[t,...],(N_s+1, latN*lonN))
                 x2Bintmp    = npy.ma.reshape(x2Bin[t,...],(N_s+1, latN*lonN))
