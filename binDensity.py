@@ -484,8 +484,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tmax = tmin + int(timeint.split(',')[1])
     # Read cell area
     ff      = cdm.open(fileFx)
-    #area    = ff('areacello')
-    area, scalex, scaley = computeAreaScale(lon, lat)
+    area    = ff('areacello')
+    #area, scalex, scaley = computeAreaScale(lon, lat)
     ff.close()
 
     # Target horizonal grid for interp
@@ -646,6 +646,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tmp         = npy.ma.ones([tcdel, N_s+1, latN*lonN], dtype='float32')*valmask
         depth_bin   = tmp.copy() ; depth_bin   = maskVal(depth_bin, valmask)
         thick_bin   = tmp.copy() ; thick_bin   = maskVal(thick_bin, valmask)
+        szmaxt      = npy.ma.ones([tcdel, latN*lonN], dtype='float32')*valmask
         #x1_bin      = tmp.copy() ; x1_bin      = maskVal(x1_bin, valmask)
         #x2_bin      = tmp.copy() ; x2_bin      = maskVal(x2_bin, valmask)
         #x3_bin      = tmp.copy() ; x3_bin      = maskVal(x3_bin, valmask)
@@ -805,6 +806,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 else:
                     szmin[i] = 0.
                     szmax[i] = rho_max+10.
+            szmaxt[t,:] = szmax
             tcpu2 = timc.clock()
             if debug and t == 0: #t == 0:
                 print ' i_bottom, szmin, szmax, i_min, i_max',i_bottom[ijtest], szmin[ijtest],szmax[ijtest], i_min[ijtest],i_max[ijtest]
@@ -1332,7 +1334,11 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
             # NOTE: not done for volume flux as scientific interpretation unclear
-            for t in range(nyrtc):
+            itsti = 31 #100 #67
+	    jtsti = 60
+	    ijtsti = jtsti*lonN + itsti
+	    ststi = 50
+	    for t in range(nyrtc):
                 tpe0 = timc.clock()
                 idxvm = npy.ma.ones([12, N_s+1, latN, lonN], dtype='float32')*valmask
                 inim = t*12
@@ -1340,6 +1346,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask
                 #idxvm = 1-mv.masked_values(thick_bino[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
+		#print 'persist',persist[t,:,jtsti,itsti]
+		#print 'thick inim',thickBin[inim,:,jtsti,itsti]
+		#print 'salt inim',x2Bin[inim,:,jtsti,itsti]
                 #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
@@ -1347,21 +1356,58 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 #maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.)
                 maskp = npy.ma.reshape(maskp, (N_s+1, latN*lonN))
                 p_top = maskp.argmax(axis=0)
-                #del(maskp) ; gc.collect()
+                # if maskp remains False throught the column, affect True at last valid density (column convection)
+                # Find annual max densest density
+                szmaxtm = npy.max(szmaxt,axis=0)
+                #print 'szmaxt', szmaxt[:,ijtsti]
+                #print szmaxtm[ijtsti]
+                inds_bottom = npy.argwhere ( (szmaxtm <= s_s) & (szmaxtm > ssr) ).transpose()
+                #print inds_bottom.shape, type(inds_bottom)
+                #print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
+            	bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
+            	bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
+            	bottom_ind [1,:] = npy.arange(latN*lonN)             
+                #print 'ijtsti',ijtsti, nomask[ijtsti]
+ 		#print 'maskp',maskp[:,ijtsti]
+                #print 'p_top index',p_top[ijtsti]
+                counti = 0
+                maskbowl = npy.ones((latN*lonN), dtype='bool')
+                maskbowl[:]= False
+                for i in range(latN*lonN):
+                   if p_top[i] == 0:
+                      if nomask[i]:
+                         if npy.max((npy.ma.reshape(depthBin,(12,N_s+1,lonN*latN)) ) [:,bottom_ind[0,i],i], axis=0) > 300.:
+                            counti = counti + 1
+                            maskp[bottom_ind[0,i],i] = True
+                            p_top[i] = maskp[:,i].argmax(axis=0)
+                         else:
+                            maskbowl[i]= True
+                      else:
+                         maskbowl[i]= True
+                
+                print '  Number of p_top corrected points',counti
+                #print 'maskp after corr',maskp[:,ijtsti]
+                #print 'p_top index after corr',p_top[ijtsti]
                 # Define properties on bowl (= shallowest persistent ocean)
                 ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
                 tpe1 = timc.clock()
                 # Creat array of 1 on bowl and 0 elsewhere
-                maskp = (maskp-npy.roll(maskp,1,axis=0))*maskp
+                maskp = (maskp != npy.roll(maskp,1,axis=0))*maskp
+                #print 'bowl only maskp',maskp[:,ijtsti]
                 depthBintmp = npy.ma.reshape(depthBin[t,...],(N_s+1, latN*lonN))
                 x1Bintmp    = npy.ma.reshape(x1Bin[t,...],(N_s+1, latN*lonN))
                 x2Bintmp    = npy.ma.reshape(x2Bin[t,...],(N_s+1, latN*lonN))
                 ptopdepth   = cdu.averager(depthBintmp*maskp,axis=0,action='sum')
                 ptoptemp    = cdu.averager(x1Bintmp*maskp,axis=0,action='sum')
                 ptopsalt    = cdu.averager(x2Bintmp*maskp,axis=0,action='sum')
+                # Mask bowl values where p_top equals to zero (bathymetry shallower than 300m)
+                ptopdepth = mv.masked_where(maskbowl, ptopdepth)
+                ptoptemp  = mv.masked_where(maskbowl, ptoptemp)
+                ptopsalt  = mv.masked_where(maskbowl, ptopsalt)
+                #print 'ptop depth,T,S',ptopdepth[ijtsti],ptoptemp[ijtsti],ptopsalt[ijtsti]
 
-                del (depthBintmp,x1Bintmp,x2Bintmp); gc.collect()
+                del (depthBintmp,x1Bintmp,x2Bintmp,maskp); gc.collect()
                 tpe2 = timc.clock()
 
                 ptopsigma = ptopdepth*0. + rhoAxis[p_top] # to keep mask of ptopdepth
@@ -1529,13 +1575,13 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 salpersisti[t] = npy.ma.sum(npy.ma.reshape(salpersxy*areaii,(Nji*Nii)))/areaiti
 
                 if debug:
-                    print ' Integral persistent values:',voltot,volpersist[t],volpersista[t]
+                    print '  Integral persistent values:',voltot,volpersist[t],volpersista[t]
                     print '   %', volpersist[t]/voltot*100., volpersista[t]/volpersist[t]*100.
-                    print '  area global/atl/pac/ind ', areait, areaita, areaitp, areaiti
-                    print '   T , S glob ',tempersist[t] , salpersist[t]
-                    print '   T , S atl  ',tempersista[t], salpersista[t]
-                    print '   T , S pac  ',tempersistp[t], salpersistp[t]
-                    print '   T , S ind  ',tempersisti[t], salpersisti[t]
+                    print '   area global/atl/pac/ind ', areait, areaita, areaitp, areaiti
+                    print '    T , S glob ',tempersist[t] , salpersist[t]
+                    print '    T , S atl  ',tempersista[t], salpersista[t]
+                    print '    T , S pac  ',tempersistp[t], salpersistp[t]
+                    print '    T , S ind  ',tempersisti[t], salpersisti[t]
                 del(volpersxy,tempersxy,salpersxy)
                 tpe7 = timc.clock()
                 # CPU analysis
