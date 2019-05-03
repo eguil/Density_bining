@@ -27,6 +27,7 @@ outfileDensity = '/home/ericglod/Density_bining/test/cmip5.IPSL-VLR0.piControl.r
 grid_T_file = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
 grid_S_file = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
 grid_V_file = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/vo/vo_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+targetGridFile = '/home/ericglod/Density_bining/170224_WOD13_masks.nc'
 
 print 'outfile:   ',outfileDensity
 print 'so:        ',modelSo
@@ -38,4 +39,8 @@ print 'areacello: ',modelAreacello
 print grid_T_file
 
 #densityBin(modelThetao,modelSo,modelAreacello,fileV=modelVo,outFile=outfileDensity,timeint='121,12', gridfT=grid_T_file, gridfS=grid_S_file, gridfV=grid_V_file)
-densityBin(modelThetao,modelSo,modelAreacello,'none',outFile=outfileDensity,timeint='1,12', gridfT=grid_T_file, gridfS=grid_S_file, gridfV=grid_V_file)
+densityBin(modelThetao,modelSo,modelAreacello,targetGrid=targetGridFile,fileV='none',outFile=outfileDensity,timeint='1,12', gridfT=grid_T_file, gridfS=grid_S_file, gridfV=grid_V_file)
+
+
+
+
