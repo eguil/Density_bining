@@ -1082,11 +1082,11 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         if debug and tc == 0:
             # Check integrals/mean on target density grid
             voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+                                (1- (npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
             temtotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
             saltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
             voltot = npy.ma.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
@@ -1095,7 +1095,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
             if fileV != 'none':
                 hvmtotij0 = npy.ma.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                (1-npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]), axis=0)
+                                (1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
                 hvmtot = npy.ma.sum(hvmtotij0 * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
                 print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot
 
@@ -1304,7 +1304,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 deltitsig = npy.ma.reshape(deltitsig,[nyrtc,N_s+1,Nji,Nii])
                 #x3Binz      = cdu.averager(x3Bini*scalexi,  axis = 3, action='sum')
                 # same resuts as:
-                x3Binz  = npy.ma.sum(x3Bini *(1- thickBini.mask)*deltitsig, axis=3)
+                x3Binz  = npy.ma.sum(x3Bini *(1-(thickBini.mask).astype(int))*deltitsig, axis=3)
                 x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
                 x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
                 x3Binzi     = cdu.averager(x3Binii*scalexi, axis = 3, action='sum')
@@ -1315,10 +1315,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             areaitsig = npy.tile(npy.ma.reshape(areaitsig,(N_s+1)*Nii*Nji), (nyrtc,1))
             areaitsig = npy.ma.reshape(areaitsig,[nyrtc,N_s+1,Nji,Nii])
             # Create volume via zonal integral of thickness * area
-            volBinz  = npy.ma.sum(thickBini *(1- thickBini.mask)*areaitsig, axis=3)
-            volBinza = npy.ma.sum(thickBinia*(1-thickBinia.mask)*areaitsig, axis=3)
-            volBinzp = npy.ma.sum(thickBinip*(1-thickBinip.mask)*areaitsig, axis=3)
-            volBinzi = npy.ma.sum(thickBinii*(1-thickBinii.mask)*areaitsig, axis=3)
+            volBinz  = npy.ma.sum(thickBini *(1- (thickBini.mask).astype(int))*areaitsig, axis=3)
+            volBinza = npy.ma.sum(thickBinia*(1- (thickBinia.mask).astype(int))*areaitsig, axis=3)
+            volBinzp = npy.ma.sum(thickBinip*(1- (thickBinip.mask).astype(int))*areaitsig, axis=3)
+            volBinzi = npy.ma.sum(thickBinii*(1- (thickBinii.mask).astype(int))*areaitsig, axis=3)
 
             voltoti = npy.ma.sum(volBinz)
             print '  Total volume in rho coordinates target grid (ref = 1.33 e+18)   : ', voltoti
@@ -1334,8 +1334,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
             # NOTE: not done for volume flux as scientific interpretation unclear
-            itsti = 31 #100 #67
-            jtsti = 60
+            itsti = 70 #100 #67
+            jtsti = 90
             ijtsti = jtsti*lonN + itsti
             ststi = 50
             for t in range(nyrtc):
@@ -1346,9 +1346,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 idxvm = 1-(mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask).astype(int)
                 #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
-                #print 'persist',persist[t,:,jtsti,itsti]
-		        #print 'thick inim',thickBin[inim,:,jtsti,itsti]
-		        #print 'salt inim',x2Bin[inim,:,jtsti,itsti]
+                print 'persist',persist[t,:,jtsti,itsti]
+		print 'thick inim',thickBin[inim,:,jtsti,itsti]
+		print 'salt inim',x2Bin[inim,:,jtsti,itsti]
                 #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
@@ -1359,17 +1359,17 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 # if maskp remains False throught the column, affect True at last valid density (column convection)
                 # Find annual max densest density
                 szmaxtm = npy.max(szmaxt,axis=0)
-                #print 'szmaxt', szmaxt[:,ijtsti]
-                #print szmaxtm[ijtsti]
+                print 'szmaxt', szmaxt[:,ijtsti]
+                print szmaxtm[ijtsti]
                 inds_bottom = npy.argwhere ( (szmaxtm <= s_s) & (szmaxtm > ssr) ).transpose()
-                #print inds_bottom.shape, type(inds_bottom)
-                #print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
+                print inds_bottom.shape, type(inds_bottom)
+                print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
             	bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
                 bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
                 bottom_ind [1,:] = npy.arange(latN*lonN)
-                #print 'ijtsti',ijtsti, nomask[ijtsti]
- 		        #print 'maskp',maskp[:,ijtsti]
-                #print 'p_top index',p_top[ijtsti]
+                print 'ijtsti',ijtsti, nomask[ijtsti]
+ 		print 'maskp',maskp[:,ijtsti]
+                print 'p_top index',p_top[ijtsti]
                 counti = 0
                 maskbowl = npy.ones((latN*lonN), dtype='bool')
                 maskbowl[:]= False
@@ -1386,8 +1386,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                          maskbowl[i]= True
                 
                 print '  Number of p_top corrected points',counti
-                #print 'maskp after corr',maskp[:,ijtsti]
-                #print 'p_top index after corr',p_top[ijtsti]
+                print 'maskp after corr',maskp[:,ijtsti]
+                print 'p_top index after corr',p_top[ijtsti]
                 # Define properties on bowl (= shallowest persistent ocean)
                 ptopdepth = npy.ma.ones([latN*lonN], dtype='float32')*valmask
                 ptopsigma,ptoptemp,ptopsalt = [npy.ma.ones(npy.shape(ptopdepth)) for _ in range(3)]
@@ -1395,7 +1395,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
 
                 # Creat array of 1 on bowl and 0 elsewhere
                 maskp = (maskp != npy.roll(maskp,1,axis=0))*maskp
-                #print 'bowl only maskp',maskp[:,ijtsti]
+                print 'bowl only maskp',maskp[:,ijtsti]
                 depthBintmp = npy.ma.reshape(depthBin[t,...],(N_s+1, latN*lonN))
                 x1Bintmp    = npy.ma.reshape(x1Bin[t,...],(N_s+1, latN*lonN))
                 x2Bintmp    = npy.ma.reshape(x2Bin[t,...],(N_s+1, latN*lonN))
@@ -1406,7 +1406,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 ptopdepth = mv.masked_where(maskbowl, ptopdepth)
                 ptoptemp  = mv.masked_where(maskbowl, ptoptemp)
                 ptopsalt  = mv.masked_where(maskbowl, ptopsalt)
-                #print 'ptop depth,T,S',ptopdepth[ijtsti],ptoptemp[ijtsti],ptopsalt[ijtsti]
+                print 'ptop depth,T,S',ptopdepth[ijtsti],ptoptemp[ijtsti],ptopsalt[ijtsti]
 
                 del (depthBintmp,x1Bintmp,x2Bintmp,maskp); gc.collect()
                 tpe2 = timc.clock()
@@ -1551,9 +1551,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 persvp = cdm.createVariable(persvp, axes = [rhoAxis, lati, loni], id = 'toto')
                 persvp._FillValue = valmask ; persvp = maskVal(persvp, valmask)
                 # volume (integral of depth * area)
-                thickrij       = thickBini.data[t,...]*(1-thickBini.mask[t,...])
-                temprij        = x1Bini.data[t,...]*(1-thickBini.mask[t,...])
-                salrij         = x2Bini.data[t,...]*(1-thickBini.mask[t,...])
+                thickrij       = thickBini.data[t,...]*(1-(thickBini.mask[t,...]).astype(int))
+                temprij        = x1Bini.data[t,...]*(1-(thickBini.mask[t,...]).astype(int))
+                salrij         = x2Bini.data[t,...]*(1-(thickBini.mask[t,...]).astype(int))
                 voltotij       = npy.ma.sum(thickrij, axis=0)
                 voltot         = npy.ma.sum(voltotij*areai)
                 volpersxy      = npy.ma.sum(persvp.data*thickrij, axis=0)
