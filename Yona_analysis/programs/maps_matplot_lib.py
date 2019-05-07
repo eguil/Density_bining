@@ -251,8 +251,8 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         ax0.clabel(cnt_2000, inline=1, fontsize=11, fmt=levfmt)
     elif action == 'var_std':
         cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='max')
-        cnt1 = ax0.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
-        ax0.clabel(cnt1, inline=1, fontsize=11, fmt='%.3f')
+        #cnt1 = ax0.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
+        #ax0.clabel(cnt1, inline=1, fontsize=11, fmt='%.3f')
     else:
         cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
 
@@ -321,8 +321,8 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         cnplot2 = cnt_2000
     elif action == 'var_std':
         cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='max')
-        cnt2 = ax1.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
-        ax1.clabel(cnt2, inline=1, fontsize=11, fmt='%.3f')
+        #cnt2 = ax1.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
+        #ax1.clabel(cnt2, inline=1, fontsize=11, fmt='%.3f')
     else:
         cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
 

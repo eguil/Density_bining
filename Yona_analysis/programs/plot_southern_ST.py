@@ -29,7 +29,8 @@ models = defModels()
 
 # ----- Work ------
 
-varname = defVarmme('salinity'); v = 'S'
+#varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('depth'); v = 'Z'
 
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
@@ -44,8 +45,8 @@ domain_name = domains[idomain]
 #signal_domain = 'fresher'
 
 #ibasin = 1 ; basin_name = 'Atlantic' # Atlantic 
-#ibasin = 2 ; basin_name = 'Pacific' # Pacific 
-ibasin = 3 ; basin_name = 'Indian' # Indian
+ibasin = 2 ; basin_name = 'Pacific' # Pacific 
+#ibasin = 3 ; basin_name = 'Indian' # Indian
 
 use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
 #use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
@@ -64,7 +65,7 @@ basinN = 4
 
 # Define variable properties
 legVar = varname['legVar']
-
+unit = varname['unit']
 
 # ----- Initialize plot ------
 
@@ -132,7 +133,10 @@ for i, model in enumerate(models):
             if use_piC == False:
                 if method_noise == 'average_histNat':
                     # Here we read the std of the averaged histNat for all runs, then take the max as our noise
-                    filenoise = 'cmip5.' + model['name'] + '.noise_domains_hist_histNat.std_of_average.nc'
+                    if v == 'S': # Salinity
+                        filenoise = 'cmip5.' + model['name'] + '.noise_domains_hist_histNat.std_of_average.nc'
+                    else: # Depth
+                        filenoise = 'cmip5.' + model['name'] + '.Depth_noise_domains_hist_histNat.std_of_average.nc'
                     fnoise = open_ncfile(indir_noise + filenoise,'r')
                     varstd = fnoise.variables[var+'stdhn'][:,ibasin,idomain].squeeze()
                     varnoise = np.ma.max(varstd)
@@ -205,8 +209,8 @@ for i, model in enumerate(models):
 
             j = j+1
 
-if domain_name == 'Southern ST' or domain_name == 'Northern ST':
-    ax.set_ylim([-0.5,0.2])
+# if domain_name == 'Southern ST' or domain_name == 'Northern ST':
+#     ax.set_ylim([-0.5,0.2])
 
 plt.subplots_adjust(left=0.08, right=0.97, bottom=0.05, top=0.93) #hspace=.0001, wspace=0.05,
 
@@ -216,7 +220,7 @@ plt.setp(ax.get_xticklabels(), visible=True)
 ax1=fig.add_subplot(111, frameon=False)
 # Hide tick and tick label of the big axes
 plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-plt.ylabel('Salinity change (PSU)', fontweight='bold')
+plt.ylabel(legVar+' change ('+unit+')', fontweight='bold')
 ax1.set_yticks([])
 ax1.yaxis.labelpad = 40
 
@@ -227,13 +231,13 @@ if nmodels % 2 != 0:
 if method_noise == 'average_histNat':
     method_noise = 'std_of_average'
 if use_piC == True:
-    title = 'Evolution of salinity change in the %s Southern Subtropics \n ' \
+    title = 'Evolution of '+legVar+' change signal in the %s Southern Subtropics \n ' \
             'Hist + RCP8.5 vs. PiControl'%(basin_name,)
     end_name = 'use_piC'
     end_noise = 'RCP8.5 vs. PiControl'
     end_title = 'RCP85vsPiC'
 else :
-    title = 'Evolution of salinity change signal in the %s Southern Subtropics \n' \
+    title = 'Evolution of '+legVar+' change signal in the %s Southern Subtropics \n' \
             'Hist + RCP8.5 vs. HistNat'%(basin_name,)
     end_name = 'use_histNat'
     end_noise = 'RCP8.5 vs. HistNat'
@@ -249,7 +253,7 @@ date = now.strftime("%Y-%m-%d")
 plt.figtext(.8,.01,'Computed by : plot_southern_ST.py  '+date, fontsize=8, ha='center')
 plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise, end_noise), fontsize=8, ha='center')
 
-plotName = 'Salinitychange_SouthernST_'+basin_name+'_'+end_title
+plotName = legVar+'change_SouthernST_'+basin_name+'_'+end_title
 
 #plt.show()
-plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/time_series/'+plotName+'.pdf')
+plt.savefig('/home/ysilvy/figures/models/time_series/'+plotName+'.pdf')

@@ -20,15 +20,16 @@ import colormaps as cmaps
 
 # ===== Define Work ======
 
-# work  = 'histNat'
-work = 'piC'
+work  = 'histNat'
+# work = 'piC'
 
 indir_histNat = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
 indir_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piControl/'
-fig_dir = '/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/'
+fig_dir = '/home/ysilvy/figures/models/zonal_ys/'
 
-varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('salinity'); v = 'S'
 # varname = defVarmme('temp'); v = 'T'
+varname = defVarmme('depth'); v = 'Z'
 
 var = varname['var_zonal_w/bowl']
 legVar = varname['legVar']
@@ -57,7 +58,7 @@ nmodels = len(listfiles)
 
 # -- Loop on models
 for i in range(nmodels):
-# i=18
+#i=8
     file = os.path.basename(listfiles[i])
     f = open_ncfile(indir+file,'r')
     name = file.split('.')[1] # Read model name
@@ -106,7 +107,8 @@ for i in range(nmodels):
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 
     cmap = cmaps.viridis
-    levels = np.arange(0,0.1201,0.01)
+    #levels = np.arange(0,0.1201,0.01) # Salinity
+    levels = np.arange(0,40,2) # Depth
 
     cnplot = zonal_2D(plt, 'var_std', axes[0,0], axes[1,0], 'left', lat, density, varAtl, domrho, cmap, levels)
     cnplot = zonal_2D(plt, 'var_std', axes[0,1], axes[1,1], 'mid', lat, density, varPac, domrho, cmap, levels)
@@ -128,4 +130,4 @@ for i in range(nmodels):
     plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
     plt.figtext(.5,.015,'Computed by : zonal_std.py  '+date,fontsize=8,ha='center')
 
-    plt.savefig(fig_dir+dir+plotName+'.png', bbox_inches='tight')
+    plt.savefig(fig_dir+dir+plotName+'.pdf', bbox_inches='tight')
