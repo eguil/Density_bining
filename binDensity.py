@@ -568,8 +568,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     #  Init density bining
     # ---------------------
     # test point
-    itest = 100
-    jtest = 80
+    itest = 136 #37 #100
+    jtest = 20 #111 #80
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -844,6 +844,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             for i in range(lonN*latN):
                 if nomask[i]:
                     z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = 0., left = 0.) ; # depth - consider spline
+                    if i==ijtest:
+                        print(npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = 0., left = 0.))
                     c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask, left = valmask) ; # thetao
                     c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask, left = valmask) ; # so
                     if fileV != 'none':
@@ -853,6 +855,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             indsm = npy.argwhere (c1_s > valmask/10).transpose()
 
             if debug and t == 0 : #t == 0:
+                print type(z_s)
                 print ' z_s just after interp', z_s[:,ijtest]
                 print ' c1_s just after interp', c1_s[:,ijtest]
                 if fileV != 'none':
@@ -1082,12 +1085,23 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 print 'x3_bin', x3_bin[0,:,j,i]
         if debug and tc == 0:
             # Check integrals/mean on target density grid
-            voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                (1- (npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
-            temtotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*(1- (npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+            print 'Computing integral volume'
+            voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)), axis=1)[tc,slice(None)]
+            print 'voltotij0.shape:', voltotij0.shape
+            
+            #voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                    (1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+      	    print 'Computing integral temp'
+      	    temtotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:], axis=0)
+            #temtotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                    npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+            print 'Computing integral salinity'
             saltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*(1- (npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:], axis=0)
+            #saltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                    npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+	    print 'Weighting integral volume/temp/sal'
             voltot = npy.ma.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
@@ -1096,7 +1110,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             print '  Mean Temp./Salinity in rho coordinates source grid              : ', temtot, saltot
             if fileV != 'none':
                 hvmtotij0 = npy.ma.sum(npy.ma.reshape(x3_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                (1- (npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+                                (1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
                 hvmtot = npy.ma.sum(hvmtotij0 * npy.ma.reshape(area,lonN*latN))/npy.ma.sum(npy.ma.reshape(area,lonN*latN))
                 print '  Mean meridional transport in rho coordinates source grid (m2/s) : ', hvmtot
 
@@ -1305,7 +1319,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 deltitsig = npy.ma.reshape(deltitsig,[nyrtc,N_s+1,Nji,Nii])
                 #x3Binz      = cdu.averager(x3Bini*scalexi,  axis = 3, action='sum')
                 # same resuts as:
-                x3Binz  = npy.ma.sum(x3Bini *(1- (thickBini.mask).astype(int))*deltitsig, axis=3)
+                x3Binz  = npy.ma.sum(x3Bini *(1-(thickBini.mask).astype(int))*deltitsig, axis=3)
                 x3Binza     = cdu.averager(x3Binia*scalexi, axis = 3, action='sum')
                 x3Binzp     = cdu.averager(x3Binip*scalexi, axis = 3, action='sum')
                 x3Binzi     = cdu.averager(x3Binii*scalexi, axis = 3, action='sum')
@@ -1335,8 +1349,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
             # NOTE: not done for volume flux as scientific interpretation unclear
-            itsti = 70 #31 #100 #67
-            jtsti = 90 #60
+            itsti = 37 #70 #100 #67
+            jtsti = 111 #90
             ijtsti = jtsti*lonN + itsti
             ststi = 50
             for t in range(nyrtc):
@@ -1365,11 +1379,11 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 inds_bottom = npy.argwhere ( (szmaxtm <= s_s) & (szmaxtm > ssr) ).transpose()
                 print inds_bottom.shape, type(inds_bottom)
                 print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
-                bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
+            	bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
                 bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
                 bottom_ind [1,:] = npy.arange(latN*lonN)
                 print 'ijtsti',ijtsti, nomask[ijtsti]
-                print 'maskp',maskp[:,ijtsti]
+ 		print 'maskp',maskp[:,ijtsti]
                 print 'p_top index',p_top[ijtsti]
                 counti = 0
                 maskbowl = npy.ones((latN*lonN), dtype='bool')
@@ -1397,7 +1411,6 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 # Creat array of 1 on bowl and 0 elsewhere
                 maskp = (maskp != npy.roll(maskp,1,axis=0))*maskp
                 print 'bowl only maskp',maskp[:,ijtsti]
-
                 depthBintmp = npy.ma.reshape(depthBin[t,...],(N_s+1, latN*lonN))
                 x1Bintmp    = npy.ma.reshape(x1Bin[t,...],(N_s+1, latN*lonN))
                 x2Bintmp    = npy.ma.reshape(x2Bin[t,...],(N_s+1, latN*lonN))
