@@ -11,7 +11,7 @@ from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarmme
 from modelsDef import defModels
 from libToE import findToE, findToE_2thresholds
-import glob
+import glob, os
 
 # ----- Workspace ------
 
@@ -24,7 +24,8 @@ models = defModels()
 # ----- Work ------
 
 # varname = defVarmme('salinity'); v = 'S'
-varname = defVarmme('depth') ; v='Z'
+#varname = defVarmme('depth') ; v='Z'
+varname = defVarmme('temp'); v = 'T'
 
 multStd = 2. # detect ToE at multStd std dev of histNat or PiControl
 
@@ -41,7 +42,7 @@ file = 'cmip5.' + models[1]['name'] + '.historicalNat.ensm.an.ocn.Omon.density.v
 f = open_ncfile(indir_histNat + file,'r')
 
 lat = f.variables['latitude'][:]; latN = lat.size
-density = f.variables['lev'][:]; levN = density.size
+lev = f.variables['lev'][:]; levN = lev.size
 timN = 240
 var = varname['var_zonal_w/bowl']
 basinN = 4
@@ -125,10 +126,18 @@ for i, model in enumerate(models): # Loop on models
             varToE2 = np.ma.masked_all((nruns,basinN,levN,latN)) # (>2std)
             varsignal_end = np.ma.masked_all((nruns,basinN,levN,latN)) # Save signal (last 5 years)
 
+            # Initialize list for run labels
+            run_names = ['']*nruns
+            
             # Loop over number of runs
             for k in range(nruns):
-                print('    . run number', k)
-
+                
+                namefile = os.path.basename(listruns[k])
+                run_nb = namefile.split('.')[3]
+                run_names[k] = run_nb # Save run label, i.e. 'r1i1p1'
+                
+                print('    . run number', k, run_nb)
+                
                 # Read file
                 fhrcp = open_ncfile(listruns[k],'r')
                 # Read var hist + rcp85
@@ -182,7 +191,11 @@ for i, model in enumerate(models): # Loop on models
                 varToE2[k,2,:,:] = toe2_p
                 varToE2[k,3,:,:] = toe2_i
 
-
+            # Mask points because when calculating ToE, masked points (e.g. bathy) are set to 240 (=no emergence)
+            idx=np.argwhere(varsignal_end.mask==True)
+            varToE2[idx[:,0],idx[:,1],idx[:,2],idx[:,3]] = np.ma.masked
+            varToE1[idx[:,0],idx[:,1],idx[:,2],idx[:,3]] = np.ma.masked
+                
             # Save in output file
             if use_piC == False:
                 fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_zonal_rcp_histNat.nc'
@@ -220,15 +233,17 @@ for i, model in enumerate(models): # Loop on models
             ToE1 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE1', 'f4', ('members','basin','density','latitude',))
             ToE2 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE2', 'f4', ('members','basin','density','latitude',))
             varchange = fout.createVariable(varname['var_zonal_w/bowl']+'_change', 'f4', ('members','basin','density','latitude',))
+            run_label = fout.createVariable('run_label', 'S1', ('members',))
 
             # data
             members[:] =  np.arange(0,nruns)
             basin[:] =  np.arange(0,basinN)
-            density[:] = density
-            latitude[:] = latitude
+            density[:] = lev
+            latitude[:] = lat
             ToE1[:,:,:] = varToE1
             ToE2[:,:,:] = varToE2
             varchange[:,:,:] = varsignal_end
+            run_label[:] = run_names
 
             # units
             basin.units = 'basin index'

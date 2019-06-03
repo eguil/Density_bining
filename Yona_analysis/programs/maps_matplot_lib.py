@@ -182,12 +182,13 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         var = varBasin['var_change']
         var_mean = varBasin['var_mean']
 
-        # -- Format for contour labels
-        levfmt = '%.0f'
-        if abs(clevsm[1] - clevsm[0]) < 1:
-            levfmt = '%.1f'
-        if abs(clevsm[1] - clevsm[0]) < 0.1:
-            levfmt = '%.2f'
+        if clevsm != None:
+            # -- Format for contour labels
+            levfmt = '%.0f'
+            if abs(clevsm[1] - clevsm[0]) < 1:
+                levfmt = '%.1f'
+            if abs(clevsm[1] - clevsm[0]) < 0.1:
+                levfmt = '%.2f'
 
     elif action == 'isopyc_mig_sig':
         var = varBasin['dvar_dsig']*varBasin['dsig_dt']
@@ -222,7 +223,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
 
     if action != 'total' and action != 'total_mme' and action != 'ToE':
         bowl = varBasin['bowl']
-    if action == 'total_mme' or action == 'ToE' :
+    if (action == 'total_mme' or action == 'ToE') and varBasin['labBowl'] != None :
         bowl2 = varBasin['bowl2']
         bowl1 = varBasin['bowl1']
         label1 = varBasin['labBowl'][0]
@@ -270,9 +271,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax0.plot(lat, bowl, color='black', linewidth=2)
 
-    if action == 'ToE' or action == 'total_mme':
-        ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-        ax0.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    if (action == 'ToE' or action == 'total_mme') and varBasin['labBowl'] != None:
+        ax0.plot(lat, bowl2, linewidth=2, color='black',label=label2)
+        ax0.plot(lat, bowl1, linestyle = '--', linewidth=2, color='black',label=label1)
         # -- Add legend for bowl position
         if varBasin['name'] == 'Indian':
             ax0.legend(loc='upper right', title='Bowl', fontsize=12)
@@ -340,9 +341,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax1.plot(lat, bowl, color='black', linewidth=2)
 
-    if action == 'ToE' or action == 'total_mme':
-        ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-        ax1.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    if (action == 'ToE' or action == 'total_mme') and varBasin['labBowl'] != None:
+        ax1.plot(lat, bowl2, linewidth=2, color='black',label=label2)
+        ax1.plot(lat, bowl1, linestyle = '--', linewidth=2, color='black',label=label1)
 
 
     ax1.set_ylim([domrho[1], domrho[2]])
@@ -844,16 +845,19 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
     ax1.set_xticklabels(xlabels)
     # -- Set y ticks
-    ymajorLocator = MultipleLocator(500)
-    ax1.yaxis.set_major_locator(ymajorLocator)
-    ax1.set_yticks([500,1000,1500,2000])
-    #ax1.set_yticks([1000,1000,2000,3000,4000,5000])
     if zedmax == 2000:
+        ymajorLocator = MultipleLocator(500)
         yminorLocator = AutoMinorLocator(5)
-        ax1.yaxis.set_minor_locator(yminorLocator)
-
+    else:
+        ymajorLocator = MultipleLocator(1000)
+        yminorLocator = AutoMinorLocator(2)
+    ax1.yaxis.set_major_locator(ymajorLocator)
+    ax1.yaxis.set_minor_locator(yminorLocator)
+    #ax1.set_yticks([500,1000,1500,2000])
+    #ax1.set_yticks([1000,1000,2000,3000,4000,5000])
+        
     # -- draw filled contours
-    cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels'], extend=cnDict['ext_cmap'])
+    cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels2'], extend=cnDict['ext_cmap'])
 
     if clevsm != None:
         # -- draw mean field contours
@@ -877,11 +881,11 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         ax1.clabel(cont_isopyc2, inline=1, fontsize=13, fmt='%d')
 
     # Remove intersecting tick at zedmid
-    yticks = ax1.yaxis.get_major_ticks()
-    if ticks == 'left':
-        yticks[0].label1.set_visible(False)
-    if ticks == 'right':
-        yticks[0].label2.set_visible(False)
+#     yticks = ax1.yaxis.get_major_ticks()
+#     if ticks == 'left':
+#         yticks[0].label1.set_visible(False)
+#     if ticks == 'right':
+#         yticks[0].label2.set_visible(False)
 
 
     # -- add plot title

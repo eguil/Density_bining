@@ -26,8 +26,8 @@ indir_histNat = '/data/ysilvy/CMIP5_annual/'
 
 #models = defModels() # Error: opening the one in Density_bining/ instead of Density_bining/Yona_analysis/programs/
 
-varname = defVarmme('salinity'); v = 'S'
-#varname = defVarmme('temperature'); v = 'T'
+#varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('temp'); v = 'T'
 
 multStd = 2. # detect ToE at multStd std dev of histNat or PiControl
 

@@ -82,7 +82,8 @@ if use_piC == True:
     indir = indir_rcppiC
 else:
     indir = indir_rcphn
-listfiles = glob.glob(indir + method_noise_rcp + '/*.nc')
+if v=='S':
+	listfiles = glob.glob(indir + method_noise_rcp + '/*.toe*.nc')
 listfiles = sorted(listfiles)
 nmodels = len(listfiles)
 nMembers = np.ma.zeros(len(models)) # Initialize array for keeping number of members per model
@@ -232,7 +233,7 @@ datanoise = np.array([varnoiseA[:,0], varnoiseP[:,0], varnoiseI[:,0], varnoiseP[
 # if outfmt == 'view':
 #     plt.show()
 # else:
-#     plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/scatterplots/'+plotName+'.png',
+#     plt.savefig('/home/ysilvy/figures/models/ToE/scatterplots/'+plotName+'.png',
 #                 bbox_inches='tight',bbox_extra_artists=(lgd,))
 
 
@@ -337,11 +338,11 @@ for imodel in range(len(ax1D)-1):
     for idomain in range(len(domain_names)):
         col = domain_colors[idomain]
         if imodel ==0:
-            ax.scatter(datanoise[idomain,0],dataToE[idomain,0],color=col,s=20,facecolors='none', label=domain_names[idomain])
+            ax.scatter(datanoise[idomain,0:cumMembers[0]],dataToE[idomain,0:cumMembers[0]],color=col,s=20,facecolors='none', label=domain_names[idomain])
         else:
             l[idomain] = ax.scatter(datanoise[idomain,cumMembers[imodel-1]:cumMembers[imodel]],dataToE[idomain,cumMembers[imodel-1]:cumMembers[imodel]],color=col, s=20,facecolors='none', label=domain_names[idomain])
 
-    ax.set_title(names[imodel],fontsize=12,fontweight='bold')
+    ax.set_title(names[imodel] + ' ('+str(int(nMembers[imodel]))+')',fontsize=12,fontweight='bold')
     
     for tick in ax.get_xticklabels():
         tick.set_rotation(45)
@@ -391,5 +392,5 @@ if use_piC :
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/scatterplots/'+plotName+'.pdf',
+    plt.savefig('/home/ysilvy/figures/models/ToE/scatterplots/'+plotName+'.pdf',
                 bbox_extra_artists=(lgd,))

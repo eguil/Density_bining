@@ -11,7 +11,7 @@ def findToE(signal, noise, mult):
     #tcpu0 = timc.clock()
     timN = signal.shape[0]
     toe_wrk = np.ma.ones(signal.shape)*1. # init toe_wrk array to 1
-    signaltile = np.reshape(np.tile(noise,timN),signal.shape) # repeat noise timN
+    signaltile = np.ma.reshape(np.tile(noise,timN),signal.shape) # repeat noise timN
     toe_idx = np.argwhere(abs(signal) >= mult*signaltile) # find indices of points where signal > noise
     if signal.size > timN: # if there are at least 2 dimensions
         toe_wrk[toe_idx[:,0],toe_idx[:,1]] = 0. # set corresponding points in toe_wrk to zero
@@ -21,7 +21,6 @@ def findToE(signal, noise, mult):
     #tcpu1 = timc.clock()
     # perf
     #print ' ToE CPU = ',tcpu1-tcpu0
-
 
     return toe
 
