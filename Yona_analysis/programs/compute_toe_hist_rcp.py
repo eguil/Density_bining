@@ -15,7 +15,7 @@ from netCDF4 import Dataset as open_ncfile
 from maps_matplot_lib import defVarmme, averageDom
 from modelsDef import defModels
 from libToE import findToE, findToE_2thresholds, ToEdomainrcp85vshistNat
-import glob
+import glob, os
 
 # ----- Workspace ------
 
@@ -28,8 +28,8 @@ models = defModels()
 
 # ----- Work ------
 
-#varname = defVarmme('salinity'); v = 'S'
-varname = defVarmme('depth'); v = 'Z'
+varname = defVarmme('salinity'); v = 'S'
+#varname = defVarmme('depth'); v = 'Z'
 
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
@@ -44,8 +44,8 @@ signal_domains = ['fresher','saltier','fresher','saltier','saltier']
 multStd = 2. # detect ToE at multStd std dev of histNat (or PiControl)
 # In fact now we save both 1 std and multStd=2 std
 
-use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
-# use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
+# use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
+use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
 
 iniyear = 1860
 finalyear = 2100
@@ -78,7 +78,7 @@ for i, model in enumerate(models):
                              and model['name'] != 'MIROC-ESM'):
 
         # Read hist+rcp85 files
-        listruns = glob.glob(indir_histrcp85 + 'cmip5.' + model['name'] + '.' + '*zon2D.nc')
+        listruns = sorted(glob.glob(indir_histrcp85 + 'cmip5.' + model['name'] + '.' + '*zon2D.nc'))
         nruns = len(listruns)
         nMembers[i] = nruns
         if nruns != 0:
@@ -95,14 +95,14 @@ for i, model in enumerate(models):
                 varhn_a = fhn.variables[var][:,1,:,:].squeeze()
                 varhn_p = fhn.variables[var][:,2,:,:].squeeze()
                 varhn_i = fhn.variables[var][:,3,:,:].squeeze()
-                print(' varhn shape : ', varhn_a.shape)
+                #print(' varhn shape : ', varhn_a.shape)
                 # Read std of histNat (max std of all runs for each model)
                 if method_noise == 'average_std':
                     varstd_a = fhn.variables[var+'Std'][1,:,:].squeeze()
                     varstd_p = fhn.variables[var+'Std'][2,:,:].squeeze()
                     varstd_i = fhn.variables[var+'Std'][3,:,:].squeeze()
 
-                # Compute time average of the whole histNat series (signal over projection = RCP - mean(histNat))
+                # Compute time average of the whole histNat series
                 meanvarhn_a = np.ma.mean(varhn_a, axis=0)
                 meanvarhn_p = np.ma.mean(varhn_p, axis=0)
                 meanvarhn_i = np.ma.mean(varhn_i, axis=0)
@@ -126,9 +126,6 @@ for i, model in enumerate(models):
             varnoise_a = np.ma.masked_all(len(domains))
             varnoise_p = np.ma.masked_all(len(domains))
             varnoise_i = np.ma.masked_all(len(domains))
-            # varnoise2_a = np.ma.masked_all(len(domains))
-            # varnoise2_p = np.ma.masked_all(len(domains))
-            # varnoise2_i = np.ma.masked_all(len(domains))
             # Initialize varsignal for each basin, containing averaged signal for each domain and each run
             varsignal_a = np.ma.masked_all((timN,nruns,len(domains)))
             varsignal_p = np.ma.masked_all((timN,nruns,len(domains)))
@@ -145,7 +142,7 @@ for i, model in enumerate(models):
             varToE2 = np.ma.masked_all((nruns,basinN,len(domains))) # (members,basin,domain) 2std
 
             if method_noise == 'average_histNat':
-                filenoise = 'cmip5.' + model['name'] + '.'+legVar+'_noise_domains_hist_histNat.std_of_average.nc'
+                filenoise = 'cmip5.' + model['name'] + '.noise_domains_hist_histNat.std_of_average.nc'
                 fnoise = open_ncfile(indir_noise + filenoise,'r')
                 if use_piC == False:
                     # Here we read the std of the averaged histNat in the 5 domains for all runs, then take the max as our noise
@@ -196,16 +193,22 @@ for i, model in enumerate(models):
 #                         else:
 #                             varnoise_i[j] = np.ma.std(averageDom(varpiC_i, 3, domain['Indian'], lat, density), axis=0)
 
+                if j==0:
+                    # Initialize list for run labels
+                    run_names = ['']*nruns
+                
                 # Loop over number of runs
                 for k in range(nruns):
-                    print('    . run number', k)
+            
+                    namefile = os.path.basename(listruns[k])
+                    run_nb = namefile.split('.')[3]
+                    if j==0:
+                        run_names[k] = run_nb # Save run label, i.e. 'r1i1p1'
+                    print('    . run number', k, run_nb)
 
                     # Read file
                     fhrcp = open_ncfile(listruns[k],'r')
                     # Read var hist + rcp85
-                    # varh_a = fhrcp.variables[var][tstart:tend,1,:,:].squeeze()
-                    # varh_p = fhrcp.variables[var][tstart:tend,2,:,:].squeeze()
-                    # varh_i = fhrcp.variables[var][tstart:tend,3,:,:].squeeze()
                     varhrcp_a = fhrcp.variables[var][tstart:tend+95,1,:,:].squeeze()
                     varhrcp_p = fhrcp.variables[var][tstart:tend+95,2,:,:].squeeze()
                     varhrcp_i = fhrcp.variables[var][tstart:tend+95,3,:,:].squeeze()
@@ -213,26 +216,14 @@ for i, model in enumerate(models):
                     # Average signal hist+RCP8.5 - histNat or hist+RCP8.5 - PiControl
                     if use_piC == False:
                         if domain['Atlantic'] != None:
-                            varsignal_a[0:145,k,j] = averageDom(varhrcp_a[0:145,:,:]-varhn_a, 3, domain['Atlantic'], lat, density)
-                            varsignal_a[145:,k,j] = averageDom(varhrcp_a[145:,:,:]-meanvarhn_a, 3, domain['Atlantic'], lat, density)
-                            # if use_piC != True:
-                            #     varsignal_a[145:,k,j] = averageDom(varrcp_a-meanvarhn_a, 3, domain['Atlantic'], lat, density)
-                            # else:
-                            #     varsignal_a[145:,k,j] = averageDom(varrcp_a-meanvarpiC_a, 3, domain['Atlantic'], lat, density)
+                            varsignal_a[:,k,j] = averageDom(varhrcp_a-meanvarhn_a, 3, domain['Atlantic'], lat, density)
+                            #varsignal_a[145:,k,j] = averageDom(varhrcp_a[145:,:,:]-meanvarhn_a, 3, domain['Atlantic'], lat, density)
                         if domain['Pacific'] !=None:
-                            varsignal_p[0:145,k,j] = averageDom(varhrcp_p[0:145,:,:]-varhn_p, 3, domain['Pacific'], lat, density)
-                            varsignal_p[145:,k,j] = averageDom(varhrcp_p[145:,:,:]-meanvarhn_p, 3, domain['Pacific'], lat, density)
-                            # if use_piC != True:
-                            #     varsignal_p[145:,k,j] = averageDom(varrcp_p-meanvarhn_p, 3, domain['Pacific'], lat, density)
-                            # else:
-                            #     varsignal_p[145:,k,j] = averageDom(varrcp_p-meanvarpiC_p, 3, domain['Pacific'], lat, density)
+                            varsignal_p[:,k,j] = averageDom(varhrcp_p-meanvarhn_p, 3, domain['Pacific'], lat, density)
+                            #varsignal_p[145:,k,j] = averageDom(varhrcp_p[145:,:,:]-meanvarhn_p, 3, domain['Pacific'], lat, density)
                         if domain['Indian'] != None:
-                            varsignal_i[0:145,k,j] = averageDom(varhrcp_i[0:145,:,:]-varhn_i, 3, domain['Indian'], lat, density)
-                            varsignal_i[145:,k,j] = averageDom(varhrcp_i[145:,:,:]-meanvarhn_i, 3, domain['Indian'], lat, density)
-                            # if use_piC != True:
-                            #     varsignal_i[145:,k,j] = averageDom(varrcp_i-meanvarhn_i, 3, domain['Indian'], lat, density)
-                            # else:
-                            #     varsignal_i[145:,k,j] = averageDom(varrcp_i-meanvarpiC_i, 3, domain['Indian'], lat, density)
+                            varsignal_i[:,k,j] = averageDom(varhrcp_i-meanvarhn_i, 3, domain['Indian'], lat, density)
+                            #varsignal_i[145:,k,j] = averageDom(varhrcp_i[145:,:,:]-meanvarhn_i, 3, domain['Indian'], lat, density)
                     else:
                         if domain['Atlantic'] != None:
                             varsignal_a[:,k,j] = averageDom(varhrcp_a-meanvarpiC_a, 3, domain['Atlantic'], lat, density)
@@ -254,17 +245,6 @@ for i, model in enumerate(models):
                     if domain['Indian'] != None and np.ma.is_masked(varnoise_i[j]) == False:
                         toe2_i[k,j] = findToE(varsignal_i[:,k,j], varnoise_i[j], multStd) + iniyear
                         toe1_i[k,j] = findToE(varsignal_i[:,k,j], varnoise_i[j], 1) + iniyear
-
-                    # else:
-                    #     if domain['Atlantic'] != None and np.ma.is_masked(varnoise_a[j]) == False \
-                    #             and np.ma.is_masked(varnoise2_a[j]) == False:
-                    #         toe_a[k,j] = findToE_2thresholds(varsignal_a[:,k,j], varnoise_a[j], varnoise2_a[j], 145, multStd) + iniyear
-                    #     if domain['Pacific'] != None and np.ma.is_masked(varnoise_p[j]) == False \
-                    #             and np.ma.is_masked(varnoise2_p[j]) == False:
-                    #         toe_p[k,j] = findToE_2thresholds(varsignal_p[:,k,j], varnoise_p[j], varnoise2_p[j], 145, multStd) + iniyear
-                    #     if domain['Indian'] != None and np.ma.is_masked(varnoise_i[j]) == False \
-                    #             and np.ma.is_masked(varnoise2_i[j]) == False:
-                    #         toe_i[k,j] = findToE_2thresholds(varsignal_i[:,k,j], varnoise_i[j], varnoise2_i[j], 145, multStd) + iniyear
 
                     # Take out runs where the signal is of opposite sign than expected
                     if v != 'Z':
@@ -293,15 +273,7 @@ for i, model in enumerate(models):
                             if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -2 * varnoise_i[j]:
                                 toe2_i[k,j] = np.ma.masked
                             if np.ma.mean(varsignal_i[-5:,k,j],axis=0) < -1 * varnoise_i[j]:
-                                toe1_i[k,j] = np.ma.masked
-#                     print(toe1_a[k,j], toe2_a[k,j])
-                    # # Take out runs that are wrongly concatenated (i.e. which have a jump between 2005 and 2006)
-                    # if np.ma.abs(varsignal_a[145,k,j]-varsignal_a[144,k,j])>0.2:  # Jump in salinity difference
-                    #     toe_a[k,j] = np.ma.masked
-                    # if np.ma.abs(varsignal_p[145,k,j]-varsignal_p[144,k,j])>0.2:  # Jump in salinity difference
-                    #     toe_p[k,j] = np.ma.masked
-                    # if np.ma.abs(varsignal_i[145,k,j]-varsignal_i[144,k,j])>0.2:  # Jump in salinity difference
-                    #     toe_i[k,j] = np.ma.masked
+                                toe1_i[k,j] = np.ma.masked                 
 
             varToE1[:,1,:] = toe1_a
             varToE1[:,2,:] = toe1_p
@@ -344,8 +316,7 @@ for i, model in enumerate(models):
                 fout.description = 'ToE hist+rcp8.5 vs. histNat for each member, in 5 domains : Southern Subtropics (0), Southern Ocean (1),' \
                                 'Northern Subtropics (2), North Atlantic (3), North Pacific (4). \n' \
                                'The historical runs are prolonged by the 95 years of RCP8.5. \n Signal is computed by averaging ' \
-                               'the difference (historical-historicalNat) over the historical period and ' \
-                               '(RCP8.5-timeaverage(historicalNat)) over the projection period, in those domains. ' \
+                               'the difference (historical+RCP8.5)-timeaverage(historicalNat) in those domains. ' \
                                'The ensemble mean historicalNat is used here for all historical runs of the model. ' \
                                    + noise_description + ' Then ToE is computed ' \
                                 'using once or twice the noise as the limit.'
@@ -369,6 +340,7 @@ for i, model in enumerate(models):
             domain = fout.createVariable('domain', 'f4', ('domain',))
             ToE1 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE1', 'f4', ('members','basin','domain',))
             ToE2 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE2', 'f4', ('members','basin','domain',))
+            run_label = fout.createVariable('run_label', 'S6', ('members',))
 
             # data
             members[:] =  np.arange(0,nruns)
@@ -376,6 +348,8 @@ for i, model in enumerate(models):
             domain[:] = np.arange(0,len(domains))
             ToE1[:,:,:] = varToE1
             ToE2[:,:,:] = varToE2
+            for k in range(nruns):
+                run_label[k] = run_names[k]
 
             # units
             basin.units = 'basin index'
@@ -384,6 +358,7 @@ for i, model in enumerate(models):
             ToE2.long_name = 'ToE (>2std) for ' + legVar
             ToE1.units = 'Year'
             ToE1.long_name = 'ToE (>1std) for ' + legVar
+            run_label.long_name = 'Run number'
 
             fout.close()
 

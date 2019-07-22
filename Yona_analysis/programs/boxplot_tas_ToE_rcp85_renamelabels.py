@@ -41,8 +41,8 @@ method_noise_piC = 'average_piC'
 # === INPUTS ===
 
 # -- Choose 2 datasets to plot/compare on the figure
-#work = 'rcp85_histNat_1_2std'
-#work = 'rcp85_histNat_PiControl_2std'
+# work = 'rcp85_histNat_1_2std'
+# work = 'rcp85_histNat_PiControl_2std'
 work = 'rcp85_histNat_1pctCO2_2std'
 
 # output format
@@ -98,7 +98,7 @@ else:
 
 # ----- Read ToE and tas for each model ------
 
-listfiles1 = sorted(glob.glob(indir1 + method_noise_histNat + '/*.nc'))
+listfiles1 = sorted(glob.glob(indir1 + method_noise_histNat + '/*'+legVar+'_toe_rcp_histNat*.nc'))
 nmodels1 = len(listfiles1)-len(ignore1)
 
 if work != 'rcp85_histNat_1_2std':
@@ -165,26 +165,25 @@ varToEI_2_gsat = associate_gsat_ToE(varToEI_2,time2,gsat_anom2)
 
 # -- Turn masked data into nans
 
-varToEA_1_gsat[np.ma.getmask(varToEA_1_gsat)] = np.nan
-varToEP_1_gsat[np.ma.getmask(varToEP_1_gsat)] = np.nan
-varToEI_1_gsat[np.ma.getmask(varToEI_1_gsat)] = np.nan
-varToEA_2_gsat[np.ma.getmask(varToEA_2_gsat)] = np.nan
-varToEP_2_gsat[np.ma.getmask(varToEP_2_gsat)] = np.nan
-varToEI_2_gsat[np.ma.getmask(varToEI_2_gsat)] = np.nan
+#varToEA_1_gsat[np.ma.getmask(varToEA_1_gsat)] = np.nan
+#varToEP_1_gsat[np.ma.getmask(varToEP_1_gsat)] = np.nan
+#varToEI_1_gsat[np.ma.getmask(varToEI_1_gsat)] = np.nan
+#varToEA_2_gsat[np.ma.getmask(varToEA_2_gsat)] = np.nan
+#varToEP_2_gsat[np.ma.getmask(varToEP_2_gsat)] = np.nan
+#varToEI_2_gsat[np.ma.getmask(varToEI_2_gsat)] = np.nan
 
 # -- Organize data
 
+# New domain labels
+new_domains = ['SO subpolar', 'SO subtropics', 'NH subtropics', 'subpolar North Pacific']
+# regroup previous "North Atlantic" with NH subtropics
+
 # tas ToE reference hist+rcp8.5 vs. histNat [>2std]
-data1 = [varToEA_1_gsat[:,0], varToEP_1_gsat[:,0], varToEI_1_gsat[:,0], maskdata, varToEP_1_gsat[:,2], varToEI_1_gsat[:,2],
-         maskdata, varToEA_1_gsat[:,1], varToEP_1_gsat[:,1], varToEI_1_gsat[:,1], maskdata, varToEA_1_gsat[:,3], maskdata,
-         varToEP_1_gsat[:,4]]
-data1 = data1[::-1]
+data1 = [varToEA_1_gsat[:,1], varToEP_1_gsat[:,1], varToEI_1_gsat[:,1], maskdata, varToEA_1_gsat[:,0], varToEP_1_gsat[:,0], varToEI_1_gsat[:,0], maskdata, varToEA_1_gsat[:,3], varToEP_1_gsat[:,2], varToEI_1_gsat[:,2], maskdata, varToEP_1_gsat[:,4]]
 
 # tas ToE other case
-data2 = [varToEA_2_gsat[:,0], varToEP_2_gsat[:,0], varToEI_2_gsat[:,0], maskdata, varToEP_2_gsat[:,2], varToEI_2_gsat[:,2],
-         maskdata, varToEA_2_gsat[:,1], varToEP_2_gsat[:,1], varToEI_2_gsat[:,1], maskdata, varToEA_2_gsat[:,3], maskdata,
-         varToEP_2_gsat[:,4]]
-data2 = data2[::-1]
+data2 = [varToEA_2_gsat[:,1], varToEP_2_gsat[:,1], varToEI_2_gsat[:,1], maskdata, varToEA_2_gsat[:,0], varToEP_2_gsat[:,0], varToEI_2_gsat[:,0], maskdata, varToEA_2_gsat[:,3], varToEP_2_gsat[:,2], varToEI_2_gsat[:,2], maskdata, varToEP_2_gsat[:,4]]
+
 
 # ----- Make pseudo-time vector for gsat_anom1 multi-model mean -----
 
@@ -236,27 +235,28 @@ newticknames2 = ['%d' % t for t in tickvalues]
 y1 = 1850
 y2 = 1900
 
-labels = ['','','','','Indian','Pacific','Atlantic','','Indian','Pacific','','Indian','Pacific','Atlantic']
-N = 15
+labels = ['Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','']
+N = 14
 ind = np.arange(1,N)
 width = 0.25
 
-fig, ax = plt.subplots(figsize=(10,12))
+fig, ax = plt.subplots(figsize=(11,13))
 
 ax.axvline(x=1.5, color='black', ls=':')
 ax.axvline(x=2, color='black', ls=':')
 ax.axvline(x=0, color='black', ls=':')
 
+red_crosses = dict(markeredgecolor='#c90016', marker='+',linewidth=0.5)
 # ToE reference boxes
-boxes1 = ax.boxplot(data1, vert=0, positions=ind-width, widths=width, whis=0)
+boxes1 = ax.boxplot(data1, vert=0, positions=ind-width, widths=width, whis=0,flierprops=red_crosses)
 for box in boxes1['boxes']:
     box.set(color='#c90016', linewidth=2) #c90016 #ad3c48
 for whisker in boxes1['whiskers']:
     whisker.set(color='#c90016', linestyle='-', linewidth=1)
 for cap in boxes1['caps']:
     cap.set(color='#c90016', linewidth=1)
-for flier in boxes1['fliers']:
-    flier.set(color='#c90016')
+#for flier in boxes1['fliers']:
+#    flier.set(color='#c90016')
 for median in boxes1['medians']:
     median.set(color='#c90016', linewidth=2)
 
@@ -271,8 +271,9 @@ ax.xaxis.set_minor_locator(xminorLocator)
 ax.xaxis.set_tick_params(which='major',width=2)
 
 ax2 = ax.twiny()
+blue_crosses = dict(markeredgecolor='#004f82', marker='+',linewidth=0.5)
 # ToE other case boxes
-boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width, whis=0)
+boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width, whis=0,flierprops=blue_crosses)
 for box in boxes2['boxes']:
     box.set(color=color, linewidth=2)
 for whisker in boxes2['whiskers']:
@@ -289,7 +290,7 @@ ax2.set_xlim([-1,6.01])
 ax2.set_yticks(ind)
 ax2.set_yticklabels(labels, fontweight='bold')
 ax2.yaxis.set_tick_params(left='off', right='off')
-ax2.set_ylim([0,15])
+ax2.set_ylim([0,14])
 xmajorLocator2 = MultipleLocator(0.5)
 xminorLocator2 = AutoMinorLocator(2)
 ax2.xaxis.set_major_locator(xmajorLocator2)
@@ -298,17 +299,15 @@ ax2.xaxis.set_minor_locator(xminorLocator2)
 plt.setp(ax.get_yticklabels(), visible=True)
 plt.setp(ax.get_xticklabels(), fontweight='bold')
 
-ax2.axhline(y=ind[1], color='black', ls='--')
 ax2.axhline(y=ind[3], color='black', ls='--')
 ax2.axhline(y=ind[7], color='black', ls='--')
-ax2.axhline(y=ind[10], color='black', ls='--')
+ax2.axhline(y=ind[11], color='black', ls='--')
 
 # Domain labels
-ax2.text(-1-0.5,ind[0], 'North \n Pac', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-1-0.5,ind[2], 'North \n Atl', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-1-0.5,ind[5], 'Southern \n Ocean', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-1-0.5,ind[8]+width, 'Northern \n ST', ha='center', fontweight='bold', fontsize=13)
-ax2.text(-1-0.5,ind[12], 'Southern \n ST', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1-0.6,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1-0.6,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1-0.6,ind[9], 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1-0.6,ind[12], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
 
 plotTitle = 'Distribution of GSAT at emergence for '+legVar+ ' in different regions'
 ax.set_title(plotTitle, y=1.08, fontweight='bold', va='center')
@@ -322,13 +321,13 @@ now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
 # Text at the bottom of the figure
-plt.figtext(.8,.01,'Computed by : boxplot_tas_ToE_rcp85.py, '+date, fontsize=8, ha='center')
-if work == 'rcp85_histNat_1_2std':
-    plt.figtext(.2,.01,'Noise: %s' %(method_noise_histNat), fontsize=8, ha='center')
-else:
-    plt.figtext(.2,.01,'Noise: %s %s' %(method_noise_histNat, method_noise_piC), fontsize=8, ha='center')
-if work == 'rcp85_histNat_PiControl_2std':
-    plt.figtext(.5,.01,'PiControl : mean(last_240_years)',fontsize=8,ha='center')
+#plt.figtext(.8,.005,'Computed by : boxplot_tas_ToE_rcp85_renamelabels.py, '+date, fontsize=8, ha='center')
+#if work == 'rcp85_histNat_1_2std':
+#    plt.figtext(.2,.01,'Noise: %s' %(method_noise_histNat), fontsize=8, ha='center')
+#else:
+#    plt.figtext(.2,.01,'Noise: %s %s' %(method_noise_histNat, method_noise_piC), fontsize=8, ha='center')
+#if work == 'rcp85_histNat_PiControl_2std':
+#    plt.figtext(.5,.01,'PiControl : mean(last_240_years)',fontsize=8,ha='center')
 
 # -- Make pseudo-time x axis below the original one
 ax3 = ax.twiny()
@@ -343,16 +342,16 @@ ax3.spines["bottom"].set_position(("axes", -0.06))
 # Turn on the frame for the twin axis, but then hide all but the bottom spine
 ax3.set_frame_on(True)
 ax3.patch.set_visible(False)
-for sp in ax3.spines.itervalues():
-    sp.set_visible(False)
+#for sp in ax3.spines.itervalues():
+#    sp.set_visible(False)
 ax3.spines["bottom"].set_visible(True)
 ax3.set_xticks(newticklocations2)
-ax3.set_xticklabels(newticknames2,fontweight='bold')
-ax3.set_xlabel('Pseudo-Years (historical+RCP8.5)',fontweight='bold')
+ax3.set_xticklabels(newticknames2,fontweight='bold',fontsize=10)
+ax3.set_xlabel('Pseudo-Years (historical+RCP8.5 mean)',fontweight='bold',fontsize=10)
 ax3.xaxis.set_tick_params(which='major',width=2)
 
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/ToE/boxplots/'
-                +plotName+'_'+str(y1)+'_'+str(y2)+'.png')
+    plt.savefig('/home/ysilvy/figures/models/ToE/boxplots/'
+                +plotName+'_'+str(y1)+'_'+str(y2)+'_newlabels.png')

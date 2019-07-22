@@ -104,7 +104,7 @@ for ibasin in range(basinN):
     for ilat in range(latN):
         if not np.ma.is_masked(np.all(isonvol[ibasin,:,ilat])):
             idx_range = np.ma.flatnotmasked_edges(isonvol[ibasin,:,ilat]) # Indices edges of unmasked densities in the column
-            bathy=np.ma.max(depthmask_a[ilat,:]) # Find max depth of the water column
+            bathy=np.ma.max(depthmask_a[ilat,:]) # Find max depth of the water column TODO CHANGE DEPTHMASK SPECIFIC TO BASIN
             ibathy=np.argwhere(gridz2==bathy).squeeze() # Index of bathymetry = first masked value of the water column
             cum_V = np.cumsum(V[ibasin,:,ilat])
             cum_isonvol = np.cumsum(isonvol[ibasin,:,ilat])

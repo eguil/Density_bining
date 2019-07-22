@@ -39,6 +39,9 @@ def read_toe_rcp85(varread, listfiles, ignore, ndomains):
             nMembers[i] = int(toeread.shape[0])
             print('- Reading ToE of %s with %d members'%(name,nMembers[i]))
             nruns1 = int(nruns + nMembers[i])
+            
+            run_labels = ftoe.variables['run_label'][:]
+            #print('   ',run_labels)
 
             # Save ToE
             varToEA[nruns:nruns1,:] = toeread[:,1,:]
@@ -79,6 +82,8 @@ def read_gsat_rcp85(indir,listfiles,ignore):
     for i in range(nmodels):
         file_toe = listfiles[i] # Read toe file in the same order to retrieve model name
         name = os.path.basename(file_toe).split('.')[1]
+        ftoe = open_ncfile(file_toe,'r')
+        run_labels = ftoe.variables['run_label'][:] # Read run labels of model i
         if name != 'HadGEM2-ES':
             iystart = 11
         else:
@@ -90,13 +95,22 @@ def read_gsat_rcp85(indir,listfiles,ignore):
             file_gsat = glob.glob(indir+ 'GSAT.*'+name+'*.nc')[0] # GSAT File
             fgsat = open_ncfile(file_gsat, 'r')
             gsatread = fgsat.variables['GSAT'][:]
+            run_labels_GSAT = fgsat.variables['members_name'][:]
             nMembers[i] = int(gsatread.shape[1])
             print('- Reading GSAT of %s with %d members'%(name,nMembers[i]))
             # print('  gsatread shape : ',gsatread.shape)
             nruns1 = int(nruns + nMembers[i])
+            
+            # Re-organize order of members so that it's the same as ToE array
+            gsatread_cor = np.ma.masked_all_like(gsatread)
+            for k in range(int(nMembers[i])):
+                idx_cor = list(run_labels).index(run_labels_GSAT[k])
+                gsatread_cor[:,idx_cor] = gsatread[:,k]
+                #print('  ',k,run_labels_GSAT[k], run_labels[k], run_labels[idx_cor])
+            
             # Save GSAT
-            gsatread_anom = gsatread - np.ma.average(gsatread[0:50,:],axis=0) # Anomaly relative to first 50 years
-            gsat_anom[:,nruns:nruns1] = gsatread_anom[iystart:,:] # Keep 1961-2005
+            gsatread_anom = gsatread_cor - np.ma.average(gsatread_cor[0:50,:],axis=0) # Anomaly relative to first 50 years
+            gsat_anom[:,nruns:nruns1] = gsatread_anom[iystart:,:] # Keep 1861-2005
             # print('  gsatanom shape : ',gsat_anom.shape)
             nruns = nruns1
 

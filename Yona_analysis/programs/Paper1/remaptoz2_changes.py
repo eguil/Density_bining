@@ -3,8 +3,9 @@
 
 """ Choose a signal to compute, remap it from sigma back to z, using a climatological reconstructed pseudo-depth, and plot in pseudo-depth/lat coordinates
 """
-
-import os, glob
+import sys
+sys.path.append('/home/ysilvy/Density_bining/Yona_analysis/programs/')
+import os
 from netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 from maps_matplot_lib import defVarmme, defVarDurack, zon_2Dz, custom_div_cmap, modelagree
@@ -20,15 +21,12 @@ import pickle
 # -- Choose what to compute
 # name = 'mme_hist_histNat'
 # name = 'mme_hist'
-name = 'mme_1pctCO2vsPiC'
-# name = 'mme_rcp85_histNat'
+# name = 'mme_1pctCO2vsPiC'
+name = 'mme_rcp85_histNat'
 # name = 'ens_mean_hist'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
-
-# -- Choose which model to conpute for ensemble means
-model_name = 'CanESM2'
 
 # output format
 # outfmt = 'view'
@@ -47,13 +45,13 @@ basinN = 4
 # -- Choose work files
 
 if name == 'mme_hist_histNat':
-    indirh = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
-    fileh_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    fileh_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    indirh = '/data/ysilvy/Density_binning/mme_hist/'
+    fileh_2d = 'cmip5.multimodel_Nat_rcp85.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    fileh_1d = 'cmip5.multimodel_Nat_rcp85.historical.ensm.an.ocn.Omon.density_zon1D.nc'
     datah_2d = indirh + fileh_2d; datah_1d = indirh + fileh_1d
-    indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    filehn_2d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_1d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    indirhn = '/data/ysilvy/Density_binning/mme_histNat/'
+    filehn_2d = 'cmip5.multimodel_Nat_rcp85.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_Nat_rcp85.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
     datahn_2d = indirhn + filehn_2d; datahn_1d = indirhn + filehn_1d
     fh2d = open_ncfile(datah_2d,'r')
     fh1d = open_ncfile(datah_1d,'r')
@@ -61,9 +59,9 @@ if name == 'mme_hist_histNat':
     fhn1d = open_ncfile(datahn_1d,'r')
 
 if name == 'mme_hist':
-    indir = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
-    file_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    file_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    indir = '/data/ysilvy/Density_binning/mme_hist/'
+    file_2d = 'cmip5.multimodel_Nat_rcp85.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_1d = 'cmip5.multimodel_Nat_rcp85.historical.ensm.an.ocn.Omon.density_zon1D.nc'
     data_2d = indir + file_2d
     data_1d = indir + file_1d
     fh2d = open_ncfile(data_2d, 'r')
@@ -75,7 +73,7 @@ if name == 'ens_mean_hist':
     file_1d = glob.glob(indir + '*.'+model_name+'*_zon1D.nc')[0]
     fh2d = open_ncfile(file_2d, 'r')
     fh1d = open_ncfile(file_1d, 'r')
-    
+
 if name == 'mme_1pctCO2vsPiC':
     indir_1pctCO2 = '/data/ericglod/Density_binning/Prod_density_april15/mme_1pctCO2/'
     file_2d = 'cmip5.multimodel_piCtl.1pctCO2.ensm.an.ocn.Omon.density_zon2D.nc'
@@ -97,9 +95,9 @@ if name == 'mme_rcp85_histNat':
     indir_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
     filercp85_2d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon2D.nc'
     filercp85_1d = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
-    indirhn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
-    filehn_2d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
-    filehn_1d = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
+    indirhn = '/data/ysilvy/Density_binning/mme_histNat/'
+    filehn_2d = 'cmip5.multimodel_Nat_rcp85.historicalNat.ensm.an.ocn.Omon.density_zon2D.nc'
+    filehn_1d = 'cmip5.multimodel_Nat_rcp85.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
     fh2d = open_ncfile(indir_rcp85 + filercp85_2d, 'r')
     fh1d = open_ncfile(indir_rcp85 + filercp85_1d, 'r')
     fhn2d = open_ncfile(indirhn + filehn_2d, 'r')
@@ -172,7 +170,7 @@ if name == 'mme_1pctCO2vsPiC':
     var_piC = varname['var_zonal_w/bowl'] # Problem with varBowl fields: no data, so read full field
     field1r = fhn2d.variables[var_piC][-20:,:,:,:] # PiControl
     bowl2z = fh1d.variables['ptopdepth'][y1:y2,:,:]
-    bowl1z = fhn1d.variables['ptopdepth'][-20:,:,:]
+    bowl1z = fhn1d.variables['ptopdepth'][-10:,:,:]
     labBowl = ['PiControl', focus_1pctCO2]
 
 # == Compute signal hist - histNat or 1pctCO2 - PiControl or rcp8.5 - histNat ==
@@ -217,29 +215,29 @@ varPac = {'name': 'Pacific', 'var_change': fieldz[2,:,:], 'bowl1': None, 'bowl2'
 varInd = {'name': 'Indian', 'var_change': fieldz[3,:,:], 'bowl1': None, 'bowl2': None,
           'labBowl': None, 'density':density_z[3,:,:]}
     
-# -- Read bathymetry
-# Read masks
-fmask = open_ncfile('/home/ysilvy/Density_bining/Yona_analysis/data/170224_WOD13_masks.nc','r')
-basinmask = fmask.variables['basinmask3'][:] # (latitude, longitude)
-depthmask = fmask.variables['depthmask'][:] # (latitude, longitude)
-longitude = fmask.variables['longitude'][:]
-# Create basin masks
-mask_a = basinmask != 1
-mask_p = basinmask != 2
-mask_i = basinmask != 3
-# Read bathy
-depthmask_a = np.ma.array(depthmask, mask=mask_a) # Mask every basin except Atlantic
-depthmask_p = np.ma.array(depthmask, mask=mask_p)
-depthmask_i = np.ma.array(depthmask, mask=mask_i)
-# Zonal bathy
-bathy_a = np.ma.max(depthmask_a, axis=1)
-bathy_p = np.ma.max(depthmask_p, axis=1)
-bathy_i = np.ma.max(depthmask_i, axis=1)
-# Regroup
-bathy = np.ma.masked_all((basinN,len(lat)))
-bathy[1,:] = bathy_a
-bathy[2,:] = bathy_p
-bathy[3,:] = bathy_i
+# # -- Read bathymetry
+# # Read masks
+# fmask = open_ncfile('/home/ysilvy/Density_bining/Yona_analysis/data/170224_WOD13_masks.nc','r')
+# basinmask = fmask.variables['basinmask3'][:] # (latitude, longitude)
+# depthmask = fmask.variables['depthmask'][:] # (latitude, longitude)
+# longitude = fmask.variables['longitude'][:]
+# # Create basin masks
+# mask_a = basinmask != 1
+# mask_p = basinmask != 2
+# mask_i = basinmask != 3
+# # Read bathy
+# depthmask_a = np.ma.array(depthmask, mask=mask_a) # Mask every basin except Atlantic
+# depthmask_p = np.ma.array(depthmask, mask=mask_p)
+# depthmask_i = np.ma.array(depthmask, mask=mask_i)
+# # Zonal bathy
+# bathy_a = np.ma.max(depthmask_a, axis=1)
+# bathy_p = np.ma.max(depthmask_p, axis=1)
+# bathy_i = np.ma.max(depthmask_i, axis=1)
+# # Regroup
+# bathy = np.ma.masked_all((basinN,len(lat)))
+# bathy[1,:] = bathy_a
+# bathy[2,:] = bathy_p
+# bathy[3,:] = bathy_i
 
 # -------------------------------------------------------------------------------
 #                                Plot
@@ -273,11 +271,11 @@ if name=='mme_hist' and modelAgree:
     modelagree(axes[0,2],axes[1,2],agreelev,lat,targetz,var_agreez[3,:,:])
 
 # Bathymetry
-for i in range(3):
-    axes[0,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.2')
-    axes[1,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.2')
+#for i in range(3):
+#    axes[0,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.2')
+#    axes[1,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.2')
 
-plt.subplots_adjust(hspace=.01, wspace=0.05, left=0.04, right=0.86)
+plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
@@ -285,42 +283,44 @@ cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
 # -- Add Title text
 if name == 'mme_hist_histNat':
-    plotTitle = '%s changes %s' %(legVar,name)
-    plotName = 'remapping2_' + name + '_' + legVar+ '_last20years'
+    plotTitle = 'Multi-model mean %s changes historical-historicalNat[1985-2005]' %(legVar,)
+    plotName = 'remapping2_' + name + '_' + legVar+ '_last20years_paper'
     figureDir = 'models/zonal_remaptoz/'
-    plt.figtext(.2,.01,'Last 20 years',fontsize=8,ha='center')
+    plt.figtext(.006,.96,'a',fontweight='bold',fontsize=16)
+    #plt.figtext(.2,.01,'Last 20 years',fontsize=8,ha='center')
 if name == 'mme_hist':
     plotTitle = 'Multi-model mean %s changes [2000-2005]-[1950-1955]' %(legVar,)
-    plotName = 'remapping2_' + name + '_' + legVar
-    if modelAgree:
-        plotName = 'remapping2_' + name + '_' + legVar + '_modelAgree'+'_isocont'
+    plotName = 'remapping2_' + name + '_' + legVar + '_paper'
     figureDir = 'models/zonal_remaptoz/'
+    plt.figtext(.006,.96,'b',fontweight='bold',fontsize=16)
 if name == 'ens_mean_hist':
     plotTitle = '%s changes [2000-2005]-[1950-1955] for %s' %(legVar,model_name)
     plotName = 'remapping2_' + model_name + '_' + name+ '_' + legVar
     figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_1pctCO2vsPiC':
-    plotTitle  = '%s changes %s, %s' %(legVar,name,focus_1pctCO2)
+    plotTitle  = 'Multi-model mean %s changes %s-piControl' %(legVar,focus_1pctCO2)
     plotName = 'remapping2_' + name + '_' + focus_1pctCO2 + '_' + legVar
     figureDir = 'models/zonal_remaptoz/'
 if name == 'mme_rcp85_histNat':
-    plotTitle = '%s changes %s' %(legVar,name)
-    plotName = 'remapping2_' + name + '_' + legVar + '_last20years'
+    plotTitle = 'Multi-model mean %s changes RCP8.5[2080-2100]-historicalNat' %(legVar,)
+    plotName = 'remapping2_' + name + '_' + legVar + '_last20years_paper'
     figureDir = 'models/zonal_remaptoz/'
-    plt.figtext(.2,.01,'Last 20 years RCP8.5 - mean(histNat)',fontsize=8,ha='center')
+    plt.figtext(.006,.96,'b',fontweight='bold',fontsize=16)
+    #plt.figtext(.2,.01,'Last 20 years RCP8.5 - mean(histNat)',fontsize=8,ha='center')
 
 axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
 #fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
 plt.figtext(.004,.65,'Pseudo-depth (m)',rotation='vertical',fontweight='bold')
 
 
+
 # Date
 now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
-plt.figtext(.5,.01,'Computed by : remaptoz2_changes.py,  '+date,fontsize=8,ha='center')
-if name == 'mme_hist' and modelAgree:
-    plt.figtext(.2,.01,'Model agreement level : ' + str(agreelev),fontsize=8,ha='center')
+#plt.figtext(.5,.01,'Computed by : remaptoz2_changes.py,  '+date,fontsize=8,ha='center')
+#  if name == 'mme_hist' and modelAgree:
+#     plt.figtext(.2,.01,'Model agreement level : ' + str(agreelev),fontsize=8,ha='center')
 
 if outfmt == 'view':
     plt.show()

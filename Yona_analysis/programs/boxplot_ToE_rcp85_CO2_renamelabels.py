@@ -150,35 +150,32 @@ for i, model in enumerate(modelspiC):
 
 # ----- Turn masked data into nans -----
 
-varToEA[np.ma.getmask(varToEA)] = np.nan
-varToEP[np.ma.getmask(varToEP)] = np.nan
-varToEI[np.ma.getmask(varToEI)] = np.nan
-varToEA_CO2[np.ma.getmask(varToEA_CO2)] = np.nan
-varToEP_CO2[np.ma.getmask(varToEP_CO2)] = np.nan
-varToEI_CO2[np.ma.getmask(varToEI_CO2)] = np.nan
+#varToEA[np.ma.getmask(varToEA)] = np.nan
+#varToEP[np.ma.getmask(varToEP)] = np.nan
+#varToEI[np.ma.getmask(varToEI)] = np.nan
+#varToEA_CO2[np.ma.getmask(varToEA_CO2)] = np.nan
+#varToEP_CO2[np.ma.getmask(varToEP_CO2)] = np.nan
+#varToEI_CO2[np.ma.getmask(varToEI_CO2)] = np.nan
 
 # ----- Plot ------
 
 maskdata  = np.nan
 
+# New domain labels
+new_domains = ['SO subpolar', 'SO subtropics', 'NH subtropics', 'subpolar North Pacific']
+# regroup previous "North Atlantic" with NH subtropics, remove NH Indian
+
+
 # ToE hist+rcp8.5 vs. histNat (or vs. PiControl)
-data1 = [varToEA[:,0], varToEP[:,0], varToEI[:,0], maskdata, varToEP[:,2], varToEI[:,2], maskdata,
-          varToEA[:,1], varToEP[:,1], varToEI[:,1], maskdata, varToEA[:,3], maskdata, varToEP[:,4]]
-data1 = data1[::-1]
-# # Remove nan values
-# data1[5] = data1[5][~np.isnan(data1[5])]
-# data1[8] = data1[8][~np.isnan(data1[8])]
-# data1[0] = data1[0][~np.isnan(data1[0])]
-# data1[-1] = data1[-1][~np.isnan(data1[-1])]
+data1 = [varToEA[:,1], varToEP[:,1], varToEI[:,1], maskdata, varToEA[:,0], varToEP[:,0], varToEI[:,0], maskdata, varToEA[:,3], varToEP[:,2], maskdata, varToEP[:,4]]
+
 
 # ToE 1%CO2 vs. PiControl
-data2 = [varToEA_CO2[:,0], varToEP_CO2[:,0], varToEI_CO2[:,0], maskdata, varToEP_CO2[:,2], varToEI_CO2[:,2], maskdata,
-          varToEA_CO2[:,1], varToEP_CO2[:,1], varToEI_CO2[:,1], maskdata, varToEA_CO2[:,3], maskdata, varToEP_CO2[:,4]]
-data2 = data2[::-1]
+data2 = [varToEA_CO2[:,1], varToEP_CO2[:,1], varToEI_CO2[:,1], maskdata, varToEA_CO2[:,0], varToEP_CO2[:,0], varToEI_CO2[:,0], maskdata, varToEA_CO2[:,3], varToEP_CO2[:,2], maskdata, varToEP_CO2[:,4]]
 
 
-labels = ['','','','','Indian','Pacific','Atlantic','','Indian','Pacific','','Indian','Pacific','Atlantic']
-N = 15
+labels = ['Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','Atlantic','Pacific','','']
+N = 13
 ind = np.arange(1,N)
 width = 0.25
 
@@ -232,7 +229,7 @@ ax2.set_xlim([0,250])
 ax2.set_yticks(ind)
 ax2.set_yticklabels(labels, fontweight='bold')
 ax2.yaxis.set_tick_params(left='off', right='off')
-ax2.set_ylim([0,15])
+ax2.set_ylim([0,N])
 xmajorLocator2 = MultipleLocator(20)
 xminorLocator2 = AutoMinorLocator(2)
 ax2.xaxis.set_major_locator(xmajorLocator2)
@@ -240,17 +237,17 @@ ax2.xaxis.set_minor_locator(xminorLocator2)
 
 plt.setp(ax.get_yticklabels(), visible=True)
 
-ax2.axhline(y=ind[1], color='black', ls='--')
 ax2.axhline(y=ind[3], color='black', ls='--')
 ax2.axhline(y=ind[7], color='black', ls='--')
 ax2.axhline(y=ind[10], color='black', ls='--')
 
 # Domain labels
-ax2.text(-17,ind[0], 'North \n Pac', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-17,ind[2], 'North \n Atl', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-17,ind[5], 'Southern \n Ocean', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-17,ind[8]+width, 'Northern \n ST', ha='center', fontweight='bold', fontsize=13)
-ax2.text(-17,ind[12], 'Southern \n ST', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-24,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-24,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-24,ind[8]+width, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-24,ind[11], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
+
+plt.subplots_adjust(left = 0.14)
 
 # Legend
 # legendlabel = 'Hist + RCP8.5 vs. HistNat ('+str(nruns)+' runs) \n 1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)'
@@ -272,15 +269,15 @@ now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
 # Text at the bottom of the figure
-plt.figtext(.8,.01,'Computed by : boxplot_ToE_rcp85_CO2.py, '+date, fontsize=8, ha='center')
-plt.figtext(.2,.01,'Noise: %s %s %d std' %(method_noise_rcp, method_noise_piC, multstd), fontsize=8, ha='center')
+#plt.figtext(.8,.01,'Computed by : boxplot_ToE_rcp85_CO2_renamelabels.py, '+date, fontsize=8, ha='center')
+#plt.figtext(.2,.01,'Noise: %s %s %d std' %(method_noise_rcp, method_noise_piC, multstd), fontsize=8, ha='center')
 if use_piC :
     plt.figtext(.5,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
 
 if runs_rcp == 'all':
-    plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcp + '_' + method_noise_piC + '_' + end_name + '_' + str(multstd) + 'std'
+    plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcp + '_' + method_noise_piC + '_' + end_name + '_' + str(multstd) + 'std_renamelabels_paper'
 else:
-    plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcp + '_' + method_noise_piC + '_' + end_name + '_' + str(multstd) + 'std_samerunsvsPiC'
+    plotName = 'ToE_boxplot_RCP85_1pctCO2_' + method_noise_rcp + '_' + method_noise_piC + '_' + end_name + '_' + str(multstd) + 'std_samerunsvsPiC_renamelabels'
 
 
 if outfmt == 'view':

@@ -31,7 +31,7 @@ file = 'cmip5.' + models[0]['name'] + '.1pctCO2.ensm.an.ocn.Omon.density.ver-' +
 f = open_ncfile(indir_CO2 + file,'r')
 
 lat = f.variables['latitude'][:]; latN = lat.size
-density = f.variables['lev'][:]; levN = density.size
+lev = f.variables['lev'][:]; levN = lev.size
 time = f.variables['time'][:]; timN = time.size
 var = varname['var_zonal_w/bowl']
 basinN = 4
@@ -54,23 +54,24 @@ for i, model in enumerate(models): # Loop on models
     # -- Read var 1pctCO2
     varCO2 = fCO2.variables[var][:]
     # -- Read var PiControl
-    varpiC = fpiC.variables[var][-140:,:,:,:]
+    varpiC = fpiC.variables[var][-240:,:,:,:]
+    meanvarpiC = np.ma.average(fpiC.variables[var][-240:,:,:,:],axis=0)
     # Read std of PiControl
     stdvarpiC = np.ma.std(varpiC, axis=0)
 
     # Save signal sign at the end
     varsignal_end = np.ma.masked_all((basinN,levN,latN))
-    varsignal_end[1,:,:] = np.ma.average(varCO2[-5:,1,:,:],axis=0) - np.ma.average(varpiC[-5:,1,:,:],axis=0)
-    varsignal_end[2,:,:] = np.ma.average(varCO2[-5:,2,:,:],axis=0) - np.ma.average(varpiC[-5:,2,:,:],axis=0)
-    varsignal_end[3,:,:] = np.ma.average(varCO2[-5:,3,:,:],axis=0) - np.ma.average(varpiC[-5:,3,:,:],axis=0)
+    varsignal_end[1,:,:] = np.ma.average(varCO2[-5:,1,:,:],axis=0) - meanvarpiC[1,:,:]
+    varsignal_end[2,:,:] = np.ma.average(varCO2[-5:,2,:,:],axis=0) - meanvarpiC[2,:,:]
+    varsignal_end[3,:,:] = np.ma.average(varCO2[-5:,3,:,:],axis=0) - meanvarpiC[3,:,:]
 
     # Reorganise i,j dims in single dimension data (speeds up loops)
     stdvarpiC_a = np.reshape(stdvarpiC[1,:,:], (levN*latN))
     stdvarpiC_p = np.reshape(stdvarpiC[2,:,:], (levN*latN))
     stdvarpiC_i = np.reshape(stdvarpiC[3,:,:], (levN*latN))
-    varsignal_a = np.reshape(varCO2[:,1,:,:]-varpiC[:,1,:,:], (timN, levN*latN))
-    varsignal_p = np.reshape(varCO2[:,2,:,:]-varpiC[:,2,:,:], (timN, levN*latN))
-    varsignal_i = np.reshape(varCO2[:,3,:,:]-varpiC[:,3,:,:], (timN, levN*latN))
+    varsignal_a = np.reshape(varCO2[:,1,:,:]-meanvarpiC[1,:,:], (timN, levN*latN))
+    varsignal_p = np.reshape(varCO2[:,2,:,:]-meanvarpiC[2,:,:], (timN, levN*latN))
+    varsignal_i = np.reshape(varCO2[:,3,:,:]-meanvarpiC[3,:,:], (timN, levN*latN))
 
     # Initialize toe for each basin (density, lat)
     toe1_a = np.ma.masked_all((levN,latN))
@@ -99,10 +100,10 @@ for i, model in enumerate(models): # Loop on models
     varToE2[2,:,:] = toe2_p
     varToE2[3,:,:] = toe2_i
 
-    fileName = 'cmip5.'+model['name']+'.toe_zonal_1pctCO2vsPiC.nc'
+    fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_zonal_1pctCO2vsPiC.nc'
     dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_1pctCO2_piC/'
     description = 'Time of Emergence 1%CO2 vs. PiControl in latitude/density space for the three oceanic basins. ' \
-    'The signal in each point is 1pctCO2-PiControl, and the noise is the standard deviation of the pre-industrial control. ' \
+    'The signal in each point is 1pctCO2-mean(PiControl,last 240years), and the noise is the standard deviation of the pre-industrial control. ' \
     'The ToE is computed by using once or twice the noise as the threshold.'
 
     fout = open_ncfile(dir+fileName,'w', format='NETCDF4')
@@ -123,8 +124,8 @@ for i, model in enumerate(models): # Loop on models
 
     # data
     basin[:] =  np.arange(0,basinN)
-    density[:] = density
-    latitude[:] = latitude
+    density[:] = lev
+    latitude[:] = lat
     ToE2[:,:,:] = varToE2
     ToE1[:,:,:] = varToE1
     varchange[:,:,:] = varsignal_end

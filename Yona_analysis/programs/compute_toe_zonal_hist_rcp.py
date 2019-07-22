@@ -12,6 +12,7 @@ from maps_matplot_lib import defVarmme
 from modelsDef import defModels
 from libToE import findToE, findToE_2thresholds
 import glob, os
+import xarray as xr
 
 # ----- Workspace ------
 
@@ -23,9 +24,9 @@ models = defModels()
 
 # ----- Work ------
 
-# varname = defVarmme('salinity'); v = 'S'
-#varname = defVarmme('depth') ; v='Z'
-varname = defVarmme('temp'); v = 'T'
+varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('depth') ; v='Z'
+# varname = defVarmme('temp'); v = 'T'
 
 multStd = 2. # detect ToE at multStd std dev of histNat or PiControl
 
@@ -51,6 +52,7 @@ basinN = 4
 legVar = varname['legVar']
 unit = varname['unit']
 
+
 # ----- Compute zonal ToE for each simulation ------
 
 nMembers = np.ma.zeros(len(models)) # Initialize array for keeping nb of members per model
@@ -63,7 +65,7 @@ for i, model in enumerate(models): # Loop on models
                              and model['name'] != 'MIROC-ESM'):
 
         # Read hist+rcp85 files
-        listruns = glob.glob(indir_histrcp85 + 'cmip5.' + model['name'] + '.' + '*zon2D.nc')
+        listruns = sorted(glob.glob(indir_histrcp85 + 'cmip5.' + model['name'] + '.' + '*zon2D.nc'))
         nruns = len(listruns)
         nMembers[i] = nruns
         if nruns != 0:
@@ -154,12 +156,25 @@ for i, model in enumerate(models): # Loop on models
                 varsignal_i = np.ma.masked_all((timN,levN,latN))
 
                 if use_piC == False:
-                    varsignal_a[0:145,:,:] = varhrcp_a[0:145,:,:]-varhn_a
-                    varsignal_p[0:145,:,:] = varhrcp_p[0:145,:,:]-varhn_p
-                    varsignal_i[0:145,:,:] = varhrcp_i[0:145,:,:]-varhn_i
-                    varsignal_a[145:,:,:] = varhrcp_a[145:,:,:]-meanvarhn_a
-                    varsignal_p[145:,:,:] = varhrcp_p[145:,:,:]-meanvarhn_p
-                    varsignal_i[145:,:,:] = varhrcp_i[145:,:,:]-meanvarhn_i
+                    
+                    ## Repeat mean histNat value over the projection period
+                    #meanvarhn2_a = np.repeat(meanvarhn_a[np.newaxis,:,:],95,axis=0)
+                    #meanvarhn2_p = np.repeat(meanvarhn_p[np.newaxis,:,:],95,axis=0)
+                    #meanvarhn2_i = np.repeat(meanvarhn_i[np.newaxis,:,:],95,axis=0)
+                    ## Create 240-year histNat xarray (histNat over 145 years + mean histNat over 95 years)
+                    #varhn2_a = xr.DataArray(np.ma.concatenate((varhn_a,meanvarhn2_a),axis=0),dims=['time','lev','lat'])
+                    #varhn2_p = xr.DataArray(np.ma.concatenate((varhn_p,meanvarhn2_p),axis=0),dims=['time','lev','lat'])
+                    #varhn2_i = xr.DataArray(np.ma.concatenate((varhn_i,meanvarhn2_i),axis=0),dims=['time','lev','lat'])
+                    ## Apply a 10-year running mean to this new histNat array
+                    #runningvarhn2_a = varhn2_a.rolling(time=10, center=True, min_periods=1).mean()
+                    #runningvarhn2_p = varhn2_p.rolling(time=10, center=True, min_periods=1).mean()
+                    #runningvarhn2_i = varhn2_i.rolling(time=10, center=True, min_periods=1).mean()
+                    
+                    varsignal_a[:,:,:] = varhrcp_a[:,:,:]-meanvarhn_a
+                    varsignal_p[:,:,:] = varhrcp_p[:,:,:]-meanvarhn_p
+                    varsignal_i[:,:,:] = varhrcp_i[:,:,:]-meanvarhn_i
+                    
+                    
                 else:
                     varsignal_a = varhrcp_a-meanvarpiC_a
                     varsignal_p = varhrcp_p-meanvarpiC_p
@@ -191,7 +206,7 @@ for i, model in enumerate(models): # Loop on models
                 varToE2[k,2,:,:] = toe2_p
                 varToE2[k,3,:,:] = toe2_i
 
-            # Mask points because when calculating ToE, masked points (e.g. bathy) are set to 240 (=no emergence)
+            # Mask points because when calculating ToE, masked points (e.g. bathy, no data) are set to 240 (=no emergence)
             idx=np.argwhere(varsignal_end.mask==True)
             varToE2[idx[:,0],idx[:,1],idx[:,2],idx[:,3]] = np.ma.masked
             varToE1[idx[:,0],idx[:,1],idx[:,2],idx[:,3]] = np.ma.masked
@@ -200,17 +215,16 @@ for i, model in enumerate(models): # Loop on models
             if use_piC == False:
                 fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_zonal_rcp_histNat.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
-                description = 'Time of Emergence hist+rcp8.5 vs. histNat for each member. \n' \
+                description = 'Time of Emergence hist+rcp8.5 vs. histNat for each member. ' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \
-                              'The ensemble mean historicalNat is used here for all historical runs of the model. \n' \
-                              'The signal in each point is hist-histNat over the historical period and ' \
-                              'hist-timeaverage(histNat) over the projection period. ' \
-                              'The noise in each point is the max standard deviation of the historicalNat runs \n' \
+                              'The ensemble mean historicalNat is used here for all historical runs of the model. ' \
+                              'The signal in each point is hist+RCP8.5-10yearmovingaverage(histNat+mean(histNat)). '\
+                              'The noise in each point is the max standard deviation of the historicalNat runs ' \
                               'The ToE is computed by using once or twice the noise as the threshold.'
             else:
                 fileName = 'cmip5.'+model['name']+'.'+legvar+'_toe_zonal_rcp_PiControl.nc'
                 dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
-                description = 'Time of Emergence hist+rcp8.5 vs. PiControl for each member. \n' \
+                description = 'Time of Emergence hist+rcp8.5 vs. PiControl for each member. ' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \
                               'The signal in each point is hist+RCP8.5 - timeaverage(PiControl) (using last 240 years of PiControl ensemble mean). ' \
                               'The noise in each point is the standard deviation of the PiControl ensemble mean (last 240 years). \n' \
@@ -233,7 +247,7 @@ for i, model in enumerate(models): # Loop on models
             ToE1 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE1', 'f4', ('members','basin','density','latitude',))
             ToE2 = fout.createVariable(varname['var_zonal_w/bowl']+'ToE2', 'f4', ('members','basin','density','latitude',))
             varchange = fout.createVariable(varname['var_zonal_w/bowl']+'_change', 'f4', ('members','basin','density','latitude',))
-            run_label = fout.createVariable('run_label', 'S1', ('members',))
+            run_label = fout.createVariable('run_label', 'S6', ('members',))
 
             # data
             members[:] =  np.arange(0,nruns)
@@ -243,7 +257,8 @@ for i, model in enumerate(models): # Loop on models
             ToE1[:,:,:] = varToE1
             ToE2[:,:,:] = varToE2
             varchange[:,:,:] = varsignal_end
-            run_label[:] = run_names
+            for k in range(nruns):
+                run_label[k] = run_names[k]
 
             # units
             basin.units = 'basin index'
@@ -255,6 +270,6 @@ for i, model in enumerate(models): # Loop on models
             ToE1.long_name = 'ToE (>1std) for ' + legVar
             varchange.units = unit
             varchange.long_name = legVar + ' signal averaged in the last five years'
+            run_label.long_name = 'Run number'
 
             fout.close()
-

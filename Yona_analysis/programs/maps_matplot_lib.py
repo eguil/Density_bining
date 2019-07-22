@@ -395,19 +395,19 @@ def modelagree(ax0,ax1,agreelev,lat,lev,var_agree):
     lat2d, lev2d = np.meshgrid(lat, lev)
 
     # -- draw agreement contour > agreement level (agreelev)
-    ax0.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev,], hatches=['..'], colors='None')
-    ax0.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
-                linewidths=1.5)
-    ax0.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
-                linewidths=1.5)
+    ax0.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev,], hatches=['....'], colors='None')
+    #ax0.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
+    #            linewidths=1.5)
+    #ax0.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
+    #            linewidths=1.5)
 
-    ax1.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev], hatches=['..'], colors='None')
-    ax1.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
-                linewidths=1.5)
-    agree_plot = ax1.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
-                             linewidths=1.5)
+    ax1.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev], hatches=['....'], colors='None')
+    #ax1.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
+    #            linewidths=1.5)
+    #agree_plot = ax1.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
+    #                         linewidths=1.5)
 
-    return agree_plot
+    #return agree_plot
 
 
 # ----------------------------------------------------
@@ -817,7 +817,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
 #             ax0.legend(loc='upper right', fontsize=12)
 
     # -- Draw isopycnals
-    if cnDict['isopyc'] == True:#np.any(varBasin['density']) != None :
+    if cnDict['isopyc'] == True:
         levels1 = np.arange(21,28.6,0.5)
         levels2 = np.arange(21,28.6,1)
         ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
@@ -875,7 +875,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
 #         ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
 
     # -- Draw isopycnals
-    if cnDict['isopyc'] == True: #np.any(varBasin['density']) != None :
+    if cnDict['isopyc'] == True:
         ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
         cont_isopyc2 = ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
         ax1.clabel(cont_isopyc2, inline=1, fontsize=13, fmt='%d')
@@ -889,7 +889,7 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
 
 
     # -- add plot title
-    ax0.text(domlat[0] + 10, zedmin+60, varBasin['name'], fontsize=16, fontweight='bold')
+    ax0.text(domlat[0] + 10, zedmin-10, varBasin['name'], fontsize=15, fontweight='bold')
 
     cnplot = [cnplot0, cnplot1]
     return cnplot

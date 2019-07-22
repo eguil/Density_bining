@@ -1,6 +1,3 @@
-#!/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Python matplotlib
 Plot pseudo-z/latitude Time of Emergence (median and distribution range)
@@ -8,21 +5,21 @@ Plot pseudo-z/latitude Time of Emergence (median and distribution range)
 """
 
 import os
-import glob
+import glob, sys
+sys.path.append('/home/ysilvy/Density_bining/Yona_analysis/programs/')
 from netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 from maps_matplot_lib import defVarmme, zon_2Dz
-from modelsDef import defModels
+from modelsDef import defModels, defModelsCO2piC
 from lib_remapping import remaptoz
 import numpy as np
 import colormaps as cmaps
-#import cmocean
 import datetime
 import pickle
 
 # ----- Workspace ------
 
-indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
+indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/hist_meanhistNat/'
 indir_toe_rcppiC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
 indir_mme_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
 indir_mme_hn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
@@ -36,12 +33,12 @@ indir_mme_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piContr
 work = 'RCP85'
 # work = 'CO2'
 
-figure = 'median'
-# figure = 'range'
+#figure = 'median'
+figure = 'range'
 
 # output format
-outfmt = 'view'
-# outfmt = 'save'
+# outfmt = 'view'
+outfmt = 'save'
 
 use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std(histNat)
 # use_piC = True # Signal = hist + RCP8.5 - average(PiControl), noise = std(PiControl)
@@ -62,13 +59,13 @@ if work == 'RCP85':
     iniyear = 1860
     finalyear = 2100
     models = defModels()
-    min = 1960 # Start year for colorbar
+    min = 1980 # Start year for colorbar
     crit_min_runs = 5 # min number of runs with unmasked values = nruns-crit_min_runs
 else:
     iniyear = 0
     finalyear = 140
     models = defModelsCO2piC()
-    min = 20 # Start year for colorbar
+    min = 40 # Start year for colorbar
     crit_min_runs = 1 # min number of runs with unmasked values = nruns-crit_min_runs
 deltat = 10.
 
@@ -114,7 +111,7 @@ if work == 'RCP85':
 
     # Loop over models
     if use_piC == False:
-        listfiles = glob.glob(indir_toe_rcphn + '/*.toe_zonal*.nc')
+        listfiles = glob.glob(indir_toe_rcphn + '/*'+legVar+'*toe_zonal*.nc')
     else:
         listfiles = glob.glob(indir_toe_rcppiC + '/*.toe_zonal*.nc')
     nmodels = len(listfiles)
@@ -245,9 +242,9 @@ percentile75ToEP = np.ma.masked_all((levN, latN))
 percentile75ToEI = np.ma.masked_all((levN, latN))
 
 # -- Initialize where there is no agreement between models on the sign of the signal
-noagree_a = np.ma.masked_all((levN, latN))
-noagree_p = np.ma.masked_all((levN, latN))
-noagree_i = np.ma.masked_all((levN, latN))
+noagree_a = np.ma.zeros((levN, latN))
+noagree_p = np.ma.zeros((levN, latN))
+noagree_i = np.ma.zeros((levN, latN))
 
 # -- Compute distribution if conditions are met 
 
@@ -349,6 +346,10 @@ rangeToEA[rangeToEA==0] = np.ma.masked
 rangeToEP[rangeToEP==0] = np.ma.masked
 rangeToEI[rangeToEI==0] = np.ma.masked
 
+noagree_a.mask = medianToEA.mask
+noagree_p.mask = medianToEP.mask
+noagree_i.mask = medianToEI.mask
+
 # ----- Read bowl position and mask points above ------
 
 if work == 'RCP85':
@@ -372,8 +373,8 @@ else:
     labBowl = ['PiControl','4*CO2']
 
 # Read bowl position
-bowl2 = f2.variables['ptopsigma'][-5:,:,:]
-bowl1 = f1.variables['ptopsigma'][-5:,:,:]
+bowl2 = f2.variables['ptopsigma'][-20:,:,:]
+bowl1 = f1.variables['ptopsigma'][-20:,:,:]
 bowl2 = np.ma.average(bowl2, axis=0)
 bowl1 = np.ma.average(bowl1, axis=0)
 
@@ -397,10 +398,16 @@ for ilat in range(len(lat)):
         rangeToEI[indi,ilat] = np.ma.masked
         noagree_i[indi,ilat] = np.ma.masked
         norangeI[indi,ilat] = np.ma.masked
+        
+labBowl = [None,None]
 
 # ------------------------------        
 # -------- Remapping -----------
 # ------------------------------
+
+# -- Repeat density into (basin,density,latitude) to remap isopycnal surfaces
+lat2d,density2d = np.meshgrid(lat,density)
+density3d = np.repeat(density2d[np.newaxis,:,:],4,axis=0)
 
 # ---- Regroup basins before remapping ----
 medianToEr = np.ma.masked_all((basinN,levN,latN))
@@ -426,8 +433,6 @@ noranger[3,:,:] = norangeI
 # --- Read reference pseudo-depth used for remapping ---
 indir_z = '/home/ysilvy/Density_bining/Yona_analysis/data/remaptoz/'
 file_z = 'EN4.pseudo_depth.zonal.pkl'
-#fz = open_ncfile(indir_z+file_z,'r')
-#pseudo_depth = fz.variables['pseudo_depth'][:]
 pseudo_depth = pickle.load( open( indir_z+file_z, "rb" ) )
 
 # -- Target grid for remapping - WOA13 grid --
@@ -449,41 +454,25 @@ noagreez = remaptoz(noagreer,pseudo_depth,targetz)
 print('noagree remapping done')
 norangez = remaptoz(noranger,pseudo_depth,targetz)
 print('norange remapping done')
-
-# # Mask
-# #rangeToEz[medianToEz > finalyear-20] = np.ma.masked # Mask points where median hasn't emerged
-# #medianToEz[noagreez==1] = np.ma.masked
-# medianToEz[medianToEz<iniyear] = np.ma.masked
-# rangeToEz[rangeToEz==0] = np.ma.masked
-
-# # ----- Read depth of bowl ------
-# # Read files
-# file1d_rcp85 = 'cmip5.multimodel_Nat.rcp85.ensm.an.ocn.Omon.density_zon1D.nc'
-# f1drcp85 = open_ncfile(indir_mme_rcp85+file1d_rcp85,'r')
-# file1d_hn = 'cmip5.multimodel_Nat.historicalNat.ensm.an.ocn.Omon.density_zon1D.nc'
-# fhn = open_ncfile(indir_mme_hn+file1d_hn,'r')
-
-# # Read variables
-# bowl2z = f1drcp85.variables['ptopdepth'][-5:,:,:]
-# bowl1z = fhn.variables['ptopdepth'][-5:,:,:]
-
-# # Average
-# bowl2z = np.ma.average(bowl2z, axis=0)
-# bowl1z = np.ma.average(bowl1z, axis=0)
-
-# labBowl = ['histNat', 'RCP8.5']
-labBowl=[None,None]
+density_z = remaptoz(density3d, pseudo_depth,targetz)
+print('density remapping done')
 
 # -- Make variable bundles for each basin
-varAtlmedian = {'name': 'Atlantic', 'var_change': medianToEz[1,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
-varPacmedian = {'name': 'Pacific', 'var_change': medianToEz[2,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
-varIndmedian = {'name': 'Indian', 'var_change': medianToEz[3,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
+varAtlmedian = {'name': 'Atlantic', 'var_change': medianToEz[1,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':density_z[1,:]}
+varPacmedian = {'name': 'Pacific', 'var_change': medianToEz[2,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':density_z[2,:]}
+varIndmedian = {'name': 'Indian', 'var_change': medianToEz[3,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':density_z[3,:]}
 
-varAtlrange = {'name': 'Atlantic', 'var_change': rangeToEz[1,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
-varPacrange = {'name': 'Pacific', 'var_change': rangeToEz[2,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
-varIndrange = {'name': 'Indian', 'var_change': rangeToEz[3,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':None}
+varAtlrange = {'name': 'Atlantic', 'var_change': rangeToEz[1,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':density_z[1,:]}
+varPacrange = {'name': 'Pacific', 'var_change': rangeToEz[2,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':density_z[2,:]}
+varIndrange = {'name': 'Indian', 'var_change': rangeToEz[3,:,:], 'bowl1': None, 'bowl2': None, 'labBowl': labBowl, 'density':density_z[3,:]}
 
-# ----- Plot -----
+# -- Define median and range where models agree
+medianToEz_agree = np.ma.where(noagreez==0,medianToEz,np.ma.masked)
+rangeToEz_agree = np.ma.where(noagreez==0,rangeToEz,np.ma.masked)
+
+# ---------------------
+# ----- Plot ----------
+# ---------------------
 
 domzed = [0,500,5000]
 # Create meshgrid
@@ -500,7 +489,7 @@ if figure == 'median':
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 
     # -- Color map
-    cmap = 'jet_r' #cmaps.plasma
+    cmap = 'OrRd_r'
     # -- Unit
     unit = 'ToE'
     # -- Levels
@@ -508,7 +497,7 @@ if figure == 'median':
     levels = np.arange(minmax[0], minmax[1], minmax[2]) 
     ext_cmap = 'both'
     # -- Put everything into a dictionary
-    contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap, 'isopyc':False}
+    contourDict = {'cmap':cmap, 'levels':levels, 'levels2':levels, 'ext_cmap':ext_cmap, 'isopyc':False}
 
     # -- Contourf
     # Atlantic
@@ -516,8 +505,6 @@ if figure == 'median':
                      contourDict, domzed)
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
-    axes[0,0].contourf(lat2d, lev2d, noagreez[1,:,:], levels=[0.25,0.5,1.5], colors='None', hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
-    axes[1,0].contourf(lat2d, lev2d, noagreez[1,:,:], levels=[0.25,0.5,1.5], colors='None',hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
 
     # -- Add colorbar
     cb = fig.colorbar(cnplot[1], ax=axes.ravel().tolist(), ticks=levels, fraction=0.015, shrink=2.0, pad=0.05)
@@ -528,29 +515,46 @@ if figure == 'median':
                      contourDict, domzed)
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
-    axes[0,1].contourf(lat2d, lev2d, noagreez[2,:,:], levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
-    axes[1,1].contourf(lat2d, lev2d, noagreez[2,:,:], levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
 
     # Indian
     cnplot = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varIndmedian,
                      contourDict, domzed)
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
-    axes[0,2].contourf(lat2d, lev2d, noagreez[3,:,:], levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
-    axes[1,2].contourf(lat2d, lev2d, noagreez[3,:,:], levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+    
+    # Repeat Atlantic
+    cnplot = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlmedian,
+                     contourDict, domzed)
+    cnplot[0].cmap.set_over('0.8')
+    cnplot[1].cmap.set_over('0.8')
 
-    plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+
+    # -- Contours
+    if work == 'RCP85':
+        for i in range(3):
+            cnt1 = axes[0,i].contour(lat2d,lev2d,medianToEz_agree[i+1,:,:],levels=levels[::2],linewidths=0.5,colors='k')
+            cnt1_b = axes[0,i].contour(lat2d,lev2d,medianToEz_agree[i+1,:,:],levels=[2020],linewidths=2,colors='k')
+            #axes[0,i].clabel(cnt1, inline=1, fontsize=11, fmt='%d')
+            #axes[0,i].clabel(cnt1_b, inline=1, fontsize=13, fmt='%d')
+            cnt2 = axes[1,i].contour(lat2d,lev2d,medianToEz_agree[i+1,:,:],levels=levels[::2],linewidths=0.5,colors='k')
+            cnt2_b = axes[1,i].contour(lat2d,lev2d,medianToEz_agree[i+1,:,:],levels=[2020],linewidths=2,colors='k')
+            #axes[1,i].clabel(cnt2, inline=1, fontsize=11, fmt='%d')
+            #axes[1,i].clabel(cnt2_b, inline=1, fontsize=13, fmt='%d')
+
+    # -- Stipples for no agreement
+    for i in range(3):
+        axes[0,i].contourf(lat2d, lev2d, noagreez[i+1,:,:], levels=[0.25,0.5,1.5], colors='None', hatches=['','....'])
+        axes[1,i].contourf(lat2d, lev2d, noagreez[i+1,:,:], levels=[0.25,0.5,1.5], colors='None',hatches=['','....'])
+
+
+    plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
 
 
     if work == 'RCP85':
         if use_piC == False:
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+                plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_paper'
             else:
                 plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -560,20 +564,23 @@ if figure == 'median':
         name = '1pctCO2 vs. PiControl'
         plotName = 'remapping2_median_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
-    
+
     # -- Add title    
     plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]' \
         '\n %d models, %d runs '%(nmodels,nruns)
-    
-    plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
 
-    plt.figtext(.5,.02,'Computed by : remaptoz2_toe_median_range.py '+date,fontsize=9,ha='center')
+    axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
+
     plt.figtext(.004,.65,'Pseudo-depth (m)',rotation='vertical',fontweight='bold')
+    plt.figtext(.006,.96,'a',fontweight='bold',fontsize=16)
 
     figureDir = 'models/zonal_remaptoz/'
-    if fig == 'save':
-        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
+    if outfmt == 'save':
+        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight',dpi='figure')
+    else:
+        plt.show()
 
+        
 else:
     # -- 25-75% range
 
@@ -581,16 +588,16 @@ else:
     fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17, 5))
 
     # -- Color map
-    cmap = 'jet_r' #cmocean.cm.tempo
+    cmap = 'OrRd_r' #'magma' #cmocean.cm.tempo
     # -- Unit
     unit = 'Years'
     # -- Levels
-    minmax = [0, 101, deltat]
+    minmax = [10, 71, deltat]
     levels = np.arange(minmax[0], minmax[1], minmax[2])
 
     ext_cmap = 'max'
     # -- Put everything into a dictionary
-    contourDict = {'cmap':cmap, 'levels':levels, 'ext_cmap':ext_cmap}
+    contourDict = {'cmap':cmap, 'levels':levels, 'levels2':levels, 'ext_cmap':ext_cmap, 'isopyc':False}
 
     # -- Contourf
     cnplot2 = zon_2Dz(fig2, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlrange,
@@ -600,12 +607,19 @@ else:
     cnplot2 = zon_2Dz(fig2, axes[0,2], axes[1,2], 'right', lat, targetz, varIndrange,
                      contourDict, domzed)
 
+
     for i in range(2):
         for ibasin in range(3):
             axes[i,ibasin].contourf(lat2d, lev2d, norangez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='0.8') # No emergence
-            axes[i,ibasin].contourf(lat2d, lev2d, noagreez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='None', hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+            axes[i,ibasin].contourf(lat2d, lev2d, noagreez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='None', hatches=['','....']) # No agreement
 
-    fig2.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+    # -- Contours
+    if work == 'RCP85':
+        for i in range(3):
+            cnt1 = axes[0,i].contour(lat2d,lev2d,rangeToEz_agree[i+1,:,:],levels=levels[1::2],linewidths=0.5,colors='k')
+            cnt2 = axes[1,i].contour(lat2d,lev2d,rangeToEz_agree[i+1,:,:],levels=levels[1::2],linewidths=0.5,colors='k')
+
+    fig2.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
 
     # -- Add colorbar
     cb = fig2.colorbar(cnplot2[1], ax=axes.ravel().tolist(), ticks=levels, fraction=0.015, shrink=2.0, pad=0.05)
@@ -615,7 +629,7 @@ else:
         if use_piC == False :
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+                plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_paper'
             else:
                 plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -626,25 +640,26 @@ else:
         name = '1pctCO2 vs. PiControl'
         plotName = 'remapping2_range_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
-    
+
     # -- Add title
     plotTitle = '25-75% multimodel ensemble range of the ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]' \
         '\n %d models, %d runs '%(nmodels,nruns)
 
 
-    plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    #plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    axes[0,1].set_title(plotTitle, y=1.28, fontweight='bold', fontsize=15, verticalalignment='top')
 
-    plt.figtext(.5,.01,'Computed by : remaptoz2_toe_median_range.py '+date,fontsize=9,ha='center')
+    #plt.figtext(.5,.01,'Computed by : remaptoz2_toe_median_range.py '+date,fontsize=9,ha='center')
     plt.figtext(.004,.65,'Pseudo-depth (m)',rotation='vertical',fontweight='bold')
 
-    if use_piC and work =='RCP85':
-        plt.figtext(.2,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
-    if use_piC == False and work == 'RCP85':
-        plt.figtext(.2,.01,'Runs : '+runs_rcp,fontsize=9,ha='center')
+    # if use_piC and work =='RCP85':
+    #     plt.figtext(.2,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
+    # if use_piC == False and work == 'RCP85':
+    #     plt.figtext(.2,.01,'Runs : '+runs_rcp,fontsize=9,ha='center')
 
     figureDir = 'models/zonal_remaptoz/'
 
-    if fig == 'save':
-        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
+    if outfmt == 'save':
+        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
     else:
         plt.show()

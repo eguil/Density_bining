@@ -15,14 +15,14 @@ from modelsDef import defModels, defModelsCO2piC
 import glob
 import os
 import colormaps as cmaps
-import cmocean
-import palettable.cartocolors.sequential
+#import cmocean
+#import palettable.cartocolors.sequential
 import datetime
 
 
 # ----- Workspace ------
 
-indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
+indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/hist_runninghistNat/'
 indir_toe_rcppiC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
 indir_mme_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
 indir_mme_hn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
@@ -36,12 +36,12 @@ indir_mme_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piContr
 work = 'RCP85'
 # work = 'CO2'
 
-figure = 'median'
-# figure = 'range'
+#figure = 'median'
+figure = 'range'
 
 # output format
-outfmt = 'view'
-# outfmt = 'save'
+# outfmt = 'view'
+outfmt = 'save'
 
 use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std(histNat)
 # use_piC = True # Signal = hist + RCP8.5 - average(PiControl), noise = std(PiControl)
@@ -62,7 +62,7 @@ if work == 'RCP85':
     iniyear = 1860
     finalyear = 2100
     models = defModels()
-    min = 1960 # Start year for colorbar
+    min = 1980 # Start year for colorbar
     crit_min_runs = 5 # min number of runs with unmasked values = nruns-crit_min_runs
 else:
     iniyear = 0
@@ -112,7 +112,7 @@ if work == 'RCP85':
 
     # Loop over models
     if use_piC == False:
-        listfiles = glob.glob(indir_toe_rcphn + '/*.nc')
+        listfiles = glob.glob(indir_toe_rcphn + '/*toe_zonal_rcp_histNat.nc')
     else:
         listfiles = glob.glob(indir_toe_rcppiC + '/*.nc')
     nmodels = len(listfiles)
@@ -539,16 +539,16 @@ if figure == 'median':
 
     minmax = [min, finalyear-20 +0.1, deltat]
     unit = 'ToE'
-    cmap = cmaps.viridis
+    cmap = 'OrRd_r'
     levels = np.arange(minmax[0], minmax[1], minmax[2])
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlmedian, domrho, cmap, levels)
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
     axes[0,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                            hatches=['','....']) # No agreement
     axes[1,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+                            hatches=['','....'])
 
     # cb = fig.colorbar(cnplot[0],ax=axes.ravel().tolist(), ticks = levels, fraction=0.015, shrink=2.0, pad=0.05)
     cb = fig.colorbar(cnplot[1],ax=axes.ravel().tolist(), ticks = levels, fraction=0.015, shrink=2.0, pad=0.05)
@@ -558,9 +558,9 @@ if figure == 'median':
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
     axes[0,1].contourf(lat2d, density2d, noagree_p, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                            hatches=['','....']) # No agreement
     axes[1,1].contourf(lat2d, density2d, noagree_p, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+                            hatches=['','....'])
     #axes[0,1].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
     #axes[1,1].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
 
@@ -568,23 +568,23 @@ if figure == 'median':
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
     axes[0,2].contourf(lat2d, density2d, noagree_i, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                            hatches=['','....']) # No agreement
     axes[1,2].contourf(lat2d, density2d, noagree_i, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+                            hatches=['','....'])
     #axes[0,2].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
     #axes[1,2].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
 
 
-    plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+    plt.subplots_adjust(hspace=.01, wspace=0.05, left=0.04, right=0.86)
 
     # Bug with Atlantic colorbar - top panel, so repeat
     cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlmedian, domrho, cmap, levels)
     cnplot[0].cmap.set_over('0.8')
     cnplot[1].cmap.set_over('0.8')
     axes[0,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                            hatches=['','....']) # No agreement
     axes[1,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
-                            hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0)
+                            hatches=['','....'])
     #axes[0,0].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
     #axes[1,0].contour(lat2d, density2d, medianToEA, levels=[34.5,35.5], linewidth=2, colors='white')
 
@@ -592,7 +592,7 @@ if figure == 'median':
         if use_piC == False:
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+                plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_runninghistNat'
             else:
                 plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -606,7 +606,8 @@ if figure == 'median':
         '\n %d models, %d runs '%(nmodels,nruns)
 
 
-    plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    #plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+    axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=14, verticalalignment='top')
     plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold')
 
     plt.figtext(.5,.01,'Computed by : zonal_toe_median_range.py '+date,fontsize=9,ha='center')
@@ -621,30 +622,30 @@ else:
 
     fig2, axes = plt.subplots(nrows=2, ncols=3, figsize=(17,5))
 
-    minmax = [0, 91, deltat]
+    minmax = [0, 71, deltat]
     unit = 'Years'
-    cmap = 'YlOrRd' #palettable.cartocolors.sequential.OrYel.mpl_colormap #cmocean.cm.tempo
+    cmap = 'OrRd_r' #palettable.cartocolors.sequential.OrYel.mpl_colormap #cmocean.cm.tempo
     levels = np.arange(minmax[0], minmax[1], minmax[2])
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 0], axes[1, 0], 'left', lat, density, varAtlrange, domrho, cmap, levels)
     for i in range(2):
         axes[i,0].contourf(lat2d, density2d, norangeA, levels=[0.25,0.5,1.5], colors='0.8') # No emergence
         axes[i,0].contourf(lat2d, density2d, noagree_a, levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                                hatches=['','....'], edgecolor='0.3', linewidth=0.0) # No agreement
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 1], axes[1, 1], 'mid', lat, density, varPacrange, domrho, cmap, levels)
     for i in range(2):
         axes[i,1].contourf(lat2d, density2d, norangeP, levels=[0.25,0.5,1.5], colors='0.8') # No emergence
         axes[i,1].contourf(lat2d, density2d, noagree_p, levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                                hatches=['','....'], edgecolor='0.3', linewidth=0.0) # No agreement
 
     cnplot = zonal_2D(plt, 'ToE', axes[0, 2], axes[1, 2], 'right', lat, density, varIndrange, domrho, cmap, levels)
     for i in range(2):
         axes[i,2].contourf(lat2d, density2d, norangeI, levels=[0.25,0.5,1.5], colors='0.8') # No emergence
         axes[i,2].contourf(lat2d, density2d, noagree_i, levels=[0.25,0.5,1.5], colors='None',
-                                hatches=['','\\\\'], edgecolor='0.3', linewidth=0.0) # No agreement
+                                hatches=['','....'], edgecolor='0.3', linewidth=0.0) # No agreement
 
-    plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+    plt.subplots_adjust(hspace=.01, wspace=0.05, left=0.04, right=0.86)
 
     cb = fig2.colorbar(cnplot[1], ax=axes.ravel().tolist(), ticks = levels, fraction=0.015, shrink=2.0, pad=0.05)
     cb.set_label('%s' % (unit,), fontweight='bold')
@@ -653,7 +654,7 @@ else:
         if use_piC == False :
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+                plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_runninghistNat'
             else:
                 plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -691,4 +692,4 @@ else:
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/Density_bining/Yona_analysis/figures/models/zonal_ys/ToE/'+path_end+plotName+'.png', bbox_inches='tight')
+    plt.savefig('/home/ysilvy/figures/models/zonal_ys/ToE/'+path_end+plotName+'.pdf', bbox_inches='tight')

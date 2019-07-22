@@ -37,9 +37,9 @@ else:
 
 # ----- Work ------
 
-# varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('salinity'); v = 'S'
 # varname = defVarmme('temp'); v = 'T'
-varname = defVarmme('depth'); v = 'Z'
+# varname = defVarmme('depth'); v = 'Z'
 
 iniyear = 1860
 finalyear = 2005
@@ -80,12 +80,12 @@ for i, model in enumerate(models):
         tend = model['props'][3]
 
         # Read histNat files
-        listruns_hn = glob.glob(indir_histNat + 'cmip5.'+model['name']+'*zon2D.nc')
+        listruns_hn = sorted(glob.glob(indir_histNat + 'cmip5.'+model['name']+'*zon2D.nc'))
         nruns_hn = len(listruns_hn)
         nMembers_hn[i] = nruns_hn
 
         # Read hist files
-        listruns_h = glob.glob(indir_hist + 'cmip5.'+model['name']+'*zon2D.nc')
+        listruns_h = sorted(glob.glob(indir_hist + 'cmip5.'+model['name']+'*zon2D.nc'))
         nruns_h = len(listruns_h)
         nMembers_h[i] = nruns_h
 
