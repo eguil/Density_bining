@@ -245,7 +245,7 @@ ax2.axhline(y=ind[10], color='black', ls='--')
 ax2.text(-24,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(-24,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(-24,ind[8]+width, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-24,ind[11], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
+ax2.text(-24,ind[10], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
 
 plt.subplots_adjust(left = 0.14)
 

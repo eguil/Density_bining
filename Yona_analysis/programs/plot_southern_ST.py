@@ -14,7 +14,7 @@ from maps_matplot_lib import defVarmme, averageDom
 from modelsDef import defModels
 from libToE import ToEdomainrcp85vshistNat
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-import glob
+import glob, os
 import datetime
 
 
@@ -29,8 +29,8 @@ models = defModels()
 
 # ----- Work ------
 
-#varname = defVarmme('salinity'); v = 'S'
-varname = defVarmme('depth'); v = 'Z'
+varname = defVarmme('salinity'); v = 'S'
+#varname = defVarmme('depth'); v = 'Z'
 
 method = 'average_signal' # Average signal and noise in the box, then compute ToE
 
@@ -76,7 +76,8 @@ else :
 if nmodels % 2 == 0:
     nrows = nmodels/2
 else:
-    nrows = nmodels/2 +1
+    #nrows = nmodels/2 +1 # python 2
+    nrows = int(nmodels/2 +0.5) # python 3
 fig, axes = plt.subplots(nrows = nrows, ncols=2, sharex = True, sharey=True, figsize=(12,15))
 
 # ----- Average signal and noise for each run ------
@@ -158,23 +159,22 @@ for i, model in enumerate(models):
                 # Read file
                 fhrcp = open_ncfile(listruns[k],'r')
                 # Read var hist + rcp85
-                varh = fhrcp.variables[var][tstart:tend,ibasin,:,:].squeeze()
-                varrcp = fhrcp.variables[var][tend:tend+95,ibasin,:,:].squeeze()
-
-                # Average signal hist - histNat or hist - mean(PiC) over historical period
-                # rcp85 - mean(histNat) or rcp85 - mean(PiC) over projection period
+                varhrcp = fhrcp.variables[var][tstart:tend+95,ibasin,:,:].squeeze()
+                
+                # Save run number
+                run_nb = os.path.basename(listruns[k]).split('.')[3]
+                
+                # Average signal hist+RCP8.5 - mean(histNat) or hist+RCP8.5 - mean(PiC) 
                 if use_piC != True:
-                    varsignal[0:145,k] = averageDom(varh-varhn, 3, domain[basin_name], lat, density)
-                    varsignal[145:,k] = averageDom(varrcp-meanvarhn, 3, domain[basin_name], lat, density)
+                    varsignal[:,k] = averageDom(varhrcp-meanvarhn, 3, domain[basin_name], lat, density)
                 else:
-                    varsignal[0:145,k] = averageDom(varh-meanvarpiC, 3, domain[basin_name], lat, density)
-                    varsignal[145:,k] = averageDom(varrcp-meanvarpiC, 3, domain[basin_name], lat, density)
+                    varsignal[:,k] = averageDom(varhrcp-meanvarpiC, 3, domain[basin_name], lat, density)
 
                 # # Don't plot runs where the signal is of opposite sign than expected
                 # if np.ma.mean(varsignal[-5:,k],axis=0) <= 2*varnoise:
 
                 # Plot signal run k
-                ax.plot(time_label,varsignal[:,k],zorder=3)
+                ax.plot(time_label,varsignal[:,k],zorder=3,label=run_nb)
 
             # Plot noise
             #ax.axhline(y=2*varnoise,color='black',ls='--')
@@ -187,6 +187,8 @@ for i, model in enumerate(models):
            
             ax.axhline(y=0,color='black',ls=':')
             ax.axvline(x=2005,color='black',ls=':')
+            
+            ax.legend()
 
             ax.set_xlim([1860,2100])
             ax.tick_params(axis='x',which='both',top='off')
@@ -196,10 +198,12 @@ for i, model in enumerate(models):
             # ax.xaxis.set_major_locator(xmajorLocator)
             ax.xaxis.set_minor_locator(xminorLocator)
             
-            for tk in ax.get_yticklabels():
-                tk.set_visible(True)
-            for tk in ax.get_xticklabels():
-                tk.set_visible(True)
+            #for tk in ax.get_yticklabels():
+            #    tk.set_visible(True)
+            #for tk in ax.get_xticklabels():
+            #    tk.set_visible(True)
+            
+            ax.tick_params(axis='both',labelbottom=True,labelleft=True)
 
             if nruns>1:
                 subplot_title = '%s (%d members)'%(model['name'],nruns)
@@ -209,12 +213,12 @@ for i, model in enumerate(models):
 
             j = j+1
 
-# if domain_name == 'Southern ST' or domain_name == 'Northern ST':
-#     ax.set_ylim([-0.5,0.2])
+if domain_name == 'Southern ST' or domain_name == 'Northern ST':
+     ax.set_ylim([-0.5,0.2])
+     ax.set_yticks(np.arange(-0.5,0.201,0.1))
 
 plt.subplots_adjust(left=0.08, right=0.97, bottom=0.05, top=0.93) #hspace=.0001, wspace=0.05,
 
-plt.setp(ax.get_xticklabels(), visible=True)
 
 # Add a big axes, hide frame, for common labels
 ax1=fig.add_subplot(111, frameon=False)
@@ -250,10 +254,10 @@ now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
 # Foot notes
-plt.figtext(.8,.01,'Computed by : plot_southern_ST.py  '+date, fontsize=8, ha='center')
-plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise, end_noise), fontsize=8, ha='center')
+# plt.figtext(.8,.01,'Computed by : plot_southern_ST.py  '+date, fontsize=8, ha='center')
+# plt.figtext(.2,.01,'Method: %s  Noise: %s %s' %(method, method_noise, end_noise), fontsize=8, ha='center')
 
-plotName = legVar+'change_SouthernST_'+basin_name+'_'+end_title
+plotName = legVar+'change_SouthernST_'+basin_name+'_'+end_title+'_newsignal'
 
 #plt.show()
-plt.savefig('/home/ysilvy/figures/models/time_series/'+plotName+'.pdf')
+plt.savefig('/home/ysilvy/figures/models/time_series/'+plotName+'.png')

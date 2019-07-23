@@ -179,10 +179,10 @@ new_domains = ['SO subpolar', 'SO subtropics', 'NH subtropics', 'subpolar North 
 # regroup previous "North Atlantic" with NH subtropics
 
 # tas ToE reference hist+rcp8.5 vs. histNat [>2std]
-data1 = [varToEA_1_gsat[:,1], varToEP_1_gsat[:,1], varToEI_1_gsat[:,1], maskdata, varToEA_1_gsat[:,0], varToEP_1_gsat[:,0], varToEI_1_gsat[:,0], maskdata, varToEA_1_gsat[:,3], varToEP_1_gsat[:,2], varToEI_1_gsat[:,2], maskdata, varToEP_1_gsat[:,4]]
+data1 = [varToEA_1_gsat[:,1], varToEP_1_gsat[:,1], varToEI_1_gsat[:,1], maskdata, varToEA_1_gsat[:,0], varToEP_1_gsat[:,0], varToEI_1_gsat[:,0], maskdata, varToEA_1_gsat[:,3], varToEP_1_gsat[:,2], maskdata, varToEP_1_gsat[:,4]]
 
 # tas ToE other case
-data2 = [varToEA_2_gsat[:,1], varToEP_2_gsat[:,1], varToEI_2_gsat[:,1], maskdata, varToEA_2_gsat[:,0], varToEP_2_gsat[:,0], varToEI_2_gsat[:,0], maskdata, varToEA_2_gsat[:,3], varToEP_2_gsat[:,2], varToEI_2_gsat[:,2], maskdata, varToEP_2_gsat[:,4]]
+data2 = [varToEA_2_gsat[:,1], varToEP_2_gsat[:,1], varToEI_2_gsat[:,1], maskdata, varToEA_2_gsat[:,0], varToEP_2_gsat[:,0], varToEI_2_gsat[:,0], maskdata, varToEA_2_gsat[:,3], varToEP_2_gsat[:,2], maskdata, varToEP_2_gsat[:,4]]
 
 
 # ----- Make pseudo-time vector for gsat_anom1 multi-model mean -----
@@ -235,8 +235,8 @@ newticknames2 = ['%d' % t for t in tickvalues]
 y1 = 1850
 y2 = 1900
 
-labels = ['Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','']
-N = 14
+labels = ['Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','Atlantic','Pacific','','']
+N = 13
 ind = np.arange(1,N)
 width = 0.25
 
@@ -290,7 +290,7 @@ ax2.set_xlim([-1,6.01])
 ax2.set_yticks(ind)
 ax2.set_yticklabels(labels, fontweight='bold')
 ax2.yaxis.set_tick_params(left='off', right='off')
-ax2.set_ylim([0,14])
+ax2.set_ylim([0,N])
 xmajorLocator2 = MultipleLocator(0.5)
 xminorLocator2 = AutoMinorLocator(2)
 ax2.xaxis.set_major_locator(xmajorLocator2)
@@ -301,16 +301,16 @@ plt.setp(ax.get_xticklabels(), fontweight='bold')
 
 ax2.axhline(y=ind[3], color='black', ls='--')
 ax2.axhline(y=ind[7], color='black', ls='--')
-ax2.axhline(y=ind[11], color='black', ls='--')
+ax2.axhline(y=ind[10], color='black', ls='--')
 
 # Domain labels
 ax2.text(-1-0.6,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(-1-0.6,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-1-0.6,ind[9], 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-1-0.6,ind[12], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
+ax2.text(-1-0.6,ind[8]+0.5, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1-0.6,ind[11], 'Subpolar \n North Pacific', ha='center', va='center',fontweight='bold', fontsize=13)
 
-plotTitle = 'Distribution of GSAT at emergence for '+legVar+ ' in different regions'
-ax.set_title(plotTitle, y=1.08, fontweight='bold', va='center')
+#plotTitle = 'Distribution of GSAT at emergence for '+legVar+ ' in different regions'
+#ax.set_title(plotTitle, y=1.08, fontweight='bold', va='center')
 ax2.text(0.5,1.04, title1 + ' ('+str(nmodels1)+' models, '+str(nruns1)+' runs)', color='#c90016',
          va='center', ha='center',transform=ax2.transAxes, fontweight='bold')
 ax2.text(0.5,1.062, title2 + ' ('+str(nmodels2)+' models, '+str(nruns2)+' runs)', color=color,
@@ -354,4 +354,4 @@ if outfmt == 'view':
     plt.show()
 else:
     plt.savefig('/home/ysilvy/figures/models/ToE/boxplots/'
-                +plotName+'_'+str(y1)+'_'+str(y2)+'_newlabels.png')
+                +plotName+'_'+str(y1)+'_'+str(y2)+'_newlabels_paper.png')
