@@ -45,8 +45,8 @@ domain_name = domains[idomain]
 #signal_domain = 'fresher'
 
 #ibasin = 1 ; basin_name = 'Atlantic' # Atlantic 
-ibasin = 2 ; basin_name = 'Pacific' # Pacific 
-#ibasin = 3 ; basin_name = 'Indian' # Indian
+#ibasin = 2 ; basin_name = 'Pacific' # Pacific 
+ibasin = 3 ; basin_name = 'Indian' # Indian
 
 use_piC = False # Over projection period, signal = RCP-average(histNat), noise = std(histNat)
 #use_piC = True # Over projection period, signal = RCP-average(PiControl), noise = std(PiControl)
