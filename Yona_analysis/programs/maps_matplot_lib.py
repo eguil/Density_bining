@@ -284,9 +284,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     ax0.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        labelbottom='off',
-        top='off')
+        bottom=False,  # ticks along the bottom edge are off
+        labelbottom=False,
+        top=False)
 
     # # For selecting specific boxes, make a fine grid
     # xminorLocator = AutoMinorLocator(4)
@@ -297,9 +297,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # ax0.grid(True, which='major', ls='-')
 
     if ticks != 'left':
-        ax0.tick_params(axis='y', labelleft='off')
+        ax0.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax0.tick_params(axis='y', labelright='on')
+        ax0.tick_params(axis='y', labelright=True)
 
     ax0.axvline(x=0, color='black', ls='--')
 
@@ -352,7 +352,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     ax1.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        top='off')  # ticks along the bottom edge are off
+        top=False)  # ticks along the top edge are off
 
     # # For selecting specific boxes, make a fine grid
     # xminorLocator = AutoMinorLocator(4)
@@ -363,9 +363,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # ax1.grid(True, which='major', ls='-')
 
     if ticks != 'left':
-        ax1.tick_params(axis='y', labelleft='off')
+        ax1.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax1.tick_params(axis='y', labelright='on')
+        ax1.tick_params(axis='y', labelright=False)
 
     ax1.axvline(x=0, color='black', ls='--')
 

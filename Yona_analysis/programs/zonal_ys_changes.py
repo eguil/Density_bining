@@ -24,11 +24,11 @@ import datetime
 
 # ----- Workspace ------
 
-# name = 'Durack & Wijffels'
+name = 'Durack & Wijffels'
 # name = 'mme_hist'
 # name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
-name = 'ens_mean_hist_histNat'
+#name = 'ens_mean_hist_histNat'
 # name = 'mme_1pctCO2vsPiC'
 # name = 'mme_1pctCO2'
 # name = '1pctCO2'
@@ -47,7 +47,7 @@ else:
     y1 = 134; y2 = 140
 
 # Model agreement level
-agreelev = 0.6
+agreelev = 0.5
 modelAgree = True
 
 imodel = 1 # Choose model index in model list (modelsDef.py)
@@ -189,9 +189,9 @@ if name == 'Durack & Wijffels':
 
 else:
     # -- Choose wich variable to work on
-    # varname = defVarmme('salinity'); v = 'S'
+    varname = defVarmme('salinity'); v = 'S'
     # varname = defVarmme('temp'); v = 'T'
-    varname = defVarmme('depth'); v = 'Z'
+    # varname = defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
     var = varname['var_zonal_w/bowl']
 

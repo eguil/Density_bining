@@ -9,7 +9,8 @@ Data : Durack & Wijffels 1950-2000 zonal changes, analyzed in density framework
 Grid back to a pressure coordinate and plot
 """
 import sys
-sys.path.append('/home/ysilvy/Density_bining/Yona_analysis/programs/')
+#sys.path.append('/home/ysilvy/Density_bining/Yona_analysis/programs/')
+sys.path.append('/Users/Yona 1/Documents/Thèse/Density_bining/Yona_analysis/programs/') # From local
 import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset as open_ncfile
@@ -20,13 +21,14 @@ import gsw
 
 # ===== Workspace =====
 
-indir = '/home/ysilvy/Density_bining/Yona_analysis/data/'
+#indir = '/home/ysilvy/Density_bining/Yona_analysis/data/'
+indir = '/Users/Yona 1/Documents/Thèse/Data/' #Local
 file = 'DurackandWijffels_GlobalOceanChanges-NeutralDensity_1950-2000_170224_20_48_22_beta.nc'
 data = indir + file
 f2d = open_ncfile(data, 'r')
 
 out = 'save' # View or save output figure
-# out = 'view'
+#out = 'view'
 
 show_isopyc = True #False
 
@@ -177,14 +179,22 @@ for i in range(2):
     axes[i,2].contourf(lat2d, lev2d, not_signif_change[:,:,3], levels=[0.25,0.5,1.5], colors='None',
                        hatches=['','....'])
 
+axes[0,1].tick_params(axis='both',labelleft=False,which='both',top=False,bottom=False)
+axes[1,1].tick_params(axis='both',labelleft=False,which='both',top=False)
+axes[0,2].tick_params(axis='both',labelleft=False,which='both',top=False,bottom=False)
+axes[1,2].tick_params(axis='both',labelleft=False,which='both',top=False)
+axes[0,0].tick_params(axis='x',which='both',top=False,bottom=False)
+axes[1,0].tick_params(axis='x',which='both',top=False)
+
 plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
-plt.figtext(.005,.58,'Pseudo-depth (m)',rotation='vertical',fontweight='bold')
+plt.figtext(.005,.38,'Pseudo-depth (m)',rotation='vertical',fontweight='bold',ha='center')
 
 plt.figtext(.006,.96,'a',fontweight='bold',fontsize=16)
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
+
 
 name = 'Durack & Wijffels (2010)'
 plotTitle = '%s changes 1950-2000, %s' %(legVar, name)
@@ -195,7 +205,7 @@ now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
 #plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
+#axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
 #plt.figtext(.5,.01,'Computed by : remap_to_z_Durack&Wijffels.py  '+date,fontsize=8,ha='center')
 
 figureDir = 'obs/zonal_remaptoz/'
@@ -203,5 +213,5 @@ figureDir = 'obs/zonal_remaptoz/'
 if out == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight') 
-#Not showing hatches when saving in PDF format
+    #plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight') 
+    plt.savefig('/Users/Yona 1/Documents/Thèse/Yona_analysis/figures/'+figureDir+plotName+'.png', bbox_inches='tight',dpi=150) 
