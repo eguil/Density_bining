@@ -42,8 +42,8 @@ method_noise_piC = 'average_piC'
 
 # -- Choose 2 datasets to plot/compare on the figure
 # work = 'rcp85_histNat_1_2std'
-# work = 'rcp85_histNat_PiControl_2std'
-work = 'rcp85_histNat_1pctCO2_2std'
+work = 'rcp85_histNat_PiControl_2std'
+# work = 'rcp85_histNat_1pctCO2_2std'
 
 # output format
 #outfmt = 'view'
@@ -263,7 +263,7 @@ for median in boxes1['medians']:
 
 ax.set_xlim([-1,6.01])
 ax.set_xlabel('GSAT anomaly ('+degree_sign+'C) relative to '+str(y1)+'-'+str(y2), fontweight='bold')
-ax.yaxis.set_tick_params(left='off', right='off', labelright='on', labelleft='off', pad=7)
+ax.tick_params(axis='y',left=False, right=False, labelright=True, labelleft=False, pad=7)
 xmajorLocator = MultipleLocator(0.5)
 xminorLocator = AutoMinorLocator(2)
 ax.xaxis.set_major_locator(xmajorLocator)
@@ -271,9 +271,9 @@ ax.xaxis.set_minor_locator(xminorLocator)
 ax.xaxis.set_tick_params(which='major',width=2)
 
 ax2 = ax.twiny()
-blue_crosses = dict(markeredgecolor='#004f82', marker='+',linewidth=0.5)
+color_crosses = dict(markeredgecolor=color, marker='+',linewidth=0.5)
 # ToE other case boxes
-boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width, whis=0,flierprops=blue_crosses)
+boxes2 = ax2.boxplot(data2, vert=0, positions=ind+width, widths=width, whis=0,flierprops=color_crosses)
 for box in boxes2['boxes']:
     box.set(color=color, linewidth=2)
 for whisker in boxes2['whiskers']:
@@ -288,8 +288,8 @@ for median in boxes2['medians']:
 
 ax2.set_xlim([-1,6.01])
 ax2.set_yticks(ind)
-ax2.set_yticklabels(labels, fontweight='bold')
-ax2.yaxis.set_tick_params(left='off', right='off')
+ax2.set_yticklabels(labels) #, fontweight='bold')
+ax2.tick_params(axis='y',labelleft=False,left=False,right=False,labelright=True)
 ax2.set_ylim([0,N])
 xmajorLocator2 = MultipleLocator(0.5)
 xminorLocator2 = AutoMinorLocator(2)

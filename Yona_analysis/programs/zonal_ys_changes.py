@@ -24,8 +24,8 @@ import datetime
 
 # ----- Workspace ------
 
-name = 'Durack & Wijffels'
-# name = 'mme_hist'
+# name = 'Durack & Wijffels'
+name = 'mme_hist'
 # name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
 #name = 'ens_mean_hist_histNat'
@@ -63,9 +63,9 @@ if name == 'Durack & Wijffels':
 
 
 if name == 'mme_hist':
-    indir = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
-    file_2d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon2D.nc'
-    file_1d = 'cmip5.multimodel_Nat.historical.ensm.an.ocn.Omon.density_zon1D.nc'
+    indir = '/data/ysilvy/Density_binning/mme_hist/'
+    file_2d = 'cmip5.multimodel_Nat_rcp85.historical.ensm.an.ocn.Omon.density_zon2D.nc'
+    file_1d = 'cmip5.multimodel_Nat_rcp85.historical.ensm.an.ocn.Omon.density_zon1D.nc'
     data_2d = indir + file_2d
     data_1d = indir + file_1d
     fh2d = open_ncfile(data_2d, 'r')
@@ -325,31 +325,31 @@ if name == 'Durack & Wijffels':
     var_mean_a = var_mean[:,:,2].squeeze()
     var_mean_i = var_mean[:,:,3].squeeze()
 
-    # Get bowl position
-    bowl_1950 = np.ma.masked_all((len(lat),4))
-    bowl_2000 = np.ma.masked_all((len(lat),4))
-    for ibasin in range (1,4):
-        for ilat in range(len(lat)):
-            nomask_1950 = np.ma.flatnotmasked_edges(var_1950[:, ilat, ibasin]) # returns indices of the 1st and last unmasked values
-            nomask_2000 = np.ma.flatnotmasked_edges(var_2000[:, ilat, ibasin])
-            if nomask_1950 != None:
-                bowl_1950[ilat, ibasin] = density[nomask_1950[0]]
-            else:
-                bowl_1950[ilat, ibasin] = np.ma.masked
-            if nomask_2000 != None:
-                bowl_2000[ilat, ibasin] = density[nomask_2000[0]]
-            else:
-                bowl_2000[ilat, ibasin] = np.ma.masked
-    # Bowl legend
-    labBowl = ['1950', '2000']
+#     # Get bowl position
+#     bowl_1950 = np.ma.masked_all((len(lat),4))
+#     bowl_2000 = np.ma.masked_all((len(lat),4))
+#     for ibasin in range (1,4):
+#         for ilat in range(len(lat)):
+#             nomask_1950 = np.ma.flatnotmasked_edges(var_1950[:, ilat, ibasin]) # returns indices of the 1st and last unmasked values
+#             nomask_2000 = np.ma.flatnotmasked_edges(var_2000[:, ilat, ibasin])
+#             if nomask_1950 != None:
+#                 bowl_1950[ilat, ibasin] = density[nomask_1950[0]]
+#             else:
+#                 bowl_1950[ilat, ibasin] = np.ma.masked
+#             if nomask_2000 != None:
+#                 bowl_2000[ilat, ibasin] = density[nomask_2000[0]]
+#             else:
+#                 bowl_2000[ilat, ibasin] = np.ma.masked
+#     # Bowl legend
+#     labBowl = ['1950', '2000']
 
     # -- Create variable bundles
     varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': var_mean_p, 'var_error': var_change_er_p,
-              'bowl1': bowl_1950[:,1], 'bowl2': bowl_2000[:,1], 'labBowl': labBowl}
+              'bowl1': None, 'bowl2': None, 'labBowl': [None,None]}
     varAtl = {'name': 'Atlantic', 'var_change': var_change_a, 'var_mean': var_mean_a, 'var_error': var_change_er_a,
-              'bowl1': bowl_1950[:,2], 'bowl2': bowl_2000[:,2], 'labBowl': labBowl}
+              'bowl1': None, 'bowl2': None, 'labBowl': [None,None]}
     varInd = {'name': 'Indian', 'var_change': var_change_i, 'var_mean': var_mean_i, 'var_error': var_change_er_i,
-              'bowl1': bowl_1950[:,3], 'bowl2': bowl_2000[:,3], 'labBowl': labBowl}
+              'bowl1': None, 'bowl2': None, 'labBowl': [None,None]}
 
 
 # if name == 'mme_hist' or name == 'ens_mean_hist':
@@ -381,12 +381,18 @@ else:
         if np.ma.is_masked(bowl2_a[ilat]) == False :
             inda = np.ma.nonzero(bowl2_a[ilat]>=density)
             var_change_a[inda,ilat] = np.ma.masked
+            if modelAgree and name =='mme_hist':
+                var_agree_a[inda,ilat] = np.ma.masked
         if np.ma.is_masked(bowl2_p[ilat]) == False :
             indp = np.ma.nonzero(bowl2_p[ilat]>=density)
             var_change_p[indp,ilat] = np.ma.masked
+            if modelAgree and name =='mme_hist':
+                var_agree_p[indp,ilat] = np.ma.masked
         if np.ma.is_masked(bowl2_i[ilat]) == False :
             indi = np.ma.nonzero(bowl2_i[ilat]>=density)
             var_change_i[indi,ilat] = np.ma.masked
+            if modelAgree and name =='mme_hist':
+                var_agree_i[indi,ilat] = np.ma.masked
 
     # -- Create variable bundles
     varPac = {'name': 'Pacific', 'var_change': var_change_p, 'var_mean': var_mean_p,
@@ -468,16 +474,17 @@ if modelAgree and name=='mme_hist' :
     modelagree(axes[0,1],axes[1,1],agreelev,lat,density,var_agree_p)
     modelagree(axes[0,2],axes[1,2],agreelev,lat,density,var_agree_i)
 
-plt.subplots_adjust(hspace=.0001, wspace=0.05, left=0.04, right=0.86)
+plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
 
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
 cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
 
+#plt.figtext(.006,.96,'b',fontweight='bold',fontsize=16)
 
 if name == 'mme_hist' or name == 'Durack & Wijffels':
     plotTitle = '%s changes (2000-1950), %s' %(legVar, name)
     plotName = name + '_' + v + 'changes'
-    if modelAgree:
+    if modelAgree and name == 'mme_hist':
         plotName = name + '_' + v + 'changes_modelAgree'
     if name == 'mme_hist':
         figureDir = 'models/zonal_ys/hist/'
@@ -537,11 +544,11 @@ else:
 now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
-plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-plt.figtext(.004,.55,'Density',rotation='vertical',fontweight='bold')
-plt.figtext(.5,.015,'Computed by : zonal_ys_changes.py,  '+date,fontsize=9,ha='center')
-if modelAgree and name=='mme_hist':
-    plt.figtext(.1,.015,'Model agreement level : ' + str(agreelev),fontsize=9,ha='center')
+#plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
+plt.figtext(.004,.6,'Density (kg.m-3)',rotation='vertical',fontweight='bold')
+#plt.figtext(.5,.015,'Computed by : zonal_ys_changes.py,  '+date,fontsize=9,ha='center')
+#if modelAgree and name=='mme_hist':
+    #plt.figtext(.1,.015,'Model agreement level : ' + str(agreelev),fontsize=9,ha='center')
 
 # plt.show()
-plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.pdf', bbox_inches='tight')
+plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')

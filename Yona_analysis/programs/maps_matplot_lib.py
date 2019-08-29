@@ -182,7 +182,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         var = varBasin['var_change']
         var_mean = varBasin['var_mean']
 
-        if clevsm != None:
+        if np.any(clevsm) != None:
             # -- Format for contour labels
             levfmt = '%.0f'
             if abs(clevsm[1] - clevsm[0]) < 1:
@@ -266,7 +266,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # -- Draw areas where signal is not significant for D&W
     if action == 'total' :
         error_plot = ax0.contourf(lat2d, density2d, not_signif_change, levels=[0.25,0.5,1.5], colors='None',
-                                   hatches=['','....'], edgecolor='0.3', linewidth=0.0)
+                                   hatches=['','....'])
 
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax0.plot(lat, bowl, color='black', linewidth=2)
@@ -296,6 +296,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # ax0.grid(True, which='minor')
     # ax0.grid(True, which='major', ls='-')
 
+    ax0.tick_params(axis='y',right=True)
     if ticks != 'left':
         ax0.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
@@ -336,7 +337,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # -- Draw areas where signal is not significant for D&W
     if action == 'total' :
         error_plot = ax1.contourf(lat2d, density2d, not_signif_change, levels=[0.25, 0.5, 1.5], colors='None',
-                                  hatches=['', '....'], edgecolor='0.6', linewidth=0.0)
+                                  hatches=['', '....'])
 
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
         ax1.plot(lat, bowl, color='black', linewidth=2)
@@ -361,11 +362,12 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # ax1.yaxis.set_minor_locator(yminorLocator)
     # ax1.grid(True, which='minor')
     # ax1.grid(True, which='major', ls='-')
-
+    
+    ax1.tick_params(axis='y',right=True)
     if ticks != 'left':
         ax1.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax1.tick_params(axis='y', labelright=False)
+        ax1.tick_params(axis='y', labelright=True)
 
     ax1.axvline(x=0, color='black', ls='--')
 
