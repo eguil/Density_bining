@@ -25,11 +25,11 @@ import datetime
 # ----- Workspace ------
 
 # name = 'Durack & Wijffels'
-name = 'mme_hist'
+#name = 'mme_hist'
 # name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
 #name = 'ens_mean_hist_histNat'
-# name = 'mme_1pctCO2vsPiC'
+name = 'mme_1pctCO2vsPiC'
 # name = 'mme_1pctCO2'
 # name = '1pctCO2'
 # name = '1pctCO2vsPiC'
@@ -37,7 +37,7 @@ name = 'mme_hist'
 # name = 'ens_mean_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
-focus_1pctCO2 = '4*CO2'  # 1.4 or 2*CO2 or 4*CO2
+focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
 
 if focus_1pctCO2 == '1.4*CO2':
     y1 = 33; y2 = 38
@@ -550,5 +550,5 @@ plt.figtext(.004,.6,'Density (kg.m-3)',rotation='vertical',fontweight='bold')
 #if modelAgree and name=='mme_hist':
     #plt.figtext(.1,.015,'Model agreement level : ' + str(agreelev),fontsize=9,ha='center')
 
-# plt.show()
-plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+plt.show()
+#plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')

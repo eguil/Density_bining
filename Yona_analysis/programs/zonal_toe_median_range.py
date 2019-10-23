@@ -22,7 +22,7 @@ import datetime
 
 # ----- Workspace ------
 
-indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/hist_runninghistNat/'
+indir_toe_rcphn = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/hist_meanhistNat/'
 indir_toe_rcppiC = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_PiControl/'
 indir_mme_rcp85 = '/data/ericglod/Density_binning/Prod_density_april15/mme_rcp85/'
 indir_mme_hn = '/data/ericglod/Density_binning/Prod_density_april15/mme_histNat/'
@@ -36,8 +36,8 @@ indir_mme_piC = '/data/ericglod/Density_binning/Prod_density_april15/mme_piContr
 work = 'RCP85'
 # work = 'CO2'
 
-#figure = 'median'
-figure = 'range'
+figure = 'median'
+# figure = 'range'
 
 # output format
 # outfmt = 'view'
@@ -50,6 +50,7 @@ use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std
 runs_rcp = 'all' # All runs (35)
 
 varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('depth'); v = 'Z'
 
 multstd = 2 # detect ToE at multstd std dev of histnat/PiControl
 
@@ -112,7 +113,7 @@ if work == 'RCP85':
 
     # Loop over models
     if use_piC == False:
-        listfiles = glob.glob(indir_toe_rcphn + '/*toe_zonal_rcp_histNat.nc')
+        listfiles = glob.glob(indir_toe_rcphn + '/*'+legVar+'*.nc')
     else:
         listfiles = glob.glob(indir_toe_rcppiC + '/*.nc')
     nmodels = len(listfiles)
@@ -162,6 +163,8 @@ if work == 'RCP85':
 
     if runs_rcp == 'same':
         nmodels=nmodels-3
+        
+    nMembers = nMembers[np.ma.nonzero(nMembers)]
 
 else:
     # == 1%CO2 vs. PiControl ==
@@ -257,6 +260,9 @@ nruns_p = np.ma.count(varsignal_p,axis=0)
 nruns_i = np.ma.count(varsignal_i,axis=0)
 
 # -- Initialize median and percentiles
+mediansvarToEA = np.ma.masked_all((nmodels,levN,latN))
+mediansvarToEP = np.ma.masked_all((nmodels,levN,latN))
+mediansvarToEI = np.ma.masked_all((nmodels,levN,latN))
 medianToEA = np.ma.masked_all((levN, latN))
 medianToEP = np.ma.masked_all((levN, latN))
 medianToEI = np.ma.masked_all((levN, latN))
@@ -279,7 +285,6 @@ varToEA_clean = np.ma.masked_all((nruns,levN,latN))
 varToEP_clean = np.ma.masked_all((nruns,levN,latN))
 varToEI_clean = np.ma.masked_all((nruns,levN,latN))
 
-# TODO maybe use reshape instead of double loop ? Check feasability --> idem TOE computation
 for ilat in range(len(lat)):
     for isig in range(len(density)):
 
@@ -345,19 +350,25 @@ for ilat in range(len(lat)):
                 noagree_i[isig,ilat] = 1
                 varToEI_clean[:,isig,ilat] = varToEI[:,isig,ilat]
 
-# THOUGHT : deep Atlantic blank due to not enough unmasked runs ?
-
 print('Loops done')
-medianToEA = np.ma.around(np.ma.median(varToEA_clean, axis=0)) + iniyear
-percentile25ToEA = np.ma.around(np.percentile(varToEA_clean, 25, axis=0)) + iniyear
-percentile75ToEA = np.ma.around(np.percentile(varToEA_clean, 75, axis=0)) + iniyear
-medianToEP = np.ma.around(np.ma.median(varToEP_clean, axis=0)) + iniyear
-percentile25ToEP = np.ma.around(np.percentile(varToEP_clean, 25, axis=0)) + iniyear
-percentile75ToEP = np.ma.around(np.percentile(varToEP_clean, 75, axis=0)) + iniyear
-medianToEI = np.ma.around(np.ma.median(varToEI_clean, axis=0)) + iniyear
-percentile25ToEI = np.ma.around(np.percentile(varToEI_clean, 25, axis=0)) + iniyear
-percentile75ToEI = np.ma.around(np.percentile(varToEI_clean, 75, axis=0)) + iniyear
 
+# Compute inter-member medians
+n=0
+for i in range(nmodels):
+    mediansvarToEA[i,:,:] = np.ma.median(varToEA_clean[n:n+int(nMembers[i]),:,:],axis=0)
+    mediansvarToEP[i,:,:] = np.ma.median(varToEP_clean[n:n+int(nMembers[i]),:,:],axis=0)
+    mediansvarToEI[i,:,:] = np.ma.median(varToEI_clean[n:n+int(nMembers[i]),:,:],axis=0)
+    n = n + int(nMembers[i])
+    
+medianToEA = np.ma.around(np.ma.median(mediansvarToEA, axis=0)) + iniyear
+percentile25ToEA = np.ma.around(np.percentile(mediansvarToEA, 25, axis=0)) + iniyear
+percentile75ToEA = np.ma.around(np.percentile(mediansvarToEA, 75, axis=0)) + iniyear
+medianToEP = np.ma.around(np.ma.median(mediansvarToEP, axis=0)) + iniyear
+percentile25ToEP = np.ma.around(np.percentile(mediansvarToEP, 25, axis=0)) + iniyear
+percentile75ToEP = np.ma.around(np.percentile(mediansvarToEP, 75, axis=0)) + iniyear
+medianToEI = np.ma.around(np.ma.median(mediansvarToEI, axis=0)) + iniyear
+percentile25ToEI = np.ma.around(np.percentile(mediansvarToEI, 25, axis=0)) + iniyear
+percentile75ToEI = np.ma.around(np.percentile(mediansvarToEI, 75, axis=0)) + iniyear
 
 # for ilat in range(len(lat)):
 #     for isig in range(len(density)):
@@ -592,7 +603,7 @@ if figure == 'median':
         if use_piC == False:
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_runninghistNat'
+                plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_meanhistNat'
             else:
                 plotName = 'median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -602,13 +613,12 @@ if figure == 'median':
         name = '1pctCO2 vs. PiControl'
         plotName = 'median_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
-    plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]' \
-        '\n %d models, %d runs '%(nmodels,nruns)
+    plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]'
 
 
     #plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-    axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=14, verticalalignment='top')
-    plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold')
+    axes[0,1].set_title(plotTitle, fontweight='bold', fontsize=14)
+    plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold',va='center')
 
     plt.figtext(.5,.01,'Computed by : zonal_toe_median_range.py '+date,fontsize=9,ha='center')
     if use_piC and work =='RCP85':
@@ -654,7 +664,7 @@ else:
         if use_piC == False :
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_runninghistNat'
+                plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_meanhistNat'
             else:
                 plotName = 'range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -666,11 +676,10 @@ else:
         plotName = 'range_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
 
-    plotTitle = '25-75% multimodel ensemble range of the ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]' \
-        '\n %d models, %d runs '%(nmodels,nruns)
+    plotTitle = '25-75% multimodel ensemble range of the ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]'
 
-    plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-    plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold')
+    plt.suptitle(plotTitle, fontweight='bold', fontsize=14)
+    plt.figtext(.006,.5,'Density',rotation='vertical',horizontalalignment='left',fontsize=12,fontweight='bold',va='center')
 
     plt.figtext(.5,.01,'Computed by : zonal_toe_median_range.py '+date,fontsize=9,ha='center')
     if use_piC and work =='RCP85':

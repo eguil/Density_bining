@@ -5,7 +5,7 @@
 """
 import sys
 sys.path.append('/home/ysilvy/Density_bining/Yona_analysis/programs/')
-import os
+import os, glob
 from netCDF4 import Dataset as open_ncfile
 import matplotlib.pyplot as plt
 from maps_matplot_lib import defVarmme, defVarDurack, zon_2Dz, custom_div_cmap, modelagree
@@ -19,11 +19,14 @@ import pickle
 # -------------------------------------------------------------------------------
 
 # -- Choose what to compute
-# name = 'mme_hist_histNat'
+name = 'mme_hist_histNat'
 # name = 'mme_hist'
 # name = 'mme_1pctCO2vsPiC'
-name = 'mme_rcp85_histNat'
+# name = 'mme_rcp85_histNat'
 # name = 'ens_mean_hist'
+
+# -- Choose which model to conpute for ensemble means
+model_name = 'MIROC-ESM-CHEM'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
 focus_1pctCO2 = '2*CO2'  # 1.4 or 2*CO2 or 4*CO2
@@ -69,6 +72,8 @@ if name == 'mme_hist':
 
 if name == 'ens_mean_hist':
     indir = '/data/ericglod/Density_binning/Prod_density_april15/mme_hist/'
+    if model_name == 'FGOALS-g2':
+        indir = '/data/ysilvy/Density_binning/mme_hist/'
     file_2d = glob.glob(indir + '*.'+model_name+'*_zon2D.nc')[0]
     file_1d = glob.glob(indir + '*.'+model_name+'*_zon1D.nc')[0]
     fh2d = open_ncfile(file_2d, 'r')
@@ -113,7 +118,7 @@ if name == 'mme_rcp85_histNat':
 varname = defVarmme('salinity'); v = 'S'
 # varname = defVarmme('temp'); v = 'T'
 
-var = varname['var_zonal'] #var_zonal_w/bowl
+var = varname['var_zonal_w/bowl'] #var_zonal_w/bowl Take all then mask because fields without the bowl are wrong
 
 if name == 'mme_rcp85_histNat':
     minmax = varname['minmax_zonal_rcp85']
@@ -135,12 +140,15 @@ density3d = np.repeat(density2d[np.newaxis,:,:],4,axis=0)
 if name == 'mme_hist_histNat' or name == 'mme_rcp85_histNat':
     field2r = fh2d.variables[var][-20:,:,:,:] # historical or RCP8.5
     bowl2z = fh1d.variables['ptopdepth'][-20:,:,:]
+    bowl2r = fh1d.variables['ptopsigma'][-20:,:,:]
     if name == 'mme_hist_histNat':
         field1r = fhn2d.variables[var][-20:,:,:] # historicalNat (last 20 years to average)
         bowl1z = fhn1d.variables['ptopdepth'][-20:,:,:]
+        bowl1r = fhn1d.variables['ptopsigma'][-20:,:,:]
     else :
         field1r = fhn2d.variables[var][:,:,:] # historicalNat (entire time series to average)
         bowl1z = fhn1d.variables['ptopdepth'][:,:,:]
+        bowl1r = fhn1d.variables['ptopsigma'][:,:,:]
     if name == 'mme_rcp85_histNat':
         labBowl = ['histNat', 'RCP8.5']
     else:
@@ -150,7 +158,9 @@ if name == 'mme_hist' or name == 'ens_mean_hist':
     field2r = fh2d.variables[var][-5:,:,:,:]
     field1r = fh2d.variables[var][88:93,:,:,:] # 1950
     bowl2z = fh1d.variables['ptopdepth'][-5:,:,:]
+    bowl2r = fh1d.variables['ptopsigma'][-5:,:,:]
     bowl1z = fh1d.variables['ptopdepth'][88:93,:,:]
+    bowl1r = fh1d.variables['ptopsigma'][88:93,:,:]
     labBowl = ['1950','2000']
     if modelAgree:
         var_name = varname['var_zonal_w/bowl']
@@ -170,7 +180,9 @@ if name == 'mme_1pctCO2vsPiC':
     var_piC = varname['var_zonal_w/bowl'] # Problem with varBowl fields: no data, so read full field
     field1r = fhn2d.variables[var_piC][-20:,:,:,:] # PiControl
     bowl2z = fh1d.variables['ptopdepth'][y1:y2,:,:]
+    bowl2r = fh1d.variables['ptopsigma'][y1:y2,:,:]
     bowl1z = fhn1d.variables['ptopdepth'][-10:,:,:]
+    bowl1r = fhn1d.variables['ptopsigma'][-10:,:,:]
     labBowl = ['PiControl', focus_1pctCO2]
 
 # == Compute signal hist - histNat or 1pctCO2 - PiControl or rcp8.5 - histNat ==
@@ -179,8 +191,28 @@ vardiffr = np.ma.average(field2r, axis=0) - np.ma.average(field1r, axis=0)
 # == Average other variables ==
 bowl2z = np.ma.average(bowl2z, axis=0)
 bowl1z = np.ma.average(bowl1z, axis=0)
+bowl2r = np.ma.average(bowl2r, axis=0)
+bowl1r = np.ma.average(bowl1r, axis=0)
 if name=='mme_hist' and modelAgree :
     var_agreer = np.ma.average(var_agreer, axis=0)
+
+# == Mask above bowl ==
+for ilat in range(len(lat)):
+    if np.ma.is_masked(bowl2r[1,ilat]) == False :
+        inda = np.ma.nonzero(bowl2r[1,ilat]>=density)
+        vardiffr[1,inda,ilat] = np.ma.masked
+        if modelAgree and name =='mme_hist':
+            var_agreer[1,inda,ilat] = np.ma.masked
+    if np.ma.is_masked(bowl2r[2,ilat]) == False :
+        indp = np.ma.nonzero(bowl2r[2,ilat]>=density)
+        vardiffr[2,indp,ilat] = np.ma.masked
+        if modelAgree and name =='mme_hist':
+            var_agreer[2,indp,ilat] = np.ma.masked
+    if np.ma.is_masked(bowl2r[3,ilat]) == False :
+        indi = np.ma.nonzero(bowl2r[3,ilat]>=density)
+        vardiffr[3,indi,ilat] = np.ma.masked
+        if modelAgree and name =='mme_hist':
+            var_agreer[3,indi,ilat] = np.ma.masked
 
     
 # == Read reference pseudo-depth used for remapping ==
@@ -279,7 +311,9 @@ plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
-cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold')
+cb.set_label('%s (%s)' % (legVar, unit), fontweight='bold',fontsize=14)
+cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontweight='bold')
+cb.ax.yaxis.set_tick_params(which='major',width=2)
 
 # -- Add Title text
 if name == 'mme_hist_histNat':
@@ -310,7 +344,7 @@ if name == 'mme_rcp85_histNat':
 
 axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
 #fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
-plt.figtext(.004,.65,'Pseudo-depth (m)',rotation='vertical',fontweight='bold')
+plt.figtext(.002,.65,'Pseudo-depth (m)',rotation='vertical',fontweight='bold',fontsize=14)
 
 
 

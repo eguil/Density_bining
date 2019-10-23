@@ -25,7 +25,7 @@ def defVar(longName):
         'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
         '1dminmax': [-.1, .1], # for 1D ToE plots
         'legVar': "Salinity",  # Legend name
-        'unit': "PSU",  # TODO: could be read from file
+        'unit': "PSS-78",  # TODO: could be read from file
     }
 
     temp = {'var': 'thetaog', 'minmax': [-0.65, 0.65, 14], 'clevsm': np.arange(-2, 30, 1), 'clevsm_bold': np.arange(-2,30,2),
@@ -72,7 +72,7 @@ def defVarDurack(longName):
                 'clevsm': np.arange(30, 40, .25),
                 'clevsm_zonal': np.arange(30, 40, .25), #0.1
                 'clevsm_bold': np.arange(30, 40, .5),
-                'legVar': "Salinity", 'unit': "PSU", 'longN': 'salinity'}
+                'legVar': "Salinity", 'unit': "PSS-78", 'longN': 'salinity'}
 
     temp = {'var_change':'thetao_change', 'var_change_er':'thetao_change_error',
             'var_mean':'thetao_mean',
@@ -104,7 +104,7 @@ def defVarmme(longName):
                 'clevsm': np.arange(30, 40, .25),
                 'clevsm_zonal': np.arange(30, 40, .1),
                 'clevsm_bold': np.arange(30, 40, .5),
-                'legVar': "Salinity", 'unit': "PSU", 'longN': 'salinity'}
+                'legVar': "Salinity", 'unit': "PSS-78", 'longN': 'salinity'}
 
     temp = {'var_zonal':'isonthetaoBowl', 'var_zonal_w/bowl': 'isonthetao',
             'var_global': 'thetaogBowl', 'var_global_std':'thetaogBowlStd',
@@ -287,7 +287,9 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         bottom=False,  # ticks along the bottom edge are off
         labelbottom=False,
         top=False)
-
+    plt.setp(ax0.get_yticklabels(), fontweight='bold')
+    ax0.yaxis.set_tick_params(which='major',width=2)
+    
     # # For selecting specific boxes, make a fine grid
     # xminorLocator = AutoMinorLocator(4)
     # yminorLocator = AutoMinorLocator(5)
@@ -354,7 +356,11 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
         top=False)  # ticks along the top edge are off
-
+    plt.setp(ax1.get_yticklabels(), fontweight='bold')
+    plt.setp(ax1.get_xticklabels(), fontweight='bold')
+    ax1.yaxis.set_tick_params(which='major',width=2)
+    ax1.xaxis.set_tick_params(which='major',width=2)
+    
     # # For selecting specific boxes, make a fine grid
     # xminorLocator = AutoMinorLocator(4)
     # yminorLocator = AutoMinorLocator(5)
@@ -774,16 +780,18 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     ax0.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        labelbottom='off',
-        top='off')
-    ax0.tick_params(axis='y',which='both',right='on')
+        bottom=False,  # ticks along the bottom edge are off
+        labelbottom=False,
+        top=False)
+    ax0.tick_params(axis='y',which='both',right=True)
 
     if ticks != 'left':
-        ax0.tick_params(axis='y', labelleft='off')
+        ax0.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax0.tick_params(axis='y', labelright='on')
-
+        ax0.tick_params(axis='y', labelright=True)
+    
+    ax0.set_xticklabels(ax0.get_yticklabels(), fontweight='bold')
+    
     ax0.axvline(x=0, color='black', ls='--')
 
     # -- draw filled contours of the field
@@ -825,6 +833,9 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
         ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
         cont_isopyc1 = ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
         ax0.clabel(cont_isopyc1, inline=1, fontsize=13, fmt='%d')
+        
+    #plt.setp(ax0.get_yticklabels(), fontweight='bold')
+    ax0.yaxis.set_tick_params(which='major',width=2)
     #
     # ====  Lower panel   ===================================================
     #
@@ -833,19 +844,21 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     ax1.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        top='off')  # ticks along the bottom edge are off
-    ax1.tick_params(axis='y',which='both',right='on')
+        top=False)  # ticks along the bottom edge are off
+    ax1.tick_params(axis='y',which='both',right=True)
     
     if ticks != 'left':
-        ax1.tick_params(axis='y', labelleft='off')
+        ax1.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax1.tick_params(axis='y', labelright='on')
+        ax1.tick_params(axis='y', labelright=True)
 
+    ax1.set_xticklabels(ax1.get_yticklabels(), fontweight='bold')
+    
     ax1.axvline(x=0, color='black', ls='--')
 
     # -- Re-label x-axis
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
-    ax1.set_xticklabels(xlabels)
+    ax1.set_xticklabels(xlabels,fontweight='bold')
     # -- Set y ticks
     if zedmax == 2000:
         ymajorLocator = MultipleLocator(500)
@@ -889,9 +902,14 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
 #     if ticks == 'right':
 #         yticks[0].label2.set_visible(False)
 
-
+    #plt.setp(ax1.get_yticklabels(), fontweight='bold')
+    ax1.yaxis.set_tick_params(which='major',width=2)
+    ax1.xaxis.set_tick_params(which='major',width=2)
+        
     # -- add plot title
-    ax0.text(domlat[0] + 10, zedmin-10, varBasin['name'], fontsize=15, fontweight='bold')
+    #ax0.text(domlat[0] + 10, zedmin-10, varBasin['name'], fontsize=15, fontweight='bold')
+    ax1.text(domlat[1] - 33, zedmax-300, varBasin['name'], fontsize=15, fontweight='bold',bbox=dict(facecolor='white',edgecolor='white'))
+
 
     cnplot = [cnplot0, cnplot1]
     return cnplot

@@ -24,8 +24,8 @@ models = defModels()
 
 # ----- Work ------
 
-varname = defVarmme('salinity'); v = 'S'
-# varname = defVarmme('depth') ; v='Z'
+# varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('depth') ; v='Z'
 # varname = defVarmme('temp'); v = 'T'
 
 multStd = 2. # detect ToE at multStd std dev of histNat or PiControl
@@ -214,7 +214,7 @@ for i, model in enumerate(models): # Loop on models
             # Save in output file
             if use_piC == False:
                 fileName = 'cmip5.'+model['name']+'.'+legVar+'_toe_zonal_rcp_histNat.nc'
-                dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/'
+                dir = '/home/ysilvy/Density_bining/Yona_analysis/data/toe_zonal/toe_rcp85_histNat/hist_meanhistNat/'
                 description = 'Time of Emergence hist+rcp8.5 vs. histNat for each member. ' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \
                               'The ensemble mean historicalNat is used here for all historical runs of the model. ' \

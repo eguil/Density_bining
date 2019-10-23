@@ -25,7 +25,7 @@ def remaptoz(fieldr,depthr,targetz):
     
     for ibasin in range(basinN):
         for ilat in range(latN):
-
+            
             zsig = depthr[ibasin,:,ilat] # Read pseudo-depth (function of sigma) of water column
             field_sig = fieldr[ibasin,:,ilat] # Read field values of the water column
 
@@ -33,13 +33,13 @@ def remaptoz(fieldr,depthr,targetz):
             zsort = zsig[np.where(field_sig!=np.ma.masked)]
 
             if len(zsort) > 1:
-                zroll = np.roll(zsort,1)
-                zmean=(zsort+zroll)/2
-                zmean[0] = zsort[0]/2
-                fieldz[ibasin,:,ilat] = griddata(zmean,field_sort,targetz) # Grid field with target pressure grid at correct z levels
-            else :
-                fieldz[ibasin,:,ilat] = np.ma.masked
-    
+            	zroll = np.roll(zsort,1)
+            	zmean=(zsort+zroll)/2
+            	zmean[0] = zsort[0]/2
+            	fieldz[ibasin,:,ilat] = griddata(zmean,field_sort,targetz) # Grid field with target pressure grid at correct z levels
+            else:
+            	fieldz[ibasin,:,ilat] = np.ma.masked
+
     # Mask nans
     fieldz[np.isnan(fieldz)] = np.ma.masked
     

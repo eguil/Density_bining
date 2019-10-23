@@ -239,124 +239,54 @@ domain_names = ['SO subpolar Atlantic','SO subpolar Pacific','SO subpolar Indian
 
 # ===== One plot per domain ======
 
-# Create figure
-fig, axes = plt.subplots(nrows=2,ncols=5,sharex=True,sharey=True,figsize=(15,7))
-
-# Re-organize data
-dataToE2 = np.array([varToEA[:,0], varToEP[:,0], varToEI[:,0], varToEA[:,3], varToEP[:,2], varToEA[:,1], varToEP[:,1], varToEI[:,1], varToEP[:,4]])
-
-datanoise2 = np.array([varnoiseA[:,0], varnoiseP[:,0], varnoiseI[:,0], varnoiseA[:,3], varnoiseP[:,2], varnoiseA[:,1], varnoiseP[:,1], varnoiseI[:,1], varnoiseP[:,4]])
-
-# New domain labels
-domain_names2 = ['SO subtropics Atlantic', 'SO subtropics Pacific', 'SO subtropics Indian', 'NH subtropics Atlantic', 'NH subtropics Pacific', 'SO subpolar Atlantic','SO subpolar Pacific','SO subpolar Indian', 'subpolar North Pacific']
-
-
-ax1D = axes.ravel().tolist()
-l=['']*nmodels
-
-for idomain in range(len(domain_names2)):
-
-    ax = ax1D[idomain]
-    l[0] = ax.scatter(datanoise2[idomain,0:cumMembers[0]],dataToE2[idomain,0:cumMembers[0]],color=modelcolors(names[0])['color'],
-           s=20,facecolors='none',marker=modelcolors(names[0])['marker'], label=names[0])
-
-    for i in range(1,nmodels):
-        col = modelcolors(names[i])['color']
-        mk = modelcolors(names[i])['marker']
-        l[i] = ax.scatter(datanoise2[idomain,cumMembers[i-1]:cumMembers[i]],dataToE2[idomain,cumMembers[i-1]:cumMembers[i]],
-                   s=20, color=col, facecolors='none', marker=mk, label=names[i])
-
-    ax.set_title(domain_names2[idomain],fontsize=12,fontweight='bold')
-
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(45)
-
-if use_piC:
-    title = 'Hist+RCP8.5 vs. PiControl ('+str(nruns)+' runs)'
-    plotName = 'Scatterplot_ToE_noise_RCP85vsPiControl_'+str(multstd)+'std'
-    noise = 'PiControl'
-else:
-    title = 'Hist+RCP8.5 vs. histNat ('+str(nruns)+' runs)'
-    noise = 'histNat'
-    if runs_rcp == 'all':
-        plotName = 'Scatterplot_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_newsignal'
-    else:
-        plotName = 'Scatterplot_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_samerunsvsPiC'
-
-
-ax.set_ylim([1860,2105])
-ax.set_xlim([0,0.14])
-ax.set_xticks(np.arange(0,0.1401,0.02))
-xmajorLocator = MultipleLocator(40)
-xminorLocator = AutoMinorLocator(2)
-ax.yaxis.set_major_locator(xmajorLocator)
-ax.yaxis.set_minor_locator(xminorLocator)
-
-#plt.suptitle('ToE[>' +str(multstd)+ 'std]/noise for '+title+ ' in different regions', fontweight='bold', fontsize=14)
-
-plt.figtext(0.38,0.03,'Noise: std('+noise+')', fontweight='bold',fontsize=14)
-plt.figtext(0.007,0.63,'Time of Emergence', fontweight='bold', rotation='vertical',fontsize=14)
-
-# Put a legend to the right of the current axis
-lgd = fig.legend(l,names,loc='center right',bbox_to_anchor=(0.82, 0.27),scatterpoints=1,frameon=False, markerscale=2,fontsize=14)
-
-plt.subplots_adjust(left=0.06,hspace=0.13,bottom=0.12) #,right=0.83,
-
-fig.delaxes(axes[-1,-1])
-fig.delaxes(axes[-1,-2])
-
-# Date
-now = datetime.datetime.now()
-date = now.strftime("%Y-%m-%d")
-
-# Text at the bottom of the figure
-#plt.figtext(.8,.01,'Computed by : scatterplot_toe_noise.py, '+date, fontsize=8, ha='center')
-#plt.figtext(.2,.01,'Noise: %s' %(method_noise_rcp), fontsize=8, ha='center')
-if use_piC :
-    plt.figtext(.5,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
-
-
-if outfmt == 'view':
-    plt.show()
-else:
-    plt.savefig('/home/ysilvy/figures/models/ToE/scatterplots/'+plotName+'.pdf', bbox_extra_artists=(lgd,))
-
-# ===== One run, all domains in one plot =====
-
 ## Create figure
-#fig, axes = plt.subplots(nrows=3,ncols=4,sharex=True,sharey=True,figsize=(15,9))
+#fig, axes = plt.subplots(nrows=2,ncols=5,sharex=True,sharey=True,figsize=(15,7))
 
-#domain_colors = ['turquoise','deepskyblue','royalblue','firebrick','darkorange','gold','yellowgreen','forestgreen','darkmagenta']
+## Re-organize data
+#dataToE2 = np.array([varToEA[:,0], varToEP[:,0], varToEI[:,0], varToEA[:,3], varToEP[:,2], varToEA[:,1], varToEP[:,1], #varToEI[:,1], varToEP[:,4]])
+
+#datanoise2 = np.array([varnoiseA[:,0], varnoiseP[:,0], varnoiseI[:,0], varnoiseA[:,3], varnoiseP[:,2], varnoiseA[:,1], varnoiseP[:,1], varnoiseI[:,1], varnoiseP[:,4]])
+
+## New domain labels
+#domain_names2 = ['SO subtropics Atlantic', 'SO subtropics Pacific', 'SO subtropics Indian', 'NH subtropics Atlantic', 'NH subtropics Pacific', 'SO subpolar Atlantic','SO subpolar Pacific','SO subpolar Indian', 'subpolar North Pacific']
+
 
 #ax1D = axes.ravel().tolist()
-#l=['']*len(domain_names)
+#l=['']*nmodels
 
-#for imodel in range(len(ax1D)-1):
-#    ax = ax1D[imodel]
-#    
-#   for idomain in range(len(domain_names)):
-#        col = domain_colors[idomain]
-#        if imodel ==0:
-#            ax.scatter(datanoise[idomain,0:cumMembers[0]],dataToE[idomain,0:cumMembers[0]],color=col,s=20,facecolors='none', #label=domain_names[idomain])
-#        else:
-#            l[idomain] = ax.scatter(datanoise[idomain,cumMembers[imodel-1]:cumMembers[imodel]],dataToE[idomain,cumMembers[imodel-1]:cumMembers[imodel]],color=col, s=20,facecolors='none', label=domain_names[idomain])
+#for idomain in range(len(domain_names2)):
 
-#    ax.set_title(names[imodel] + ' ('+str(int(nMembers[imodel]))+')',fontsize=12,fontweight='bold')
+#    ax = ax1D[idomain]
+#    l[0] = ax.scatter(datanoise2[idomain,0:cumMembers[0]],dataToE2[idomain,0:cumMembers[0]],color=modelcolors(names[0])['color'],
+#           s=20,facecolors='none',marker=modelcolors(names[0])['marker'], label=names[0])
+
+#    for i in range(1,nmodels):
+#        col = modelcolors(names[i])['color']
+#        mk = modelcolors(names[i])['marker']
+#        l[i] = ax.scatter(datanoise2[idomain,cumMembers[i-1]:cumMembers[i]],dataToE2[idomain,cumMembers[i-1]:cumMembers[i]],
+#                   s=20, color=col, facecolors='none', marker=mk, label=names[i])
+
+#    ax.set_title(domain_names2[idomain],fontsize=12,fontweight='bold')
+
+#    plt.setp(ax.get_xticklabels(), fontweight='bold')
+#    plt.setp(ax.get_yticklabels(), fontweight='bold')
+#    ax.xaxis.set_tick_params(which='major',width=2)
+#    ax.yaxis.set_tick_params(which='major',width=2)
     
 #    for tick in ax.get_xticklabels():
 #        tick.set_rotation(45)
 
 #if use_piC:
 #    title = 'Hist+RCP8.5 vs. PiControl ('+str(nruns)+' runs)'
-#    plotName = 'Scatterplot_permodel_ToE_noise_RCP85vsPiControl_'+str(multstd)+'std'
+#    plotName = 'Scatterplot_ToE_noise_RCP85vsPiControl_'+str(multstd)+'std'
 #    noise = 'PiControl'
 #else:
 #    title = 'Hist+RCP8.5 vs. histNat ('+str(nruns)+' runs)'
 #    noise = 'histNat'
 #    if runs_rcp == 'all':
-#        plotName = 'Scatterplot_permodel_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_newsignal'
+#        plotName = 'Scatterplot_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_newsignal'
 #    else:
-#        plotName = 'Scatterplot_permodel_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_samerunsvsPiC'
+#        plotName = 'Scatterplot_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_samerunsvsPiC'
 
 
 #ax.set_ylim([1860,2105])
@@ -367,17 +297,18 @@ else:
 #ax.yaxis.set_major_locator(xmajorLocator)
 #ax.yaxis.set_minor_locator(xminorLocator)
 
-#fig.delaxes(axes[-1,-1])
 
-##plt.suptitle('ToE[>' +str(multstd)+ 'std]/noise for '+title, fontweight='bold', fontsize=14)
+##plt.suptitle('ToE[>' +str(multstd)+ 'std]/noise for '+title+ ' in different regions', fontweight='bold', fontsize=14)
 
-#plt.figtext(0.38,0.03,'Noise: std('+noise+')', fontweight='bold',fontsize=14)
-#plt.figtext(0.007,0.63,'Time of Emergence', fontweight='bold', rotation='vertical',fontsize=14)
+#plt.figtext(0.38,0.03,'Noise: std('+noise+')', fontweight='bold',fontsize=15)
+#plt.figtext(0.007,0.63,'Time of Emergence', fontweight='bold', rotation='vertical',fontsize=15)
 
 ## Put a legend to the right of the current axis
-#lgd = fig.legend(l,domain_names,loc='center right', bbox_to_anchor=(0.995, 0.5), scatterpoints=1,frameon=False, markerscale=2,fontsize=14)
+#lgd = fig.legend(l,names,loc='center right',bbox_to_anchor=(0.91, 0.27),scatterpoints=1,frameon=False, markerscale=2,fontsize=14)
 
-#plt.subplots_adjust(left=0.06,right=0.8,hspace=0.13,wspace=0.1,bottom=0.12)
+#plt.subplots_adjust(left=0.06,hspace=0.13,bottom=0.12) #,right=0.83,
+
+#fig.delaxes(axes[-1,-1])
 
 ## Date
 #now = datetime.datetime.now()
@@ -389,8 +320,87 @@ else:
 #if use_piC :
 #    plt.figtext(.5,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
 
+
 #if outfmt == 'view':
 #    plt.show()
 #else:
-#    plt.savefig('/home/ysilvy/figures/models/ToE/scatterplots/'+plotName+'.pdf',
-#                bbox_extra_artists=(lgd,))
+#    plt.savefig('/home/ysilvy/figures/models/ToE/scatterplots/'+plotName+'.pdf', bbox_extra_artists=(lgd,))
+
+# ===== One run, all domains in one plot =====
+
+# Create figure
+fig, axes = plt.subplots(nrows=3,ncols=4,sharex=True,sharey=True,figsize=(15,9))
+
+domain_colors = ['turquoise','deepskyblue','royalblue','firebrick','darkorange','gold','yellowgreen','forestgreen','darkmagenta']
+
+ax1D = axes.ravel().tolist()
+l=['']*len(domain_names)
+
+for imodel in range(len(ax1D)-1):
+    ax = ax1D[imodel]
+    
+    for idomain in range(len(domain_names)):
+        col = domain_colors[idomain]
+        if imodel ==0:
+            ax.scatter(datanoise[idomain,0:cumMembers[0]],dataToE[idomain,0:cumMembers[0]],color=col,s=20,facecolors='none', label=domain_names[idomain])
+        else:
+            l[idomain] = ax.scatter(datanoise[idomain,cumMembers[imodel-1]:cumMembers[imodel]],dataToE[idomain,cumMembers[imodel-1]:cumMembers[imodel]],color=col, s=20,facecolors='none', label=domain_names[idomain])
+
+    ax.set_title(names[imodel] + ' ('+str(int(nMembers[imodel]))+')',fontsize=12,fontweight='bold')
+    
+    plt.setp(ax.get_xticklabels(), fontweight='bold')
+    plt.setp(ax.get_yticklabels(), fontweight='bold')
+    ax.xaxis.set_tick_params(which='major',width=2)
+    ax.yaxis.set_tick_params(which='major',width=2)
+    
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(45)
+
+if use_piC:
+    title = 'Hist+RCP8.5 vs. PiControl ('+str(nruns)+' runs)'
+    plotName = 'Scatterplot_permodel_ToE_noise_RCP85vsPiControl_'+str(multstd)+'std'
+    noise = 'PiControl'
+else:
+    title = 'Hist+RCP8.5 vs. histNat ('+str(nruns)+' runs)'
+    noise = 'histNat'
+    if runs_rcp == 'all':
+        plotName = 'Scatterplot_permodel_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_newsignal'
+    else:
+        plotName = 'Scatterplot_permodel_ToE_noise_RCP85vshistNat_'+str(multstd)+'std_samerunsvsPiC'
+
+
+ax.set_ylim([1860,2105])
+ax.set_xlim([0,0.14])
+ax.set_xticks(np.arange(0,0.1401,0.02))
+xmajorLocator = MultipleLocator(40)
+xminorLocator = AutoMinorLocator(2)
+ax.yaxis.set_major_locator(xmajorLocator)
+ax.yaxis.set_minor_locator(xminorLocator)
+
+fig.delaxes(axes[-1,-1])
+
+#plt.suptitle('ToE[>' +str(multstd)+ 'std]/noise for '+title, fontweight='bold', fontsize=14)
+
+plt.figtext(0.38,0.03,'Noise: std('+noise+')', fontweight='bold',fontsize=15)
+plt.figtext(0.007,0.63,'Time of Emergence', fontweight='bold', rotation='vertical',fontsize=15)
+
+# Put a legend to the right of the current axis
+lgd = fig.legend(l,domain_names,loc='center right', bbox_to_anchor=(0.995, 0.5), scatterpoints=1,frameon=False, markerscale=2,fontsize=14)
+
+plt.subplots_adjust(left=0.06,right=0.8,hspace=0.13,wspace=0.1,bottom=0.12)
+
+# Date
+now = datetime.datetime.now()
+date = now.strftime("%Y-%m-%d")
+
+# Text at the bottom of the figure
+##plt.figtext(.8,.01,'Computed by : scatterplot_toe_noise.py, '+date, fontsize=8, ha='center')
+##plt.figtext(.2,.01,'Noise: %s' %(method_noise_rcp), fontsize=8, ha='center')
+if use_piC :
+    plt.figtext(.5,.01,'PiControl : mean(last_240_years)',fontsize=9,ha='center')
+
+if outfmt == 'view':
+    plt.show()
+else:
+    plt.savefig('/home/ysilvy/figures/models/ToE/scatterplots/'+plotName+'.pdf',
+                bbox_extra_artists=(lgd,))

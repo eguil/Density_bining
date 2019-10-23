@@ -17,16 +17,16 @@ PJD  1 Oct 2014     - Updated using timeint
 
 from binDensity import densityBin
 
-modelThetao = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
-modelSo = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
-modelVo = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/vo/vo_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+modelThetao = '/bdd/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+modelSo = '/bdd/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+modelVo = '/bdd/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/vo/vo_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
 
-modelAreacello = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5A-LR/piControl/fx/ocean/fx/r0i0p0/latest/areacello/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
+modelAreacello = '/bdd/CMIP5/main/IPSL/IPSL-CM5A-LR/piControl/fx/ocean/fx/r0i0p0/latest/areacello/areacello_fx_IPSL-CM5A-LR_piControl_r0i0p0.nc'
 outfileDensity = '/home/ysilvy/Density_bining/test/cmip5.IPSL-VLR0.piControl.rip.mon.ocean.Omon.density.nc'
 
-grid_T_file = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
-grid_S_file = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
-grid_V_file = '/prodigfs/project/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/vo/vo_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+grid_T_file = '/bdd/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/thetao/thetao_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+grid_S_file = '/bdd/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/so/so_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
+grid_V_file = '/bdd/CMIP5/main/IPSL/IPSL-CM5B-LR/piControl/mon/ocean/Omon/r1i1p1/latest/vo/vo_Omon_IPSL-CM5B-LR_piControl_r1i1p1_183001-187912.nc'
 targetGridFile = '/home/ericglod/Density_bining/170224_WOD13_masks.nc'
 
 print 'outfile:   ',outfileDensity

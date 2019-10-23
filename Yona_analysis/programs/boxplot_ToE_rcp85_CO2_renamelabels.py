@@ -102,21 +102,33 @@ for i in range(nmodels):
         nMembers[i] = toeread.shape[0]
         print('- Reading ToE of %s with %d members'%(name,nMembers[i]))
         nruns1 = int(nruns + nMembers[i])
+        
+        toeread_median = np.ma.median(toeread,axis=0)
 
         # Save ToE
-        varToEA[nruns:nruns1,:] = toeread[:,1,:]
-        varToEP[nruns:nruns1,:] = toeread[:,2,:]
-        varToEI[nruns:nruns1,:] = toeread[:,3,:]
+#         varToEA[nruns:nruns1,:] = toeread[:,1,:]
+#         varToEP[nruns:nruns1,:] = toeread[:,2,:]
+#         varToEI[nruns:nruns1,:] = toeread[:,3,:]
+        
+        # Inter-member median
+        varToEA[i,:] = toeread_median[1,:] #toeread[:,1,:]
+        varToEP[i,:] = toeread_median[2,:] #toeread[:,2,:]
+        varToEI[i,:] = toeread_median[3,:] #toeread[:,3,:]
 
         nruns = nruns1
 
 
 print('Total number of runs:', nruns)
-varToEA = varToEA[0:nruns,:]
-varToEP = varToEP[0:nruns,:]
-varToEI = varToEI[0:nruns,:]
+# varToEA = varToEA[0:nruns,:]
+# varToEP = varToEP[0:nruns,:]
+# varToEI = varToEI[0:nruns,:]
+varToEA = varToEA[0:i+1,:]
+varToEP = varToEP[0:i+1,:]
+varToEI = varToEI[0:i+1,:]
 
 nruns = int(nruns)
+nMembers = nMembers[np.ma.nonzero(nMembers)]
+
 
 if runs_rcp == 'same':
         nmodels=nmodels-3
@@ -201,8 +213,8 @@ for median in boxes1['medians']:
 ax.set_xlim([1860,2110])
 ax.set_xlabel('Years', fontweight='bold')
 plotTitle = 'ToE [>'+str(multstd)+'std] distribution for '+legVar+ ' in different regions'
-ax.set_title(plotTitle, y=1.08, fontweight='bold', va='bottom')
-ax.yaxis.set_tick_params(left='off', right='off', labelright='on', labelleft='off', pad=7)
+#ax.set_title(plotTitle, y=1.08, fontweight='bold', va='bottom')
+ax.yaxis.set_tick_params(left=False, right=False, labelright=False, labelleft=True)
 xmajorLocator = MultipleLocator(20)
 xminorLocator = AutoMinorLocator(2)
 ax.xaxis.set_major_locator(xmajorLocator)
@@ -228,7 +240,7 @@ for median in boxes2['medians']:
 ax2.set_xlim([0,250])
 ax2.set_yticks(ind)
 ax2.set_yticklabels(labels, fontweight='bold')
-ax2.yaxis.set_tick_params(left='off', right='off')
+ax2.yaxis.set_tick_params(left=False, right=False)
 ax2.set_ylim([0,N])
 xmajorLocator2 = MultipleLocator(20)
 xminorLocator2 = AutoMinorLocator(2)
@@ -241,13 +253,20 @@ ax2.axhline(y=ind[3], color='black', ls='--')
 ax2.axhline(y=ind[7], color='black', ls='--')
 ax2.axhline(y=ind[10], color='black', ls='--')
 
-# Domain labels
-ax2.text(-24,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-24,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-24,ind[8]+width, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
-ax2.text(-24,ind[10], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
+degree_sign= u'\N{DEGREE SIGN}'
 
-plt.subplots_adjust(left = 0.14)
+# Domain labels
+ax2.text(-43,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(275,ind[1], '~40-60'+degree_sign+'S \n ~27-28kg.m-3', ha='center', va='center', fontsize=12)
+ax2.text(-43,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(275,ind[5], '~20-40'+degree_sign+'S \n ~25-26.5kg.m-3', ha='center', va='center', fontsize=12)
+ax2.text(-43,ind[8]+width, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(275,ind[8], '~20-40'+degree_sign+'N \n ~26-27kg.m-3', ha='center', va='center', fontsize=12)
+ax2.text(275,ind[9], '~20-40'+degree_sign+'N \n ~25-26kg.m-3', ha='center', va='center', fontsize=12)
+ax2.text(-43,ind[11], 'Subpolar \n North Pacific', ha='center', fontweight='bold', fontsize=13)
+ax2.text(275,ind[11], '~40-60'+degree_sign+'N \n ~26-27kg.m-3', ha='center', va='center', fontsize=12)
+
+plt.subplots_adjust(left=0.18,right=0.85,top=0.91,bottom=0.1)
 
 # Legend
 # legendlabel = 'Hist + RCP8.5 vs. HistNat ('+str(nruns)+' runs) \n 1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)'
@@ -259,9 +278,9 @@ else :
     title = 'Hist + RCP8.5 vs. HistNat'
     end_name = 'use_histNat'
     end_noise = 'RCP8.5 vs. HistNat'
-ax2.text(0.5,1.045, title + ' ('+str(nruns)+' runs)', color='#c90016',
+ax2.text(0.5,1.045, title, color='#c90016',
          va='center', ha='center',transform=ax2.transAxes, fontweight='bold')
-ax2.text(0.5,1.065, '1%CO2 vs. PiControl ('+str(len(modelspiC))+' runs)', color='#004f82',
+ax2.text(0.5,1.065, '1%CO2 vs. PiControl', color='#004f82',
          va='center', ha='center',transform=ax2.transAxes, fontweight='bold')
 
 # Date
