@@ -162,7 +162,8 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
         # Array inits (2D rho/lat 3D rho/lat/lon)
             #shapeR = [basN,levN,latN]
         isonvar  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*valmask
-        vardiff,varbowl2D = [npy.ma.ones(npy.ma.shape(isonvar)) for _ in range(2)]
+        print('isonvar shape: ',isonvar.shape)
+        vardiff,varbowl2D = [npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32') for _ in range(2)]
         varstd,varToE1,varToE2 =  [npy.ma.ones([runN,basN,levN,latN], dtype='float32')*valmask for _ in range(3)]
         varones  = npy.ma.ones([runN,timN,basN,levN,latN], dtype='float32')*1.
 
@@ -331,7 +332,9 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
                 for ib in range(basN):
                     if siglimit[ib,il] < valmask/1000.:
                         # if bowl density defined, mask above bowl
-                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))
+                        index = (npy.argwhere(sigmaGrd[:] >= siglimit[ib,il]))[:,0] #Add [:,0] for python Yona
+                        #import code
+                        #code.interact(banner='index', local=dict(locals(), **globals()))
                         isonVarBowl[:,ib,0:index[0],il].mask = True
                         vardiffsgSum[:,ib,0:index[0],il].mask = True
                     else:

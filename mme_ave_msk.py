@@ -36,33 +36,33 @@ tcpu0 = timc.clock()
 # ===============================================================================================================
 #                                        INIT - work definition
 # ===============================================================================================================
-#raw = True
+# raw = True
 raw = False
-# fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy)
-fullTS = False
-#testOneModel = True
-testOneModel = False
+fullTS = True # to compute for the full range of time (used for raw/oneD to compute ptopsigmaxy and correct file)
+# fullTS = False
+testOneModel = True
+# testOneModel = False
 
 # Initial correction of Raw binned files (longitude interpolation and bowl issues)
-correctF = False  # only active if Raw = True
+correctF = True  # only active if Raw = True
 
 # Keep existing files or replace (if True and file present, ignores the model mm or mme computation)
 # Use False for testing
-keepFiles = True
+keepFiles = False #True
 
 oneD = False
 twoD = False
 
-#oneD = True
+# oneD = True
 twoD = True
-mm  = False
-mme = True
+mme  = False
+mm = True
 # experiment
-#exper = 'historical'
+exper = 'historical'
 #exper = 'historicalNat'
 #exper = 'piControl'
 #exper = '1pctCO2'
-exper = 'rcp85'
+#exper = 'rcp85'
 #exper = 'obs'
 
 # Time mean/max bowl calculation used to mask out bowl
@@ -89,8 +89,7 @@ selMME = 'Nat' # select only models for which there are hist AND histNat simulat
 
 hostname = socket.gethostname()
 if 'locean-ipsl.upmc.fr' in hostname:
-    baseDir = '/Volumes/hciclad/data/Density_binning/'
-    #baseDir = '/Volumes/hciclad2/data/Density_binning/'
+    baseDir = '/Volumes/hciclad2/data/Density_binning/'
 elif 'waippo.local' in hostname or 'canalip.upmc.fr' in hostname or 'waippo-3.local' in hostname:
     if raw:
         baseDir = '/Volumes/hciclad/data/Density_binning/'
@@ -99,9 +98,11 @@ elif 'waippo.local' in hostname or 'canalip.upmc.fr' in hostname or 'waippo-3.lo
         baseDir ='/Users/ericg/Projets/Density_bining/'
         baseDir = '/Volumes/hciclad/data/Density_binning/'
 elif 'private.ipsl.fr' in hostname:
-    baseDir = '/data/ericglod/Density_binning/'
+    baseDir = '/data/ericglod/Density_binning/IPSL_CM6_hist/'
 elif 'crunchy.llnl.gov' in hostname:
     baseDir = '/work/guilyardi/'
+elif 'ciclad-ng.private.ipsl.fr' in hostname:
+    baseDir = '/data/ericglod/Density_binning/IPSL_CM6_hist/'
 else:
     print hostname
     sys.exit('Unknown hostname')
@@ -121,24 +122,29 @@ if exper <> 'obs':
     #rootDir = '/data/ericglod/Density_binning/Prod_density_april15/Raw/'
     #rootdir = '/work/guilyardi/Prod_density_april15/Raw'
     if raw:
-        rootDir =baseDir+'Prod_density_april15/Raw/'
+        rootDir =baseDir #'Prod_density_april15/Raw/'
+        rootDirOut = '/data/ysilvy/Density_binning/IPSL-CM6/'
     else:
-        rootDir =baseDir+'Prod_density_april15/'
-    histDir    = rootDir+'historical'
+        rootDir =baseDir #+'Prod_density_april15/'
+        rootDirOut = '/data/ysilvy/Density_binning/IPSL-CM6/'
+    histDir    = rootDir+'historical/fullts/'
     histNatDir = rootDir+'historicalNat'
     piControlDir = rootDir+'piControl'
     pctCO2Dir = rootDir+'1pctCO2'
     rcp85Dir = rootDir+'rcp85'
-    histMMEOut = rootDir+'mme_hist'
-    histNatMMEOut = rootDir+'mme_histNat'
-    picMMEOut = rootDir+'mme_piControl'
-    pctMMEOut = rootDir+'mme_1pctCO2'
-    rcp85MMEOut = rootDir+'mme_rcp85'
-    ToeNatOut = rootDir+'toe_histNat'
+    ssp460Dir = rootDir+'ssp460'
+    ssp585Dir = rootDir+'ssp585'
+    
+    histMMEOut = rootDirOut#+'historical' #mme_hist
+    histNatMMEOut = rootDirOut+'historicalNat' #mme_histNat'
+    picMMEOut = rootDirOut+'piControl'#'mme_piControl'
+    pctMMEOut = rootDirOut+'mme_1pctCO2'
+    rcp85MMEOut = rootDirOut+'mme_rcp85'
+    ToeNatOut = rootDirOut+'toe_histNat'
 
     # output name
     outroot = 'cmip5.multimodel'
-    inroot  = 'cmip5'
+    inroot  = 'cmip6'#'cmip5'
 else:
 
 # Specific variables for observations
@@ -170,7 +176,7 @@ modelSel = range(nmodels)
 # modelSel = [3,10,18,19,25,27,28]
 #modelSel = [22,23]
 if testOneModel:
-    modelSel = [19]
+    modelSel = [-1]#[19]
 
 if mme:
     fullTS = False
@@ -183,11 +189,11 @@ if ToE:
 if exper == 'historical':
     indir  = [histDir]
     outdir = histMMEOut
-    idxtime=[0,145]
+    idxtime= [0,165] #[0,145]
 elif exper == 'historicalNat':
     indir  = [histNatDir]
     outdir = histNatMMEOut
-    idxtime=[0,145]
+    idxtime=[0,165]
 elif exper == 'piControl':
     indir  = [piControlDir]
     outdir = picMMEOut
@@ -196,12 +202,13 @@ elif exper == 'piControl':
 elif exper == '1pctCO2':
     indir  = [pctCO2Dir]
     outdir = pctMMEOut
-    idxtime=[0,140]
+    idxtime=[0,150]
     selMME = 'piCtl' # select on runs that also have a piControl
 elif exper == 'rcp85':
     indir = [rcp85Dir]
     outdir = rcp85MMEOut
     idxtime=[0,95]
+#SSP
 elif exper == 'obs':
     indir  = [rootDir]
     outdir = ObsMMEOut
@@ -229,7 +236,7 @@ else:
     appendDim2d='zon2D'
 
 if raw & twoD :
-    outdir = outdir+'/mme'
+    outdir = outdir#+'/mme'
     if mme:
         indir[0] = indir[0]+'/mme'
 
@@ -288,11 +295,11 @@ for i in modelSel:
         chartest = exper
     elif exper == '1pctCO2':
         nens = models[i]['props'][2]
-        years=[0,140]
+        years=[0,150]
         chartest = exper
     elif exper == 'rcp85':
         nens = models[i]['props'][5]
-        years=[0,95]
+        years=[0,85]
         chartest = exper
     elif exper == 'obs':
         nens = models[i]['props'][0]
@@ -306,13 +313,17 @@ for i in modelSel:
                 listf  = glob.glob(inroot+'.'+mod+'.*.nc')
                 listf1 = listf
             else:
-                listf  = glob.glob(inroot+'.'+mod+'.*zon2D*')
-                listf1 = glob.glob(inroot+'.'+mod+'.*zon1D*')
+                listf  = glob.glob(inroot+'.'+mod+'*.nc')#+'.*zon2D*')
+                listf1 = glob.glob(inroot+'.'+mod+'*.nc')#+'.*zon1D*')
             if len(listf) == 0:
                 print i, mod
                 sys.exit('### no such file !')
-            start = listf[0].find(chartest)+len(chartest)
-            end = listf[0].find('.an.')
+            #start = listf[0].find(chartest+'_density_)+len(chartest)
+            #end = listf[0].find('.an.')
+            #rip = listf[0][start:end]
+            # For IPSLCM6 change the replacement string
+            start = listf[0].find('i1p1f1')-2
+            end = listf[0].find('f1')+2
             rip = listf[0][start:end]
             if raw:
                 outFile = replace(listf[0],rip,'.ensm')
@@ -328,9 +339,13 @@ for i in modelSel:
                         else:
                             print ' -> correct ',filec
                             correctFile(idxcorr, 1, filec, indir[0], filec, outDirc)
-                    i#ndirnew = outDirc
+                    #indirnew = outDirc
             else:
-                outFile = replace(listf[0],rip,'.ensm')
+                #outFile = replace(listf[0],rip,'.ensm')
+                #outFile1 = replace(outFile,'2D','1D')
+                # Modify for IPSLCM6
+                outFile = replace(listf[0],rip,'ensm')
+                outFile = replace(outFile,'.nc','_zon2D.nc')
                 outFile1 = replace(outFile,'2D','1D')
             # Create lists for mme
             if mme:
