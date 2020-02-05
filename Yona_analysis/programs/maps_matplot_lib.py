@@ -118,11 +118,11 @@ def defVarmme(longName):
     depth = {'var_zonal':'isondepthBowl', 'var_zonal_w/bowl': 'isondepth',
              'clevsm_zonal': np.arange(0, 2000, 100),
              'clevsm_bold' : np.arange(0,2000,500),
-             'minmax_zonal': [-50, 50, 16], 'minmax_zonal_rcp85': [-100, 100, 16],
+             'minmax_zonal': [-50, 50, 16], 'minmax_zonal_rcp85': [-300, 300, 16],
              'legVar': "Depth", 'unit': "m", 'longN': 'depth'}
 
-    volume = {'var_zonal': 'isonvolBowl', 'var_zonal_w/bowl': 'isonvolBowl',
-              'minmax_zonal': [-20., 20., 20],
+    volume = {'var_zonal': 'isonvolBowl', 'var_zonal_w/bowl': 'isonvol',
+              'minmax_zonal': [-20., 20., 16], 'minmax_zonal_rcp85': [-40,40,16],
               'clevsm_zonal': np.arange(0, 500, 50),
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume'
               }

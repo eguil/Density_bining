@@ -46,7 +46,8 @@ use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std
 # runs_rcp = 'same' # Same runs (30 runs) for hist+RCP8.5 vs. histNat as for hist+RCP8.5 vs. PiControl
 runs_rcp = 'all' # All runs (35)
 
-varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('salinity'); v = 'S'
+varname = defVarmme('depth'); v = 'Z'
 
 multstd = 2 # detect ToE at multstd std dev of histnat/PiControl
 
@@ -570,15 +571,15 @@ if figure == 'median':
         if use_piC == False:
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_paper'
+                plotName = 'remapping2_median_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd'
             else:
-                plotName = 'remapping2_median_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
+                plotName = 'remapping2_median_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
             name = 'hist+RCP8.5 vs. PiControl'
-            plotName = 'remapping2_median_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+            plotName = 'remapping2_median_ToE_'+legVar+'_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
     else:
         name = '1pctCO2 vs. PiControl'
-        plotName = 'remapping2_median_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
+        plotName = 'remapping2_median_ToE_'+legVar+'_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
 
     # -- Add title    
@@ -649,16 +650,16 @@ else:
         if use_piC == False :
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd_paper'
+                plotName = 'remapping2_range_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd'
             else:
-                plotName = 'remapping2_range_ToE_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
+                plotName = 'remapping2_range_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
             name = 'hist+RCP8.5 vs. PiControl'
-            plotName = 'remapping2_range_ToE_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
+            plotName = 'remapping2_range_ToE_'+legVar+'_rcp85vspiC_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std'
 
     else:
         name = '1pctCO2 vs. PiControl'
-        plotName = 'remapping2_range_ToE_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
+        plotName = 'remapping2_range_ToE_'+legVar+'_1pctCO2vsPiC_'+ str(nb_outliers_CO2)+'_outliers_'+str(multstd)+'std'
         nruns = nmodels
 
     # -- Add title

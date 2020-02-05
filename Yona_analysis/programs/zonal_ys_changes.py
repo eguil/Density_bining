@@ -29,11 +29,11 @@ import datetime
 # name = 'mme_hist_histNat'
 # name = 'ens_mean_hist'
 #name = 'ens_mean_hist_histNat'
-name = 'mme_1pctCO2vsPiC'
+# name = 'mme_1pctCO2vsPiC'
 # name = 'mme_1pctCO2'
 # name = '1pctCO2'
 # name = '1pctCO2vsPiC'
-# name = 'mme_rcp85_histNat'
+name = 'mme_rcp85_histNat'
 # name = 'ens_mean_rcp85_histNat'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
@@ -189,9 +189,9 @@ if name == 'Durack & Wijffels':
 
 else:
     # -- Choose wich variable to work on
-    varname = defVarmme('salinity'); v = 'S'
+#     varname = defVarmme('salinity'); v = 'S'
     # varname = defVarmme('temp'); v = 'T'
-    # varname = defVarmme('depth'); v = 'Z'
+    varname = defVarmme('depth'); v = 'Z'
     density = fh2d.variables['lev'][:]
     var = varname['var_zonal_w/bowl']
 
@@ -545,10 +545,10 @@ now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
 #plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-plt.figtext(.004,.6,'Density (kg.m-3)',rotation='vertical',fontweight='bold')
+plt.figtext(.006,.45,'Density (kg.m-3)',rotation='vertical',horizontalalignment='left',fontweight='bold')
 #plt.figtext(.5,.015,'Computed by : zonal_ys_changes.py,  '+date,fontsize=9,ha='center')
 #if modelAgree and name=='mme_hist':
     #plt.figtext(.1,.015,'Model agreement level : ' + str(agreelev),fontsize=9,ha='center')
 
-plt.show()
-#plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+# plt.show()
+plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')

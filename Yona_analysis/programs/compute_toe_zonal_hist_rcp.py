@@ -218,7 +218,7 @@ for i, model in enumerate(models): # Loop on models
                 description = 'Time of Emergence hist+rcp8.5 vs. histNat for each member. ' \
                               'The historical runs are prolonged by the 95 years of RCP8.5. ' \
                               'The ensemble mean historicalNat is used here for all historical runs of the model. ' \
-                              'The signal in each point is hist+RCP8.5-10yearmovingaverage(histNat+mean(histNat)). '\
+                              'The signal in each point is hist+RCP8.5-timeaverage(histNat). '\
                               'The noise in each point is the max standard deviation of the historicalNat runs ' \
                               'The ToE is computed by using once or twice the noise as the threshold.'
             else:
