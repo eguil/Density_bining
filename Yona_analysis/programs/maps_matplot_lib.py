@@ -156,7 +156,7 @@ def custom_div_cmap(numcolors=17, name='custom_div_cmap',
 #   Build zonal latitude/density plot
 # ----------------------------------------------------
 
-def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap, levels, clevsm=None, clevsm_bold=None):
+def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, cnDict, domrho, clevsm=None, clevsm_bold=None):
 
     # latitude domain
     domlat = [-70, 70]
@@ -230,8 +230,8 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         label2 = varBasin['labBowl'][1]
 
     # levels and color map
-    levels = levels
-    cmap = cmap
+    levels = cnDict['levels']
+    cmap = cnDict['cmap']
 
     # Create meshgrid
     lat2d, density2d = np.meshgrid(lat, density)
@@ -255,13 +255,13 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         #cnt1 = ax0.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
         #ax0.clabel(cnt1, inline=1, fontsize=11, fmt='%.3f')
     else:
-        cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
+        cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend=cnDict['ext_cmap'])
 
-    # # -- Draw mean contours
-    # if (action == 'total_mme' and var_mean != None) or action == 'total' :
-    #     cpplot11 = ax0.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
-    #     cpplot12 = ax0.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
-    #     ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+#     # -- Draw mean contours
+#     if (action == 'total_mme' and var_mean != None) or action == 'total' :
+#         cpplot11 = ax0.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
+#         cpplot12 = ax0.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
+#         ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     # -- Draw areas where signal is not significant for D&W
     if action == 'total' :
@@ -287,16 +287,16 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         bottom=False,  # ticks along the bottom edge are off
         labelbottom=False,
         top=False)
-    plt.setp(ax0.get_yticklabels(), fontweight='bold')
+    
     ax0.yaxis.set_tick_params(which='major',width=2)
     
     # # For selecting specific boxes, make a fine grid
-    # xminorLocator = AutoMinorLocator(4)
-    # yminorLocator = AutoMinorLocator(5)
-    # ax0.xaxis.set_minor_locator(xminorLocator)
-    # ax0.yaxis.set_minor_locator(yminorLocator)
-    # ax0.grid(True, which='minor')
-    # ax0.grid(True, which='major', ls='-')
+    #xminorLocator = AutoMinorLocator(4)
+    #yminorLocator = AutoMinorLocator(5)
+    #ax0.xaxis.set_minor_locator(xminorLocator)
+    #ax0.yaxis.set_minor_locator(yminorLocator)
+    #ax0.grid(True, which='minor')
+    #ax0.grid(True, which='major', ls='-')
 
     ax0.tick_params(axis='y',right=True)
     if ticks != 'left':
@@ -304,6 +304,7 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if ticks == 'right':
         ax0.tick_params(axis='y', labelright=True)
 
+    plt.setp(ax0.get_yticklabels(), fontweight='bold', fontsize=12)
     ax0.axvline(x=0, color='black', ls='--')
 
 
@@ -328,13 +329,13 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         #cnt2 = ax1.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
         #ax1.clabel(cnt2, inline=1, fontsize=11, fmt='%.3f')
     else:
-        cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
+        cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend=cnDict['ext_cmap'])
 
-    # # -- Draw mean contours
-    # if (action == 'total_mme'  and var_mean != None) or action == 'total':
-    #     cpplot21 = ax1.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
-    #     cpplot22 = ax1.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
-    #     ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+#     # -- Draw mean contours
+#     if (action == 'total_mme'  and var_mean != None) or action == 'total':
+#         cpplot21 = ax1.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
+#         cpplot22 = ax1.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
+#         ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     # -- Draw areas where signal is not significant for D&W
     if action == 'total' :
@@ -356,18 +357,14 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
         top=False)  # ticks along the top edge are off
-    plt.setp(ax1.get_yticklabels(), fontweight='bold')
-    plt.setp(ax1.get_xticklabels(), fontweight='bold')
-    ax1.yaxis.set_tick_params(which='major',width=2)
-    ax1.xaxis.set_tick_params(which='major',width=2)
     
     # # For selecting specific boxes, make a fine grid
-    # xminorLocator = AutoMinorLocator(4)
-    # yminorLocator = AutoMinorLocator(5)
-    # ax1.xaxis.set_minor_locator(xminorLocator)
-    # ax1.yaxis.set_minor_locator(yminorLocator)
-    # ax1.grid(True, which='minor')
-    # ax1.grid(True, which='major', ls='-')
+    #xminorLocator = AutoMinorLocator(4)
+    #yminorLocator = AutoMinorLocator(5)
+    #ax1.xaxis.set_minor_locator(xminorLocator)
+    #ax1.yaxis.set_minor_locator(yminorLocator)
+    #ax1.grid(True, which='minor')
+    #ax1.grid(True, which='major', ls='-')
     
     ax1.tick_params(axis='y',right=True)
     if ticks != 'left':
@@ -375,6 +372,11 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     if ticks == 'right':
         ax1.tick_params(axis='y', labelright=True)
 
+    plt.setp(ax1.get_yticklabels(), fontweight='bold', fontsize=12)
+    plt.setp(ax1.get_xticklabels(), fontweight='bold', fontsize=12)
+    ax1.yaxis.set_tick_params(which='major',width=2)
+    ax1.xaxis.set_tick_params(which='major',width=2)
+    
     ax1.axvline(x=0, color='black', ls='--')
 
     # Re-label x-axis
@@ -403,7 +405,7 @@ def modelagree(ax0,ax1,agreelev,lat,lev,var_agree):
     lat2d, lev2d = np.meshgrid(lat, lev)
 
     # -- draw agreement contour > agreement level (agreelev)
-    ax0.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev,], hatches=['....'], colors='None')
+    ax0.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev], hatches=['....'], colors='None')
     #ax0.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
     #            linewidths=1.5)
     #ax0.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
@@ -790,7 +792,8 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     if ticks == 'right':
         ax0.tick_params(axis='y', labelright=True)
     
-    ax0.set_xticklabels(ax0.get_yticklabels(), fontweight='bold')
+    #ax0.set_yticklabels(ax0.get_yticklabels(), fontweight='bold')
+    plt.setp(ax0.get_yticklabels(), fontweight='bold', fontsize=12)
     
     ax0.axvline(x=0, color='black', ls='--')
 
@@ -852,13 +855,11 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     if ticks == 'right':
         ax1.tick_params(axis='y', labelright=True)
 
-    ax1.set_xticklabels(ax1.get_yticklabels(), fontweight='bold')
-    
     ax1.axvline(x=0, color='black', ls='--')
 
     # -- Re-label x-axis
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
-    ax1.set_xticklabels(xlabels,fontweight='bold')
+    ax1.set_xticklabels(xlabels,fontweight='bold',fontsize=12)
     # -- Set y ticks
     if zedmax == 2000:
         ymajorLocator = MultipleLocator(500)
@@ -870,6 +871,8 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=Non
     ax1.yaxis.set_minor_locator(yminorLocator)
     #ax1.set_yticks([500,1000,1500,2000])
     #ax1.set_yticks([1000,1000,2000,3000,4000,5000])
+    
+    plt.setp(ax1.get_yticklabels(), fontweight='bold', fontsize=12)
         
     # -- draw filled contours
     cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels2'], extend=cnDict['ext_cmap'])

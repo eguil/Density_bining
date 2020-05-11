@@ -13,8 +13,10 @@ def remaptoz(fieldr,depthr,targetz):
            targetz - target 1D depth grid for remapping
            
     output: fieldz - (basin,pseudo-z,latitude)
+            zbowl - (basin,latitude)
     
     June 2019: correction for values to correspond to correct z levels
+    March 2020: adding zbowl output
     """
     
     basinN = fieldr.shape[0]
@@ -22,6 +24,7 @@ def remaptoz(fieldr,depthr,targetz):
     latN = fieldr.shape[2]
     
     fieldz = np.ma.masked_all((basinN,len(targetz),latN))
+    zbowl = np.zeros((basinN,latN))
     
     for ibasin in range(basinN):
         for ilat in range(latN):
@@ -33,15 +36,17 @@ def remaptoz(fieldr,depthr,targetz):
             zsort = zsig[np.where(field_sig!=np.ma.masked)]
 
             if len(zsort) > 1:
-            	zroll = np.roll(zsort,1)
-            	zmean=(zsort+zroll)/2
-            	zmean[0] = zsort[0]/2
-            	fieldz[ibasin,:,ilat] = griddata(zmean,field_sort,targetz) # Grid field with target pressure grid at correct z levels
+                zroll = np.roll(zsort,1)
+                zmean=(zsort+zroll)/2
+                zmean[0] = zsort[0]/2
+                fieldz[ibasin,:,ilat] = griddata(zmean,field_sort,targetz) # Grid field with target pressure grid at correct z levels
+                zbowl[ibasin,ilat] = zmean[0]
             else:
-            	fieldz[ibasin,:,ilat] = np.ma.masked
+                fieldz[ibasin,:,ilat] = np.ma.masked
+                zbowl[ibasin,ilat] = np.ma.masked
 
     # Mask nans
     fieldz[np.isnan(fieldz)] = np.ma.masked
     
-    return fieldz
+    return fieldz, zbowl
 

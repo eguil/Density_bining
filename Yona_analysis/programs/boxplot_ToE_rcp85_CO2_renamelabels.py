@@ -174,7 +174,7 @@ for i, model in enumerate(modelspiC):
 maskdata  = np.nan
 
 # New domain labels
-new_domains = ['SO subpolar', 'SO subtropics', 'NH subtropics', 'subpolar North Pacific']
+new_domains = ['SO subpolar', 'SH subtropics', 'NH subtropics', 'subpolar North Pacific']
 # regroup previous "North Atlantic" with NH subtropics, remove NH Indian
 
 
@@ -211,15 +211,16 @@ for median in boxes1['medians']:
 
 
 ax.set_xlim([1860,2110])
-ax.set_xlabel('Years', fontweight='bold')
+ax.set_xlabel('Years', fontweight='bold', fontsize=14)
 plotTitle = 'ToE [>'+str(multstd)+'std] distribution for '+legVar+ ' in different regions'
 #ax.set_title(plotTitle, y=1.08, fontweight='bold', va='bottom')
-ax.yaxis.set_tick_params(left=False, right=False, labelright=False, labelleft=True)
+ax.yaxis.set_tick_params(left=False, right=False, labelright=False, labelleft=True,pad=-10)
+ax.set_yticklabels(labels, horizontalalignment = 'left')
 xmajorLocator = MultipleLocator(20)
 xminorLocator = AutoMinorLocator(2)
 ax.xaxis.set_major_locator(xmajorLocator)
 ax.xaxis.set_minor_locator(xminorLocator)
-
+ax.xaxis.set_tick_params(which='major',width=2)
 
 ax2 = ax.twiny()
 blue_crosses = dict(markeredgecolor='#004f82', marker='+',linewidth=1)
@@ -247,7 +248,10 @@ xminorLocator2 = AutoMinorLocator(2)
 ax2.xaxis.set_major_locator(xmajorLocator2)
 ax2.xaxis.set_minor_locator(xminorLocator2)
 
-plt.setp(ax.get_yticklabels(), visible=True)
+plt.setp(ax2.get_yticklabels(), fontsize=12,fontweight='bold')
+plt.setp(ax.get_yticklabels(), fontsize=12,fontweight='bold')
+plt.setp(ax.get_xticklabels(), fontweight='bold',fontsize=14, rotation=20)
+plt.setp(ax2.get_xticklabels(), fontweight='bold',fontsize=14, rotation=20)
 
 ax2.axhline(y=ind[3], color='black', ls='--')
 ax2.axhline(y=ind[7], color='black', ls='--')
@@ -258,7 +262,7 @@ degree_sign= u'\N{DEGREE SIGN}'
 # Domain labels
 ax2.text(-43,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(275,ind[1], '~40-60'+degree_sign+'S \n ~27-28kg.m-3', ha='center', va='center', fontsize=12)
-ax2.text(-43,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-43,ind[5], 'SH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(275,ind[5], '~20-40'+degree_sign+'S \n ~25-26.5kg.m-3', ha='center', va='center', fontsize=12)
 ax2.text(-43,ind[8]+width, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(275,ind[8], '~20-40'+degree_sign+'N \n ~26-27kg.m-3', ha='center', va='center', fontsize=12)
@@ -302,4 +306,4 @@ else:
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/figures/models/ToE/boxplots/'+plotName+'.png')
+    plt.savefig(plotName+'.png',dpi=150)

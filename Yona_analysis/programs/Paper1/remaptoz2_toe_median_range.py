@@ -16,6 +16,8 @@ import numpy as np
 import colormaps as cmaps
 import datetime
 import pickle
+import matplotlib as mpl
+mpl.rcParams['hatch.linewidth'] = 0.5
 
 # ----- Workspace ------
 
@@ -46,8 +48,8 @@ use_piC = False # Signal = (hist-histNat) + RCP8.5-average(histNat), noise = std
 # runs_rcp = 'same' # Same runs (30 runs) for hist+RCP8.5 vs. histNat as for hist+RCP8.5 vs. PiControl
 runs_rcp = 'all' # All runs (35)
 
-# varname = defVarmme('salinity'); v = 'S'
-varname = defVarmme('depth'); v = 'Z'
+varname = defVarmme('salinity'); v = 'S'
+# varname = defVarmme('depth'); v = 'Z'
 
 multstd = 2 # detect ToE at multstd std dev of histnat/PiControl
 
@@ -461,15 +463,17 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
    4800, 4900, 5000, 5100, 5200, 5300, 5400, 5500]
 
 # -- Remap --
-medianToEz = np.ma.around(remaptoz(medianToEr,pseudo_depth,targetz))
+medianToEz, zbowl = remaptoz(medianToEr,pseudo_depth,targetz)
+medianToEz = np.ma.around(medianToEz)
 print('Median remapping done')
-rangeToEz = np.ma.around(remaptoz(rangeToEr,pseudo_depth,targetz))
+rangeToEz, zbowlbis = remaptoz(rangeToEr,pseudo_depth,targetz)
+rangeToEz = np.ma.around(rangeToEz)
 print('Range remapping done')
-noagreez = remaptoz(noagreer,pseudo_depth,targetz)
+noagreez, zbowlbis = remaptoz(noagreer,pseudo_depth,targetz)
 print('noagree remapping done')
-norangez = remaptoz(noranger,pseudo_depth,targetz)
+norangez, zbowlbis = remaptoz(noranger,pseudo_depth,targetz)
 print('norange remapping done')
-density_z = remaptoz(density3d, pseudo_depth,targetz)
+density_z, zbowlbis = remaptoz(density3d, pseudo_depth,targetz)
 print('density remapping done')
 
 # -- Make variable bundles for each basin
@@ -525,7 +529,7 @@ if figure == 'median':
     cb = fig.colorbar(cnplot[1], ax=axes.ravel().tolist(), ticks=levels, fraction=0.015, shrink=2.0, pad=0.05)
     cb.set_label('%s' % (unit,), fontweight='bold',fontsize=14)
     cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontweight='bold')
-    cb.ax.yaxis.set_tick_params(which='major',width=2)
+    cb.ax.yaxis.set_tick_params(which='major',width=2,labelsize=12)
 
     # Pacific
     cnplot = zon_2Dz(plt, axes[0,1], axes[1,1], 'mid', lat, targetz, varPacmedian,
@@ -562,16 +566,18 @@ if figure == 'median':
     for i in range(3):
         axes[0,i].contourf(lat2d, lev2d, noagreez[i+1,:,:], levels=[0.25,0.5,1.5], colors='None', hatches=['','....'])
         axes[1,i].contourf(lat2d, lev2d, noagreez[i+1,:,:], levels=[0.25,0.5,1.5], colors='None',hatches=['','....'])
+        # -- Draw bowl
+        axes[0,i].fill_between(lat,y1=0,y2=zbowl[i+1],color='0.3',zorder=10)
 
 
-    plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.85)
+    plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.05, right=0.85)
 
 
     if work == 'RCP85':
         if use_piC == False:
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping2_median_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd'
+                plotName = 'fig3a' #'remapping2_median_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd'
             else:
                 plotName = 'remapping2_median_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -585,14 +591,14 @@ if figure == 'median':
     # -- Add title    
     plotTitle = 'Multimodel ensemble median ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]'
 
-    axes[0,1].set_title(plotTitle, fontweight='bold', fontsize=15)
+#     axes[0,1].set_title(plotTitle, fontweight='bold', fontsize=15)
 
     plt.figtext(.001,.5,'Pseudo-depth (m)',rotation='vertical',fontweight='bold',fontsize=14,va='center')
-    plt.figtext(.006,.96,'a',fontweight='bold',fontsize=16)
+    plt.figtext(.006,.96,'a',fontweight='bold',fontsize=18)
 
     figureDir = 'models/zonal_remaptoz/'
     if outfmt == 'save':
-        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight',dpi='figure')
+        plt.savefig(plotName+'.png', bbox_inches='tight',dpi=300) #'/home/ysilvy/figures/'+figureDir+
     else:
         plt.show()
 
@@ -616,11 +622,11 @@ else:
     contourDict = {'cmap':cmap, 'levels':levels, 'levels2':levels, 'ext_cmap':ext_cmap, 'isopyc':False}
 
     # -- Contourf
-    cnplot2 = zon_2Dz(fig2, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlrange,
+    cnplot2 = zon_2Dz(plt, axes[0,0], axes[1,0], 'left', lat, targetz, varAtlrange,
                      contourDict, domzed)
-    cnplot2 = zon_2Dz(fig2, axes[0,1], axes[1,1], 'mid', lat, targetz, varPacrange,
+    cnplot2 = zon_2Dz(plt, axes[0,1], axes[1,1], 'mid', lat, targetz, varPacrange,
                      contourDict, domzed)
-    cnplot2 = zon_2Dz(fig2, axes[0,2], axes[1,2], 'right', lat, targetz, varIndrange,
+    cnplot2 = zon_2Dz(plt, axes[0,2], axes[1,2], 'right', lat, targetz, varIndrange,
                      contourDict, domzed)
 
 
@@ -629,28 +635,30 @@ else:
             axes[i,ibasin].contourf(lat2d, lev2d, norangez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='0.8') # No emergence
             axes[i,ibasin].contourf(lat2d, lev2d, noagreez[ibasin+1,:,:], levels=[0.25,0.5,1.5], colors='None', hatches=['','....']) # No agreement
             
-            plt.setp(axes[i,ibasin].get_yticklabels(), fontweight='bold')
+#             plt.setp(axes[i,ibasin].get_yticklabels(), fontweight='bold')
 
     # -- Contours
     if work == 'RCP85':
         for i in range(3):
             cnt1 = axes[0,i].contour(lat2d,lev2d,rangeToEz_agree[i+1,:,:],levels=levels[1::2],linewidths=0.5,colors='k')
             cnt2 = axes[1,i].contour(lat2d,lev2d,rangeToEz_agree[i+1,:,:],levels=levels[1::2],linewidths=0.5,colors='k')
-
-    fig2.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.85)
+             # -- Draw bowl
+            axes[0,i].fill_between(lat,y1=0,y2=zbowl[i+1],color='0.3',zorder=10)
+    
+    fig2.subplots_adjust(hspace=.012, wspace=0.05, left=0.05, right=0.85)
 
     # -- Add colorbar
     cb = fig2.colorbar(cnplot2[1], ax=axes.ravel().tolist(), ticks=levels, fraction=0.015, shrink=2.0, pad=0.05)
     cb.set_label('%s' % (unit,), fontweight='bold',fontsize=14)
     cb.ax.set_yticklabels(cb.ax.get_yticklabels(), fontweight='bold')
-    cb.ax.yaxis.set_tick_params(which='major',width=2)
+    cb.ax.yaxis.set_tick_params(which='major',width=2,labelsize=12)
     
 
     if work == 'RCP85':
         if use_piC == False :
             name = 'hist+RCP8.5 vs. histNat'
             if runs_rcp == 'all':
-                plotName = 'remapping2_range_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd'
+                plotName = 'suppfig5' #'remapping2_range_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_OrRd'
             else:
                 plotName = 'remapping2_range_ToE_'+legVar+'_rcp85vshistNat_'+ str(nb_outliers)+'_outliers_'+str(multstd)+'std_samerunsvsPiC'
         else:
@@ -665,9 +673,7 @@ else:
     # -- Add title
     plotTitle = '25-75% multimodel ensemble range of the ToE for ' + legVar + ', ' + name + ' [> ' + str(multstd) + ' std]'
 
-
-    #plt.suptitle(plotTitle, fontweight='bold', fontsize=14, verticalalignment='top')
-    axes[0,1].set_title(plotTitle, fontweight='bold', fontsize=15)
+#     axes[0,1].set_title(plotTitle, fontweight='bold', fontsize=15)
 
     #plt.figtext(.5,.01,'Computed by : remaptoz2_toe_median_range.py '+date,fontsize=9,ha='center')
     plt.figtext(.001,.5,'Pseudo-depth (m)',rotation='vertical',fontweight='bold',fontsize=14,va='center')
@@ -680,6 +686,6 @@ else:
     figureDir = 'models/zonal_remaptoz/'
 
     if outfmt == 'save':
-        plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+        plt.savefig(plotName+'.png', bbox_inches='tight', dpi=300) #'/home/ysilvy/figures/'+figureDir+
     else:
         plt.show()

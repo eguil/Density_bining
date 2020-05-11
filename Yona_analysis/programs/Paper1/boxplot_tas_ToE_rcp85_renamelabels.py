@@ -212,7 +212,7 @@ if work != 'rcp85_histNat_1pctCO2_2std':
 # -- Organize data
 
 # New domain labels
-new_domains = ['SO subpolar', 'SO subtropics', 'NH subtropics', 'subpolar North Pacific']
+new_domains = ['SO subpolar', 'SH subtropics', 'NH subtropics', 'subpolar North Pacific']
 # regroup previous "North Atlantic" with NH subtropics
 
 # tas ToE reference hist+rcp8.5 vs. histNat [>2std]
@@ -269,8 +269,9 @@ for median in boxes1['medians']:
 
 
 ax.set_xlim([-1,6.01])
-ax.set_xlabel('GSAT anomaly ('+degree_sign+'C) relative to '+str(y1)+'-'+str(y2), fontweight='bold',fontsize=13)
-ax.tick_params(axis='y',left=False, right=False, labelright=False, labelleft=True)#,pad=7)
+ax.set_xlabel('GSAT anomaly ('+degree_sign+'C) relative to '+str(y1)+'-'+str(y2), fontweight='bold',fontsize=14)
+ax.tick_params(axis='y',left=False, right=False, labelright=False, labelleft=True,pad=-10)#,pad=7)
+ax.set_yticklabels(labels, horizontalalignment = 'left')
 xmajorLocator = MultipleLocator(0.5)
 xminorLocator = AutoMinorLocator(2)
 ax.xaxis.set_major_locator(xmajorLocator)
@@ -296,30 +297,32 @@ for median in boxes2['medians']:
 ax2.set_xlim([-1,6.01])
 ax2.set_yticks(ind)
 ax2.set_yticklabels(['Atlantic','Pacific','Indian','','Atlantic','Pacific','Indian','','Atlantic','Pacific','',''])
-ax2.tick_params(axis='y',labelleft=True,left=False,right=False,labelright=False)
+ax2.tick_params(axis='y',labelleft=True,left=False,right=False,labelright=False,pad=-10)
 ax2.set_ylim([0,N])
 xmajorLocator2 = MultipleLocator(0.5)
 xminorLocator2 = AutoMinorLocator(2)
 ax2.xaxis.set_major_locator(xmajorLocator2)
 ax2.xaxis.set_minor_locator(xminorLocator2)
 
-plt.setp(ax2.get_yticklabels(), visible=True)
-plt.setp(ax.get_xticklabels(), fontweight='bold',fontsize=13)
+plt.setp(ax2.get_yticklabels(), fontsize=12,fontweight='bold')
+plt.setp(ax.get_yticklabels(), fontsize=12,fontweight='bold')
+plt.setp(ax.get_xticklabels(), fontweight='bold',fontsize=14)
+plt.setp(ax2.get_xticklabels(), fontweight='bold',fontsize=14)
 
 ax2.axhline(y=ind[3], color='black', ls='--')
 ax2.axhline(y=ind[7], color='black', ls='--')
 ax2.axhline(y=ind[10], color='black', ls='--')
 
-plt.subplots_adjust(left=0.15,right=0.87,top=0.91,bottom=0.1)
+plt.subplots_adjust(left=0.15,right=0.87,top=0.91,bottom=0.11)
 
 degree_sign= u'\N{DEGREE SIGN}'
 
 # Domain labels
-ax2.text(-2,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1.8,ind[1], 'SO \n subpolar', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(6.6,ind[1], '~40-60'+degree_sign+'S \n ~27-28kg.m-3', ha='center', va='center', fontsize=12)
-ax2.text(-2,ind[5], 'SO \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1.8,ind[5], 'SH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(6.6,ind[5], '~20-40'+degree_sign+'S \n ~25-26.5kg.m-3', ha='center', va='center', fontsize=12)
-ax2.text(-2,ind[8]+0.5, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
+ax2.text(-1.8,ind[8]+0.5, 'NH \n subtropics', ha='center', va='center', fontweight='bold', fontsize=13)
 ax2.text(6.6,ind[8], '~20-40'+degree_sign+'N \n ~26-27kg.m-3', ha='center', va='center', fontsize=12)
 ax2.text(6.6,ind[9], '~20-40'+degree_sign+'N \n ~25-26kg.m-3', ha='center', va='center', fontsize=12)
 ax2.text(-1.8,ind[11], 'Subpolar \n North Pacific', ha='center', va='center',fontweight='bold', fontsize=13)
@@ -390,5 +393,6 @@ for i in range(len(newticknames2)):
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/figures/models/ToE/boxplots/'
-                +plotName+'_'+str(y1)+'_'+str(y2)+'_newlabels_paper.png')
+    plt.savefig('suppboxplot_'+work+'.png',dpi=150)    
+# plt.savefig('/home/ysilvy/figures/models/ToE/boxplots/'
+#                 +plotName+'_'+str(y1)+'_'+str(y2)+'_newlabels_paper.png')

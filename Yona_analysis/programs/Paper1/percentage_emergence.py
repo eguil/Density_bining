@@ -47,20 +47,20 @@ axes[0].set_xticks(np.arange(1920,2081,20))
 axes[1].tick_params(axis='y', labelleft='on')
 axes[2].tick_params(axis='y', labelleft='on')
 plt.subplots_adjust(wspace=0.1,top=0.85,left=0.04, right=0.92)
-plt.suptitle('Percentage of basin emergence in zonal means under the bowl',fontweight='bold', fontsize=13)
-plt.figtext(.006,.95,'b',fontweight='bold',fontsize=16)
+# plt.suptitle('Percentage of basin emergence in zonal means under the bowl',fontweight='bold', fontsize=13)
+plt.figtext(.006,.95,'b',fontweight='bold',fontsize=18)
 
 for i in range(3):
-    plt.setp(axes[i].get_xticklabels(), fontweight='bold')
-    plt.setp(axes[i].get_yticklabels(), fontweight='bold')
-    axes[i].xaxis.set_tick_params(which='major',width=2)
-    axes[i].yaxis.set_tick_params(which='major',width=2)
+    plt.setp(axes[i].get_xticklabels(), fontweight='bold',fontsize=12, rotation=20)
+    plt.setp(axes[i].get_yticklabels(), fontweight='bold',fontsize=12)
+    axes[i].xaxis.set_tick_params(which='major',width=2,labelsize=12)
+    axes[i].yaxis.set_tick_params(which='major',width=2,labelsize=12)
 
 # Date
 now = datetime.datetime.now()
 date = now.strftime("%Y-%m-%d")
 
-plotName = 'percentage_basin_emergence_medians_rcp85_meanhistNat_paper'
+plotName = 'fig3b' #'percentage_basin_emergence_medians_rcp85_meanhistNat_paper'
 figureDir = 'models/ToE/'
-plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png') #,bbox_inches='tight')
+plt.savefig(plotName+'.png', dpi=300) #,bbox_inches='tight')
 #plt.show()

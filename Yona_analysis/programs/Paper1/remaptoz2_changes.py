@@ -19,13 +19,13 @@ import pickle
 # -------------------------------------------------------------------------------
 
 # -- Choose what to compute
-name = 'mme_hist_histNat'
+# name = 'mme_hist_histNat'
 # name = 'mme_hist'
-# name = 'mme_1pctCO2vsPiC'
+name = 'mme_1pctCO2vsPiC'
 # name = 'mme_rcp85_histNat'
 # name = 'ens_mean_hist'
 
-# -- Choose which model to conpute for ensemble means
+# -- Choose which model to compute for ensemble means
 model_name = 'MIROC-ESM-CHEM'
 
 # -- Choose where to stop for 1%CO2 simulations : 2*CO2 (70 years) or 4*CO2 (140 years) or 1.4*CO2 (34 years)
@@ -232,12 +232,17 @@ targetz = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,
    4800, 4900, 5000, 5100, 5200, 5300, 5400, 5500]
 
 # == Remap ==
-fieldz = remaptoz(vardiffr,pseudo_depth,targetz)
+fieldz, zbowl = remaptoz(vardiffr,pseudo_depth,targetz)
 print('field remapped')
-density_z = remaptoz(density3d,pseudo_depth,targetz)
+density_z, zbowl2 = remaptoz(density3d,pseudo_depth,targetz)
 print('density remapped')
 if name=='mme_hist' and modelAgree:
-    var_agreez = remaptoz(var_agreer,pseudo_depth,targetz)
+    var_agreez, zbowl3 = remaptoz(var_agreer,pseudo_depth,targetz)
+
+# import xarray as xr
+# density_z = xr.DataArray(density_z,dims=['basin','pseudo-depth','latitude'],
+#                           coords=[[0,1,2,3],targetz,lat])
+# density_z = density_z.where(xr.DataArray(targetz,dims=['pseudo-depth'],coords=[targetz])>=zbowl)
 
 # -- Make variable bundles for each basin
 varAtl = {'name': 'Atlantic', 'var_change': fieldz[1,:,:], 'bowl1': None, 'bowl2': None,
@@ -307,7 +312,11 @@ if name=='mme_hist' and modelAgree:
 #    axes[0,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.2')
 #    axes[1,i].fill_between(lat,[targetz[-1]]*len(lat),bathy[i+1,:],facecolor='0.2')
 
-plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.04, right=0.86)
+for i in range(3):
+    # -- Draw bowl
+    axes[0,i].fill_between(lat,y1=0,y2=zbowl[i+1],color='0.3',zorder=10)
+    
+plt.subplots_adjust(hspace=.012, wspace=0.05, left=0.05, right=0.86)
 
 # -- Add colorbar
 cb = plt.colorbar(cnplot[0], ax=axes.ravel().tolist(), ticks=levels[::3], fraction=0.015, shrink=2.0, pad=0.05)
@@ -342,9 +351,9 @@ if name == 'mme_rcp85_histNat':
     plt.figtext(.006,.96,'b',fontweight='bold',fontsize=16)
     #plt.figtext(.2,.01,'Last 20 years RCP8.5 - mean(histNat)',fontsize=8,ha='center')
 
-axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
+# axes[0,1].set_title(plotTitle, y=1.25, fontweight='bold', fontsize=15, verticalalignment='top')
 #fig.suptitle(plotTitle, fontsize=14, fontweight='bold')
-plt.figtext(.002,.65,'Pseudo-depth (m)',rotation='vertical',fontweight='bold',fontsize=14)
+plt.figtext(.002,.35,'Pseudo-depth (m)',rotation='vertical',fontweight='bold',fontsize=14)
 
 
 
@@ -359,4 +368,4 @@ date = now.strftime("%Y-%m-%d")
 if outfmt == 'view':
     plt.show()
 else:
-    plt.savefig('/home/ysilvy/figures/'+figureDir+plotName+'.png', bbox_inches='tight')
+    plt.savefig(plotName+'.png', bbox_inches='tight',dpi=150) #'/home/ysilvy/figures/'+figureDir+
