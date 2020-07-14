@@ -28,7 +28,8 @@ EG  03 Feb 2015     - Code optimisation (removing loop in persistence)
 @author: durack1
 """
 
-import ESMP,gc,os,resource,timeit ; #argparse,sys
+import gc,os,resource,timeit ; #argparse,sys
+import ESMF as ESMP
 import cdms2 as cdm
 from cdms2 import CdmsRegrid
 import cdutil as cdu
@@ -39,9 +40,10 @@ from string import replace
 import time as timc
 #from scipy.interpolate import interp1d
 #from scipy.interpolate._fitpack import _bspleval
+from scipy.interpolate import griddata
 
 # Turn off numpy warnings
-npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
+#npy.seterr(all='ignore') ; # Cautious use of this turning all error reporting off - shouldn't be an issue as using masked arrays
 
 # Function definitions
 
@@ -567,8 +569,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     #  Init density bining
     # ---------------------
     # test point
-    itest = 100
-    jtest = 80
+    itest = 136 #55 #37 #100
+    jtest = 20 #70 #111 #80
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
@@ -713,7 +715,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             if fileV != 'none':
                 print ' vo     :',vo.data    [0,:,ijtest]
         # Reset output arrays to missing for binned fields
-        depth_Bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
+        depth_bin,thick_bin,x1_bin,x2_bin = [npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask for _ in range(4)]
         if fileV != 'none':
             x3_bin = npy.ma.ones([tcdel, N_s+1, latN*lonN])*valmask
         tucz0     = timc.clock()
@@ -726,6 +728,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             cpu5 = 0.
         # Loop on time within chunk tc
         for t in range(trmax-trmin):
+            print(t)
             tcpu0 = timc.clock()
             # x1 contents on vertical (not yet implemented - may be done to ensure conservation)
             x1_content = thetao.data[t]
@@ -755,7 +758,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 x3_content = x3intz
             #print npy.argwhere(nomask == True).shape # 16756/27118 for ORCA2/IPSL-CM5A-LR
             # Check integrals on source z coordinate grid
-            if debug and t == 0:
+            if debug and (t == 0 or t==6):
                 voltotij0 = npy.ma.sum(lev_thickt*(1-vmask_3D[:,:]), axis=0)
                 temtotij0 = npy.ma.sum(lev_thickt*(1-vmask_3D[:,:])*x1_content[:,:], axis=0)
                 saltotij0 = npy.ma.sum(lev_thickt*(1-vmask_3D[:,:])*x2_content[:,:], axis=0)
@@ -808,7 +811,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                     szmax[i] = rho_max+10.
             szmaxt[t,:] = szmax
             tcpu2 = timc.clock()
-            if debug and t == 0: #t == 0:
+            if debug and t == 0:
                 print ' i_bottom, szmin, szmax, i_min, i_max',i_bottom[ijtest], szmin[ijtest],szmax[ijtest], i_min[ijtest],i_max[ijtest]
             #
             #  Find indices between density min and density max
@@ -826,7 +829,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                     c3m[k,k_ind] = c3_z[k,k_ind]
                 zzm[k,:] = z_zt[k] # TODO ?? For smooth bottom interpolation use z_zw for integral field ?
 
-            if debug and t == 0 :
+            if debug and (t == 0 or t == 6):
                 print ' szm just before interp', szm[:,ijtest]
                 if fileV != 'none':
                     print ' c3m just before interp', c3m[:,ijtest]
@@ -839,19 +842,45 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # This loop uses 85% of the CPU
             # TODO: use ESMF ? outsource to fortran program ?
             # TODO check that interp is linear or/and stabilise column as post-pro
+            # Now testing with griddata (Yona Aug 30th 2019)
+
+            #szm[szm>valmask/10] = npy.nan # Replacing valmask by nan for griddata interpolation
+            #szm = maskVal(szm,valmask) # Create mask for szm for interpolation
+            #zzm = maskVal(zzm,valmask)
+        
             tcpu3 = timc.clock()
             for i in range(lonN*latN):
                 if nomask[i]:
-                    z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = 0., left = 0.) ; # depth - consider spline
-                    c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask, left = valmask) ; # thetao
-                    c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask, left = valmask) ; # so
-                    if fileV != 'none':
-                        c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = c3m[0,i]) ; # volume flux
+                    #z_s [0:N_s,i] = griddata(szm[:,i], zzm[:,i], s_s[:,i], fill_value=0.)
+                    indi = npy.ma.flatnotmasked_edges(szm[:,i]) # Find 1st and last indices with unmasked data
+                    if indi[0] != indi[1]:
+                        z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[indi[0]:indi[1]+1,i], zzm[indi[0]:indi[1]+1,i])   
+                    #z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[szm[:,i]<valmask/10,i], zzm[szm[:,i]<valmask/10,i], right = 0., left = 0.)
+                    #z_s [0:N_s,i] = npy.interp(s_s[:,i], szm[:,i], zzm[:,i], right = 0., left = 0.)   
+                        
+                        c1_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c1m[:,i], right = valmask, left = valmask) ; # thetao
+                        c2_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c2m[:,i], right = valmask, left = valmask) ; # so
+    #                     if i==ijtest and t==6:
+    #                         print(indi)
+    #                         print(z_s[0:N_s,i])
+    #                         print(c1_s[0:N_s,i])
+                        if fileV != 'none':
+                            c3_s[0:N_s,i] = npy.interp(z_s[0:N_s,i], zzm[:,i], c3m[:,i], right = valmask, left = c3m[0,i]) ; # volume flux
+
+            if t==0 or t==6:
+                import code
+                code.interact(banner='end of interp', local=dict(locals(), **globals()))
+#             z_s[npy.isnan(z_s)==True] = valmask # Replacing nan by valmask
+#             szm[npy.isnan(szm)==True] = valmask
+#             c1_s[npy.isnan(c1_s)==True] = valmask
+#             c2_s[npy.isnan(c2_s)==True] = valmask
+            
             tcpu40 = timc.clock()
             # find mask on s grid
             indsm = npy.argwhere (c1_s > valmask/10).transpose()
 
-            if debug and t == 0 : #t == 0:
+            if debug and (t == 0 or t==6):
+                print type(z_s)
                 print ' z_s just after interp', z_s[:,ijtest]
                 print ' c1_s just after interp', c1_s[:,ijtest]
                 if fileV != 'none':
@@ -913,7 +942,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # Compute thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
-            if debug and t == 0:
+            if debug and (t == 0 or t==6):
                 print ' t_s: '
                 print t_s[:,ijtest]
             # Create 3D tiled array with bottom value at all levels (to avoid loop)
@@ -930,23 +959,23 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 c3_s[inds[0],inds[1]] = c3t[inds[0],inds[1]]
 
             tcpu4 = timc.clock()
-            if debug and t == 0: #t == 0:
+            if debug and (t == 0 or t==6):
                 print ' z_s  after inds test', z_s[:,ijtest]
                 if fileV != 'none':
                     print ' c3_s after inds test', c3_s[:,ijtest]
             # Add half level to depth to ensure thickness integral conservation at bottom
-            if debug and t == 0:
+            if debug and (t == 0 or t==6):
                 print ' before add half level:'
                 print z_s [bottom_ind[0],bottom_ind[1]][ijtest]
                 print lev_thick[i_bottom[ijtest]]/2.
             z_s [bottom_ind[0],bottom_ind[1]] = z_s[bottom_ind[0],bottom_ind[1]]+lev_thick[i_bottom[:]]/2.
-            if debug and t == 0:
+            if debug and (t == 0 or t==6):
                 print ' after add half level:'
                 print z_s [bottom_ind[0],bottom_ind[1]][ijtest]
             # Correct thickness of isopycnal from depth
             t_s = z_s - npy.roll(z_s,1,axis=0)
             t_s[indsm[0], indsm[1]] = -10.
-            if debug and t == 0:
+            if debug and (t == 0 or t==6):
                 print ' corrected thickness:'
                 print t_s[:,ijtest]
             # Use thickness of isopycnal (less than zero) to create masked point for all binned arrays
@@ -958,7 +987,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             if fileV != 'none':
                 c3_s[inds[0],inds[1]] = valmask
             #
-            if debug and t == 0: #t == 0:
+            if debug and (t == 0 or t==6):
                 #  Check t_s == 0 vs. non-masked values for c1_s
                 indtst = npy.argwhere( (t_s <= 0.) & (c1_s < valmask/10) )
                 print 'Nb points with t_s vs. c1_s pb ',indtst.shape
@@ -1020,6 +1049,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 cpu4 = cpu4 + tcpu40 - tcpu3
                 cpu40 = cpu40 + tcpu4 - tcpu40
                 cpu5 = cpu5 + tcpu5 - tcpu4
+
+            if debug and (t==0 or t==6):
+                import code
+                code.interact(banner='end of t=0 or 6', local=dict(locals(), **globals()))        
         #
         # end of loop on t <===
         #
@@ -1036,6 +1069,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             print '    CPU comp. rho = ',turr-turd
 
         ticz0 = timc.clock()
+
+        import code
+        code.interact(banner='end of loop on t', local=dict(locals(), **globals()))
+
         # Free memory
         del(rhon, x1_content, x2_content,  vmask_3D, szm, zzm, c1m, c2m,  \
             z_s, c1_s, c2_s,  t_s, inds, c1_z, c2_z   ) ; gc.collect()
@@ -1053,6 +1090,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         thick_bin      = maskVal(thick_bin, valmask)
         x1_bin         = maskVal(x1_bin, valmask)
         x2_bin         = maskVal(x2_bin, valmask)
+
+#         code.interact(banner='After wash mask', local=dict(locals(), **globals()))
         # Reshape i*j back to i,j
         depth_bin = npy.ma.reshape(depth_bin, (tcdel, N_s+1, latN, lonN))
         thick_bin = npy.ma.reshape(thick_bin, (tcdel, N_s+1, latN, lonN))
@@ -1081,12 +1120,23 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 print 'x3_bin', x3_bin[0,:,j,i]
         if debug and tc == 0:
             # Check integrals/mean on target density grid
-            voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                (1- (npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+            print 'Computing integral volume'
+            voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)), axis=1)[tc,slice(None)]
+            print 'voltotij0.shape:', voltotij0.shape
+            
+            #voltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                    (1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+            print 'Computing integral temp'
             temtotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+                                npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:], axis=0)
+            #temtotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                    npy.ma.reshape(x1_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+            print 'Computing integral salinity'
             saltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
-                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN)).data[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+                                npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:], axis=0)
+            #saltotij0 = npy.ma.sum(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*\
+            #                    npy.ma.reshape(x2_bin,(tcdel, N_s+1, latN*lonN))[tc,:,:]*(1-(npy.ma.reshape(thick_bin,(tcdel, N_s+1, latN*lonN)).mask[tc,:,:]).astype(int)), axis=0)
+            print 'Weighting integral volume/temp/sal'
             voltot = npy.ma.sum(voltotij0 * npy.ma.reshape(area,lonN*latN))
             temtot = npy.ma.sum(temtotij0 * npy.ma.reshape(area,lonN*latN))/voltot
             saltot = npy.ma.sum(saltotij0 * npy.ma.reshape(area,lonN*latN))/voltot
@@ -1108,6 +1158,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         if fileV != 'none':
             x3Bin    = cdm.createVariable(x3_bin   , axes = rhoAxesList, id = 'hvm')
         #
+        import code
+        code.interact(banner='thickBin creation', local=dict(locals(), **globals()))
         del (depth_bin,thick_bin,x1_bin,x2_bin) ; gc.collect()
         if mthout:
             if tc == 0:
@@ -1334,8 +1386,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # Compute annual persistence of isopycnal bins (from their thickness): 'persist' array
             #  = percentage of time bin is occupied during each year (annual bowl if % < 100)
             # NOTE: not done for volume flux as scientific interpretation unclear
-            itsti = 70 #100 #67
-            jtsti = 90
+            itsti = itest #70 #100 #67
+            jtsti = jtest #90
             ijtsti = jtsti*lonN + itsti
             ststi = 50
             for t in range(nyrtc):
@@ -1344,12 +1396,16 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 inim = t*12
                 finm = t*12 + 12
                 idxvm = 1-(mv.masked_values(thickBin[inim:finm,:,:,:], valmask).mask).astype(int)
+                #idxvm = 1 - npy.ma.getmaskarray(thickBin[inim:finm,:,:,:]).astype(int)
                 #idxvm = 1-mv.masked_values(thickBin[inim:finm,:,:,:], valmask)
                 persist[t,:,:,:] = cdu.averager(idxvm, axis = 0) * 100.
-                print 'persist',persist[t,:,jtsti,itsti]
-		print 'thick inim',thickBin[inim,:,jtsti,itsti]
-		print 'salt inim',x2Bin[inim,:,jtsti,itsti]
                 #persist[t,:,:,:] = npy.ma.sum(idxvm, axis = 0)/12. * 100. # numpy version same CPU
+                print 'idxvm in theoretical bowl',idxvm[:,54:,jtsti,itsti]
+                print 'thick JAS in theoretical bowl',thickBin[6:9,54:,jtsti,itsti]
+                print 'persist',persist[t,:,jtsti,itsti]
+                print 'thick inim',thickBin[inim,:,jtsti,itsti]
+                print 'salt inim',x2Bin[inim,:,jtsti,itsti]
+                code.interact(banner='Persist calculation', local=dict(locals(), **globals()))
                 # Shallowest persistent ocean index: p_top (2D)
                 maskp = persist[t,:,:,:]*1. ; maskp[...] = valmask
                 maskp = mv.masked_values(persist[t,:,:,:] >= 99., 1.).mask
@@ -1364,11 +1420,11 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
                 inds_bottom = npy.argwhere ( (szmaxtm <= s_s) & (szmaxtm > ssr) ).transpose()
                 print inds_bottom.shape, type(inds_bottom)
                 print ' bottom ind', bottom_ind[0, ijtsti],bottom_ind[1,ijtsti]
-            	bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
+                bottom_ind = npy.ones((2,latN*lonN), dtype='int')*-1
                 bottom_ind [0,inds_bottom[1]] = inds_bottom[0]
                 bottom_ind [1,:] = npy.arange(latN*lonN)
                 print 'ijtsti',ijtsti, nomask[ijtsti]
- 		print 'maskp',maskp[:,ijtsti]
+                print 'maskp',maskp[:,ijtsti]
                 print 'p_top index',p_top[ijtsti]
                 counti = 0
                 maskbowl = npy.ones((latN*lonN), dtype='bool')

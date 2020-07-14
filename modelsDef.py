@@ -52,7 +52,8 @@ def defModels():
         {'name':'MPI-ESM-P'     ,'props':[2,0,1,11,156,0], 'picontrol':[0],'correctFile':[0,0,0]}, # 39
         {'name':'NorESM1-ME'    ,'props':[1,0,0,11,156,1], 'picontrol':[0],'correctFile':[0,0,0]}, # 40
         {'name':'NorESM1-M'     ,'props':[2,0,0,11,156,0], 'picontrol':[0],'correctFile':[0,0,0]}, # 41
-        ]
+        {'name':'IPSL-CM6A-LR'  ,'props':[32,10,1,0,165,6], 'picontrol':[650],'correctFile':[252,253,180]}
+    ]
 
     return models
 

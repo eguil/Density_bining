@@ -4,10 +4,10 @@
 
 import numpy as np
 import numpy.ma as ma
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 #from matplotlib.ticker import MaxNLocator
 from netCDF4 import Dataset as open_ncfile
-from matplotlib.ticker import AutoMinorLocator
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 
 # --------------------------------
@@ -25,7 +25,7 @@ def defVar(longName):
         'clevsmstd': np.arange(0., .2, .005),  # for stddev contours
         '1dminmax': [-.1, .1], # for 1D ToE plots
         'legVar': "Salinity",  # Legend name
-        'unit': "PSU",  # TODO: could be read from file
+        'unit': "PSS-78",  # TODO: could be read from file
     }
 
     temp = {'var': 'thetaog', 'minmax': [-0.65, 0.65, 14], 'clevsm': np.arange(-2, 30, 1), 'clevsm_bold': np.arange(-2,30,2),
@@ -60,6 +60,9 @@ def defVar(longName):
 
 
 def defVarDurack(longName):
+
+    degree_sign= u'\N{DEGREE SIGN}'
+
     salinity = {'var_change': 'salinity_change', 'var_change_er':'thetao_change_error',
                 'var_mean': 'salinity_mean',
                 'var_mean_zonal': 'salinity_mean_basin_zonal',
@@ -67,20 +70,20 @@ def defVarDurack(longName):
                 'minmax': [-0.3, 0.3, 16],
                 'minmax_zonal': [-0.2, 0.2, 16],
                 'clevsm': np.arange(30, 40, .25),
-                'clevsm_zonal': np.arange(30, 40, .1),
+                'clevsm_zonal': np.arange(30, 40, .25), #0.1
                 'clevsm_bold': np.arange(30, 40, .5),
-                'legVar': "Salinity", 'unit': "PSU", 'longN': 'salinity'}
+                'legVar': "Salinity", 'unit': "PSS-78", 'longN': 'salinity'}
 
     temp = {'var_change':'thetao_change', 'var_change_er':'thetao_change_error',
             'var_mean':'thetao_mean',
             'var_mean_zonal': 'thetao_mean_basin_zonal',
             'var_change_zonal': 'thetao_change_basin_zonal', 'var_change_zonal_er' : 'thetao_change_error_basin_zonal',
             'minmax': [-0.65, 0.65, 14],
-            'minmax_zonal' : [-0.4,0.4,16],
+            'minmax_zonal' : [-0.5,0.5,16],
             'clevsm': np.arange(-2, 30, 1),
             'clevsm_zonal': np.arange(-2, 30, 1),
             'clevsm_bold': np.arange(-2,30,2),
-            'legVar': "Temperature", 'unit': "C", 'longN': 'temp'}
+            'legVar': "Temperature", 'unit': degree_sign+"C", 'longN': 'temp'}
 
     vars = [salinity,temp]
     for ivar in range(len(vars)):
@@ -91,6 +94,9 @@ def defVarDurack(longName):
 
 
 def defVarmme(longName):
+
+    degree_sign= u'\N{DEGREE SIGN}'
+
     salinity = {'var_zonal': 'isonsoBowl', 'var_zonal_w/bowl': 'isonso',
                 'var_global': 'sogBowl', 'var_global_std':'sogBowlStd',
                 'minmax': [-0.3, 0.3, 16],
@@ -98,25 +104,25 @@ def defVarmme(longName):
                 'clevsm': np.arange(30, 40, .25),
                 'clevsm_zonal': np.arange(30, 40, .1),
                 'clevsm_bold': np.arange(30, 40, .5),
-                'legVar': "Salinity", 'unit': "PSU", 'longN': 'salinity'}
+                'legVar': "Salinity", 'unit': "PSS-78", 'longN': 'salinity'}
 
     temp = {'var_zonal':'isonthetaoBowl', 'var_zonal_w/bowl': 'isonthetao',
             'var_global': 'thetaogBowl', 'var_global_std':'thetaogBowlStd',
             'minmax': [-0.65, 0.65, 14],
-            'minmax_zonal' : [-0.4,0.4,16],
+            'minmax_zonal' : [-0.5,0.5,16], 'minmax_zonal_rcp85': [-1,1,16],
             'clevsm': np.arange(-2, 30, 1),
             'clevsm_zonal': np.arange(-2, 30, 1),
             'clevsm_bold': np.arange(-2,30,2),
-            'legVar': "Temperature", 'unit': "C", 'longN': 'temp'}
+            'legVar': "Temperature", 'unit': degree_sign+"C", 'longN': 'temp'}
 
-    depth = {'var_zonal':'isondepthBowl',
+    depth = {'var_zonal':'isondepthBowl', 'var_zonal_w/bowl': 'isondepth',
              'clevsm_zonal': np.arange(0, 2000, 100),
              'clevsm_bold' : np.arange(0,2000,500),
-             'minmax_zonal': [-50, 50, 16],
+             'minmax_zonal': [-50, 50, 16], 'minmax_zonal_rcp85': [-300, 300, 16],
              'legVar': "Depth", 'unit': "m", 'longN': 'depth'}
 
-    volume = {'var_zonal': 'isonvolBowl', 'var_zonal_w/bowl': 'isonvolBowl',
-              'minmax_zonal': [-20., 20., 20],
+    volume = {'var_zonal': 'isonvolBowl', 'var_zonal_w/bowl': 'isonvol',
+              'minmax_zonal': [-20., 20., 16], 'minmax_zonal_rcp85': [-40,40,16],
               'clevsm_zonal': np.arange(0, 500, 50),
               'legVar': "Volume", 'unit': "1.e12 m^3", 'longN': 'volume'
               }
@@ -150,7 +156,7 @@ def custom_div_cmap(numcolors=17, name='custom_div_cmap',
 #   Build zonal latitude/density plot
 # ----------------------------------------------------
 
-def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap, levels, clevsm=None, clevsm_bold=None):
+def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, cnDict, domrho, clevsm=None, clevsm_bold=None):
 
     # latitude domain
     domlat = [-70, 70]
@@ -176,12 +182,13 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         var = varBasin['var_change']
         var_mean = varBasin['var_mean']
 
-        # -- Format for contour labels
-        levfmt = '%.0f'
-        if abs(clevsm[1] - clevsm[0]) < 1:
-            levfmt = '%.1f'
-        if abs(clevsm[1] - clevsm[0]) < 0.1:
-            levfmt = '%.2f'
+        if np.any(clevsm) != None:
+            # -- Format for contour labels
+            levfmt = '%.0f'
+            if abs(clevsm[1] - clevsm[0]) < 1:
+                levfmt = '%.1f'
+            if abs(clevsm[1] - clevsm[0]) < 0.1:
+                levfmt = '%.2f'
 
     elif action == 'isopyc_mig_sig':
         var = varBasin['dvar_dsig']*varBasin['dsig_dt']
@@ -216,15 +223,15 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
 
     if action != 'total' and action != 'total_mme' and action != 'ToE':
         bowl = varBasin['bowl']
-    if action == 'total_mme' or action == 'ToE' :
+    if (action == 'total_mme' or action == 'ToE') and varBasin['labBowl'] != None :
         bowl2 = varBasin['bowl2']
         bowl1 = varBasin['bowl1']
         label1 = varBasin['labBowl'][0]
         label2 = varBasin['labBowl'][1]
 
     # levels and color map
-    levels = levels
-    cmap = cmap
+    levels = cnDict['levels']
+    cmap = cnDict['cmap']
 
     # Create meshgrid
     lat2d, density2d = np.meshgrid(lat, density)
@@ -243,26 +250,30 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         ax0.clabel(cnt_1950, inline=1, fontsize=11, fmt=levfmt)
         cnt_2000 = ax0.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linestyles='dashed')
         ax0.clabel(cnt_2000, inline=1, fontsize=11, fmt=levfmt)
+    elif action == 'var_std':
+        cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='max')
+        #cnt1 = ax0.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
+        #ax0.clabel(cnt1, inline=1, fontsize=11, fmt='%.3f')
     else:
-        cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
+        cnplot1 = ax0.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend=cnDict['ext_cmap'])
 
-    # # -- Draw mean contours
-    # if (action == 'total_mme' and var_mean != None) or action == 'total' :
-    #     cpplot11 = ax0.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
-    #     cpplot12 = ax0.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
-    #     ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+#     # -- Draw mean contours
+#     if (action == 'total_mme' and var_mean != None) or action == 'total' :
+#         cpplot11 = ax0.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
+#         cpplot12 = ax0.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
+#         ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     # -- Draw areas where signal is not significant for D&W
     if action == 'total' :
         error_plot = ax0.contourf(lat2d, density2d, not_signif_change, levels=[0.25,0.5,1.5], colors='None',
-                                   hatches=['','....'], edgecolor='0.3', linewidth=0.0)
+                                   hatches=['','....'])
 
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
-        ax0.plot(lat, bowl, color='black')
+        ax0.plot(lat, bowl, color='black', linewidth=2)
 
-    if action == 'ToE' or action == 'total_mme':
-        ax0.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-        ax0.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    if (action == 'ToE' or action == 'total_mme') and varBasin['labBowl'] != None:
+        ax0.plot(lat, bowl2, linewidth=2, color='black',label=label2)
+        ax0.plot(lat, bowl1, linestyle = '--', linewidth=2, color='black',label=label1)
         # -- Add legend for bowl position
         if varBasin['name'] == 'Indian':
             ax0.legend(loc='upper right', title='Bowl', fontsize=12)
@@ -273,23 +284,27 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     ax0.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        labelbottom='off',
-        top='off')
-
+        bottom=False,  # ticks along the bottom edge are off
+        labelbottom=False,
+        top=False)
+    
+    ax0.yaxis.set_tick_params(which='major',width=2)
+    
     # # For selecting specific boxes, make a fine grid
-    # xminorLocator = AutoMinorLocator(4)
-    # yminorLocator = AutoMinorLocator(5)
-    # ax0.xaxis.set_minor_locator(xminorLocator)
-    # ax0.yaxis.set_minor_locator(yminorLocator)
-    # ax0.grid(True, which='minor')
-    # ax0.grid(True, which='major', ls='-')
+    #xminorLocator = AutoMinorLocator(4)
+    #yminorLocator = AutoMinorLocator(5)
+    #ax0.xaxis.set_minor_locator(xminorLocator)
+    #ax0.yaxis.set_minor_locator(yminorLocator)
+    #ax0.grid(True, which='minor')
+    #ax0.grid(True, which='major', ls='-')
 
+    ax0.tick_params(axis='y',right=True)
     if ticks != 'left':
-        ax0.tick_params(axis='y', labelleft='off')
+        ax0.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax0.tick_params(axis='y', labelright='on')
+        ax0.tick_params(axis='y', labelright=True)
 
+    plt.setp(ax0.get_yticklabels(), fontweight='bold', fontsize=12)
     ax0.axvline(x=0, color='black', ls='--')
 
 
@@ -309,26 +324,30 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
         cnt_2000 = ax1.contour(lat2d,density2d,var_2000, levels=levels, colors='black', linestyles='dashed')
         ax1.clabel(cnt_2000, inline=1, fontsize=11, fmt=levfmt)
         cnplot2 = cnt_2000
+    elif action == 'var_std':
+        cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='max')
+        #cnt2 = ax1.contour(lat2d, density2d, var, levels=[0.002,0.005,0.1],colors='white')
+        #ax1.clabel(cnt2, inline=1, fontsize=11, fmt='%.3f')
     else:
-        cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend='both')
+        cnplot2 = ax1.contourf(lat2d, density2d, var, levels=levels, cmap=cmap, extend=cnDict['ext_cmap'])
 
-    # # -- Draw mean contours
-    # if (action == 'total_mme'  and var_mean != None) or action == 'total':
-    #     cpplot21 = ax1.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
-    #     cpplot22 = ax1.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
-    #     ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
+#     # -- Draw mean contours
+#     if (action == 'total_mme'  and var_mean != None) or action == 'total':
+#         cpplot21 = ax1.contour(lat2d, density2d, var_mean, clevsm, colors='black', linewidths=0.5)
+#         cpplot22 = ax1.contour(lat2d, density2d, var_mean, clevsm_bold, colors='black', linewidths=2)
+#         ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
     # -- Draw areas where signal is not significant for D&W
     if action == 'total' :
         error_plot = ax1.contourf(lat2d, density2d, not_signif_change, levels=[0.25, 0.5, 1.5], colors='None',
-                                  hatches=['', '....'], edgecolor='0.6', linewidth=0.0)
+                                  hatches=['', '....'])
 
     if action != 'var_2000_hr' and action != 'var_2000_sig_hr' and action!='total' and action!='total_mme' and action != 'ToE':
-        ax1.plot(lat, bowl, color='black')
+        ax1.plot(lat, bowl, color='black', linewidth=2)
 
-    if action == 'ToE' or action == 'total_mme':
-        ax1.plot(lat, bowl2, linestyle = '--', linewidth=2, color='black',label=label2)
-        ax1.plot(lat, bowl1, linewidth=2, color='black',label=label1)
+    if (action == 'ToE' or action == 'total_mme') and varBasin['labBowl'] != None:
+        ax1.plot(lat, bowl2, linewidth=2, color='black',label=label2)
+        ax1.plot(lat, bowl1, linestyle = '--', linewidth=2, color='black',label=label1)
 
 
     ax1.set_ylim([domrho[1], domrho[2]])
@@ -337,21 +356,27 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     ax1.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        top='off')  # ticks along the bottom edge are off
-
+        top=False)  # ticks along the top edge are off
+    
     # # For selecting specific boxes, make a fine grid
-    # xminorLocator = AutoMinorLocator(4)
-    # yminorLocator = AutoMinorLocator(5)
-    # ax1.xaxis.set_minor_locator(xminorLocator)
-    # ax1.yaxis.set_minor_locator(yminorLocator)
-    # ax1.grid(True, which='minor')
-    # ax1.grid(True, which='major', ls='-')
-
+    #xminorLocator = AutoMinorLocator(4)
+    #yminorLocator = AutoMinorLocator(5)
+    #ax1.xaxis.set_minor_locator(xminorLocator)
+    #ax1.yaxis.set_minor_locator(yminorLocator)
+    #ax1.grid(True, which='minor')
+    #ax1.grid(True, which='major', ls='-')
+    
+    ax1.tick_params(axis='y',right=True)
     if ticks != 'left':
-        ax1.tick_params(axis='y', labelleft='off')
+        ax1.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax1.tick_params(axis='y', labelright='on')
+        ax1.tick_params(axis='y', labelright=True)
 
+    plt.setp(ax1.get_yticklabels(), fontweight='bold', fontsize=12)
+    plt.setp(ax1.get_xticklabels(), fontweight='bold', fontsize=12)
+    ax1.yaxis.set_tick_params(which='major',width=2)
+    ax1.xaxis.set_tick_params(which='major',width=2)
+    
     ax1.axvline(x=0, color='black', ls='--')
 
     # Re-label x-axis
@@ -369,9 +394,30 @@ def zonal_2D(plt, action, ax0, ax1, ticks, lat, density, varBasin, domrho, cmap,
     # -- add plot title
     ax0.text(-60, 22, varBasin['name'], fontsize=14, fontweight='bold')
 
+    cnplot = [cnplot1, cnplot2]
 
-    return cnplot2
+    return cnplot
 
+
+def modelagree(ax0,ax1,agreelev,lat,lev,var_agree):
+
+    # Create meshgrid
+    lat2d, lev2d = np.meshgrid(lat, lev)
+
+    # -- draw agreement contour > agreement level (agreelev)
+    ax0.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev], hatches=['....'], colors='None')
+    #ax0.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
+    #            linewidths=1.5)
+    #ax0.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
+    #            linewidths=1.5)
+
+    ax1.contourf(lat2d, lev2d, var_agree, levels=[-agreelev, agreelev], hatches=['....'], colors='None')
+    #ax1.contour(lat2d, lev2d, var_agree, [agreelev - .0001, agreelev + 0.00001], colors='0.3',
+    #            linewidths=1.5)
+    #agree_plot = ax1.contour(lat2d, lev2d, var_agree, [-agreelev - .0001, -agreelev + 0.00001], colors='0.3',
+    #                         linewidths=1.5)
+
+    #return agree_plot
 
 
 # ----------------------------------------------------
@@ -590,7 +636,7 @@ def proj_map_zonal_changes(kind, zonal_change, plt, ax1, ax2, minmax, clevsm, la
 # -----------------------------------------------
 
 def averageDom(field, dim, domain, lat, rho):
-
+    
     latidx = np.argwhere((lat >= domain[0]) & (lat <= domain[1])).transpose()
     rhoidx = np.argwhere((rho >= domain[2]) & (rho <= domain[3])).transpose()
     lidx1 = latidx[0][0];
@@ -611,9 +657,9 @@ def averageDom(field, dim, domain, lat, rho):
 #          Remap to Depth coordinates
 # -----------------------------------------------
 
-def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
+def remapToZ(fieldr,depthr,volumr, targetz, bowlz, bathy):
     '''
-    The remaToZ() function remaps a density bined zonal field back to z
+    The remapToZ() function remaps a density binned zonal field back to z
     It starts from the surface and computes the mean field for each z level, using the zonal volume of isopycnals for weighting
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean-ipsl.upmc.fr
@@ -627,6 +673,7 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
     - volumr     - volume of isopycnals - 3D basin,density,latitude
     - targetz    - target z grid        - 1D
     - bowlz      - depth of bowl        - basin, latitude array
+    - bathy      - bathymetry           - basin, latitude
 
     Output:
     - fieldz    - 3D depth,latitude
@@ -650,87 +697,50 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
     fieldz  = np.ma.masked_all([basN, levN, latN], dtype='float32')
     volumez = np.ma.masked_all([basN, levN, latN], dtype='float32')
 
-    if v != 'V': # If not volume
-        for ibasin in range(1,4):
-            for j in range(latN):
-                # Initialize local variables for interpolation to save levels that are not missing data
-                iz_notempty = 0
-                z_notempty = np.array([])
-                fieldz_notempty = np.array([])
-                for k in range(levN-1):
-                    field_int = 0.
-                    volum_int = 0.
-                    for r in range(rhoN):
-                        if volumr[ibasin,r,j] != 0:
-                            if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
-                                field_int = field_int + fieldr[ibasin,r,j]*volumr[ibasin,r,j]
-                                volum_int = volum_int + volumr[ibasin,r,j]
-                                depthr[ibasin,r,j] = -100. # to speed up search for next depths
-                    if volum_int != 0.:
-                        fieldz[ibasin,k,j] = field_int / volum_int
-                        volumez[ibasin,k,j] = volum_int
-                        # Save which levels are not missing data for extrapolating
-                        z_notempty = np.append(z_notempty, targetz[k])
-                        fieldz_notempty = np.append(fieldz_notempty, fieldz[ibasin,k,j])
-                        iz_notempty = iz_notempty + 1
-                    # Search bowl index for masking data later
-                    if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
-                        kbowl = k+1
-                # print('lat index', j)
-                # print(iz_notempty-1, z_notempty.shape)
-                if np.ma.is_masked(bowlz[ibasin,j]) == False :
-                    # Interpolate the data on the depth column
-                    if iz_notempty > 3:
-                        # print 'Interpolate'
-                        spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
-                        fieldz_new = spl(targetz)
-                        fieldz[ibasin,:,j] = fieldz_new
-                    # Mask field above the bowl
-                    fieldz[ibasin,0:kbowl,j] = np.ma.masked
-                # Mask bottom
-                if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
-                    bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
-                    # print(targetz[bathy_mask[0]:])
-                    fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
-
-
-    else :
-        for ibasin in range(1,4):
-            for j in range(latN):
-                iz_notempty = 0
-                z_notempty = np.array([])
-                fieldz_notempty = np.array([])
-                for k in range(levN-1):
-                    field_int = 0.
-                    for r in range(rhoN):
+    for ibasin in range(1,4):
+        for j in range(latN):
+            # Initialize local variables for interpolation to save levels that are not missing data
+            iz_notempty = 0
+            z_notempty = np.array([])
+            fieldz_notempty = np.array([])
+            # Loop on target depths
+            for k in range(levN-1):
+                field_int = 0.
+                volum_int = 0.
+                # Loop on isopycnals of which the depth is betwwen targetz[k] and targetz[k+1]
+                for r in range(rhoN):
+                    if volumr[ibasin,r,j] != 0:
                         if depthr[ibasin,r,j] >= targetz[k] and depthr[ibasin,r,j] < targetz[k+1]:
-                            field_int = field_int + fieldr[ibasin,r,j]
-                            depthr[ibasin,r,j] = -100. # to speed up search for next depths
-                    if field_int != 0.:
-                        fieldz[ibasin,k,j] = field_int
-                        # Save which levels are not missing data for extrapolating
-                        z_notempty = np.append(z_notempty, targetz[k])
-                        fieldz_notempty = np.append(fieldz_notempty,fieldz[ibasin,k,j])
-                        iz_notempty = iz_notempty + 1
-                    # Search bowl index for masking data later
-                    if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
-                        kbowl = k
-                print('lat index', j)
-                print(iz_notempty-1, z_notempty.shape)
-                if np.ma.is_masked(bowlz[ibasin,j]) == False :
-                    # Interpolate the data on the depth column
-                    if iz_notempty > 3:
-                        # print 'Interpolate'
-                        spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
-                        fieldz_new = spl(targetz)
-                        fieldz[ibasin,:,j] = fieldz_new
-                    # Mask field below the bowl
-                    fieldz[ibasin,0:kbowl,j] = np.ma.masked
-                # Mask bottom
-                if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
-                    bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
-                    print(targetz[bathy_mask[0]:])
-                    fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
+                            field_int = field_int + fieldr[ibasin,r,j]*volumr[ibasin,r,j]
+                            volum_int = volum_int + volumr[ibasin,r,j]
+                            # depthr[ibasin,r,j] = -100. # to speed up search for next depths
+                if volum_int != 0.:
+                    fieldz[ibasin,k,j] = field_int / volum_int # weighted average
+                    volumez[ibasin,k,j] = volum_int
+                    # Save which levels are not missing data for extrapolating
+                    z_notempty = np.append(z_notempty, targetz[k])
+                    fieldz_notempty = np.append(fieldz_notempty, fieldz[ibasin,k,j])
+                    iz_notempty = iz_notempty + 1
+                # Search bowl index for masking data later
+                if bowlz[ibasin,j] >= targetz[k] and bowlz[ibasin,j] < targetz[k+1] :
+                    kbowl = k+1
+            # print('lat index', j)
+            # print(iz_notempty-1, z_notempty.shape)
+            if np.ma.is_masked(bowlz[ibasin,j]) == False :
+                # Interpolate the data on the depth column
+                if iz_notempty > 3:
+                    # print 'Interpolate'
+                    fieldz_new = np.interp(targetz,z_notempty,fieldz_notempty,right=np.ma.masked)
+                    # spl = InterpolatedUnivariateSpline(z_notempty, fieldz_notempty)
+                    # fieldz_new = spl(targetz)
+                    fieldz[ibasin,:,j] = fieldz_new
+                # Mask field above the bowl
+                #fieldz[ibasin,0:kbowl,j] = np.ma.masked
+            # Mask bottom
+            # if np.ma.is_mask(bathy[ibasin,j]) == False and bathy[ibasin,j] < targetz[-1]:
+            #     bathy_mask = np.ma.nonzero(targetz>=bathy[ibasin,j])[0]
+            #     # print(targetz[bathy_mask[0]:])
+            #     fieldz[ibasin,bathy_mask[0]:,j] = np.ma.masked
 
     return fieldz
 
@@ -740,18 +750,20 @@ def remapToZ(fieldr,depthr,volumr, targetz, bowlz, v, bathy):
 #   Build zonal latitude/depth plot
 # ----------------------------------------------------
 
-def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domzed):
+def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, cnDict, domzed, clevsm=None, clevsm_bold=None):
 
     # -- variables
     var = varBasin['var_change']
-    bowl1 = varBasin['bowl1']
-    bowl2 = varBasin['bowl2']
+    
+#     if np.any(varBasin['bowl1']) != None or np.any(varBasin['bowl2']) != None:
+#         bowl1 = varBasin['bowl1']
+#         bowl2 = varBasin['bowl2']
 
-    # -- title and bowl labels
-    label1 = varBasin['labBowl'][0]
-    label2 = varBasin['labBowl'][1]
+#         # -- bowl labels
+#         label1 = varBasin['labBowl'][0]
+#         label2 = varBasin['labBowl'][1]
 
-    # -- contour levels
+    # -- min,mid,max depth for the 2 panels
     zedmin = domzed[0]
     zedmid = domzed[1]
     zedmax = domzed[2]
@@ -770,38 +782,63 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     ax0.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        labelbottom='off',
-        top='off')
+        bottom=False,  # ticks along the bottom edge are off
+        labelbottom=False,
+        top=False)
+    ax0.tick_params(axis='y',which='both',right=True)
 
     if ticks != 'left':
-        ax0.tick_params(axis='y', labelleft='off')
+        ax0.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax0.tick_params(axis='y', labelright='on')
-
+        ax0.tick_params(axis='y', labelright=True)
+    
+    #ax0.set_yticklabels(ax0.get_yticklabels(), fontweight='bold')
+    plt.setp(ax0.get_yticklabels(), fontweight='bold', fontsize=12)
+    
     ax0.axvline(x=0, color='black', ls='--')
 
-    # -- Format for contour labels
-    levfmt='%.0f'
-    if abs(clevsm[1]-clevsm[0]) < 1:
-        levfmt='%.1f'
-    if abs(clevsm[1]-clevsm[0]) < 0.1:
-        levfmt='%.2f'
+    # -- draw filled contours of the field
+    cnplot0 = ax0.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels'], extend=cnDict['ext_cmap'])
 
-    # -- draw filled contours of period diff
-    cnplot = ax0.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+    if clevsm != None:
+        # -- Format for contour labels
+        levfmt='%.0f'
+        if abs(clevsm[1]-clevsm[0]) < 1:
+            levfmt='%.1f'
+        if abs(clevsm[1]-clevsm[0]) < 0.1:
+            levfmt='%.2f'
 
-    # # -- draw mean contours --> TODO compute mean field first
-    # cpplot = ax0.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
-    # ax0.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
+        # -- draw mean field contours
+        cpplot11 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm, colors='black', linewidths=0.5)
+        cpplot12 = ax0.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
+        ax0.clabel(cpplot12, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    # -- draw bowl
-    ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-    ax0.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
+#         # -- draw bowl
+#         ax0.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
+#         ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#         # -- bowl legend
+#         if varBasin['name'] == 'Indian':
+#             ax0.legend(loc='upper right', title='Bowl', fontsize=12)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
+#         ax0.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+#         if varBasin['name'] == 'Indian':
+#             ax0.legend(loc='upper right', fontsize=12)
+#     if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
+#         ax0.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#         if varBasin['name'] == 'Indian':
+#             ax0.legend(loc='upper right', fontsize=12)
 
-    if varBasin['name'] == 'Indian':
-        ax0.legend(loc='upper right', title='Bowl', fontsize=12)
-
+    # -- Draw isopycnals
+    if cnDict['isopyc'] == True:
+        levels1 = np.arange(21,28.6,0.5)
+        levels2 = np.arange(21,28.6,1)
+        ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
+        cont_isopyc1 = ax0.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
+        ax0.clabel(cont_isopyc1, inline=1, fontsize=13, fmt='%d')
+        
+    #plt.setp(ax0.get_yticklabels(), fontweight='bold')
+    ax0.yaxis.set_tick_params(which='major',width=2)
     #
     # ====  Lower panel   ===================================================
     #
@@ -810,44 +847,72 @@ def zon_2Dz(plt, ax0, ax1, ticks, lat, lev, varBasin, clevsm, cmap, levels, domz
     ax1.tick_params(
         axis='x',  # changes apply to the x axis
         which='both',  # both major and minor ticks are affected
-        top='off')  # ticks along the bottom edge are off
-
+        top=False)  # ticks along the bottom edge are off
+    ax1.tick_params(axis='y',which='both',right=True)
+    
     if ticks != 'left':
-        ax1.tick_params(axis='y', labelleft='off')
+        ax1.tick_params(axis='y', labelleft=False)
     if ticks == 'right':
-        ax1.tick_params(axis='y', labelright='on')
+        ax1.tick_params(axis='y', labelright=True)
 
     ax1.axvline(x=0, color='black', ls='--')
 
     # -- Re-label x-axis
     xlabels = ['', '60S', '40S', '20S', '0', '20N', '40N', '60N']
-    ax1.set_xticklabels(xlabels)
+    ax1.set_xticklabels(xlabels,fontweight='bold',fontsize=12)
     # -- Set y ticks
-    ax1.set_yticks([500,1000,1500,2000])
-    yminorLocator = AutoMinorLocator(4)
+    if zedmax == 2000:
+        ymajorLocator = MultipleLocator(500)
+        yminorLocator = AutoMinorLocator(5)
+    else:
+        ymajorLocator = MultipleLocator(1000)
+        yminorLocator = AutoMinorLocator(2)
+    ax1.yaxis.set_major_locator(ymajorLocator)
     ax1.yaxis.set_minor_locator(yminorLocator)
-
+    #ax1.set_yticks([500,1000,1500,2000])
+    #ax1.set_yticks([1000,1000,2000,3000,4000,5000])
+    
+    plt.setp(ax1.get_yticklabels(), fontweight='bold', fontsize=12)
+        
     # -- draw filled contours
-    cnplot = ax1.contourf(lat2d, lev2d, var, cmap=cmap, levels=levels, extend='both')
+    cnplot1 = ax1.contourf(lat2d, lev2d, var, cmap=cnDict['cmap'], levels=cnDict['levels2'], extend=cnDict['ext_cmap'])
 
-    # # -- draw mean contours
-    # cpplot = ax1.contour(lat2d, lev2d, var, clevsm, colors='black', linewidths=0.5)
-    # ax1.clabel(cpplot, inline=1, fontsize=10, fmt=levfmt)
+    if clevsm != None:
+        # -- draw mean field contours
+        cpplot21 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm, colors='black', linewidths=0.5)
+        cpplot22 = ax1.contour(lat2d, lev2d, varBasin['var_mean'], clevsm_bold, colors='black', linewidths=2)
+        ax1.clabel(cpplot22, inline=1, fontsize=12, fontweight='bold', fmt=levfmt)
 
-    # -- draw bowl
-    ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
-    ax1.plot(lat, bowl2, color='black', linewidth=2, linestyle='--', label=label2)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) != None:
+#         # -- draw bowl
+#         ax1.plot(lat, bowl1, color='black', linewidth=2, linestyle='--', label=label1)
+#         ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
+#     if np.any(varBasin['bowl1']) != None and np.any(varBasin['bowl2']) == None:
+#         ax1.plot(lat, bowl1, color='black', linewidth=2, label=label1)
+#     if np.any(varBasin['bowl1']) == None and np.any(varBasin['bowl2']) != None:
+#         ax1.plot(lat, bowl2, color='black', linewidth=2, label=label2)
 
+    # -- Draw isopycnals
+    if cnDict['isopyc'] == True:
+        ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels1, colors='black', linewidths=0.5)
+        cont_isopyc2 = ax1.contour(lat2d, lev2d, varBasin['density'], levels=levels2, colors='black', linewidths=2)
+        ax1.clabel(cont_isopyc2, inline=1, fontsize=13, fmt='%d')
 
     # Remove intersecting tick at zedmid
-    yticks = ax1.yaxis.get_major_ticks()
-    if ticks == 'left':
-        yticks[0].label1.set_visible(False)
-    if ticks == 'right':
-        yticks[0].label2.set_visible(False)
+#     yticks = ax1.yaxis.get_major_ticks()
+#     if ticks == 'left':
+#         yticks[0].label1.set_visible(False)
+#     if ticks == 'right':
+#         yticks[0].label2.set_visible(False)
 
-
+    #plt.setp(ax1.get_yticklabels(), fontweight='bold')
+    ax1.yaxis.set_tick_params(which='major',width=2)
+    ax1.xaxis.set_tick_params(which='major',width=2)
+        
     # -- add plot title
-    ax1.text(domlat[0] + 10, zedmax-100, varBasin['name'], fontsize=16, fontweight='bold')
+    #ax0.text(domlat[0] + 10, zedmin-10, varBasin['name'], fontsize=15, fontweight='bold')
+    ax1.text(domlat[1] - 33, zedmax-300, varBasin['name'], fontsize=15, fontweight='bold',bbox=dict(facecolor='white',edgecolor='white'))
 
+
+    cnplot = [cnplot0, cnplot1]
     return cnplot
