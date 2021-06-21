@@ -230,6 +230,41 @@ def eosNeutral(pottemp,salt):
     zrho    = ( zr1 + zr2 ) / ( zr3 + zr4 + zr5 )
     return zrho
 
+def dedrift(field, trmin, trmax, member, driftFile, meanstateFile, startdepth_idx, TctoTp):
+    '''
+    The dedrift() function remove drift by comparing historical with pictrnl
+
+    Author:    Eric Guilyardi : Eric.Guilyardi@locean.ipsl.fr
+    Co-author: Yona Silvy: Yona. Silvy@locean.ipsl.fr
+
+    Created on Mon jun 21 2021
+
+    Inputs:
+    ------
+    - field      - array (potential tempetature, conservative temp or salinity)
+    - trmin      - integer - time interval min
+    - trmax      - integer - time interval max
+    - member     - member to idenfity parent branch time
+    - driftFile  - file with drift to remove
+    - meanstateFile  - file with mean state to add
+    - startdepth_idx - depth index to start dedrift
+    - TctoTp     - boolean, true if conservative temperature: transform into potential temperature using Teos-10 library
+
+    Output:
+    - fieldDedrift        - array with defirted field
+
+    Usage:
+    ------
+    >>> from binDensity import dedrift
+    >>> dedrift(field, trmin, trmax, member, driftFile, meanstateFile, startdepth_idx, TctoTp)
+
+    Notes:
+    '''
+
+    fielDedrift = field
+
+    return fielDedrift
+
 
 def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     '''
@@ -662,6 +697,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         print ' --> time chunk (bounds) = ',tc+1, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+        # Dedrift
+        thetao = dedrift(thetao, trmin, trmax, member, driftFile, meanstateFile, startdepth_idx, TctoTp)
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
