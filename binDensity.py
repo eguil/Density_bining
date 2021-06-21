@@ -657,6 +657,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         print ' --> time chunk (bounds) = ',tc+1, '/',tcmax,' (',trmin,trmax-1,')', modeln
         thetao  = ft('thetao', time = slice(trmin,trmax))
         so      = fs('so'    , time = slice(trmin,trmax))
+        thetao = dedrift(thetao, trmin, trmax, member, driftFile, meanstateFile, startdepth_idx)
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
