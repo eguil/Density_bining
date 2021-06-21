@@ -220,6 +220,7 @@ def mmeAveMsk2D(listFiles, years, inDir, outDir, outFile, timeInt, mme, timeBowl
                 if iv == 0:
                     bowlRead = f1d(varsig,time = slice(t1,t2))
                     varbowl[i,...] = bowlRead
+
                 # Compute Stddev
                 varstd[i,...] = npy.ma.std(isonvar[i,...], axis=0)
                 # Compute ToE
