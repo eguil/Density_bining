@@ -756,12 +756,12 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs(varNames[1], time = slice(trmin,trmax))
         # dedrift
         if swdedrift:
-            thetao = dedrift(thetao, trmin, trmax, member, varNames[0], driftFileT, meanstateFileT, branchTimeFile, startdepth_idx)
-            so     = dedrift(so    , trmin, trmax, member, varNames[1], driftFileS, meanstateFileS, branchTimeFile, startdepth_idx)
+            thetao.data = dedrift(thetao.data, trmin, trmax, member, varNames[0], driftFileT, meanstateFileT, branchTimeFile, startdepth_idx)
+            so.data     = dedrift(so.data    , trmin, trmax, member, varNames[1], driftFileS, meanstateFileS, branchTimeFile, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
-            thetao = gsw.pt_from_CT(so, thetao)
-            so = so #TODO *0.995 (check value)
+            thetao.data = gsw.pt_from_CT(so.data, thetao.data)
+            so.data = so.data #TODO *0.995 (check value)
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
