@@ -275,9 +275,9 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
     return s_s, s_sax, del_s, N_s
 
-def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx):
+def dedriftfct(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx):
     '''
-    The dedrift() function remove annual drift by comparing historical with pictrnl
+    The dedriftfct() function remove annual drift by comparing historical with pictrnl
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean.ipsl.fr
     Co-author: Yona Silvy: Yona.Silvy@locean.ipsl.fr
@@ -302,7 +302,7 @@ def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTi
     Usage:
     ------
     >>> from binDensity import dedrift
-    >>> dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx)
+    >>> dedrift(fctfield, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx)
 
     Notes:
     '''
@@ -756,8 +756,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs(varNames[1], time = slice(trmin,trmax))
         # dedrift
         if swdedrift:
-            thetao.data = dedrift(thetao.data, trmin, trmax, member, varNames[0], driftFileT, meanstateFileT, branchTimeFile, startdepth_idx)
-            so.data     = dedrift(so.data    , trmin, trmax, member, varNames[1], driftFileS, meanstateFileS, branchTimeFile, startdepth_idx)
+            thetao.data = dedriftfct(thetao.data, trmin, trmax, member, varNames[0], driftFileT, meanstateFileT, branchTimeFile, startdepth_idx)
+            so.data     = dedriftfct(so.data    , trmin, trmax, member, varNames[1], driftFileS, meanstateFileS, branchTimeFile, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao.data = gsw.pt_from_CT(so.data, thetao.data)
