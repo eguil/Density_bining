@@ -313,10 +313,10 @@ def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTi
     branch_times = fbt('branch_times')
     members = fbt('members')
     idm = npy.argwhere (members == member)
-    branch_time_year =  branch_times[idm] - 1850 + 1
+    branch_time_idx =  branch_times[idm] - 1850
 
-    trdmin = branch_time_year + trmin / 12 + 1
-    trdmax = branch_time_year + trmax / 12
+    trdmin = branch_time_idx + trmin / 12
+    trdmax = branch_time_idx + trmax / 12 + 1
     if debug:
         print 'trdmin, trdmax, idm ',trdmin, trdmax, idm
 
@@ -328,16 +328,18 @@ def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTi
     fdm = cdm.open(meanStateFile)
     mean_data = fdm(var)
     shape_data = mean_data.shape
+
     if debug:
         print 'shape data', shape_data
+
     # Transform into monthly time serie (replicate annual into 12 months)
     drift_data = npy.repeat(drift_data,shape_data,12)
     mean_data = npy.repeat(mean_data,shape_data,12)
 
     # Remove drift from field and add mean
-    fieldDedrift = field - drift_data + mean_data
+    field = field - drift_data + mean_data
 
-    return fieldDedrift
+    return field
 
 
 
