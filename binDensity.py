@@ -318,7 +318,7 @@ def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTi
     trdmin = branch_time_year + trmin / 12 + 1
     trdmax = branch_time_year + trmax / 12
     if debug:
-        print, 'trdmin, trdmax, idm ',trdmin, trdmax, idm
+        print 'trdmin, trdmax, idm ',trdmin, trdmax, idm
 
     # Read corresponding drift data
     fdt = cdm.open(driftFile)
@@ -329,7 +329,7 @@ def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTi
     mean_data = fdm(var)
     shape_data = mean_data.shape
     if debug:
-        print, 'shape data', shape_data
+        print 'shape data', shape_data
     # Transform into monthly time serie (replicate annual into 12 months)
     drift_data = npy.repeat(drift_data,shape_data,12)
     mean_data = npy.repeat(mean_data,shape_data,12)
