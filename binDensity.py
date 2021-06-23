@@ -311,7 +311,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     trdmin = branch_year_idx + trmin / 12
     trdmax = branch_year_idx + trmax / 12 + 1
     if debug:
-        print 'trdmin, trdmax, idm ',trdmin, trdmax, idm
+        print 'trdmin, trdmax',trdmin, trdmax
 
     # Read corresponding drift data
     fdt = cdm.open(driftFile)
