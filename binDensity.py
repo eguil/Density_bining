@@ -38,6 +38,7 @@ import numpy as npy
 from string import replace
 import time as timc
 import gsw
+from netCDF4 import Dataset as open_ncfile
 #from scipy.interpolate import interp1d
 #from scipy.interpolate._fitpack import _bspleval
 
@@ -309,9 +310,9 @@ def dedriftfct(field, trmin, trmax, member, var, driftFile, meanstateFile, branc
     debug = True
     # find indices in drift file (annual values assumed)
     #   find parent branch_time = f(member)
-    fbt = cdm.open(branchTimeFile)
-    branch_times = fbt('branch_times')
-    members = fbt('members')
+    fbt = open_ncfile(branchTimeFile)
+    branch_times = fbt.variables['branch_times'][:]
+    members = fbt.variables['members'][:]
     idm = npy.argwhere (members == member)
     branch_time_idx =  branch_times[idm] - 1850
 
