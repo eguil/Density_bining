@@ -318,7 +318,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     drift_data = fdt(var, time = slice(trdmin,trdmax))
 
     # Read mean state and add
-    fdm = cdm.open(meanStateFile)
+    fdm = cdm.open(meanstateFile)
     mean_data = fdm(var)
     shape_data = mean_data.shape
 
@@ -753,7 +753,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao.data = gsw.pt_from_CT(so.data, thetao.data)
-            so.data = so.data #TODO *0.995 (check value)
+            so.data = so.data #TODO *0.995 (check value) + Add switch
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
