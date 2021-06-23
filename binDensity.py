@@ -644,7 +644,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         driftFileS = dedrift[2]
         meanstateFileT = dedrift[3]
         meanstateFileS = dedrift[4]
-        branch_year_idx = defrit[5]
+        branch_year_idx = dedrift[5]
         startdepth_idx = 1
     else:
         swdedrift = False
