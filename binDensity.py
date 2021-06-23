@@ -644,7 +644,13 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
 
     if dedrift[0] == 'on':
         swdedrift = True
-   # decode dedrift[:]
+        # decode dedrift[:]
+        driftFileT = dedrift[1]
+        driftFileS = dedrift[2]
+        meanstateFileT = dedrift[3]
+        meanstateFileS = dedrift[4]
+        branchTimeFile = dedrift[5]
+        member = dedrift[6]
     else:
         swdedrift = False
 
@@ -752,7 +758,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao = gsw.pt_from_CT(so, thetao)
-            so = so #*0.995 (check value)
+            so = so #TODO *0.995 (check value)
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
