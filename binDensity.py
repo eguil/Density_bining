@@ -38,7 +38,6 @@ import numpy as npy
 from string import replace
 import time as timc
 import gsw
-from netCDF4 import Dataset as open_ncfile
 #from scipy.interpolate import interp1d
 #from scipy.interpolate._fitpack import _bspleval
 
