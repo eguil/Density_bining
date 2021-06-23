@@ -275,9 +275,9 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
     return s_s, s_sax, del_s, N_s
 
-def dedrift(field, trmin, trmax, member, driftFile, meanstateFile, branch_time, startdepth_idx):
+def dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx):
     '''
-    The dedrift() function remove drift by comparing historical with pictrnl
+    The dedrift() function remove annual drift by comparing historical with pictrnl
 
     Author:    Eric Guilyardi : Eric.Guilyardi@locean.ipsl.fr
     Co-author: Yona Silvy: Yona.Silvy@locean.ipsl.fr
@@ -290,6 +290,7 @@ def dedrift(field, trmin, trmax, member, driftFile, meanstateFile, branch_time, 
     - trmin      - integer - time interval min
     - trmax      - integer - time interval max
     - member     - member to idenfity parent branch time
+    - var        - variable
     - driftFile      - file with drift to remove
     - meanstateFile  - file with mean state to add
     - branch_time    - parent branch_time
@@ -301,14 +302,42 @@ def dedrift(field, trmin, trmax, member, driftFile, meanstateFile, branch_time, 
     Usage:
     ------
     >>> from binDensity import dedrift
-    >>> dedrift(field, trmin, trmax, member, driftFile, meanstateFile, startdepth_idx, TctoTp)
+    >>> dedrift(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx)
 
     Notes:
     '''
+    debug = True
+    # find indices in drift file (annual values assumed)
+    #   find parent branch_time = f(member)
+    fbt = cdm.open(branchTimeFile)
+    branch_times = fbt('branch_times')
+    members = fbt('members')
+    idm = npy.argwhere (members == member)
+    branch_time_year =  branch_times[idm] - 1850 + 1
 
-    fielDedrift = field
+    trdmin = branch_time_year + trmin / 12 + 1
+    trdmax = branch_time_year + trmax / 12
+    if debug:
+        print, 'trdmin, trdmax, idm ',trdmin, trdmax, idm
 
-    return fielDedrift
+    # Read corresponding drift data
+    fdt = cdm.open(driftFile)
+    drift_data = fdt(var, time = slice(trdmin,trdmax))
+
+    # Read mean state and add
+    fdm = cdm.open(meanStateFile)
+    mean_data = fdm(var)
+    shape_data = mean_data.shape
+    if debug:
+        print, 'shape data', shape_data
+    # Transform into monthly time serie (replicate annual into 12 months)
+    drift_data = npy.repeat(drift_data,shape_data,12)
+    mean_data = npy.repeat(mean_data,shape_data,12)
+
+    # Remove drift from field and add mean
+    fieldDedrift = field - drift_data + mean_data
+
+    return fieldDedrift
 
 
 
@@ -610,6 +639,15 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     basinRhoAxesList        = [axesList[0],basinAxis,rhoAxis,axesList[2]] ; # time, basin, rho, lat
 
     tinit     = timc.clock()
+
+    # init dedrift
+
+    if dedrift[0] == 'on':
+        swdedrift = True
+   # decode dedrift[:]
+    else:
+        swdedrift = False
+
     # ---------------------
     #  Init density bining
     # ---------------------
@@ -708,11 +746,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         thetao  = ft(varNames[0], time = slice(trmin,trmax))
         so      = fs(varNames[1], time = slice(trmin,trmax))
         # dedrift
-        swdedrift = False
-        if dedrift[0] == 'on':
-            swdedrift = True
-            thetao = dedrift(thetao, trmin, trmax, member, driftFileT, meanstateFileT, branch_time, startdepth_idx)
-            so     = dedrift(so    , trmin, trmax, member, driftFileS, meanstateFileS, branch_time, startdepth_idx)
+        if swdedrift:
+            thetao = dedrift(thetao, trmin, trmax, member, varNames[0], driftFileT, meanstateFileT, branchTimeFile, startdepth_idx)
+            so     = dedrift(so    , trmin, trmax, member, varNames[1], driftFileS, meanstateFileS, branchTimeFile, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao = gsw.pt_from_CT(so, thetao)
