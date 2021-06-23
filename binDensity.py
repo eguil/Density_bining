@@ -276,7 +276,7 @@ def rhonGrid(rho_min,rho_int,rho_max,del_s1,del_s2):
     s_sax = npy.append(s_s, s_s[N_s-1]+del_s2) # make axis
     return s_s, s_sax, del_s, N_s
 
-def dedriftfct(field, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx):
+def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_idx, startdepth_idx):
     '''
     The dedriftfct() function remove annual drift by comparing historical with pictrnl
 
@@ -290,11 +290,10 @@ def dedriftfct(field, trmin, trmax, member, var, driftFile, meanstateFile, branc
     - field      - array (potential tempetature, conservative temp or salinity)
     - trmin      - integer - time interval min
     - trmax      - integer - time interval max
-    - member     - member to idenfity parent branch time
-    - var        - variable
+\   - var        - variable
     - driftFile      - file with drift to remove
     - meanstateFile  - file with mean state to add
-    - branch_time    - parent branch_time
+    - branch_year_idx    - parent branch_time index (in years)
     - startdepth_idx - depth index to start dedrift
 
     Output:
@@ -303,21 +302,15 @@ def dedriftfct(field, trmin, trmax, member, var, driftFile, meanstateFile, branc
     Usage:
     ------
     >>> from binDensity import dedrift
-    >>> dedrift(fctfield, trmin, trmax, member, var, driftFile, meanstateFile, branchTimeFile, startdepth_idx)
+    >>> dedrift(fctfield, trmin, trmax, var, driftFile, meanstateFile, branch_year_idx, startdepth_idx)
 
     Notes:
     '''
     debug = True
     # find indices in drift file (annual values assumed)
-    #   find parent branch_time = f(member)
-    fbt = open_ncfile(branchTimeFile)
-    branch_times = fbt.variables['branch_times'][:]
-    members = fbt.variables['members'][:]
-    idm = npy.argwhere (members == member)
-    branch_time_idx =  branch_times[idm] - 1850
 
-    trdmin = branch_time_idx + trmin / 12
-    trdmax = branch_time_idx + trmax / 12 + 1
+    trdmin = branch_year_idx + trmin / 12
+    trdmax = branch_year_idx + trmax / 12 + 1
     if debug:
         print 'trdmin, trdmax, idm ',trdmin, trdmax, idm
 
@@ -652,8 +645,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         driftFileS = dedrift[2]
         meanstateFileT = dedrift[3]
         meanstateFileS = dedrift[4]
-        branchTimeFile = dedrift[5]
-        member = dedrift[6]
+        branch_year_idx = defrit[5]
         startdepth_idx = 1
     else:
         swdedrift = False
@@ -757,8 +749,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs(varNames[1], time = slice(trmin,trmax))
         # dedrift
         if swdedrift:
-            thetao.data = dedriftfct(thetao.data, trmin, trmax, member, varNames[0], driftFileT, meanstateFileT, branchTimeFile, startdepth_idx)
-            so.data     = dedriftfct(so.data    , trmin, trmax, member, varNames[1], driftFileS, meanstateFileS, branchTimeFile, startdepth_idx)
+            thetao.data = dedriftfct(thetao.data, trmin, trmax, varNames[0], driftFileT, meanstateFileT, branch_year_idx, startdepth_idx)
+            so.data     = dedriftfct(so.data    , trmin, trmax, varNames[1], driftFileS, meanstateFileS, branch_year_idx, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao.data = gsw.pt_from_CT(so.data, thetao.data)
