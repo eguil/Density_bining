@@ -336,7 +336,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
 
 
 
-def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc',debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none', varNames=['thetao','so'],dedrift=[' '],TctoTp=False):
+def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc',debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none', varNames=['thetao','so'],dedrift=[' '],TctoTp=False, SatoSp=False):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -753,7 +753,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao.data = gsw.pt_from_CT(so.data, thetao.data)
-            so.data = so.data #TODO *0.995 (check value) + Add switch
+        if SatoSp:
+            so.data = so.data #TODO *0.995 (check value)
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
