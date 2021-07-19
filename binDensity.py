@@ -329,12 +329,11 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     if debug:
         print 'shape mean data  ', shape_data, lonN, latN, nLevs, timeN
         print 'shape drift data ', drift_data.shape
+        print 'shape field      ', field.shape
 
     # Transform into monthly time serie (replicate annual into 12 months)
-    #drift_data = npy.repeat(drift_data,shape_data,12)
     drift_data = npy.tile(drift_data.reshape(timeN*nLevs*latN*lonN), 12).reshape(timeN*12, nLevs, latN, lonN)
-    #mean_data = npy.repeat(mean_data,shape_data,12)
-    mean_data = npy.tile(mean_data.reshape(nLevs*latN*lonN), 12).reshape(12, nLevs, latN, lonN)
+    mean_data = npy.tile(mean_data.reshape(nLevs*latN*lonN), timeN*12).reshape(timeN*12, nLevs, latN, lonN)
     # Remove drift from field and add mean
     field = field - drift_data + mean_data
 
