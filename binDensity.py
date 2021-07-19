@@ -308,8 +308,8 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     debug = True
     # find indices in drift file (annual values assumed)
 
-    trdmin = branch_year_idx + floor(trmin / 12)
-    trdmax = branch_year_idx + floor(trmax / 12) + 1
+    trdmin = branch_year_idx + npy.floor(trmin / 12)
+    trdmax = branch_year_idx + npy.floor(trmax / 12) + 1
     if debug:
         print 'trdmin, trdmax',trdmin, trdmax, trmin, trmax
 
