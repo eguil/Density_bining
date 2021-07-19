@@ -321,15 +321,18 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     fdm = cdm.open(meanstateFile)
     mean_data = fdm(var)
     shape_data = mean_data.shape
+    latN = shape_data[0]
+    lonN = shape_data[1]
+    timeN = trdmax[1] - trdmax[0] + 1
 
     if debug:
-        print 'shape data', shape_data
+        print 'shape data', shape_data, lonN, latN, timeN
 
     # Transform into monthly time serie (replicate annual into 12 months)
     #drift_data = npy.repeat(drift_data,shape_data,12)
-    drift_data = npy.tile(drift_data, (drift_data.shape, 12))
+    drift_data = npy.tile(drift_data.reshape(latN*lonN*timeN), 12).reshape(timeN*12, latN, lonN)
     #mean_data = npy.repeat(mean_data,shape_data,12)
-    mean_data = npy.tile(mean_data, (mean_data.shape, 12))
+    mean_data = npy.tile(mean_data.reshape(latN*lonN), 12).reshape(12, latN, lonN)
     # Remove drift from field and add mean
     field = field - drift_data + mean_data
 
