@@ -309,7 +309,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     # find indices in drift file (annual values assumed)
 
     trdmin = branch_year_idx[0] + int(npy.floor(trmin / 12))
-    trdmax = branch_year_idx[0] + int(npy.floor(trmax / 12) + 1)
+    trdmax = branch_year_idx[0] + int(npy.floor(trmax / 12))
     if debug:
         print 'trdmin, trdmax',trdmin[0], trdmax[0], trmin, trmax
 
@@ -324,7 +324,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     nLevs = shape_data[0]
     latN = shape_data[1]
     lonN = shape_data[2]
-    timeN = trdmax[0] - trdmin[0] - 1
+    timeN = trdmax[0] - trdmin[0]
 
     if debug:
         print 'shape mean data  ', shape_data, lonN, latN, nLevs, timeN
