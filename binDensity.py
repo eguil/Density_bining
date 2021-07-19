@@ -323,7 +323,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     shape_data = mean_data.shape
     latN = shape_data[0]
     lonN = shape_data[1]
-    timeN = trdmax[1] - trdmax[0] + 1
+    timeN = trdmax[0] - trdmin[0] + 1
 
     if debug:
         print 'shape data', shape_data, lonN, latN, timeN
