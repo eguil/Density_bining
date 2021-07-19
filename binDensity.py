@@ -327,7 +327,8 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     timeN = trdmax[0] - trdmin[0] - 1
 
     if debug:
-        print 'shape data', shape_data, lonN, latN, nLevs, timeN
+        print 'shape mean data  ', shape_data, lonN, latN, nLevs, timeN
+        print 'shape drift data ', drift_data.shape
 
     # Transform into monthly time serie (replicate annual into 12 months)
     #drift_data = npy.repeat(drift_data,shape_data,12)
