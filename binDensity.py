@@ -315,11 +315,11 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
 
     # Read corresponding drift data
     fdt = cdm.open(driftFile)
-    drift_data = fdt(var, time = slice(trdmin[0],trdmax[0])).data
+    drift_data = fdt(var, time = slice(trdmin[0],trdmax[0]))
 
     # Read mean state and add
     fdm = cdm.open(meanstateFile)
-    mean_data = fdm(var).data
+    mean_data = fdm(var)
     shape_data = mean_data.shape
     nLevs = shape_data[0]
     latN = shape_data[1]
@@ -753,10 +753,10 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs(varNames[1], time = slice(trmin,trmax))
         # dedrift
         if swdedrift:
-            data_tmp = dedriftfct(thetao.data, trmin, trmax, varNames[0], driftFileT, meanstateFileT, branch_year_idx, startdepth_idx)
-            print thetao.data.shape, data_tmp.shape, type(thetao.data), type(data_tmp)
-            thetao.data = data_tmp
-            so.data     = dedriftfct(so.data    , trmin, trmax, varNames[1], driftFileS, meanstateFileS, branch_year_idx, startdepth_idx)
+            thetao = dedriftfct(thetao, trmin, trmax, varNames[0], driftFileT, meanstateFileT, branch_year_idx, startdepth_idx)
+            #print thetao.data.shape, data_tmp.shape, type(thetao.data), type(data_tmp)
+            #thetao.data = data_tmp
+            so     = dedriftfct(so    , trmin, trmax, varNames[1], driftFileS, meanstateFileS, branch_year_idx, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
             thetao.data = gsw.pt_from_CT(so.data, thetao.data)
