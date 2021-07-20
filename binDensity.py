@@ -315,11 +315,11 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
 
     # Read corresponding drift data
     fdt = cdm.open(driftFile)
-    drift_data = fdt(var, time = slice(trdmin[0],trdmax[0]))
+    drift_data = fdt(var, time = slice(trdmin[0],trdmax[0])).data
 
     # Read mean state and add
     fdm = cdm.open(meanstateFile)
-    mean_data = fdm(var)
+    mean_data = fdm(var).data
     shape_data = mean_data.shape
     nLevs = shape_data[0]
     latN = shape_data[1]
