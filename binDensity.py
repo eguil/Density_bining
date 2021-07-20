@@ -1278,7 +1278,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             # create annual time axis
             timeyr          = cdm.createAxis(dy.getAxis(0))
             timeyr.id       = 'time'
-            timeyr.units    = time.units
+            timeyr.units    = timeax.units
             timeyr.designateTime()
             rhoAxesList[0]  = timeyr ; # replace time axis
 
