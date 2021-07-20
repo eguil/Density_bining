@@ -753,7 +753,9 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         so      = fs(varNames[1], time = slice(trmin,trmax))
         # dedrift
         if swdedrift:
-            thetao.data = dedriftfct(thetao.data, trmin, trmax, varNames[0], driftFileT, meanstateFileT, branch_year_idx, startdepth_idx)
+            data_tmp = dedriftfct(thetao.data, trmin, trmax, varNames[0], driftFileT, meanstateFileT, branch_year_idx, startdepth_idx)
+            print thetao.data.shape, data_tmp.shape, type(thetao.data), type(data_tmp)
+            thetao.data = data_tmp
             so.data     = dedriftfct(so.data    , trmin, trmax, varNames[1], driftFileS, meanstateFileS, branch_year_idx, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
