@@ -305,7 +305,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
 
     Notes:
     '''
-    debug = True
+    debug = False
     # find indices in drift file (annual values assumed)
 
     trdmin = branch_year_idx[0] + int(npy.floor(trmin / 12))
@@ -334,6 +334,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     # Transform into monthly time serie (replicate annual into 12 months)
     drift_data = npy.tile(drift_data.reshape(timeN*nLevs*latN*lonN), 12).reshape(timeN*12, nLevs, latN, lonN)
     mean_data = npy.tile(mean_data.reshape(nLevs*latN*lonN), timeN*12).reshape(timeN*12, nLevs, latN, lonN)
+
     # Remove drift from field and add mean
     field = field - drift_data + mean_data
 
