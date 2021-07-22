@@ -760,7 +760,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             so     = dedriftfct(so    , trmin, trmax, varNames[1], driftFileS, meanstateFileS, branch_year_idx, startdepth_idx)
         # convert to potential T and Sp if needed
         if TctoTp:
-            thetao.data = gsw.pt_from_CT(so.data, thetao.data)
+            thetao = gsw.pt_from_CT(so, thetao)
         if SatoSp:
             so.data = so.data #TODO *0.995 (check value)
         # Correct for mask value if needed
