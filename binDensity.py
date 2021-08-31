@@ -296,7 +296,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
     - startdepth_idx - depth index to start dedrift
 
     Output:
-    - fieldDedrift        - array with defirted field
+    - fieldDedrift        - array with dedrifted field
 
     Usage:
     ------
@@ -677,8 +677,8 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
         tcdel = min(24,tmax)
     else:
         tcdel = min(60,tmax)
-    #tcdel = min(12,tmax) # just for testing
-    tcdel = min(24, tmax) # faster than higher tcdel ?
+    tcdel = min(12,tmax) # just for testing
+    #tcdel = min(24, tmax) # faster than higher tcdel ?
     nyrtc = tcdel/12
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
     print ' ==> model:', modeln,' (grid size:', grdsize,')'
@@ -758,11 +758,11 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
             #print thetao.data.shape, data_tmp.shape, type(thetao.data), type(data_tmp)
             #thetao.data = data_tmp
             so     = dedriftfct(so    , trmin, trmax, varNames[1], driftFileS, meanstateFileS, branch_year_idx, startdepth_idx)
-        # convert to potential T and Sp if needed
+        # convert to potential T (Tp) and practical salnity (Sp) if needed
         if TctoTp:
             thetao = gsw.pt_from_CT(so, thetao)
         if SatoSp:
-            so.data = so.data #TODO *0.995 (check value)
+            so.data = so.data*0.9953 # TODO (check value)
         # Correct for mask value if needed
         if corrmask:
             #print ' thetao before correct :',thetao.data[0,:,jtest,itest]
