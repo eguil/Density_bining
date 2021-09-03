@@ -666,8 +666,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     ijtest = jtest*lonN + itest
 
     # Define time read interval (as function of 3D array size)
-    # TODO: review chunk calculation to optimize
-    # TODO: review chunk calculation to avoid missing end years when interval is not a multiple of tcdel
+    # TODO: define tcdel from outside code
     grdsize = lonN * latN * depthN
 
     # define number of months in each chunk
