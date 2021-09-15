@@ -342,7 +342,7 @@ def dedriftfct(field, trmin, trmax, var, driftFile, meanstateFile, branch_year_i
 
 
 
-def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc',debug=True,timeint='all',mthout=False,gridfT='none',gridfS='none',gridfV='none', varNames=['thetao','so'],dedrift=[' '],TctoTp=False, SatoSp=False):
+def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc',debug=True,timeint='all',tcdel='12',mthout=False,gridfT='none',gridfS='none',gridfV='none', varNames=['thetao','so'],dedrift=[' '],TctoTp=False, SatoSp=False):
     '''
     The densityBin() function takes file and variable arguments and creates
     density persistence fields which are written to a specified outfile
@@ -362,6 +362,7 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     - outFile(str)              - output file with full path specified.
     - debug <optional>          - boolean value
     - timeint <optional>        - specify temporal step for binning <init_idx>,<ncount>
+    - tcdel                     - chunk size to optimize CPU/I-O/memory (multiple of 12)
     - mthout <optional>         - write annual data (False) or all monthly data (True)
     - gridfT <optional>         - file to get T grid info from
     - gridfS <optional>         - file to get S grid info from
@@ -670,16 +671,17 @@ def densityBin(fileT,fileS,fileFx,targetGrid='none',fileV='none',outFile='out.nc
     grdsize = lonN * latN * depthN
 
     # define number of months in each chunk
-    if grdsize > 5.e7:
-        tcdel = min(12,tmax) ; # MIROC4h 24 months ~60Gb/50%
-    elif grdsize > 2.5e7:
-        tcdel = min(24,tmax)
-    else:
-        tcdel = min(60,tmax)
-    tcdel = min(12,tmax) # just for testing
+    #if grdsize > 5.e7:
+    #    tcdel = min(12,tmax) ; # MIROC4h 24 months ~60Gb/50%
+    #elif grdsize > 2.5e7:
+    #    tcdel = min(24,tmax)
+    #else:
+    #    tcdel = min(60,tmax)
+    #tcdel = min(12,tmax) # just for testing
     #tcdel = min(24, tmax) # faster than higher tcdel ?
     #tcdel = min(60, tmax) # to not miss odd number TS
-    nyrtc = tcdel/12
+
+    nyrtc = tcdel/12 # number of years in each chunk
     tcmax = (tmax-tmin)/tcdel ; # number of time chunks
     print ' ==> model:', modeln,' (grid size:', grdsize,')'
     print ' ==> time interval: ', tmin, tmax - 1
